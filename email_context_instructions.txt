@@ -1,0 +1,38 @@
+Email with instructions from Kevin:
+-----------------------------------
+This is the tricky part on our end.  Revision Set #1 and Revision Set #2.  They are both being priced for the Owner together.  We received Rev Set #1 with drawings, 
+then after that they then sent Rev Set #2.  So some of the drawings which were revised in Set #1, were then revised again in Set #2.  The lower left indicates the revision set date on the drawings.  
+
+
+To make a conformed set of drawings, we have to manually go through these documents, and combine them, then delete the previous revision or put a red X on it, and have the next revision page behind it, 
+so its pretty time consuming to make sure we are looking at the latest set of drawings and not working with a previous revision.  
+These have not been combined yet, so again some changes on revision set 2, are an updated sheet from revision set 1…..
+
+ 
+If you wanted to start with a different revision set, feel free, because most of those aren’t included in Rev 1 or 2.  
+
+ The clouded areas are the spots that are changing, and we need to get pricing on.  Let me know if you can figure something out with this to make this process easier
+
+Email #2:
+---------
+The tasks would be: 
+
+Combine Drawings and Some how mark the old revision as Superseded by the next revision
+
+Come up with a list of all clouded changes and what drawing they are on.
+
+For example Revision Set #1 has this change (which will also be indicated on later revisions etc.)
+
+The items in the clouds with arrows are detailing the new scope.  Some are doubled up, so wouldn’t need them listed twice if on the same detail, but separate details
+
+ 
+
+ [SEE IMAGE IN PROJECT ROOT F:\Desktop\drawing_revision\revision.png]
+
+2-Hr Rated Assembly Drawing AE-113
+1” Fire Shield Shaft liner
+2 ½ CT Studs 24 OC
+2 Layers 5/8 Fire Sheet Gyp
+Corner Bead
+
+^ The above come from the image.

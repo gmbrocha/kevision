@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}Revision Intelligence Dashboard{% endblock %}
+{% block page_lead %}A single local workspace for scanned revision sets, uncertain extractions, malformed PDF diagnostics, and reviewer-approved outputs.{% endblock %}
+{% block content %}
+  <section class="cards">
+    <article class="card">
+      <p class="eyebrow">Dataset</p>
+      <h2>Revision Sets</h2>
+      <p class="metric">{{ revision_rows|length }}</p>
+      <p class="muted">Packages currently indexed in this workspace.</p>
+    </article>
+    <article class="card">
+      <p class="eyebrow">Queue</p>
+      <h2>Recent Items</h2>
+      <p class="metric">{{ recent_changes|length }}</p>
+      <p class="muted">Freshly surfaced changes ready for review.</p>
+    </article>
+    <article class="card">
+      <p class="eyebrow">Diagnostics</p>
+      <h2>Warnings</h2>
+      <p class="metric">{{ diagnostic_summary.warning_count }}</p>
+      <p class="muted">Preflight events captured without touching the source PDFs.</p>
+    </article>
+    <article class="card">
+      <p class="eyebrow">Verification</p>
+      <h2>AI Status</h2>
+      <p class="metric">{{ "ON" if ai_enabled else "OFF" }}</p>
+      <p class="muted">Manual advisory verification only.</p>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h2>Dataset Overview</h2>
+      </div>
+      <a class="pill" href="{{ url_for('changes', status='pending', attention='1') }}">Open Attention Queue</a>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Revision Set</th>
+            <th>Sheets</th>
+            <th>Active</th>
+            <th>Superseded</th>
+            <th>Narrative Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in revision_rows %}
+            <tr>
+              <td>{{ row.revision_set.label }}</td>
+              <td>{{ row.sheet_count }}</td>
+              <td>{{ row.active_count }}</td>
+              <td>{{ row.superseded_count }}</td>
+              <td>{{ row.narrative_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="split">
+    <article class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Review Queue</p>
+          <h2>Recent Change Items</h2>
+        </div>
+        <a class="pill" href="{{ url_for('changes', status='pending') }}">View Full Queue</a>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Sheet</th>
+              <th>Detail</th>
+              <th>Status</th>
+              <th>Text</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in recent_changes %}
+              <tr>
+                <td><a href="{{ url_for('change_detail', change_id=item.id, queue='pending') }}">{{ item.sheet_id }}</a></td>
+                <td>{{ item.detail_ref or "n/a" }}</td>
+                <td>
+                  <span class="status {{ item.status }}">{{ item.status }}</span>
+                  {% if needs_attention(item) %}
+                    <span class="status attention">attention</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.reviewer_text or item.raw_text }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Triage</p>
+          <h2>Attention Queue</h2>
+        </div>
+        <a class="pill" href="{{ url_for('changes', status='pending', attention='1') }}">Review Attention Items</a>
+      </div>
+      <ul class="flat-list">
+        {% for item in attention_items %}
+          <li class="list-card">
+            <div class="list-card__header">
+              <strong><a href="{{ url_for('change_detail', change_id=item.id, queue='pending', attention='1') }}">{{ item.sheet_id }} {{ item.detail_ref or "no detail ref" }}</a></strong>
+              <span class="status attention">attention</span>
+            </div>
+            <div class="muted">{{ item.raw_text }}</div>
+          </li>
+        {% else %}
+          <li class="list-card">No weak extractions are currently flagged.</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Preflight</p>
+        <h2>PDF Hotspots</h2>
+      </div>
+      <a class="pill" href="{{ url_for('diagnostics') }}">Open Diagnostics</a>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>PDF</th>
+            <th>Severity</th>
+            <th>Issues</th>
+            <th>Warnings</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for document in noisy_documents %}
+            <tr>
+              <td>{{ document.source_pdf|pdf_label }}</td>
+              <td><span class="status {{ document.max_severity }}">{{ document.max_severity }}</span></td>
+              <td>{{ document.issue_count }}</td>
+              <td>{{ document.warning_count }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No preflight warnings detected.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

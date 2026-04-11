@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Revision Review Tool{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+  </head>
+  <body class="page-app">
+    <header class="navbar">
+      <div class="navbar__container">
+        <a id="navbar__logo" href="{{ url_for('dashboard') }}">
+          <span class="navbar__logo-primary">Revision</span>
+          <span class="navbar__logo-divider"></span>
+          <span class="navbar__logo-secondary">Review Tool</span>
+        </a>
+        <nav>
+          <ul class="navbar__menu">
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('sheets') }}">Sheets</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('changes') }}">Queue</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('diagnostics') }}">Diagnostics</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('export_view') }}">Export</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('settings') }}">Settings</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero-panel page-hero">
+        <div class="page-hero__content">
+          <p class="eyebrow">Local Review Workspace</p>
+          <h1>{% block page_heading %}Drawing Revision Review{% endblock %}</h1>
+          <p class="page-lead">{% block page_lead %}Review revision packages, verify ambiguous extractions, and export approved outputs without touching source PDFs.{% endblock %}</p>
+        </div>
+      </section>
+
+      <section class="summary-strip">
+        <article class="summary-strip__item">
+          <span class="summary-strip__value">{{ pending_count }}</span>
+          <h3>Pending</h3>
+          <p>Queue items still waiting on review.</p>
+        </article>
+        <article class="summary-strip__item">
+          <span class="summary-strip__value">{{ approved_count }}</span>
+          <h3>Approved</h3>
+          <p>Items ready to appear in exports.</p>
+        </article>
+        <article class="summary-strip__item">
+          <span class="summary-strip__value">{{ attention_count }}</span>
+          <h3>Needs Attention</h3>
+          <p>Low-signal visual extractions or missing detail refs.</p>
+        </article>
+        <article class="summary-strip__item">
+          <span class="summary-strip__value">{{ diagnostic_summary.affected_document_count }}</span>
+          <h3>Docs With Warnings</h3>
+          <p>Preflight-detected PDF integrity issues.</p>
+        </article>
+      </section>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="flash-stack">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "revision_sets": 2,
+  "documents": 2,
+  "sheets": 78,
+  "clouds": 180,
+  "change_items": 161,
+  "preflight_issues": 219,
+  "attention_items": 79,
+  "visual_methods": {
+    "opencv-contour+ocr": 5,
+    "opencv-contour+pdf-text": 148
+  }
+}

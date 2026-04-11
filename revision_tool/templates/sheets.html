@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Sheets{% endblock %}
+{% block page_heading %}Sheet Versions{% endblock %}
+{% block page_lead %}Review active and superseded sheets across all scanned revision packages, with revision notes and issue dates preserved for comparison.{% endblock %}
+{% block content %}
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Index</p>
+        <h2>Sheet Versions</h2>
+      </div>
+      <span class="pill">{{ sheets|length }} visible sheets</span>
+    </div>
+    <form class="toolbar toolbar-grid" method="get">
+      <label>
+        <span class="label-text">Status</span>
+        <select name="status" onchange="this.form.submit()">
+          {% for value in ["all", "active", "superseded"] %}
+            <option value="{{ value }}" {% if filter_status == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sheet</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Issue Date</th>
+            <th>Revision Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sheet in sheets %}
+            <tr>
+              <td><a href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">{{ sheet.sheet_id }}</a></td>
+              <td>{{ sheet.sheet_title }}</td>
+              <td><span class="status {{ sheet.status }}">{{ sheet.status }}</span></td>
+              <td>{{ sheet.issue_date or "n/a" }}</td>
+              <td>{{ "; ".join(sheet.revision_entries) if sheet.revision_entries else "n/a" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

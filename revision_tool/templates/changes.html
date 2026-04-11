@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Review Queue{% endblock %}
+{% block page_heading %}Review Queue{% endblock %}
+{% block page_lead %}Filter by status, search specific sheets or notes, isolate weak extractions, and apply bulk actions when the queue is obvious.{% endblock %}
+{% block content %}
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Queue Controls</p>
+        <h2>Review Queue</h2>
+      </div>
+      <span class="pill">{{ items|length }} visible items</span>
+    </div>
+
+    <form class="toolbar toolbar-grid" method="get">
+      <label>
+        <span class="label-text">Status</span>
+        <select name="status" onchange="this.form.submit()">
+          {% for value in ["pending", "approved", "rejected", "all"] %}
+            <option value="{{ value }}" {% if filter_status == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span class="label-text">Search</span>
+        <input type="search" name="q" value="{{ search_query }}" placeholder="sheet, detail, text, source">
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" name="attention" value="1" {% if attention_only %}checked{% endif %}>
+        <span>Attention items only</span>
+      </label>
+      <div class="toolbar-actions">
+        <button type="submit">Apply Filters</button>
+      </div>
+    </form>
+
+    <form method="post" action="{{ url_for('bulk_review') }}" class="bulk-form">
+      <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0') }}">
+      <div class="toolbar toolbar-grid">
+        <label>
+          <span class="label-text">Bulk Action</span>
+          <select name="status">
+            <option value="approved">approve selected</option>
+            <option value="rejected">reject selected</option>
+            <option value="pending">mark pending</option>
+          </select>
+        </label>
+        <div class="toolbar-actions">
+          <button type="button" class="secondary js-toggle-checkboxes" data-target=".js-queue-checkbox">Toggle Selection</button>
+          <button type="submit">Run Bulk Action</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" class="js-master-checkbox" data-target=".js-queue-checkbox" aria-label="Select all"></th>
+              <th>Sheet</th>
+              <th>Detail</th>
+              <th>Status</th>
+              <th>Signal</th>
+              <th>Text</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td><input type="checkbox" class="js-queue-checkbox" name="change_ids" value="{{ item.id }}"></td>
+                <td>{{ item.sheet_id }}</td>
+                <td><a href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0') }}">{{ item.detail_ref or "n/a" }}</a></td>
+                <td>
+                  <span class="status {{ item.status }}">{{ item.status }}</span>
+                  {% if needs_attention(item) %}
+                    <span class="status attention">attention</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if item.provenance.extraction_signal is defined %}
+                    <span class="signal-badge {% if needs_attention(item) %}signal-badge--low{% endif %}">{{ "%.2f"|format(item.provenance.extraction_signal) }}</span>
+                  {% else %}
+                    <span class="muted">n/a</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.reviewer_text or item.raw_text }}</td>
+                <td>{{ item.provenance.source }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7">No queue items match the current filters.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+  </section>
+{% endblock %}

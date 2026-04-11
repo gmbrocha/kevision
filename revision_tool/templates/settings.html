@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_heading %}Settings and Audit{% endblock %}
+{% block page_lead %}The app works without AI access. Verification remains manual, advisory, and fully auditable when enabled.{% endblock %}
+{% block content %}
+  <section class="split">
+    <article class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Provider</p>
+          <h2>Verification Provider</h2>
+        </div>
+        <span class="status {{ 'approved' if provider.enabled else 'pending' }}">{{ "enabled" if provider.enabled else "disabled" }}</span>
+      </div>
+      <div class="stack">
+        <div><strong>Provider:</strong> {{ provider.name }}</div>
+        <div>Enable verification by setting <code>OPENAI_API_KEY</code>. Use <code>OPENAI_VERIFY_MODEL</code> to override the default verification model.</div>
+        <div><strong>Preflight:</strong> {{ diagnostic_summary.affected_document_count }} of {{ diagnostic_summary.document_count }} documents produced warnings during scan.</div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Current Safeguards</p>
+          <h2>Robustness Notes</h2>
+        </div>
+      </div>
+      <ul class="flat-list">
+        <li class="list-card">Malformed PDF warnings are captured during scan and exported as diagnostics.</li>
+        <li class="list-card">Weak visual-region extractions are flagged as attention items instead of silently blending into the queue.</li>
+        <li class="list-card">AI suggestions are stored as audit records and never overwrite approved reviewer text on their own.</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Audit Log</p>
+        <h2>Verification History</h2>
+      </div>
+    </div>
+    <ul class="flat-list">
+      {% for verification in verification_history %}
+        <li class="list-card">
+          <div class="list-card__header">
+            <strong>{{ verification.created_at }}</strong>
+            <span class="pill">{{ verification.provider }}</span>
+          </div>
+          <div class="muted">{{ verification.change_item_id }}</div>
+          <div class="verification-card">
+            <div><strong>Verdict:</strong> {{ verification.response_payload.verdict or "n/a" }}</div>
+            <div><strong>Reasoning:</strong> {{ verification.response_payload.reasoning or "n/a" }}</div>
+          </div>
+        </li>
+      {% else %}
+        <li class="list-card">No verification records have been written yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}
