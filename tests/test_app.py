@@ -66,11 +66,24 @@ def test_export_only_approved_items_when_forced(workspace_copy):
 
     outputs = Exporter(store).export(force_attention=True)
     rows = json.loads((store.output_dir / "approved_changes.json").read_text(encoding="utf-8"))
+    pricing_candidates = json.loads((store.output_dir / "pricing_change_candidates.json").read_text(encoding="utf-8"))
+    pricing_log = json.loads((store.output_dir / "pricing_change_log.json").read_text(encoding="utf-8"))
+    conformed_index = json.loads((store.output_dir / "conformed_sheet_index.json").read_text(encoding="utf-8"))
     diagnostics = json.loads((store.output_dir / "preflight_diagnostics.json").read_text(encoding="utf-8"))
 
     assert rows
     assert rows[0]["text"] == "Verified approved scope"
+    assert pricing_candidates
+    assert any(row["change_id"] == pending.id for row in pricing_candidates)
+    assert pricing_log
+    assert pricing_log[0]["pricing_status"] == "approved"
+    assert pricing_log[0]["change_summary"] == "Verified approved scope"
+    assert conformed_index
+    assert any(row["latest_for_pricing"] for row in conformed_index)
     assert "conformed_preview_pdf" in outputs
+    assert "pricing_change_candidates_csv" in outputs
+    assert "pricing_change_log_csv" in outputs
+    assert "conformed_sheet_index_csv" in outputs
     assert "preflight_diagnostics_csv" in outputs
     assert diagnostics["issues"]
     assert store.data.exports[-1]["forced_attention"] is True

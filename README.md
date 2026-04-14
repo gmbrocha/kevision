@@ -56,9 +56,15 @@ Exports include:
 
 - `approved_changes.csv`
 - `approved_changes.json`
+- `pricing_change_candidates.csv`
+- `pricing_change_candidates.json`
+- `pricing_change_log.csv`
+- `pricing_change_log.json`
 - `preflight_diagnostics.csv`
 - `preflight_diagnostics.json`
 - `supersedence.csv`
+- `conformed_sheet_index.csv`
+- `conformed_sheet_index.json`
 - `revision_index.csv`
 - `conformed_preview.pdf`
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,6 +11,7 @@ import fitz
 from .diagnostics import configure_mupdf
 from .models import ChangeItem, SheetVersion
 from .review import change_item_needs_attention
+from .utils import clean_display_text, parse_mmddyyyy
 from .workspace import WorkspaceStore
 
 
@@ -34,7 +36,13 @@ class Exporter:
         outputs = {
             "approved_changes_csv": str(self._write_approved_csv(approved)),
             "approved_changes_json": str(self._write_approved_json(approved)),
+            "pricing_change_candidates_csv": str(self._write_pricing_change_candidates_csv()),
+            "pricing_change_candidates_json": str(self._write_pricing_change_candidates_json()),
+            "pricing_change_log_csv": str(self._write_pricing_change_log_csv()),
+            "pricing_change_log_json": str(self._write_pricing_change_log_json()),
             "supersedence_csv": str(self._write_supersedence_csv()),
+            "conformed_sheet_index_csv": str(self._write_conformed_sheet_index_csv()),
+            "conformed_sheet_index_json": str(self._write_conformed_sheet_index_json()),
             "revision_index_csv": str(self._write_revision_index_csv()),
             "preflight_diagnostics_csv": str(self._write_preflight_diagnostics_csv()),
             "preflight_diagnostics_json": str(self._write_preflight_diagnostics_json()),
@@ -100,6 +108,151 @@ class Exporter:
         path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
         return path
 
+    def _build_sheet_context_maps(self) -> tuple[dict[str, object], dict[str, SheetVersion]]:
+        revision_sets_by_id = {revision_set.id: revision_set for revision_set in self.store.data.revision_sets}
+        active_by_sheet_id = {sheet.sheet_id: sheet for sheet in self.store.data.sheets if sheet.status == "active"}
+        return revision_sets_by_id, active_by_sheet_id
+
+    def _build_pricing_change_row(self, item: ChangeItem) -> dict[str, object]:
+        revision_sets_by_id, active_by_sheet_id = self._build_sheet_context_maps()
+        sheet = self.store.get_sheet(item.sheet_version_id)
+        revision_set = revision_sets_by_id[sheet.revision_set_id]
+        latest_sheet = active_by_sheet_id.get(sheet.sheet_id, sheet)
+        reviewer_text = clean_display_text(item.reviewer_text or item.raw_text)
+        scope_lines = self._extract_scope_lines(reviewer_text)
+        latest_revision_set = revision_sets_by_id[latest_sheet.revision_set_id]
+        relevance_reason = self._pricing_relevance_reason(sheet.sheet_title, scope_lines, reviewer_text, str(item.provenance.get("source", "")))
+
+        return {
+            "change_id": item.id,
+            "revision_set_number": revision_set.set_number,
+            "revision_set_label": revision_set.label,
+            "sheet_id": item.sheet_id,
+            "sheet_title": self._display_sheet_title(sheet.sheet_title),
+            "detail_ref": item.detail_ref or "",
+            "detail_title": "",
+            "change_summary": self._build_change_summary(scope_lines, reviewer_text),
+            "scope_lines": scope_lines,
+            "pricing_status": item.status,
+            "needs_attention": change_item_needs_attention(item),
+            "source_kind": str(item.provenance.get("source", "")),
+            "extraction_signal": item.provenance.get("extraction_signal"),
+            "source_pdf": sheet.source_pdf,
+            "page_number": sheet.page_number,
+            "sheet_version_id": sheet.id,
+            "sheet_version_status": sheet.status,
+            "superseded_by_revision_set": latest_revision_set.set_number if latest_sheet.id != sheet.id else "",
+            "latest_for_pricing": latest_sheet.id == sheet.id,
+            "reviewer_notes": clean_display_text(item.reviewer_notes),
+            "pricing_relevance": relevance_reason == "likely-pricing-scope",
+            "relevance_reason": relevance_reason,
+        }
+
+    def _pricing_candidate_rows(self) -> list[dict[str, object]]:
+        rows = [
+            row
+            for item in self.store.data.change_items
+            if item.status != "rejected"
+            for row in [self._build_pricing_change_row(item)]
+            if row["pricing_relevance"]
+        ]
+        return sorted(
+            rows,
+            key=lambda row: (
+                not row["latest_for_pricing"],
+                row["revision_set_number"],
+                row["sheet_id"],
+                row["detail_ref"],
+                row["change_id"],
+            ),
+        )
+
+    def _pricing_log_rows(self) -> list[dict[str, object]]:
+        rows = [row for row in self._pricing_candidate_rows() if row["pricing_status"] == "approved" and row["latest_for_pricing"]]
+        return sorted(rows, key=lambda row: (row["sheet_id"], row["detail_ref"], row["change_id"]))
+
+    def _write_pricing_change_candidates_csv(self) -> Path:
+        path = self.store.output_dir / "pricing_change_candidates.csv"
+        rows = self._pricing_candidate_rows()
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=[
+                    "change_id",
+                    "revision_set_number",
+                    "revision_set_label",
+                    "sheet_id",
+                    "sheet_title",
+                    "detail_ref",
+                    "detail_title",
+                    "change_summary",
+                    "scope_lines",
+                    "pricing_status",
+                    "needs_attention",
+                    "source_kind",
+                    "extraction_signal",
+                    "source_pdf",
+                    "page_number",
+                    "sheet_version_id",
+                    "sheet_version_status",
+                    "superseded_by_revision_set",
+                    "latest_for_pricing",
+                    "reviewer_notes",
+                    "pricing_relevance",
+                    "relevance_reason",
+                ],
+            )
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({**row, "scope_lines": "; ".join(row["scope_lines"])})
+        return path
+
+    def _write_pricing_change_candidates_json(self) -> Path:
+        path = self.store.output_dir / "pricing_change_candidates.json"
+        path.write_text(json.dumps(self._pricing_candidate_rows(), indent=2), encoding="utf-8")
+        return path
+
+    def _write_pricing_change_log_csv(self) -> Path:
+        path = self.store.output_dir / "pricing_change_log.csv"
+        rows = self._pricing_log_rows()
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=[
+                    "change_id",
+                    "revision_set_number",
+                    "revision_set_label",
+                    "sheet_id",
+                    "sheet_title",
+                    "detail_ref",
+                    "detail_title",
+                    "change_summary",
+                    "scope_lines",
+                    "pricing_status",
+                    "needs_attention",
+                    "source_kind",
+                    "extraction_signal",
+                    "source_pdf",
+                    "page_number",
+                    "sheet_version_id",
+                    "sheet_version_status",
+                    "superseded_by_revision_set",
+                    "latest_for_pricing",
+                    "reviewer_notes",
+                    "pricing_relevance",
+                    "relevance_reason",
+                ],
+            )
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({**row, "scope_lines": "; ".join(row["scope_lines"])})
+        return path
+
+    def _write_pricing_change_log_json(self) -> Path:
+        path = self.store.output_dir / "pricing_change_log.json"
+        path.write_text(json.dumps(self._pricing_log_rows(), indent=2), encoding="utf-8")
+        return path
+
     def _write_supersedence_csv(self) -> Path:
         path = self.store.output_dir / "supersedence.csv"
         with path.open("w", newline="", encoding="utf-8") as handle:
@@ -119,6 +272,72 @@ class Exporter:
                         "issue_date": sheet.issue_date or "",
                     }
                 )
+        return path
+
+    def _conformed_sheet_index_rows(self) -> list[dict[str, object]]:
+        revision_sets_by_id, active_by_sheet_id = self._build_sheet_context_maps()
+        rows = []
+        for sheet in self.store.data.sheets:
+            revision_set = revision_sets_by_id[sheet.revision_set_id]
+            latest_sheet = active_by_sheet_id.get(sheet.sheet_id, sheet)
+            latest_revision_set = revision_sets_by_id[latest_sheet.revision_set_id]
+            rows.append(
+                {
+                    "sheet_id": sheet.sheet_id,
+                    "sheet_title": self._display_sheet_title(sheet.sheet_title),
+                    "sheet_version_id": sheet.id,
+                    "revision_set_number": revision_set.set_number,
+                    "revision_set_label": revision_set.label,
+                    "issue_date": sheet.issue_date or "",
+                    "sheet_version_status": sheet.status,
+                    "source_pdf": sheet.source_pdf,
+                    "page_number": sheet.page_number,
+                    "latest_sheet_version_id": latest_sheet.id,
+                    "latest_revision_set_number": latest_revision_set.set_number,
+                    "latest_revision_set_label": latest_revision_set.label,
+                    "latest_source_pdf": latest_sheet.source_pdf,
+                    "latest_page_number": latest_sheet.page_number,
+                    "latest_for_pricing": latest_sheet.id == sheet.id,
+                    "render_path": sheet.render_path,
+                }
+            )
+        return sorted(
+            rows,
+            key=lambda row: (row["sheet_id"], not row["latest_for_pricing"], row["revision_set_number"], row["page_number"]),
+        )
+
+    def _write_conformed_sheet_index_csv(self) -> Path:
+        path = self.store.output_dir / "conformed_sheet_index.csv"
+        rows = self._conformed_sheet_index_rows()
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=[
+                    "sheet_id",
+                    "sheet_title",
+                    "sheet_version_id",
+                    "revision_set_number",
+                    "revision_set_label",
+                    "issue_date",
+                    "sheet_version_status",
+                    "source_pdf",
+                    "page_number",
+                    "latest_sheet_version_id",
+                    "latest_revision_set_number",
+                    "latest_revision_set_label",
+                    "latest_source_pdf",
+                    "latest_page_number",
+                    "latest_for_pricing",
+                    "render_path",
+                ],
+            )
+            writer.writeheader()
+            writer.writerows(rows)
+        return path
+
+    def _write_conformed_sheet_index_json(self) -> Path:
+        path = self.store.output_dir / "conformed_sheet_index.json"
+        path.write_text(json.dumps(self._conformed_sheet_index_rows(), indent=2), encoding="utf-8")
         return path
 
     def _write_revision_index_csv(self) -> Path:
@@ -228,3 +447,160 @@ class Exporter:
         }
         path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return path
+
+    def _extract_scope_lines(self, text: str) -> list[str]:
+        cleaned = clean_display_text(text)
+        if not cleaned:
+            return []
+
+        if "|" in cleaned:
+            parts = cleaned.split("|")
+        elif "\n" in text:
+            parts = re.split(r"[\r\n]+", text)
+        else:
+            parts = re.split(r"\s*;\s*", cleaned)
+
+        lines: list[str] = []
+        seen: set[str] = set()
+        for part in parts:
+            line = clean_display_text(part).strip(" -|:,.;")
+            if not line:
+                continue
+            normalized = line.lower()
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            lines.append(line)
+
+        if lines:
+            return lines[:8]
+        return [cleaned]
+
+    def _build_change_summary(self, scope_lines: list[str], fallback_text: str) -> str:
+        if not scope_lines:
+            return clean_display_text(fallback_text)
+        if len(scope_lines) == 1:
+            return scope_lines[0]
+        summary = "; ".join(scope_lines[:2])
+        if len(scope_lines) > 2:
+            summary += f" (+{len(scope_lines) - 2} more)"
+        return summary
+
+    def _display_sheet_title(self, sheet_title: str) -> str:
+        title = clean_display_text(sheet_title)
+        if self._looks_like_sheet_index_title(title):
+            return "Sheet Index / Conformed Set"
+        return title
+
+    def _pricing_relevance_reason(self, sheet_title: str, scope_lines: list[str], fallback_text: str, source_kind: str) -> str:
+        if self._looks_like_sheet_index_title(sheet_title):
+            return "sheet-index-page"
+
+        combined_text = clean_display_text(" ".join(scope_lines) or fallback_text)
+        if not combined_text:
+            return "empty-text"
+
+        if source_kind == "narrative":
+            return "likely-pricing-scope"
+
+        if self._is_likely_locator_text(scope_lines or [combined_text]):
+            return "locator-only-text"
+
+        if self._contains_pricing_scope_signal(combined_text):
+            return "likely-pricing-scope"
+
+        if len(scope_lines) == 1 and len(scope_lines[0]) <= 8:
+            return "too-short"
+
+        return "likely-pricing-scope"
+
+    def _looks_like_sheet_index_title(self, sheet_title: str) -> bool:
+        title = clean_display_text(sheet_title).upper()
+        if not title:
+            return False
+        if any(token in title for token in ("SHEET INDEX", "CONFORMED SET", "PAGE NO.", "SHEET NO.")):
+            return True
+        if len(title) > 220 and title.count(" X ") >= 6:
+            return True
+        return False
+
+    def _is_likely_locator_text(self, scope_lines: list[str]) -> bool:
+        lines = [clean_display_text(line) for line in scope_lines if clean_display_text(line)]
+        if not lines:
+            return False
+        if any(self._contains_pricing_scope_signal(line) for line in lines):
+            return False
+
+        locator_pattern = re.compile(
+            r"^(?:"
+            r"SIM|SIM\.|TYP|EAST|WEST|NORTH|SOUTH|CENTER|CENTRAL|CENTRAL STAIR|EXIST STAIR|STAIR|ROOM|RADIO ROOM|UNISEX TOILET|"
+            r"CHAPEL|BUILDING|VALLEY|RIDGE|SHOWER|BATHROOM|ALCOVE|TOILET|"
+            r"[A-Z]{1,3}\d{2,4}(?:\.\d+)?|"
+            r"\d+[A-Z]?\d*[A-Z]?|"
+            r"Z\.\d+|"
+            r"\d+/\w+\d+"
+            r")$",
+            re.IGNORECASE,
+        )
+        tokens: list[str] = []
+        for line in lines:
+            tokens.extend(part.strip() for part in line.split(";"))
+        tokens = [token for token in tokens if token]
+        if not tokens:
+            return False
+        return all(locator_pattern.fullmatch(token) for token in tokens)
+
+    def _contains_pricing_scope_signal(self, text: str) -> bool:
+        upper = clean_display_text(text).upper()
+        strong_scope_tokens = (
+            "ADD",
+            "REMOVE",
+            "REPLACE",
+            "INSTALL",
+            "PROVIDE",
+            "PATCH",
+            "REPAIR",
+            "DEMOLISH",
+            "STUD",
+            "GYPSUM",
+            "BOARD",
+            "SHAFTLINER",
+            "SHAFT LINER",
+            "BEAD",
+            "DUCT",
+            "PIPE",
+            "PIPING",
+            "VALVE",
+            "DRAIN",
+            "GRAB BAR",
+            "SUPPORT",
+            "ASSEMBLY",
+            "RATED",
+            "ENCLOSURE",
+            "CONCRETE",
+            "FASTEN",
+            "INSULATION",
+            "MASONRY",
+            "OPENING",
+            "FRAME",
+            "CAULK",
+            "FIRE",
+            "ACCESSORY",
+            "HWR",
+            "HWS",
+            "HW",
+            "VTR",
+            "BLOCKING",
+            "TRACK",
+            "BEAM",
+            "RISER",
+        )
+        if any(token in upper for token in strong_scope_tokens):
+            return True
+
+        quantity_material_patterns = (
+            r'\b\d+(?:\s+\d/\d+)?["\']?\s*(?:CT|MTL|METAL)?\s*STUDS?\b',
+            r'\b\d+(?:\s+\d/\d+)?["\']?\s*(?:FIRE[- ]SHIELD|GYP|GYPSUM|BOARD|PIPE|DUCT)\b',
+            r'\b(?:LAYER|LAYERS)\s+\d',
+        )
+        return any(re.search(pattern, upper, re.IGNORECASE) for pattern in quantity_material_patterns)
