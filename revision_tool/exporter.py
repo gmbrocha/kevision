@@ -19,10 +19,14 @@ class ExportBlockedError(RuntimeError):
     pass
 
 
+PLACEHOLDER_SCOPE_PATTERN = re.compile(r"^possible revision region(\s+near\s+.+)?$", re.IGNORECASE)
+
+
 class Exporter:
     def __init__(self, store: WorkspaceStore):
         configure_mupdf()
         self.store = store
+        self.last_summary: dict[str, object] = {}
 
     def export(self, force_attention: bool = False) -> dict[str, str]:
         pending_attention = [
@@ -48,6 +52,8 @@ class Exporter:
             "preflight_diagnostics_json": str(self._write_preflight_diagnostics_json()),
             "conformed_preview_pdf": str(self._write_preview_pdf()),
         }
+        summary = self._build_summary(approved=approved, pending_attention=pending_attention, force_attention=force_attention)
+        self.last_summary = summary
         self.store.data.exports.append(
             {
                 "created_at": datetime.now(timezone.utc).isoformat(),
@@ -56,10 +62,43 @@ class Exporter:
                 "pending_count": len([item for item in self.store.data.change_items if item.status == "pending"]),
                 "attention_pending_count": len(pending_attention),
                 "forced_attention": force_attention,
+                "summary": summary,
             }
         )
         self.store.save()
         return outputs
+
+    def _build_summary(
+        self,
+        approved: list[ChangeItem],
+        pending_attention: list[ChangeItem],
+        force_attention: bool,
+    ) -> dict[str, object]:
+        all_rows = self._all_pricing_rows()
+        candidate_rows = [row for row in all_rows if row["pricing_relevance"]]
+        log_rows = [row for row in candidate_rows if row["pricing_status"] == "approved" and row["latest_for_pricing"]]
+        sheets = self.store.data.sheets
+        change_items = self.store.data.change_items
+        filtered_by_reason: dict[str, int] = {}
+        for row in all_rows:
+            if not row["pricing_relevance"]:
+                reason = str(row["relevance_reason"])
+                filtered_by_reason[reason] = filtered_by_reason.get(reason, 0) + 1
+        return {
+            "output_dir": str(self.store.output_dir),
+            "approved_count": len(approved),
+            "pending_count": len([item for item in change_items if item.status == "pending"]),
+            "rejected_count": len([item for item in change_items if item.status == "rejected"]),
+            "attention_pending_count": len(pending_attention),
+            "force_attention": force_attention,
+            "pricing_log_count": len(log_rows),
+            "pricing_candidate_count": len(candidate_rows),
+            "filtered_count": sum(filtered_by_reason.values()),
+            "filtered_by_reason": filtered_by_reason,
+            "active_sheet_count": len([sheet for sheet in sheets if sheet.status == "active"]),
+            "superseded_sheet_count": len([sheet for sheet in sheets if sheet.status == "superseded"]),
+            "revision_set_count": len(self.store.data.revision_sets),
+        }
 
     def _write_approved_csv(self, approved: list[ChangeItem]) -> Path:
         path = self.store.output_dir / "approved_changes.csv"
@@ -148,14 +187,15 @@ class Exporter:
             "relevance_reason": relevance_reason,
         }
 
-    def _pricing_candidate_rows(self) -> list[dict[str, object]]:
-        rows = [
-            row
+    def _all_pricing_rows(self) -> list[dict[str, object]]:
+        return [
+            self._build_pricing_change_row(item)
             for item in self.store.data.change_items
             if item.status != "rejected"
-            for row in [self._build_pricing_change_row(item)]
-            if row["pricing_relevance"]
         ]
+
+    def _pricing_candidate_rows(self) -> list[dict[str, object]]:
+        rows = [row for row in self._all_pricing_rows() if row["pricing_relevance"]]
         return sorted(
             rows,
             key=lambda row: (
@@ -500,6 +540,9 @@ class Exporter:
         if not combined_text:
             return "empty-text"
 
+        if self._is_placeholder_scope(scope_lines, combined_text):
+            return "placeholder-no-readable-scope"
+
         if source_kind == "narrative":
             return "likely-pricing-scope"
 
@@ -513,6 +556,15 @@ class Exporter:
             return "too-short"
 
         return "likely-pricing-scope"
+
+    def _is_placeholder_scope(self, scope_lines: list[str], combined_text: str) -> bool:
+        candidates: list[str] = list(scope_lines) if scope_lines else []
+        if combined_text:
+            candidates.append(combined_text)
+        for candidate in candidates:
+            if PLACEHOLDER_SCOPE_PATTERN.match(candidate.strip()):
+                return True
+        return False
 
     def _looks_like_sheet_index_title(self, sheet_title: str) -> bool:
         title = clean_display_text(sheet_title).upper()

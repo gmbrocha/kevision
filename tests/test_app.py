@@ -64,7 +64,8 @@ def test_export_only_approved_items_when_forced(workspace_copy):
     pending = next(item for item in store.data.change_items if item.status == "pending")
     store.update_change_item(pending.id, status="approved", reviewer_text="Verified approved scope")
 
-    outputs = Exporter(store).export(force_attention=True)
+    exporter = Exporter(store)
+    outputs = exporter.export(force_attention=True)
     rows = json.loads((store.output_dir / "approved_changes.json").read_text(encoding="utf-8"))
     pricing_candidates = json.loads((store.output_dir / "pricing_change_candidates.json").read_text(encoding="utf-8"))
     pricing_log = json.loads((store.output_dir / "pricing_change_log.json").read_text(encoding="utf-8"))
@@ -87,6 +88,87 @@ def test_export_only_approved_items_when_forced(workspace_copy):
     assert "preflight_diagnostics_csv" in outputs
     assert diagnostics["issues"]
     assert store.data.exports[-1]["forced_attention"] is True
+
+    summary = exporter.last_summary
+    assert summary["pricing_log_count"] == len(pricing_log)
+    assert summary["pricing_candidate_count"] == len(pricing_candidates)
+    assert summary["active_sheet_count"] == len([sheet for sheet in store.data.sheets if sheet.status == "active"])
+    assert summary["superseded_sheet_count"] == len([sheet for sheet in store.data.sheets if sheet.status == "superseded"])
+    assert summary["revision_set_count"] == len(store.data.revision_sets)
+    assert store.data.exports[-1]["summary"] == summary
+
+
+def test_pricing_outputs_filter_placeholder_revision_regions(workspace_copy):
+    store = WorkspaceStore(workspace_copy).load()
+    seed_item = next(item for item in store.data.change_items if item.status == "pending")
+    placeholder_text = (
+        f"Possible revision region near {seed_item.detail_ref}"
+        if seed_item.detail_ref
+        else "Possible revision region"
+    )
+    store.update_change_item(seed_item.id, status="approved", reviewer_text=placeholder_text)
+    real_item = next(
+        item
+        for item in store.data.change_items
+        if item.id != seed_item.id and item.status == "pending"
+    )
+    store.update_change_item(
+        real_item.id,
+        status="approved",
+        reviewer_text="Patch and repair gypsum board, install new corner bead",
+    )
+
+    exporter = Exporter(store)
+    exporter.export(force_attention=True)
+    candidates = json.loads((store.output_dir / "pricing_change_candidates.json").read_text(encoding="utf-8"))
+    log = json.loads((store.output_dir / "pricing_change_log.json").read_text(encoding="utf-8"))
+
+    assert all(row["change_id"] != seed_item.id for row in candidates), "Placeholder rows should be filtered from candidates"
+    assert all(row["change_id"] != seed_item.id for row in log), "Placeholder rows should never appear in the pricing log"
+    assert any(row["change_id"] == real_item.id for row in log), "Real approved scope should still reach the pricing log"
+
+    filtered = exporter.last_summary["filtered_by_reason"]
+    assert filtered.get("placeholder-no-readable-scope", 0) >= 1
+
+
+def test_cli_export_summary_is_human_readable():
+    from revision_tool.cli import format_export_summary
+
+    summary = {
+        "output_dir": "/tmp/workspace/outputs",
+        "approved_count": 4,
+        "pending_count": 2,
+        "rejected_count": 1,
+        "attention_pending_count": 1,
+        "force_attention": True,
+        "pricing_log_count": 3,
+        "pricing_candidate_count": 5,
+        "filtered_count": 9,
+        "filtered_by_reason": {
+            "placeholder-no-readable-scope": 6,
+            "sheet-index-page": 3,
+        },
+        "active_sheet_count": 12,
+        "superseded_sheet_count": 4,
+        "revision_set_count": 2,
+    }
+    outputs = {
+        "pricing_change_log_csv": "/tmp/workspace/outputs/pricing_change_log.csv",
+        "pricing_change_candidates_csv": "/tmp/workspace/outputs/pricing_change_candidates.csv",
+        "conformed_sheet_index_csv": "/tmp/workspace/outputs/conformed_sheet_index.csv",
+        "conformed_preview_pdf": "/tmp/workspace/outputs/conformed_preview.pdf",
+    }
+    text = format_export_summary(summary, outputs, Path("/tmp/workspace"))
+
+    assert "Pricing-ready rows" in text
+    assert "3 items" in text
+    assert "pricing_change_log.csv" in text
+    assert "Conformed sheet set" in text
+    assert "12 latest sheets" in text
+    assert "Filtered out as noise" in text
+    assert "clouded regions with no readable text" in text
+    assert "WARNING" in text
+    assert "python -m revision_tool serve" in text
 
 
 def test_web_routes_render_without_ai(workspace_copy):
