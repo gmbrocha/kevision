@@ -68,5 +68,4 @@ Running list of things we need from Kevin (the buddy / target user). Add as we d
 ## Notes / observations to verify with him
 
 - [ ] **Pricing module is dead** — He's confirmed pricing isn't part of this scope. Sanity-check we're not throwing out anything he secretly wanted.
-- [ ] **Cloud geometry insight** — Each cloud is a chain of identical scallops (two arcs, fixed ratio); rectangular-shape clouds are just rotated. Confirm this matches every cloud he's seen, including across different architects' standards.
 - [ ] **Δ-marker + X-column + cloud** — These three signals should agree on "this row is in this revision". Disagreement = flag. Confirm he expects these to always agree in practice (otherwise we calibrate the flag threshold).
