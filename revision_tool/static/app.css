@@ -298,6 +298,119 @@ li {
   padding: 24px;
 }
 
+.card--link {
+  display: block;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.card--link:hover,
+.card--link:focus-visible {
+  border-color: var(--color-seafoam-400);
+  background: rgba(32, 178, 170, 0.08);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.card--link .metric {
+  color: var(--color-seafoam-400);
+}
+
+.card--warn {
+  border-color: rgba(251, 113, 133, 0.55);
+}
+
+.card--warn .metric {
+  color: var(--color-rose-500);
+}
+
+.conformed-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.conformed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-panel-glass);
+  box-shadow: var(--shadow-sm);
+}
+
+.conformed-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.conformed-card__sheet-id {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.conformed-card__title {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.conformed-card__thumb {
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.conformed-card__thumb img {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.conformed-card__meta {
+  display: grid;
+  gap: 4px;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+.conformed-card__superseded {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.conformed-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.15);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.conformed-chip:hover,
+.conformed-chip:focus-visible {
+  border-color: var(--color-seafoam-400);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
 .section-heading,
 .queue-header,
 .queue-nav,

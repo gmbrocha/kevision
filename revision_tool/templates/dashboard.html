@@ -3,31 +3,40 @@
 {% block page_heading %}Revision Intelligence Dashboard{% endblock %}
 {% block page_lead %}A single local workspace for scanned revision sets, uncertain extractions, malformed PDF diagnostics, and reviewer-approved outputs.{% endblock %}
 {% block content %}
-  <section class="cards">
-    <article class="card">
-      <p class="eyebrow">Dataset</p>
-      <h2>Revision Sets</h2>
-      <p class="metric">{{ revision_rows|length }}</p>
-      <p class="muted">Packages currently indexed in this workspace.</p>
-    </article>
-    <article class="card">
-      <p class="eyebrow">Queue</p>
-      <h2>Recent Items</h2>
-      <p class="metric">{{ recent_changes|length }}</p>
-      <p class="muted">Freshly surfaced changes ready for review.</p>
-    </article>
-    <article class="card">
-      <p class="eyebrow">Diagnostics</p>
-      <h2>Warnings</h2>
-      <p class="metric">{{ diagnostic_summary.warning_count }}</p>
-      <p class="muted">Preflight events captured without touching the source PDFs.</p>
-    </article>
-    <article class="card">
-      <p class="eyebrow">Verification</p>
-      <h2>AI Status</h2>
-      <p class="metric">{{ "ON" if ai_enabled else "OFF" }}</p>
-      <p class="muted">Manual advisory verification only.</p>
-    </article>
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Pricing Readiness</p>
+        <h2>How close are we to a usable pricing list?</h2>
+      </div>
+      <a class="pill" href="{{ url_for('export_view') }}">Run Export</a>
+    </div>
+    <section class="cards">
+      <a class="card card--link" href="{{ url_for('export_view') }}">
+        <p class="eyebrow">Ready for Pricing</p>
+        <p class="metric">{{ pricing_summary.pricing_log_count }}</p>
+        <p class="muted">Approved scope on the latest version of each sheet. These rows will appear in <code>pricing_change_log.csv</code>.</p>
+      </a>
+      <a class="card card--link" href="{{ url_for('changes', status='pending') }}">
+        <p class="eyebrow">Candidates to Review</p>
+        <p class="metric">{{ pricing_summary.pricing_candidate_count }}</p>
+        <p class="muted">Visible scope changes still waiting on approve / reject.
+          {% if pricing_summary.filtered_count %}
+            <br><span class="muted">({{ pricing_summary.filtered_count }} noisy rows filtered out for you.)</span>
+          {% endif %}
+        </p>
+      </a>
+      <a class="card card--link" href="{{ url_for('conformed') }}">
+        <p class="eyebrow">Conformed Sheets</p>
+        <p class="metric">{{ pricing_summary.active_sheet_count }}</p>
+        <p class="muted">Latest sheet versions ({{ pricing_summary.superseded_sheet_count }} superseded across {{ pricing_summary.revision_set_count }} revision set{{ "s" if pricing_summary.revision_set_count != 1 else "" }}).</p>
+      </a>
+      <a class="card card--link {% if pricing_summary.attention_pending_count %}card--warn{% endif %}" href="{{ url_for('changes', status='pending', attention='1') }}">
+        <p class="eyebrow">Needs Attention</p>
+        <p class="metric">{{ pricing_summary.attention_pending_count }}</p>
+        <p class="muted">{% if pricing_summary.attention_pending_count %}Resolve these before exporting, or use Force Attention.{% else %}Nothing flagged. You can export without forcing.{% endif %}</p>
+      </a>
+    </section>
   </section>
 
   <section class="panel">

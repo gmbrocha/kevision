@@ -255,6 +255,44 @@ def test_web_routes_render_without_ai(workspace_copy):
     assert b"disabled" in settings.data
 
 
+def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+    response = client.get("/")
+    assert response.status_code == 200
+    body = response.data
+    assert b"Pricing Readiness" in body
+    assert b"Ready for Pricing" in body
+    assert b"Candidates to Review" in body
+    assert b"Conformed Sheets" in body
+    assert b"Needs Attention" in body
+
+
+def test_conformed_page_lists_revised_sheets_by_default(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+
+    response = client.get("/conformed")
+    assert response.status_code == 200
+    body = response.data
+    assert b"Conformed Sheet Set" in body
+    assert b"Only sheets that were revised" in body
+    assert b"latest" in body
+    assert b"superseded" in body
+
+    response_all = client.get("/conformed?show=all")
+    assert response_all.status_code == 200
+    assert response_all.data.count(b"conformed-card") >= response.data.count(b"conformed-card")
+
+
+def test_navbar_includes_conformed_link(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+    response = client.get("/")
+    assert b'href="/conformed"' in response.data
+    assert b">Conformed</a>" in response.data
+
+
 def test_bulk_review_and_next_navigation(workspace_copy):
     app = create_app(workspace_copy)
     client = app.test_client()

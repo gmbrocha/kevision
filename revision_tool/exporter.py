@@ -104,6 +104,15 @@ class Exporter:
         self.store.save()
         return outputs
 
+    def pricing_summary(self) -> dict[str, object]:
+        """Read-only snapshot of the same metrics export() produces, without writing files."""
+        change_items = self.store.data.change_items
+        approved = [item for item in change_items if item.status == "approved"]
+        pending_attention = [
+            item for item in change_items if item.status == "pending" and change_item_needs_attention(item)
+        ]
+        return self._build_summary(approved=approved, pending_attention=pending_attention, force_attention=False)
+
     def _build_summary(
         self,
         approved: list[ChangeItem],

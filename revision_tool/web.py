@@ -112,12 +112,53 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             [document for document in store.data.documents if document.issue_count],
             key=lambda item: (item.max_severity != "high", item.max_severity != "medium", -item.warning_count, item.source_pdf),
         )[:10]
+        pricing_summary = Exporter(store).pricing_summary()
         return render_template(
             "dashboard.html",
             revision_rows=rows,
             recent_changes=recent_changes,
             attention_items=attention_items,
             noisy_documents=noisy_documents,
+            pricing_summary=pricing_summary,
+        )
+
+    @app.route("/conformed")
+    def conformed():
+        revision_sets_by_id = {revision_set.id: revision_set for revision_set in store.data.revision_sets}
+        groups: dict[str, list] = {}
+        for sheet in store.data.sheets:
+            groups.setdefault(sheet.sheet_id, []).append(sheet)
+
+        show_filter = request.args.get("show", "revised")
+        rendered_groups = []
+        for sheet_id, versions in groups.items():
+            ranked = sorted(
+                versions,
+                key=lambda item: (item.status != "active", -revision_sets_by_id[item.revision_set_id].set_number, item.page_number),
+            )
+            latest = ranked[0]
+            superseded = ranked[1:]
+            if show_filter == "revised" and not superseded:
+                continue
+            rendered_groups.append(
+                {
+                    "sheet_id": sheet_id,
+                    "latest": latest,
+                    "latest_revision_set": revision_sets_by_id[latest.revision_set_id],
+                    "superseded": [
+                        {"sheet": version, "revision_set": revision_sets_by_id[version.revision_set_id]}
+                        for version in superseded
+                    ],
+                }
+            )
+        rendered_groups.sort(key=lambda item: item["sheet_id"])
+        revised_count = sum(1 for versions in groups.values() if len(versions) > 1)
+        return render_template(
+            "conformed.html",
+            groups=rendered_groups,
+            show_filter=show_filter,
+            sheet_id_count=len(groups),
+            revised_count=revised_count,
         )
 
     @app.route("/sheets")
