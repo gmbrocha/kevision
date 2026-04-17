@@ -14,6 +14,7 @@ FILTER_REASON_LABELS = {
     "locator-only-text": "locator-only labels (e.g. room names, callouts)",
     "empty-text": "items with no text at all",
     "too-short": "items with text too short to price",
+    "low-signal-no-scope-keyword": "text with no construction-scope keyword (e.g. just labels)",
 }
 
 FRIENDLY_FILE_LABELS = [

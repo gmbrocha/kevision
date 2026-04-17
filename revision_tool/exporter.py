@@ -21,6 +21,42 @@ class ExportBlockedError(RuntimeError):
 
 PLACEHOLDER_SCOPE_PATTERN = re.compile(r"^possible revision region(\s+near\s+.+)?$", re.IGNORECASE)
 
+LABEL_ONLY_TOKENS = frozenset(
+    {
+        "ROOM", "ROOMS", "FLOOR", "FLOORS", "PLAN", "PLANS", "SECTION", "SECTIONS",
+        "DETAIL", "DETAILS", "VIEW", "VIEWS", "ELEVATION", "ELEVATIONS",
+        "SCHED", "SCHEDULE", "SCHEDULES", "GLAZING", "CEILING", "CEILINGS",
+        "EXISTING", "EXIST", "NEW", "TYP", "SIM", "SIMILAR", "SHEET", "SHEETS",
+        "ABOVE", "BELOW", "EDGE", "EDGES", "AREA", "ZONE", "ZONES",
+        "OVERALL", "ENLARGED", "REFLECTED", "PARTIAL",
+        "MENS", "WOMENS", "LADIES", "LOBBY", "OFFICE", "CORRIDOR",
+        "CHAPEL", "ATTIC", "RADIO", "COPY", "FAMILY", "DICTATION", "MD",
+        "RX", "ATS", "PHARMACY", "NURSE", "NURSES", "WAITING", "STORAGE",
+        "JANITOR", "ELEC", "MECH",
+        "SEE", "FOR", "AT", "OF", "TO", "AND", "OR", "PER", "WITH",
+        "DRAWINGS", "DRAWING", "NOTE", "NOTES",
+    }
+)
+
+LOCATOR_TOKEN_PATTERN = re.compile(
+    r"^(?:"
+    r"SIM|SIM\.|TYP|EAST|WEST|NORTH|SOUTH|CENTER|CENTRAL|CENTRAL STAIR|EXIST STAIR|STAIR|"
+    r"ROOM|RADIO ROOM|UNISEX TOILET|CHAPEL|BUILDING|VALLEY|RIDGE|SHOWER|BATHROOM|ALCOVE|TOILET|"
+    r"[A-Z]{1,3}\d{2,4}(?:\.\d+)?|"
+    r"\d+[A-Z]?\d*[A-Z]?|"
+    r"[A-Z\d]{1,5}(?:[\-/.][A-Z\d.]+){1,3}"
+    r")$",
+    re.IGNORECASE,
+)
+
+EXTRA_PRICING_SCOPE_TOKENS = (
+    "PARTITION", "COLUMN", "STRINGER", "CHWS", "CHWR", "VAV", "HEPA", "FILTER",
+    "JOIST", "RAFTER", "SLAB", "CMU", "FOOTING", "SOFFIT", "CONDUIT",
+    "DUCTWORK", "ROUTE", "RE-ROUTE", "REROUTE", "INFILL", "RELOCATE",
+    "EXTEND", "MODIFY", "CONNECT", "MOUNT", "CHIP", "CHIPPING",
+    "MILLWORK", "HANDRAIL", "GUARDRAIL", "CABINET",
+)
+
 
 class Exporter:
     def __init__(self, store: WorkspaceStore):
@@ -160,7 +196,13 @@ class Exporter:
         reviewer_text = clean_display_text(item.reviewer_text or item.raw_text)
         scope_lines = self._extract_scope_lines(reviewer_text)
         latest_revision_set = revision_sets_by_id[latest_sheet.revision_set_id]
-        relevance_reason = self._pricing_relevance_reason(sheet.sheet_title, scope_lines, reviewer_text, str(item.provenance.get("source", "")))
+        relevance_reason = self._pricing_relevance_reason(
+            sheet.sheet_title,
+            scope_lines,
+            reviewer_text,
+            str(item.provenance.get("source", "")),
+            item.status,
+        )
 
         return {
             "change_id": item.id,
@@ -183,7 +225,7 @@ class Exporter:
             "superseded_by_revision_set": latest_revision_set.set_number if latest_sheet.id != sheet.id else "",
             "latest_for_pricing": latest_sheet.id == sheet.id,
             "reviewer_notes": clean_display_text(item.reviewer_notes),
-            "pricing_relevance": relevance_reason == "likely-pricing-scope",
+            "pricing_relevance": relevance_reason in ("likely-pricing-scope", "reviewer-approved"),
             "relevance_reason": relevance_reason,
         }
 
@@ -532,10 +574,14 @@ class Exporter:
             return "Sheet Index / Conformed Set"
         return title
 
-    def _pricing_relevance_reason(self, sheet_title: str, scope_lines: list[str], fallback_text: str, source_kind: str) -> str:
-        if self._looks_like_sheet_index_title(sheet_title):
-            return "sheet-index-page"
-
+    def _pricing_relevance_reason(
+        self,
+        sheet_title: str,
+        scope_lines: list[str],
+        fallback_text: str,
+        source_kind: str,
+        status: str = "pending",
+    ) -> str:
         combined_text = clean_display_text(" ".join(scope_lines) or fallback_text)
         if not combined_text:
             return "empty-text"
@@ -543,19 +589,25 @@ class Exporter:
         if self._is_placeholder_scope(scope_lines, combined_text):
             return "placeholder-no-readable-scope"
 
+        if status == "approved":
+            return "reviewer-approved"
+
+        if self._looks_like_sheet_index_title(sheet_title):
+            return "sheet-index-page"
+
+        if self._contains_pricing_scope_signal(combined_text):
+            return "likely-pricing-scope"
+
         if source_kind == "narrative":
             return "likely-pricing-scope"
 
         if self._is_likely_locator_text(scope_lines or [combined_text]):
             return "locator-only-text"
 
-        if self._contains_pricing_scope_signal(combined_text):
-            return "likely-pricing-scope"
-
         if len(scope_lines) == 1 and len(scope_lines[0]) <= 8:
             return "too-short"
 
-        return "likely-pricing-scope"
+        return "low-signal-no-scope-keyword"
 
     def _is_placeholder_scope(self, scope_lines: list[str], combined_text: str) -> bool:
         candidates: list[str] = list(scope_lines) if scope_lines else []
@@ -583,24 +635,28 @@ class Exporter:
         if any(self._contains_pricing_scope_signal(line) for line in lines):
             return False
 
-        locator_pattern = re.compile(
-            r"^(?:"
-            r"SIM|SIM\.|TYP|EAST|WEST|NORTH|SOUTH|CENTER|CENTRAL|CENTRAL STAIR|EXIST STAIR|STAIR|ROOM|RADIO ROOM|UNISEX TOILET|"
-            r"CHAPEL|BUILDING|VALLEY|RIDGE|SHOWER|BATHROOM|ALCOVE|TOILET|"
-            r"[A-Z]{1,3}\d{2,4}(?:\.\d+)?|"
-            r"\d+[A-Z]?\d*[A-Z]?|"
-            r"Z\.\d+|"
-            r"\d+/\w+\d+"
-            r")$",
-            re.IGNORECASE,
-        )
         tokens: list[str] = []
         for line in lines:
-            tokens.extend(part.strip() for part in line.split(";"))
-        tokens = [token for token in tokens if token]
+            for part in re.split(r"[;,]", line):
+                token = part.strip(" -|:.;\"'")
+                if token:
+                    tokens.append(token)
         if not tokens:
             return False
-        return all(locator_pattern.fullmatch(token) for token in tokens)
+        return all(self._token_is_locator_or_label(token) for token in tokens)
+
+    def _token_is_locator_or_label(self, token: str) -> bool:
+        if not token:
+            return False
+        if LOCATOR_TOKEN_PATTERN.fullmatch(token):
+            return True
+        words = [word for word in re.split(r"\s+", token.upper()) if word]
+        if not words:
+            return False
+        return all(
+            word in LABEL_ONLY_TOKENS or LOCATOR_TOKEN_PATTERN.fullmatch(word)
+            for word in words
+        )
 
     def _contains_pricing_scope_signal(self, text: str) -> bool:
         upper = clean_display_text(text).upper()
@@ -646,6 +702,7 @@ class Exporter:
             "TRACK",
             "BEAM",
             "RISER",
+            *EXTRA_PRICING_SCOPE_TOKENS,
         )
         if any(token in upper for token in strong_scope_tokens):
             return True

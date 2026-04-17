@@ -131,6 +131,73 @@ def test_pricing_outputs_filter_placeholder_revision_regions(workspace_copy):
     assert filtered.get("placeholder-no-readable-scope", 0) >= 1
 
 
+def test_pricing_relevance_filter_drops_label_locator_combos():
+    exporter = Exporter.__new__(Exporter)
+    cases = [
+        ("AE113 First Floor Plan", ["ROOM", "RADIO"], "ROOM; RADIO", "visual-region", "pending"),
+        ("AE125 Plan", ["AE600", "SEE DETAIL FOR"], "AE600; SEE DETAIL FOR", "visual-region", "pending"),
+        ("AE125 Plan", ["WOMENS", "AE403"], "WOMENS; AE403", "visual-region", "pending"),
+        ("AE125 Plan", ["FLOOR", "AE514"], "FLOOR; AE514", "visual-region", "pending"),
+        ("AE125 Plan", ["SCHED", "GLAZING"], "SCHED; GLAZING", "visual-region", "pending"),
+        ("AE125 Plan", ["5A127", "F-1"], "5A127; F-1", "visual-region", "pending"),
+        ("AE125 Plan", ["5S/5NB-38"], "5S/5NB-38", "visual-region", "pending"),
+    ]
+    for title, scope_lines, combined, source_kind, status in cases:
+        reason = exporter._pricing_relevance_reason(title, scope_lines, combined, source_kind, status)
+        assert reason == "locator-only-text", f"expected locator filter for {scope_lines!r}, got {reason!r}"
+
+
+def test_pricing_relevance_filter_keeps_real_pricing_scope():
+    exporter = Exporter.__new__(Exporter)
+    keep_cases = [
+        ("AE113 Plan", ["FIRE CAULK ALL", "2 1/2\" MTL STUDS"], "FIRE CAULK ALL; 2 1/2\" MTL STUDS"),
+        ("AE401 Plan", ["EXISTING", "CONC COLUMN"], "EXISTING; CONC COLUMN"),
+        ("MP105 Plan", ["4\" CHWS", "SEE DETAIL"], "4\" CHWS; SEE DETAIL"),
+        ("AE600 Plan", ["PLAN", "PARTITION PER CODE"], "PLAN; PARTITION PER CODE"),
+        ("MP102 Plan", ["1\" HWR", "1\" HWS"], "1\" HWR; 1\" HWS"),
+        ("MH104 Plan", ["HEPA FILTER RACK", "26X22 DOWN"], "HEPA FILTER RACK; 26X22 DOWN"),
+    ]
+    for title, scope_lines, combined in keep_cases:
+        reason = exporter._pricing_relevance_reason(title, scope_lines, combined, "visual-region", "pending")
+        assert reason == "likely-pricing-scope", f"expected keep for {scope_lines!r}, got {reason!r}"
+
+
+def test_pricing_relevance_filter_drops_low_signal_text_without_scope_keywords():
+    exporter = Exporter.__new__(Exporter)
+    reason = exporter._pricing_relevance_reason(
+        "AE125 Plan",
+        ["6TH FLOOR 66'-0\""],
+        "6TH FLOOR 66'-0\"",
+        "visual-region",
+        "pending",
+    )
+    assert reason in ("low-signal-no-scope-keyword", "locator-only-text")
+
+
+def test_pricing_relevance_filter_trusts_reviewer_for_approved_items():
+    exporter = Exporter.__new__(Exporter)
+    reason = exporter._pricing_relevance_reason(
+        "AE125 Plan",
+        ["Approved scope per RFI"],
+        "Approved scope per RFI",
+        "visual-region",
+        "approved",
+    )
+    assert reason == "reviewer-approved"
+
+
+def test_pricing_relevance_filter_overrides_reviewer_for_placeholder_text():
+    exporter = Exporter.__new__(Exporter)
+    reason = exporter._pricing_relevance_reason(
+        "AE113 Plan",
+        ["Possible revision region near 3/AE113"],
+        "Possible revision region near 3/AE113",
+        "visual-region",
+        "approved",
+    )
+    assert reason == "placeholder-no-readable-scope"
+
+
 def test_cli_export_summary_is_human_readable():
     from revision_tool.cli import format_export_summary
 
