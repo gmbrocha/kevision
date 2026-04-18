@@ -25,8 +25,10 @@ For a target revision (e.g., "Revision #1"):
 ## Files
 
 - `explore.py` — diagnostic dump of revision-column headers, X marks, sheet IDs, and row-number positions on the Rev 1 and Rev 2 index pages. Run first to verify assumptions before writing the parser.
-- `parse.py` — the actual parser. Outputs CSV.
-- `output/` — generated CSVs and any diagnostic JSON.
+- `parse.py` — the actual parser. Reads one PDF + one revision label, writes one CSV.
+- `dedupe.py` — combine multiple per-revision CSVs into a single "current state" CSV. For each sheet, keeps the row from the latest revision that touched it; adds `revision_count` and `revision_history` columns showing every revision that touched the sheet.
+- `debug_misses.py` — diagnostic for missing X marks; prints in-column / out-of-column breakdown, dedup cases, and rejection reasons.
+- `output/` — generated CSVs and any diagnostic artifacts.
 
 ## Test inputs
 
@@ -62,6 +64,21 @@ Both expected revision sets parse cleanly and were hand-checked by the user.
 | Rev 1 PDF, `REVISION #1` | **50** | 10/10/2025 | 0 |
 | Rev 2 PDF, `REVISION #2` | **26** | 01/30/2026 | 3 |
 | Rev 2 PDF, `REVISION #1` | **50** (matches Rev 1 PDF result exactly) | 10/10/2025 | 3 |
+
+### Dedupe → "current final revision" view
+
+`dedupe.py` combines per-revision CSVs into a single sheet-level snapshot. For each sheet it keeps the row from the latest revision that touched it (by `revision_date`) and adds a `revision_history` column showing every revision that touched the sheet, oldest first.
+
+Run on Rev 2's two revision exports:
+
+```
+python dedupe.py \
+  output/260309*__revision_1.csv \
+  output/260309*__revision_2.csv \
+  -o output/Rev2_final_current_state.csv
+```
+
+Result: **60 unique sheets** from 76 input rows; **16 sheets** were touched by both Rev 1 and Rev 2 (their `latest` is `REVISION #2`, history shows both). Sheets revised only in Rev 1 carry `latest=REVISION #1` and a single-entry history. This is the "what's the current state of every sheet that's ever been revised" view that downstream consumers (build-set updater, estimator) actually want.
 
 ### Bugs found and fixed during verification
 
