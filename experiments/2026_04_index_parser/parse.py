@@ -312,7 +312,7 @@ def parse_index(
                         revision_label=revision_label,
                         revision_date=revision_date,
                         revision_set=revision_set_label or pdf_path.parent.name,
-                        source_pdf=str(pdf_path),
+                        source_pdf=pdf_path.name,
                         index_page_index=page_idx,
                         row_number=row_number,
                         sheet_number=sheet_number,
