@@ -55,23 +55,25 @@ Final flow:
 
 ### Verification (`output/`)
 
-Both expected revision sets parse cleanly and cross-validate.
+Both expected revision sets parse cleanly and were hand-checked by the user.
 
 | Run | Revisions found | Date extracted | Index page |
 |---|---|---|---|
-| Rev 1 PDF, `REVISION #1` | **42** | 10/10/2025 | 0 |
-| Rev 2 PDF, `REVISION #2` | **25** | 01/30/2026 | 3 |
-| Rev 2 PDF, `REVISION #1` | **42** (matches Rev 1 PDF result exactly) | 10/10/2025 | 3 |
+| Rev 1 PDF, `REVISION #1` | **50** | 10/10/2025 | 0 |
+| Rev 2 PDF, `REVISION #2` | **26** | 01/30/2026 | 3 |
+| Rev 2 PDF, `REVISION #1` | **50** (matches Rev 1 PDF result exactly) | 10/10/2025 | 3 |
 
-First 8 rows of the Rev 1 result, eyeballed against the index screenshot, all match:
-- row 2: `GI001.1` SHEET INDEX
-- row 4: `GI102` 3RD FLOOR CODE ANALYSIS
-- row 6: `GI104` 5TH FLOOR CODE ANALYSIS
-- row 7: `GI105` ATTIC CODE ANALYSIS
-- row 13: `SF100` 3RD FLOOR FRAMING PLAN
-- row 14: `SF110` 4TH FLOOR FRAMING PLAN
-- row 17: `S140` STRUCTURAL DETAILS
-- row 19: `S142` STRUCTURAL DETAILS
+### Bugs found and fixed during verification
+
+The first run reported 42 for Rev 1; user spot-checked and counted 49+ revisions in the source. Two bugs:
+
+1. **Row-data extraction was column-blind.** When an X mark in the *middle* physical column was looked up by y-coordinate, `words_on_same_row` returned every word at that y across the whole page. `extract_row_data` then picked the first sheet ID it saw (the *left* physical column's). The middle-column sheet got silently lost (then deduped against the false left-column hit).
+
+   Fix: pass the X word's x-position into `extract_row_data` and only consider candidate words with center_x strictly less than the X but within `SHEET_ID_MAX_DISTANCE_FROM_X` (1100 px). Pick the rightmost sheet ID among those — it's guaranteed to be in the same physical column as the X.
+
+2. **Sheet-ID regex was too narrow.** `^(?:GI|AD|AE|IN|PL|EL|EP|MP|MH|ME|E|M|S|SF|CS|RFP)\d{3}(?:\.\d+)?$` missed prefixes like `QH` (equipment) and `FA` (fire alarm) that exist in the bundled fixture, dropping their rows from the output.
+
+   Fix: relaxed to `^[A-Z]{1,3}\d{3,4}(?:\.\d+)?$`. Permissive but still distinctive — sheet IDs are always upper-case letters followed by digits.
 
 ### Promotion path
 

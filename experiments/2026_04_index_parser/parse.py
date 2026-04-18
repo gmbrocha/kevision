@@ -28,9 +28,10 @@ import fitz
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-SHEET_ID_RE = re.compile(
-    r"^(?:GI|AD|AE|IN|PL|EL|EP|MP|MH|ME|E|M|S|SF|CS|RFP)\d{3}(?:\.\d+)?$"
-)
+# Sheet IDs are 1-3 uppercase letters + 3+ digits (optional .N suffix). The fixture
+# uses prefixes like GI, AD, AE, IN, PL, EL, EP, MP, MH, S, SF, QH, FA, etc.
+# Permissive pattern future-proofs against unseen prefixes (T-, FP-, PA- etc.).
+SHEET_ID_RE = re.compile(r"^[A-Z]{1,3}\d{3,4}(?:\.\d+)?$")
 ROW_NUM_RE = re.compile(r"^\d{1,3}$")
 INDEX_HEADER_TOKENS = ("PAGE NO.", "SHEET NO.", "SHEET NAME")
 REVISION_DATE_RE = re.compile(r"REVISION\s+#\d+\s+(\d{2}/\d{2}/\d{4})", re.IGNORECASE)
@@ -190,33 +191,47 @@ def words_on_same_row(words: list[tuple], target_y: float) -> list[tuple]:
 
 
 ROW_NUMBER_MAX_DISTANCE_FROM_SHEET_ID = 120.0  # px; row num column sits just left of sheet ID
+SHEET_ID_MAX_DISTANCE_FROM_X = 1100.0  # px; sheet ID for an X must be in the same physical column
 
 
-def extract_row_data(row_words: list[tuple]) -> tuple[str, str, str]:
-    """Pull (row_number, sheet_number, sheet_name) from one row's words.
+def extract_row_data(
+    row_words: list[tuple],
+    x_left_bound: float,
+) -> tuple[str, str, str]:
+    """Pull (row_number, sheet_number, sheet_name) for one row of an index column.
 
-    Anchors on the sheet-ID column. The row number is the nearest numeric word
-    to the left of the sheet ID (excluding the small "1" inside the
-    delta-revision-marker triangle in the far-left margin). Sheet name is the
-    text between the sheet ID and the start of the X-columns area.
+    `x_left_bound` is the x-coordinate of the X mark whose row we're extracting.
+    The index page has multiple physical columns side-by-side, each with its
+    own sheet-ID + sheet-name + X-columns block. We must only consider words
+    in the same physical column block as the X — i.e., words with center_x
+    strictly less than `x_left_bound` AND within
+    SHEET_ID_MAX_DISTANCE_FROM_X of it. Otherwise we'd resolve to a sheet
+    ID from the column to the left.
     """
-    row_words_sorted = sorted(row_words, key=lambda w: w[0])
+    candidate_words = [
+        w for w in row_words
+        if ((w[0] + w[2]) / 2.0) < x_left_bound
+        and (x_left_bound - ((w[0] + w[2]) / 2.0)) < SHEET_ID_MAX_DISTANCE_FROM_X
+    ]
+    candidate_words.sort(key=lambda w: w[0])
 
-    sheet_id_word = next(
-        (w for w in row_words_sorted if SHEET_ID_RE.match((w[4] or "").strip())),
-        None,
-    )
+    # Pick the rightmost sheet ID — closest to the X = same physical column.
+    sheet_id_word = None
+    for w in reversed(candidate_words):
+        if SHEET_ID_RE.match((w[4] or "").strip()):
+            sheet_id_word = w
+            break
     if sheet_id_word is None:
         return "", "", ""
     sheet_number = (sheet_id_word[4] or "").strip()
     sheet_id_x_left = sheet_id_word[0]
     sheet_id_x_right = sheet_id_word[2]
 
-    # Row number = numeric word immediately to the left of the sheet ID
-    # (within ROW_NUMBER_MAX_DISTANCE_FROM_SHEET_ID), prefer the rightmost match.
+    # Row number = numeric word just left of the sheet ID (skip the tiny "1"
+    # inside the delta-marker triangle in the far-left margin).
     row_number = ""
     candidate_x = -1.0
-    for w in row_words_sorted:
+    for w in candidate_words:
         if w[0] >= sheet_id_x_left:
             break
         text = (w[4] or "").strip()
@@ -229,9 +244,9 @@ def extract_row_data(row_words: list[tuple]) -> tuple[str, str, str]:
             candidate_x = w[0]
             row_number = text
 
-    # Sheet name = words right of the sheet ID until we hit an X.
+    # Sheet name = words between the sheet ID and the X (still in same physical column).
     sheet_name_parts: list[str] = []
-    for w in row_words_sorted:
+    for w in candidate_words:
         if w[0] < sheet_id_x_right:
             continue
         text = (w[4] or "").strip()
@@ -240,7 +255,7 @@ def extract_row_data(row_words: list[tuple]) -> tuple[str, str, str]:
         if text.upper() == "X":
             break
         if SHEET_ID_RE.match(text):
-            continue  # don't re-include the sheet ID itself
+            continue
         sheet_name_parts.append(text)
 
     sheet_name = " ".join(sheet_name_parts).strip()
@@ -283,9 +298,9 @@ def parse_index(
 
         for header in headers:
             for x_word in find_x_marks_in_column(words, header):
-                _, cy = word_centroid(x_word)
+                cx, cy = word_centroid(x_word)
                 row_words = words_on_same_row(words, cy)
-                row_number, sheet_number, sheet_name = extract_row_data(row_words)
+                row_number, sheet_number, sheet_name = extract_row_data(row_words, cx)
                 if not sheet_number:
                     continue
                 key = (row_number, sheet_number)
@@ -302,7 +317,7 @@ def parse_index(
                         row_number=row_number,
                         sheet_number=sheet_number,
                         sheet_name=sheet_name,
-                        x_position=f"{(x_word[0]+x_word[2])/2:.1f},{cy:.1f}",
+                        x_position=f"{cx:.1f},{cy:.1f}",
                     )
                 )
     finally:
