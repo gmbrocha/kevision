@@ -239,23 +239,22 @@ def render_overlay(
     for contour, metrics, reason in scored:
         if metrics is not None and metrics.score >= threshold:
             n_clouds += 1
-            cv2.drawContours(rgb, [contour], -1, (0, 200, 0), 4)
+            cv2.drawContours(rgb, [contour], -1, (0, 200, 0), 10)
             x, y, _, _ = cv2.boundingRect(contour)
             label = f"{metrics.score:.2f}/{metrics.n_defects}/{metrics.arc_segment_fraction:.2f}"
             cv2.putText(
-                rgb, label, (x, max(20, y - 8)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2,
+                rgb, label, (x, max(28, y - 12)),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 200, 0), 4,
             )
             continue
         if metrics is not None:
-            # passed all hard filters but score below threshold = "borderline reject"
-            cv2.drawContours(rgb, [contour], -1, (90, 90, 220), 2)
+            cv2.drawContours(rgb, [contour], -1, (90, 90, 220), 7)
             reject_counts["below_threshold"] = reject_counts.get("below_threshold", 0) + 1
             continue
         color = REJECT_COLORS.get(reason)
         reject_counts[reason] = reject_counts.get(reason, 0) + 1
         if color is not None:
-            cv2.drawContours(rgb, [contour], -1, color, 1)
+            cv2.drawContours(rgb, [contour], -1, color, 5)
     cv2.imwrite(str(output_path), rgb)
     return n_clouds, reject_counts
 
