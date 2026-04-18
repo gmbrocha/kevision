@@ -42,6 +42,11 @@ Running list of things we need from Kevin (the buddy / target user). Add as we d
 - [ ] **Iteration order** — Sheet-by-sheet down the index? By trade (architectural first, then mechanical)? Multiple revision sets at once or one at a time?
 - [ ] **Today's manual capture mechanism** — Sticky notes? Bluebeam comments? Direct typing into Excel? Print-and-mark?
 - [ ] **Build-plan / working-set update** — He also updates the current build plan drawings. Working assumption: it's just marking old sheets superseded and dropping the new ones in (essentially what our existing conformed-set output already does). Confirm — anything more involved (re-titling, re-numbering, manual annotation, separate file format)?
+- [ ] **Standalone single-sheet PDFs in a revision-set folder** — Rev 2's folder contains both the main 29-page package AND two standalone single-sheet PDFs (`Drawing Rev2- Steel Grab Bars AE107.pdf` and `Drawing Rev2- Steel Grab Bars R1 AE107.1.pdf`). Both sheets are also pages 5 and 6 of the main PDF.
+  - What does the `R1` in the second filename mean? Hypotheses: (A) just a versioning artifact, (B) "Revision 1 of (Rev 2's) AE107.1" — a micro-revision issued *after* the main package went out, superseding the main PDF's page 6, (C) something else.
+  - The user noticed the standalone `R1 AE107.1.pdf` clouds a slightly *larger area* than the main PDF's AE107.1 (one or two more grab bars inside the cloud), suggesting (B) — the standalone supersedes the main package's copy for that one sheet.
+  - If true, our parser must use the standalone PDF for AE107.1 cloud-content extraction, not the main package's page 6. Confirm the rule.
+  - General: when both a standalone single-sheet PDF AND the main package contain the same sheet, which is the source of truth? Always the standalone (later)? Sometimes? Depends on filename markers like `R1`?
 - [ ] **Other pain points we haven't touched** — Architect clarifications, sub coordination, RFIs, allowances, anything else eating his day?
 
 ## Specific revision items we need help interpreting
