@@ -14,12 +14,30 @@ Running list of things we need from Kevin (the buddy / target user). Add as we d
 ## Already confirmed (don't re-ask)
 
 - [x] **Is pricing the deliverable?** — No. Pricing is a separate downstream step. The deliverable for this tool is a structured Excel of revisions and change items.
-- [x] **Multiple identical clouds on the same sheet — split or combine?** — Split. Each instance is its own row, so the order list stays accurate (e.g., "we need 2 fire cabinets and 1 light", not "we need fire cabinet + light somewhere").
+- [x] **Multiple identical clouds on the same sheet — split or combine?** — Split. Each instance is its own row, so the order list stays accurate (e.g., "we need 2 fire cabinets and 1 light", not "we need fire cabinet + light somewhere"). *(See `mod_5_changelog.xlsx` caveat below: he collapses duplicate callouts inside a single detail.)*
 - [x] **Stakes** — Past human errors have cost $100k+. Tool ships with mandatory human review at first; low-confidence items always get human review.
-- [x] **Row granularity** — Full verbosity for now. Every change item gets its own row. We can always collapse later if he wants a tighter view; we can't recover detail we never captured.
-- [x] **Cross-sheet duplicates** — When the same change appears on multiple sheets, note every one (one row per sheet) for now. Same reasoning — collapse later, never lose detail.
+- [x] **Row granularity** — ~~Full verbosity~~ **REVISED 4/21:** see `mod_5_changelog.xlsx` analysis below. He groups by cloud/detail, not by sub-item. One numbered `Scope Included` cell can hold 4+ bullets.
+- [x] **Cross-sheet duplicates** — When the same change appears on multiple sheets, note every one (one row per sheet) for now. *(But see Mod-5 file: duplicates **inside the same detail** collapse with an annotation like "(note appears twice)".)*
 - [x] **Header content** — Includes revision set + date + project name + contractor + architect + other relevant project metadata. (Most of these can probably be auto-extracted from the title block — confirm field list with him after first cut.)
-- [x] **Real-world Excel template** — There isn't one. Project is freeform, even though "it's supposed to be" professional. Kevin started making one himself and it "almost seemed random". → still worth asking for the in-progress one (anchor in `Open follow-ups` below).
+- [x] **Real-world Excel template** — ~~There isn't one~~. **GOT IT 4/21:** `mod_5_changelog.xlsx`. Three rows + three embedded screenshot crops. Schema captured in `docs/kevin_changelog_format.md`.
+
+---
+
+## Confirmed from `mod_5_changelog.xlsx` (Kevin's in-progress template, received 4/21)
+
+His real format, reverse-engineered:
+
+- **Columns:** `Correlation`, `Drawing #`, `Revision #`, `Detail #`, `Scope Included`, `Detail View` (embedded PNG), `Responsible Contractor`, `Cost?`, `Qoute Received?` *(typo — preserve verbatim).*
+- **`Correlation` = stable per-sheet ID** in the form `<sheet_number_no_letters>.<sequence>` (e.g., `105.1` = first change on AD-105; `110.4` = fourth on AE-110). Decimal-sort caveat: `1.10` < `1.2` as floats, but he's using it as a label, not a sort key.
+- **Detail # field uses `Cloud Only` / `N/A - Cloud Only` / `Detail <n>`** to distinguish (a) cloud sitting bare on a plan, vs. (b) cloud enclosing a detail-callout bubble, vs. (c) the detail's own contents.
+- **Cloud → detail indirection:** When a plan-level cloud encloses a detail callout, he creates **two rows**: the `Cloud Only` row pointing at the detail (`"Scope Included in Detail 4 - AE-110"`) and the `Detail 4` row carrying the actual numbered scope. Our parser needs to model both anchors.
+- **Sub-item grouping:** A single `Scope Included` cell can carry numbered sub-items `1)`, `2)`, `3)`, `4)` in stacked merged cells. So `pricing_changes` ↔ `pricing_change_lines` from `docs/pricing_deliverable_schema.md` is the right shape.
+- **Embedded crops:** `Detail View` column holds a cropped PNG screenshot of the cloud area, sized to span ~14 rows. Our existing cloud-mask crops should drop straight in. (The fallback idea in `scratch_thoughts.txt` is now the **primary** visual deliverable.)
+- **Three downstream-empty columns** he leaves for the pricing pass: `Responsible Contractor`, `Cost?`, `Qoute Received?`. We generate them empty.
+- **Symbology cross-check (his own annotations in column G):**
+  - `"Triangle with #1 indicates Revision #"`
+  - `"Circular Symbol with drawing # and #4 above indicates the detail below is looking at that wall"`
+  - Confirms Δ-marker = revision number; detail callouts are circles with `detail# / sheet#`.
 
 ---
 
@@ -27,7 +45,17 @@ Running list of things we need from Kevin (the buddy / target user). Add as we d
 
 - [ ] **Transcript + audio** — He's already sending these.
 - [ ] **What he wants as the deliverable, in his own words** — He's sending this too.
-- [ ] **The in-progress Excel he started** — Even if it's incomplete and "random", what he naturally reaches for is informative. Tells us his column instincts and what he treats as one row vs. many.
+- [x] **The in-progress Excel he started** — **GOT IT 4/21:** `mod_5_changelog.xlsx`. See "Confirmed from mod_5_changelog.xlsx" section above.
+
+## New questions raised by `mod_5_changelog.xlsx`
+
+- [ ] **What is "Mod 5"?** Filename is `mod_5_changelog`. Hypothesis: Modification 5 / change order #5 — a wrapper above revision sets that bundles the priced changes for one owner-facing modification. Confirm. Does each Mod map to N revision sets, or N:N?
+- [ ] **Sub-item rollup rule** — He puts 4 numbered sub-items in one row when they're in the same detail. Rule: "one row per cloud (or per detail when the cloud is on a plan and references a detail), bullets stacked inside `Scope Included`"? Or did he just do it that way for AE-110 because the detail had a tight legend? Affects `pricing_change_lines` granularity.
+- [ ] **Duplicate-callout collapse** — Row 36 says `"(note appears twice)"`. So duplicates *inside the same detail* collapse. What about duplicates across multiple details on the same sheet? Across sheets?
+- [ ] **Correlation ID** — Confirm the format `<sheet#>.<seq>` and that ordering is just "order he encountered them" (not "order on the sheet by location"). Are these stable across re-issues, or do they renumber if Rev 2 inserts a new change?
+- [ ] **Detail-View crop dimensions** — He sized each embedded image to span ~14 rows × 2 cols. Is there a target pixel size / aspect ratio he wants, or is "fits the cell" good enough?
+- [ ] **Two-row pattern for cloud → detail** — Confirm the convention: when a cloud on a plan encloses a detail callout, generate one `Cloud Only` row (anchoring to the plan) AND one `Detail N` row (carrying the scope). Or does he sometimes want just the detail row?
+- [ ] **The empty downstream columns** — `Responsible Contractor`, `Cost?`, `Qoute Received?` — confirm we leave these blank for him / pricing team to fill, vs. trying to auto-suggest a contractor based on trade keywords in the scope.
 
 ## Excel deliverable shape (still open)
 

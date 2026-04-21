@@ -18,6 +18,7 @@ FILTER_REASON_LABELS = {
 }
 
 FRIENDLY_FILE_LABELS = [
+    ("kevin_changelog_xlsx", "Kevin-shaped changelog (Excel, embedded crops) - matches mod_5_changelog.xlsx layout"),
     ("pricing_change_log_csv", "Pricing log (approved scope on latest sheets) - hand this to estimators"),
     ("pricing_change_candidates_csv", "Pricing candidates (everything still being reviewed)"),
     ("conformed_sheet_index_csv", "Conformed sheet index (which version of each sheet is current)"),

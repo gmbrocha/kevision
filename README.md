@@ -54,6 +54,7 @@ python -m revision_tool export workspace --force-attention
 
 Exports include:
 
+- `kevin_changelog.xlsx` — Kevin-shaped Excel deliverable (one row per cloud/detail with embedded crops; layout reverse-engineered from `mod_5_changelog.xlsx`, schema in `docs/kevin_changelog_format.md`)
 - `approved_changes.csv`
 - `approved_changes.json`
 - `pricing_change_candidates.csv`

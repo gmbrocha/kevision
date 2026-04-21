@@ -9,6 +9,7 @@ from pathlib import Path
 import fitz
 
 from .diagnostics import configure_mupdf
+from .kevin_changelog import write_kevin_changelog
 from .models import ChangeItem, SheetVersion
 from .review import change_item_needs_attention
 from .utils import clean_display_text, parse_mmddyyyy
@@ -80,6 +81,7 @@ class Exporter:
             "pricing_change_candidates_json": str(self._write_pricing_change_candidates_json()),
             "pricing_change_log_csv": str(self._write_pricing_change_log_csv()),
             "pricing_change_log_json": str(self._write_pricing_change_log_json()),
+            "kevin_changelog_xlsx": str(self._write_kevin_changelog_xlsx()),
             "supersedence_csv": str(self._write_supersedence_csv()),
             "conformed_sheet_index_csv": str(self._write_conformed_sheet_index_csv()),
             "conformed_sheet_index_json": str(self._write_conformed_sheet_index_json()),
@@ -343,6 +345,10 @@ class Exporter:
         path = self.store.output_dir / "pricing_change_log.json"
         path.write_text(json.dumps(self._pricing_log_rows(), indent=2), encoding="utf-8")
         return path
+
+    def _write_kevin_changelog_xlsx(self) -> Path:
+        path = self.store.output_dir / "kevin_changelog.xlsx"
+        return write_kevin_changelog(self.store, path)
 
     def _write_supersedence_csv(self) -> Path:
         path = self.store.output_dir / "supersedence.csv"

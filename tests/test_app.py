@@ -98,6 +98,70 @@ def test_export_only_approved_items_when_forced(workspace_copy):
     assert store.data.exports[-1]["summary"] == summary
 
 
+def test_kevin_changelog_xlsx_matches_kevin_layout(workspace_copy):
+    """Smoke test that the Kevin-shaped Excel exporter produces a file with
+    his exact column headers, one merged row block per (sheet, detail) group,
+    and at least one embedded crop image for an approved item that has one."""
+    from openpyxl import load_workbook
+
+    from revision_tool.kevin_changelog import COLUMNS, ROWS_PER_GROUP
+
+    store = WorkspaceStore(workspace_copy).load()
+    pending_with_crop = next(
+        item for item in store.data.change_items
+        if item.status == "pending" and item.cloud_candidate_id
+    )
+    store.update_change_item(
+        pending_with_crop.id,
+        status="approved",
+        reviewer_text="Install 1\" Fire-Shield Shaftliner | 2 Layers 5/8\" Gypsum | Corner Bead",
+    )
+    second_pending = next(
+        item for item in store.data.change_items
+        if item.status == "pending" and item.id != pending_with_crop.id
+    )
+    store.update_change_item(
+        second_pending.id,
+        status="approved",
+        reviewer_text="Patch and repair masonry opening, install new lintel",
+    )
+
+    outputs = Exporter(store).export(force_attention=True)
+    xlsx_path = Path(outputs["kevin_changelog_xlsx"])
+    assert xlsx_path.exists(), "Kevin-shaped changelog should be written"
+    assert xlsx_path.suffix == ".xlsx"
+
+    wb = load_workbook(xlsx_path)
+    ws = wb["Sheet1"]
+
+    headers = [ws.cell(row=1, column=i).value for i in range(1, len(COLUMNS) + 1)]
+    expected_headers = [header or None for header, _ in COLUMNS]
+    assert headers == expected_headers, "Headers must mirror Kevin's mod_5_changelog.xlsx exactly (typo and trailing spaces preserved)"
+    assert headers[9] == "Qoute Received?", "Preserve Kevin's typo verbatim until he renames the column"
+
+    drawing_col_values = [ws.cell(row=r, column=2).value for r in range(2, ws.max_row + 1)]
+    populated_drawings = [v for v in drawing_col_values if v]
+    assert populated_drawings, "Should have at least one row of approved data"
+    for value in populated_drawings:
+        assert "-" in value, f"Drawing column should be hyphenated like AE-110, got {value!r}"
+
+    correlations = [ws.cell(row=r, column=1).value for r in range(2, ws.max_row + 1) if ws.cell(row=r, column=1).value]
+    for corr in correlations:
+        assert "." in corr, f"Correlation should be <sheet>.<seq>, got {corr!r}"
+
+    detail_values = [ws.cell(row=r, column=4).value for r in range(2, ws.max_row + 1) if ws.cell(row=r, column=4).value]
+    assert any("Cloud Only" in v or "Detail" in v for v in detail_values)
+
+    assert ws.row_dimensions[2].height >= 16
+    populated_row_count = sum(1 for v in drawing_col_values if v)
+    assert (ws.max_row - 1) >= populated_row_count * ROWS_PER_GROUP - 1, "Each entry should reserve a vertical block for the embedded crop"
+
+    assert ws.merged_cells.ranges, "Scope and Detail View columns should be merged within each block"
+
+    # At least one embedded crop image should land in the file.
+    assert ws._images, "Embedded crop image expected for approved item with cloud candidate"
+
+
 def test_pricing_outputs_filter_placeholder_revision_regions(workspace_copy):
     store = WorkspaceStore(workspace_copy).load()
     seed_item = next(item for item in store.data.change_items if item.status == "pending")

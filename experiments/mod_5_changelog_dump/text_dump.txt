@@ -1,0 +1,40 @@
+--- row 1 ---
+  A1: 'Correlation '
+  B1: 'Drawing #'
+  C1: 'Revision # '
+  D1: 'Detail #'
+  E1: 'Scope Included '
+  F1: 'Detail View '
+  H1: 'Responsible Contractor'
+  I1: 'Cost?'
+  J1: 'Qoute Received?'
+--- row 2 ---
+  A2: 105.1
+  B2: 'AD-105'
+  C2: 'Revision #1 - 10/10/25'
+  D2: 'N/A - Cloud Only '
+  E2: 'Remove Existing Masonry From Masonry Wall to enlarge existing opening as required for duct clearance coordinate opening size and location with mechanical  '
+--- row 14 ---
+  A14: 110.4
+  B14: 'AE-110 '
+  C14: 'Revision #1 - 10/10/25'
+  D14: 'Cloud Only '
+  E14: 'Scope Included in Detail 4 - AE-110 '
+--- row 15 ---
+  G15: 'Triangle is with #1 is indicating Revision #'
+--- row 16 ---
+  G16: 'Circulate Symbol with drawing # and #4 above indicates the detail below is looking at that wall'
+--- row 28 ---
+  A28: 110.4
+  B28: 'AE-110 '
+  C28: 'Revision #1 - 10/10/25'
+  D28: 'Detail 4 '
+  E28: '1) Dash Lines Indicate exsiting abandoned msony opening, verify location of existing masonry openings. Reuse as practical for mechanical ducts. Infill unused openings with materials matching adjacent '
+--- row 35 ---
+  E35: '2) Electrical Equipment - See Electrical Drawings '
+--- row 36 ---
+  E36: '(note appears twice) '
+--- row 38 ---
+  E38: '3) Concrete Housekeeping Pad Coordinate with Electrical '
+--- row 41 ---
+  E41: '4) Rough Opening for Mech Duct, Coordinate with Mechanical for Locations and Size '
