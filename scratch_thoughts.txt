@@ -1,0 +1,35 @@
+############################
+#Project Catch Dem Scallops#
+############################
+
+1. convert to straight black and white on a threshold, make the threshold near pure black, this will remove the grey or lighter boxes we don't need right now.
+
+2. all straight lines, remove. Any sequential pixels, more than 5 in a row maybe, counts as a line, and all of its neighbors need to be removed. 
+
+3. remove black groups of pixels, if there is a group of really any size like 6x6 px remove this, and any "neighbor" pixels out to the extent. If we reach a neighbor without "side" neighbors, i.e. beginning a line
+we know we've reached that side's extent (of the block area)
+
+4. Remove text, all text is solved for OCR, get rid of it
+#########################################################################################
+
+
+**********NEW IDEA AS FALLBACK - STILL SUPER FUCKING USEFUL FOR KEVIN********************
+1. We can use the parser to find all revisions, list the deduped ones, and link them to the more granular individual clouds - JUST THE CLOUD MASK IMAGE. There are items like drawings of steel grab bars in
+the addenda that I don't even have any idea how we'd automatically add as individual items, they are literally drawn bars. We obv need to provide the item breakdown if we can for any clouds, but we also should
+setup organized backend storage for him and literally save the masked/cropped cloud. I know this would still be much faster - he can click the link to the cloud, it pops up in the UI, and get what he needs visually.
+This is only a fallback.
+
+
+
+#########################################################################################
+New notice: Some of the equipment labels are slightly outside the cloud, for equipment actually in the cloud. We'll need to adjust later for this, but they are clearly shown with a thick 
+black arrow "this is inside this cloud" with the label outside connected to the equipment.
+
+
+Opus Recs:
+Three options, increasing scope:
+
+(A) Cheap win. Build the index-parser → Kevin-changelog bridge so we can produce a complete-skeleton xlsx today, even with no cloud detection. ~1-2 hours.
+(B) Medium. (A) + finish the delta marker detector and use it to anchor cloud crops per row. Gets us populated Detail View cells. ~half a day.
+(C) Full. (A) + (B) + resume cloud detector v2 with delta-marker-anchored ROIs. Gets us auto-populated Scope Included cells. ~1-2 days.
+Want to go with (A) right now to lock in the deliverable shape before Kevin replies?

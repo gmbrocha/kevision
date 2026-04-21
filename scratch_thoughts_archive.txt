@@ -1,0 +1,5 @@
+FOR INDEX PARSING: First pass only got ~42, there are 50 revisions in index 1 ***********DONE*************
+- Once it's dialed in, I know what Kevin was talking about now. If R1 has a revision, and the same revision then appears in R2 index (marked as X), then R2 obv supersedes R1. 
+- If a revision shows up in R1, but never was superseded in R2, or vice versa, this is what Kevin meant by "combining all of the revisions"
+- We take all of R1, then all of R2, and simply dedupe -> output as collated set of all Rs, repeat as necessary for revisions THIS WAS A MAIN DELIVERABLE (we just need the next level of granularity by
+getting the scallops in the drawing's items)

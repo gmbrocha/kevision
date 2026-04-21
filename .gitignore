@@ -3,3 +3,13 @@ __pycache__/
 *.pyc
 workspace_demo/
 workspace_demo_accuracy/
+
+# IDE / local agent state
+.cursor/
+
+# Generated experiment artifacts
+experiments/kevin_changelog_preview.xlsx
+experiments/**/output/
+
+# Tempfiles
+*.tmp
