@@ -4,10 +4,10 @@
 >
 > This doc was written *before* the index parser and Kevin-changelog work landed. Status of the pieces it describes:
 >
-> - **Shipped** — `experiments/2026_04_index_parser/` (deterministic per-revision sheet table; hand-verified against `Rev2_final_current_state.csv`). `revision_tool/kevin_changelog.py` (Kevin-shaped Excel exporter, tested, generated for real from `workspace_demo`).
-> - **In progress** — `experiments/2026_04_delta_marker_detector/` (Tier 2 digit-anchored detection working on Rev2 p11 + Rev1 p17; HANDOFF.md has the next steps).
+> - **Shipped** — `experiments/2026_04_index_parser/` (deterministic per-revision sheet table; hand-verified against `Rev2_final_current_state.csv` — this is the data spine and stays put). `revision_tool/kevin_changelog.py` (Kevin-shaped Excel exporter, tested, generated for real from `workspace_demo`).
+> - **Half-shipped** — Δ marker denoise pipeline in `experiments/delta_v3/` (`denoise_2.png` is the canonical pre-detection image). Detection-on-top is scrapped; restart needed. `2026_04_delta_marker_detector/` and `delta_v2/` are earlier abandoned approaches, kept for provenance.
 > - **Paused with documented next step** — `experiments/2026_04_cloud_detector_v2/` (paused at stage 3; blocked on scallop boundary repair before contour assembly works).
-> - **Pending** — the per-file KILL/REWRITE/KEEP execution this doc proposes (see `docs/cleanup_audit_2026_04_21.md` for current state and recommended order). The target package architecture below is also unimplemented.
+> - **Pending** — Δ marker detection v4 (consume `delta_v3/denoise_2.png`, build a fresh detector). The per-file KILL/REWRITE/KEEP execution this doc proposes (see `docs/cleanup_audit_2026_04_21.md` for current state and recommended order). The target package architecture below is also unimplemented.
 >
 > Read the rest of this doc as the *plan*, not the *current state*.
 

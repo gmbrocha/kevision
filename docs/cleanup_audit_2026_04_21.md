@@ -111,7 +111,7 @@ useful guidance. Recommend extracting that single section into a new
 
 ## 4. Superseded experiments — `experiments/`
 
-**PROPOSE.**
+**PROPOSE.** *(corrected 2026-04-21 after gmbrocha pointed out the delta lineage was inverted in the original audit; chronological order is `2026_04_delta_marker_detector` → `delta_v2` → `delta_v3`, not the other way around.)*
 
 Status check on the seven experiment folders:
 
@@ -119,10 +119,10 @@ Status check on the seven experiment folders:
 |---|---|---|---|
 | `2026_04_cloud_detector/` | Iter 1, plateaued; superseded by v2 per its own README | `ae67713` | Move to `experiments/archive/2026_04_cloud_detector_iter1/` |
 | `2026_04_cloud_detector_v2/` | Paused at stage 3; documented next step | `6a30db5` | Keep in place; still active |
-| `2026_04_delta_marker_detector/` | In progress | `263a541` (and recent) | Keep in place; active |
-| `2026_04_index_parser/` | Done & verified | `7c6ead4` | Keep in place; this is the data spine for the next sprint |
-| `delta_v2/` | Denoise scratch, fed `2026_04_delta_marker_detector` | `43a1543` | Move to `experiments/archive/delta_v2/` |
-| `delta_v3/` | Denoise scratch + detection tests, fed delta marker detector | `8d95bf7` (just now) | Move to `experiments/archive/delta_v3/` |
+| `2026_04_delta_marker_detector/` | First Δ attempt (contour + hull + PDF-text-digit). Superseded by the v2 → v3 line, which pursued a different (denoise-first) approach | `263a541` | Move to `experiments/archive/2026_04_delta_marker_detector/` |
+| `2026_04_index_parser/` | Done & verified — data spine for the Kevin changelog | `7c6ead4` | **Keep in place permanently.** This is the cheapest source for 4 of the 6 changelog columns. |
+| `delta_v2/` | Tier 2 digit-anchored detection + early denoise. Fed denoise ideas into v3 | `43a1543` | Move to `experiments/archive/delta_v2/` |
+| `delta_v3/` | **Active** — denoise pipeline kept (`denoise_2.png` is canonical pre-detection input); detection scripts scrapped 2026-04-21 (recursive-triangle apocalypse) | `8d95bf7` (and a follow-up scrap commit) | Keep in place. Restart detection from scratch in a future session, consuming `denoise_2.png`. |
 | (root) `extract_changelog.py`, `inspect_changelog.py`, `preview_kevin_changelog.py`, `mod_5_changelog_dump/` | Active | `2de2613` | Keep |
 
 Once the three folders move to `experiments/archive/`, also `git rm --cached`
