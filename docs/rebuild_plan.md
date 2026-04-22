@@ -1,5 +1,16 @@
 # Rebuild Plan
 
+> **Status banner — updated 2026-04-21**
+>
+> This doc was written *before* the index parser and Kevin-changelog work landed. Status of the pieces it describes:
+>
+> - **Shipped** — `experiments/2026_04_index_parser/` (deterministic per-revision sheet table; hand-verified against `Rev2_final_current_state.csv`). `revision_tool/kevin_changelog.py` (Kevin-shaped Excel exporter, tested, generated for real from `workspace_demo`).
+> - **In progress** — `experiments/2026_04_delta_marker_detector/` (Tier 2 digit-anchored detection working on Rev2 p11 + Rev1 p17; HANDOFF.md has the next steps).
+> - **Paused with documented next step** — `experiments/2026_04_cloud_detector_v2/` (paused at stage 3; blocked on scallop boundary repair before contour assembly works).
+> - **Pending** — the per-file KILL/REWRITE/KEEP execution this doc proposes (see `docs/cleanup_audit_2026_04_21.md` for current state and recommended order). The target package architecture below is also unimplemented.
+>
+> Read the rest of this doc as the *plan*, not the *current state*.
+
 Two parts: an audit of what we have today and where it lands in the rebuild, and the target package architecture with explicit dependency rules so we don't end up with spaghetti.
 
 ## Why a rebuild
