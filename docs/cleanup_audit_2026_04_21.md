@@ -206,25 +206,10 @@ The banner added at the top of the file is a reading guide:
 
 ## 8. Confidentiality posture — Kevin's source material
 
-**OBSERVE.**
-
-`mod_5_changelog.xlsx` and `experiments/mod_5_changelog_dump/` (text dump +
-3 PNG screenshots cropped from his PDFs) are real client material. Kevin's
-file references the actual project, contractor, sheet IDs.
-
-The repo's git remote is `https://github.com/gmbrocha/kevision.git`. The
-`gh` CLI isn't installed locally, so visibility wasn't programmatically
-verified. **Action for you:** confirm whether the GitHub repo is private. If
-public, decide:
-
-1. Make the repo private (cleanest).
-2. `git rm --cached mod_5_changelog.xlsx experiments/mod_5_changelog_dump/` plus a force-push of an `git filter-repo` history rewrite (heavy; only if exposure is the concern).
-3. Keep public if the material is non-sensitive enough to share (Kevin's call).
-
-The sensitive bits are: project address (none in the file), pricing
-(none in the file), specific scope (some — masonry openings, electrical
-equipment notes for a specific elevation). My read is medium-low
-sensitivity; Kevin's read should drive the decision.
+**RESOLVED 2026-04-21.** Repo is private (confirmed by gmbrocha). Kevin's
+source material (`mod_5_changelog.xlsx`, `experiments/mod_5_changelog_dump/`)
+stays in tree as-is. No `git rm --cached`, no history rewrite, no
+visibility change needed.
 
 ---
 
