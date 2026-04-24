@@ -23,7 +23,8 @@ Usage:
 
 Defaults: AE122 (Revision #1, page 17).
 
-Known limitation: see ../delta_v2/KNOWN_LIMITATIONS.md
+Known limitation: this stage aggressively prunes non-digit-adjacent ink and is
+therefore useful for delta bootstrapping, not for cloud reasoning.
 """
 from __future__ import annotations
 

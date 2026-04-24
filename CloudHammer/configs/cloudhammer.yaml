@@ -1,0 +1,35 @@
+paths:
+  raw_pdfs: data/raw_pdfs
+  rasterized_pages: data/rasterized_pages
+  delta_json: data/delta_json
+  roi_images: data/roi_images
+  cloud_roi_images: data/cloud_roi_images
+  api_cloud_inputs: data/api_cloud_inputs
+  api_cloud_predictions: data/api_cloud_predictions
+  api_cloud_labels: data/api_cloud_labels
+  api_cloud_review: data/api_cloud_review
+  labels: data/labels
+  cloud_labels: data/cloud_labels
+  manifests: data/manifests
+  models: models
+  runs: runs
+  outputs: outputs
+
+render:
+  dpi: 300
+
+bootstrap:
+  roi_size: 1400
+  target_revision_digit: null
+
+training:
+  model: yolov8n.pt
+  imgsz: 640
+  epochs: 50
+  batch: 16
+
+inference:
+  confidence_threshold: 0.5
+  tile_size: 1280
+  tile_overlap: 192
+  nms_iou: 0.5

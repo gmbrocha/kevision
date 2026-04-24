@@ -8,8 +8,9 @@ import zipfile
 import shutil
 from pathlib import Path
 
-XLSX = Path(r"F:\Desktop\m\projects\drawing_revision\mod_5_changelog.xlsx")
-OUT = XLSX.parent / "experiments" / "mod_5_changelog_dump"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+XLSX = REPO_ROOT / "docs" / "anchors" / "mod_5_changelog.xlsx"
+OUT = REPO_ROOT / "experiments" / "mod_5_changelog_dump"
 OUT.mkdir(parents=True, exist_ok=True)
 
 # 1. Pull out embedded images directly from the .xlsx zip (cleanest way).

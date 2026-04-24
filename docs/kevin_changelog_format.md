@@ -1,7 +1,8 @@
-# Kevin's Changelog Format (reverse-engineered from `mod_5_changelog.xlsx`)
+# Kevin's Changelog Format (reverse-engineered from `docs/anchors/mod_5_changelog.xlsx`)
 
-Source: `mod_5_changelog.xlsx` (received 4/21/26 from Kevin). This file is the
-canonical reference for the Excel-shaped deliverable until further notice.
+Source: `docs/anchors/mod_5_changelog.xlsx` (received 4/21/26 from Kevin).
+This file is the canonical reference for the Excel-shaped deliverable until
+further notice.
 
 The raw extraction lives in `experiments/mod_5_changelog_dump/` (text dump +
 three embedded image crops). See `experiments/extract_changelog.py` to
@@ -129,7 +130,7 @@ The two-row "cloud + referenced detail" pattern needs:
 ## Open questions
 
 Tracked in `KEVIN_QUESTIONS.md` under "New questions raised by
-mod_5_changelog.xlsx". Highest-priority unknowns:
+docs/anchors/mod_5_changelog.xlsx". Highest-priority unknowns:
 
 1. What is "Mod 5"? (Modification / change-order wrapper above revision sets?)
 2. Is the sub-item rollup ("4 bullets in one row") the rule, or specific to

@@ -1,0 +1,4 @@
+-r ../requirements.txt
+PyYAML>=6.0
+ultralytics>=8.2
+pytest>=8.0

@@ -95,7 +95,7 @@ Status legend:
 | `README.md` | REWRITE last | Should reflect the new tool when we ship v1. Don't touch yet. |
 | `requirements.txt` | KEEP, add openpyxl | Existing deps survive. Add `openpyxl` for Excel output. Possibly add `shapely` for clean polygon geometry; assess during the cloud-detector experiment. |
 | `revision_sets/` | KEEP | Bundled fixture data, untouched. |
-| `revision.png`, `revision_cloud_example_2.png` | KEEP | Reference images for docs. |
+| `docs/anchors/revision.png`, `docs/anchors/revision_cloud_example_2.png` | KEEP | Reference images for docs. |
 
 ---
 
