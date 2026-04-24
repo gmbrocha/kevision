@@ -1,0 +1,6 @@
+path: C:\Users\brochardgm\Desktop\kevision\CloudHammer\data\yolo_reviewed_batch_001
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: cloud_motif

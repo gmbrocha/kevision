@@ -19,7 +19,7 @@ artifacts that still matter.
 - `extract_changelog.py`
   - utility to extract structure and embedded images from Kevin's reference
     workbook
-- `preview_kevin_changelog.py`
+- `preview_revision_changelog.py`
   - utility to generate a preview workbook from a workspace export
 
 ## Removed

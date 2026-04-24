@@ -1,0 +1,15 @@
+## New questions raised by `mod_5_changelog.xlsx`
+
+**What is "Mod 5"?** Filename is `mod_5_changelog`. Hypothesis: Modification 5 / change order #5 — a wrapper above revision sets that bundles the priced changes for one owner-facing modification. Confirm. Does each Mod map to N revision sets, or N:N?  Yes,  Typically a Mod will have a revision Set.   However an additional revision set can be sent for that MOD.   In that case the first set, will still need to be priced, but will not have the clouds on the second revision. Only the Keynote near the detail, indicating something changed in the earlier revision
+
+**Sub-item rollup rule** — He puts 4 numbered sub-items in one row when they're in the same detail. Rule: "one row per cloud (or per detail when the cloud is on a plan and references a detail), bullets stacked inside `Scope Included`"? Or did he just do it that way for AE-110 because the detail had a tight legend? Affects `pricing_change_lines` granularity.
+
+**Duplicate-callout collapse** — Row 36 says `"(note appears twice)"`. So duplicates *inside the same detail* collapse. What about duplicates across multiple details on the same sheet? Across sheets?  Duplicate inside the same detail does not need to be listed twice, as it already brings attention to the need within the cloud.  Duplicate notes on other drawings may not be referring to the same detail so if clouded, they should be noted.  If the detail is correlated to the original detail,  if the notes are the same, it can read “See XX Detail for reference”, but this way it is called out and checked.  Different details with duplicate notes, need to be called out as the work is in a different location on the project.  
+
+**Correlation ID** — Confirm the format `<sheet#>.<seq>` and that ordering is just "order he encountered them" (not "order on the sheet by location"). Are these stable across re-issues, or do they renumber if Rev 2 inserts a new change? Doesn’t matter.  That was just page number.detail number (110.4) can be whatever to tie them together. But the page.detail number made sense
+
+**Detail-View crop dimensions** — He sized each embedded image to span ~14 rows × 2 cols. Is there a target pixel size / aspect ratio he wants, or is "fits the cell" good enough? Doesn’t matter.  Just grabbed to make legible.  No target, can be larger.   This could be a report that does only 2 times on a single page to ensure the detail and notes are legible.
+
+**Two-row pattern for cloud → detail** — Confirm the convention: when a cloud on a plan encloses a detail callout, generate one `Cloud Only` row (anchoring to the plan) AND one `Detail N` row (carrying the scope). Or does he sometimes want just the detail row? 
+
+**The empty downstream columns** — `Responsible Contractor`, `Cost?`, `Quote Received?` — confirm we leave these blank for him / pricing team to fill, vs. trying to auto-suggest a contractor based on trade keywords in the scope.

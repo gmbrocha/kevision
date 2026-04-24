@@ -6,10 +6,11 @@ paths:
   cloud_roi_images: data/cloud_roi_images
   api_cloud_inputs: data/api_cloud_inputs
   api_cloud_predictions: data/api_cloud_predictions
-  api_cloud_labels: data/api_cloud_labels
+  api_cloud_labels_unreviewed: data/api_cloud_labels_unreviewed
   api_cloud_review: data/api_cloud_review
   labels: data/labels
   cloud_labels: data/cloud_labels
+  cloud_labels_reviewed: data/cloud_labels_reviewed
   manifests: data/manifests
   models: models
   runs: runs

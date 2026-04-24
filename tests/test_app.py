@@ -9,7 +9,6 @@ import pytest
 from revision_tool.exporter import ExportBlockedError, Exporter
 from revision_tool.review import change_item_needs_attention
 from revision_tool.scanner import RevisionScanner
-from revision_tool.verification import VerificationProvider
 from revision_tool.web import create_app
 from revision_tool.workspace import WorkspaceStore
 
@@ -45,18 +44,16 @@ def test_scan_generates_supersedence_and_ae113(workspace_copy):
     ae600_versions = [sheet for sheet in store.data.sheets if sheet.sheet_id == "AE600"]
     assert {sheet.status for sheet in ae600_versions} == {"active", "superseded"}
 
-    ae113_items = [item for item in store.data.change_items if item.sheet_id == "AE113"]
-    assert ae113_items
-    assert any(item.cloud_candidate_id for item in ae113_items)
-    visual_item = next(item for item in store.data.change_items if item.provenance["source"] == "visual-region")
-    assert visual_item.provenance["extraction_method"].startswith("opencv-contour")
-    assert visual_item.provenance["extraction_signal"] >= 0.0
+    assert store.data.clouds == []
+    assert store.data.change_items
+    assert {item.provenance["source"] for item in store.data.change_items} == {"narrative"}
+    assert {item.sheet_id for item in store.data.change_items} >= {"AE107", "AE108", "AE109", "GI104"}
 
 
-def test_export_blocks_pending_attention_items(workspace_copy):
+def test_export_does_not_block_without_attention_items(workspace_copy):
     store = WorkspaceStore(workspace_copy).load()
-    with pytest.raises(ExportBlockedError):
-        Exporter(store).export()
+    outputs = Exporter(store).export()
+    assert "revision_changelog_xlsx" in outputs
 
 
 def test_export_only_approved_items_when_forced(workspace_copy):
@@ -98,37 +95,20 @@ def test_export_only_approved_items_when_forced(workspace_copy):
     assert store.data.exports[-1]["summary"] == summary
 
 
-def test_kevin_changelog_xlsx_matches_kevin_layout(workspace_copy):
-    """Smoke test that the Kevin-shaped Excel exporter produces a file with
-    his exact column headers, one merged row block per (sheet, detail) group,
-    and at least one embedded crop image for an approved item that has one."""
+def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
+    """Smoke test that the revision changelog exporter preserves workbook shape."""
     from openpyxl import load_workbook
 
-    from revision_tool.kevin_changelog import COLUMNS, ROWS_PER_GROUP
+    from backend.deliverables.revision_changelog_excel import COLUMNS, ROWS_PER_GROUP
 
     store = WorkspaceStore(workspace_copy).load()
-    pending_with_crop = next(
-        item for item in store.data.change_items
-        if item.status == "pending" and item.cloud_candidate_id
-    )
-    store.update_change_item(
-        pending_with_crop.id,
-        status="approved",
-        reviewer_text="Install 1\" Fire-Shield Shaftliner | 2 Layers 5/8\" Gypsum | Corner Bead",
-    )
-    second_pending = next(
-        item for item in store.data.change_items
-        if item.status == "pending" and item.id != pending_with_crop.id
-    )
-    store.update_change_item(
-        second_pending.id,
-        status="approved",
-        reviewer_text="Patch and repair masonry opening, install new lintel",
-    )
+    first_pending, second_pending = store.data.change_items[:2]
+    store.update_change_item(first_pending.id, status="approved", reviewer_text="Install gypsum board and corner bead")
+    store.update_change_item(second_pending.id, status="approved", reviewer_text="Patch and repair masonry opening")
 
     outputs = Exporter(store).export(force_attention=True)
-    xlsx_path = Path(outputs["kevin_changelog_xlsx"])
-    assert xlsx_path.exists(), "Kevin-shaped changelog should be written"
+    xlsx_path = Path(outputs["revision_changelog_xlsx"])
+    assert xlsx_path.exists(), "Revision changelog workbook should be written"
     assert xlsx_path.suffix == ".xlsx"
 
     wb = load_workbook(xlsx_path)
@@ -157,9 +137,7 @@ def test_kevin_changelog_xlsx_matches_kevin_layout(workspace_copy):
     assert (ws.max_row - 1) >= populated_row_count * ROWS_PER_GROUP - 1, "Each entry should reserve a vertical block for the embedded crop"
 
     assert ws.merged_cells.ranges, "Scope and Detail View columns should be merged within each block"
-
-    # At least one embedded crop image should land in the file.
-    assert ws._images, "Embedded crop image expected for approved item with cloud candidate"
+    assert not ws._images, "No embedded crop images are expected while CloudHammer inference is disconnected"
 
 
 def test_pricing_outputs_filter_placeholder_revision_regions(workspace_copy):
@@ -299,7 +277,7 @@ def test_cli_export_summary_is_human_readable():
     assert "Filtered out as noise" in text
     assert "clouded regions with no readable text" in text
     assert "WARNING" in text
-    assert "python -m revision_tool serve" in text
+    assert "python -m backend serve" in text
 
 
 def test_web_routes_render_without_ai(workspace_copy):
@@ -316,7 +294,7 @@ def test_web_routes_render_without_ai(workspace_copy):
     assert b"Preflight Summary" in diagnostics.data
     settings = client.get("/settings")
     assert settings.status_code == 200
-    assert b"disabled" in settings.data
+    assert b"archived" in settings.data
 
 
 def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
@@ -417,45 +395,13 @@ def test_rescan_reuses_cache_and_preserves_review_state(workspace_copy):
     assert len(reloaded.data.scan_cache.get("documents", {})) == len(reloaded.data.documents)
 
 
-def test_verify_endpoint_with_mock_provider(workspace_copy):
-    class MockProvider(VerificationProvider):
-        def __init__(self):
-            super().__init__(name="mock-openai")
-            self.last_context = None
-
-        @property
-        def enabled(self) -> bool:
-            return True
-
-        def verify_change(self, change_item_id, context_bundle):
-            self.last_context = context_bundle
-            return {
-                "verdict": "clarified",
-                "corrected_text": "Reviewer-ready corrected text",
-                "reasoning": "The candidate was clarified from the provided crop and narrative.",
-                "confidence": 0.84,
-                "warnings": [],
-                "request_payload": {"mock": True},
-            }
-
-    provider = MockProvider()
-    app = create_app(workspace_copy, verification_provider=provider)
+def test_verify_endpoint_is_archived(workspace_copy):
+    app = create_app(workspace_copy)
     client = app.test_client()
     store = WorkspaceStore(workspace_copy).load()
     change = store.data.change_items[0]
 
     response = client.post(f"/changes/{change.id}/verify")
-    assert response.status_code == 200
+    assert response.status_code == 400
     payload = response.get_json()
-    assert payload["verification"]["corrected_text"] == "Reviewer-ready corrected text"
-    assert provider.last_context["change_item_id"] == change.id
-
-    refreshed = WorkspaceStore(workspace_copy).load()
-    record = refreshed.change_verifications(change.id)[0]
-    apply_response = client.post(f"/changes/{change.id}/apply-verification/{record.id}")
-    assert apply_response.status_code == 302
-
-    reloaded = WorkspaceStore(workspace_copy).load()
-    updated = reloaded.get_change_item(change.id)
-    assert updated.reviewer_text == "Reviewer-ready corrected text"
-    assert updated.status == "approved"
+    assert "disabled" in payload["error"].lower() or "archived" in payload["error"].lower()

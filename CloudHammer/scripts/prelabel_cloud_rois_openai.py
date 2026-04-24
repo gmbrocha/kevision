@@ -26,6 +26,7 @@ def main() -> int:
     parser.add_argument("--request-delay", type=float, default=0.5)
     parser.add_argument("--max-retries", type=int, default=3)
     parser.add_argument("--retry-initial-delay", type=float, default=2.0)
+    parser.add_argument("--flush-every", type=int, default=25)
     args = parser.parse_args()
     if args.limit is not None and args.limit < 1:
         parser.error("--limit must be at least 1")
@@ -39,6 +40,8 @@ def main() -> int:
         parser.error("--max-retries must be non-negative")
     if args.retry_initial_delay < 0:
         parser.error("--retry-initial-delay must be non-negative")
+    if args.flush_every < 1:
+        parser.error("--flush-every must be at least 1")
 
     cfg = CloudHammerConfig.load(args.config)
     prelabel_cloud_rois(
@@ -56,6 +59,7 @@ def main() -> int:
         request_delay=args.request_delay,
         max_retries=args.max_retries,
         retry_initial_delay=args.retry_initial_delay,
+        flush_every=args.flush_every,
     )
     return 0
 

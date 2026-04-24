@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}{{ item.sheet_id }} {{ item.detail_ref or "" }}{% endblock %}
+{% block page_heading %}{{ item.sheet_id }} {{ item.detail_ref or "Review Item" }}{% endblock %}
+{% block page_lead %}Review extracted text, compare it to the crop and full sheet, then approve or reject the item. Automated review assist is currently archived until the local CloudHammer model is wired in.{% endblock %}
+{% block content %}
+  <section class="panel queue-header" data-prev-url="{% if navigation.previous_change_id %}{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}" data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}">
+    <div>
+      <p class="eyebrow">Queue Navigation</p>
+      <h2>{{ item.sheet_id }} · {{ item.detail_ref or "no detail ref" }}</h2>
+      <p class="muted">
+        <span class="status {{ item.status }}">{{ item.status }}</span>
+        {% if item_needs_attention %}<span class="status attention">attention</span>{% endif %}
+        · sheet <a href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">{{ sheet.sheet_id }}</a>
+        {% if navigation.index %}
+          · item {{ navigation.index }} of {{ navigation.total }} in {{ queue_status }} queue
+        {% endif %}
+      </p>
+    </div>
+    <div class="queue-nav">
+      <a class="pill" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Back to Queue</a>
+      {% if navigation.previous_change_id %}
+        <a class="pill" href="{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Previous</a>
+      {% endif %}
+      {% if navigation.next_change_id %}
+        <a class="pill" href="{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Next</a>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if item_needs_attention %}
+    <section class="callout attention-banner">
+      <strong>Attention item.</strong> This candidate has a weak extraction signal or no detail reference. Review the crop and nearby text before approving it.
+    </section>
+  {% endif %}
+
+  <section class="split">
+    <article class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Decision</p>
+          <h2>Review</h2>
+        </div>
+        {% if item.provenance.extraction_signal is defined %}
+          <span class="signal-badge {% if item_needs_attention %}signal-badge--low{% endif %}">signal {{ "%.2f"|format(item.provenance.extraction_signal) }}</span>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('review_change', change_id=item.id) }}" class="review-form js-review-form">
+        <input type="hidden" name="redirect_to" value="{{ url_for('change_detail', change_id=item.id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">
+        <input type="hidden" name="queue_status" value="{{ queue_status }}">
+        <input type="hidden" name="search_query" value="{{ search_query }}">
+        <input type="hidden" name="attention_only" value="{{ '1' if attention_only else '0' }}">
+        <input type="hidden" name="next_change_id" value="{{ navigation.next_change_id or '' }}">
+        <input type="hidden" name="advance" value="">
+        <label>
+          <span class="label-text">Status</span>
+          <select name="status">
+            {% for value in ["pending", "approved", "rejected"] %}
+              <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span class="label-text">Reviewer Text</span>
+          <textarea name="reviewer_text" rows="8">{{ item.reviewer_text or item.raw_text }}</textarea>
+        </label>
+        <label>
+          <span class="label-text">Notes</span>
+          <textarea name="reviewer_notes" rows="4">{{ item.reviewer_notes }}</textarea>
+        </label>
+        <div class="button-row">
+          <button type="submit">Save Review</button>
+          {% if navigation.next_change_id %}
+            <button type="submit" onclick="this.form.elements.advance.value='next';">Save + Next Pending</button>
+            <button type="submit" name="status_override" value="approved" formnovalidate onclick="this.form.elements.advance.value='next';">Approve + Next</button>
+            <button type="submit" name="status_override" value="rejected" formnovalidate onclick="this.form.elements.advance.value='next';">Reject + Next</button>
+          {% else %}
+            <button type="submit" name="status_override" value="approved">Approve</button>
+            <button type="submit" name="status_override" value="rejected">Reject</button>
+          {% endif %}
+        </div>
+      </form>
+      <p class="muted">Shortcuts: <code>a</code> approve + next, <code>r</code> reject + next, <code>s</code> save, <code>[</code>/<code>]</code> move between items.</p>
+    </article>
+
+    <article class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Evidence</p>
+          <h2>Source Context</h2>
+        </div>
+        <span class="pill">{{ item.provenance.source }}</span>
+      </div>
+      <div class="stack">
+        <div><strong>Raw text:</strong> {{ item.raw_text }}</div>
+        {% if item.provenance.extraction_method %}
+          <div><strong>Extraction:</strong> {{ item.provenance.extraction_method }}</div>
+        {% endif %}
+        {% if cloud %}
+          <img class="crop-image" src="{{ cloud.image_path|asset_path }}" alt="Review crop">
+          <div><strong>Nearby text:</strong> {{ cloud.nearby_text or "n/a" }}</div>
+        {% else %}
+          <p>No crop was associated with this item.</p>
+        {% endif %}
+        <details>
+          <summary>Full page preview</summary>
+          <img class="full-image" src="{{ sheet.render_path|asset_path }}" alt="Full page">
+        </details>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Review Assist</p>
+        <h2>Current Status</h2>
+      </div>
+      <span class="pill">archived</span>
+    </div>
+    <div class="stack">
+      <p>The old API-backed verification helper has been removed from the active workflow.</p>
+      <p>Use reviewer text, notes, and the page/crop evidence as the source of truth until CloudHammer inference is connected to this queue.</p>
+      {% if verifications %}
+        <details>
+          <summary>Historical verification records</summary>
+          <ul class="flat-list">
+            {% for verification in verifications %}
+              <li class="list-card">
+                <div class="list-card__header">
+                  <strong>{{ verification.created_at }}</strong>
+                  <span class="status {{ verification.disposition }}">{{ verification.response_payload.verdict or "n/a" }}</span>
+                </div>
+                <div class="verification-card">
+                  <div><strong>Reasoning:</strong> {{ verification.response_payload.reasoning or "n/a" }}</div>
+                  <div><strong>Suggestion:</strong> {{ verification.response_payload.corrected_text or "n/a" }}</div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

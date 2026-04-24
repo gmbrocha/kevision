@@ -1,5 +1,7 @@
 # Rev 1 / Rev 2 Benchmark
 
+Status: `Current benchmark reference, but subject to workflow updates as CloudHammer inference is reattached.`
+
 ## Goal
 
 Measure whether the tool is meaningfully better than the current manual
@@ -57,8 +59,8 @@ Use the tool on a freshly scanned workspace.
 Current suggested run:
 
 ```powershell
-python -m revision_tool scan revision_sets workspace_demo_accuracy
-python -m revision_tool serve workspace_demo_accuracy --port 5000
+python -m backend scan revision_sets workspace_demo_accuracy
+python -m backend serve workspace_demo_accuracy --port 5000
 ```
 
 If a later CloudHammer-assisted flow exists, run the same benchmark again with

@@ -1,6 +1,31 @@
-# Revision Review Tool
+# KEVISION
 
-Local Flask app for scanning drawing revision PDFs, building a review workspace, and exporting approved results.
+KEVISION is the root product repo.
+
+- `CloudHammer/` is the computer-vision child project for revision-cloud data prep, labeling, training, and inference.
+- `backend/` owns orchestration, revision-state parsing, workspace persistence, and deliverable generation.
+- `webapp/` is the current review UI surface.
+- `resources/` is the landing zone for source drawing sets and curated sample outputs.
+- `archive/` holds quarantined experiments, outputs, and deprecated scripts.
+
+`revision_tool/` still exists only as a compatibility wrapper around the migrated `backend/` and `webapp/` modules.
+
+## Repo Layout
+
+```text
+kevision/
+  CloudHammer/
+  backend/
+  webapp/
+  resources/
+  docs/
+  archive/
+```
+
+See:
+
+- `docs/README.md` for the docs index
+- `docs/architecture.md` for the current structure and migration boundaries
 
 ## Install
 
@@ -8,53 +33,64 @@ Local Flask app for scanning drawing revision PDFs, building a review workspace,
 python -m pip install -r requirements.txt
 ```
 
-## Scan a Workspace
+## Happy Path
+
+### CloudHammer model pipeline
+
+From `CloudHammer/`:
 
 ```powershell
-python -m revision_tool scan revision_sets workspace
+python scripts/catalog_pages.py --no-render
+python scripts/catalog_pages.py --limit 5 --overwrite
+python scripts/run_delta_bootstrap.py --limit 1
+python scripts/extract_delta_rois.py --limit 20
+python scripts/extract_cloud_rois.py --limit 20
+python scripts/prelabel_cloud_rois_openai.py --limit 25 --dry-run
+python scripts/prepare_labelimg_review.py
+python scripts/train_roi_detector.py
+python scripts/infer_pages.py --model runs/cloudhammer_roi/weights/best.pt --limit 5
 ```
 
-This creates:
+Labeling and prelabel docs live in:
 
-- `workspace/workspace.json`
-- `workspace/assets/pages/*.png`
-- `workspace/assets/crops/*.png`
-- persisted preflight diagnostics for PDF integrity issues
-- `workspace/outputs/` after export
+- `CloudHammer/docs/README.md`
+- `CloudHammer/docs/pipeline_overview.md`
+- `CloudHammer/docs/labeling_workflow.md`
+- `CloudHammer/docs/api_prelabel_workflow.md`
 
-Re-running `scan` against the same workspace now reuses unchanged PDFs from a persisted cache and preserves existing review decisions for unchanged change items.
+The live API prelabel run writes under `CloudHammer/data/`; if that run is in
+progress, treat those API folders as active runtime state and do not move or
+edit them.
 
-## Run the GUI
+### Backend workspace and export flow
+
+Scan a workspace:
 
 ```powershell
-python -m revision_tool serve workspace --port 5000
+python -m backend scan revision_sets workspace
 ```
 
-Open `http://127.0.0.1:5000`.
-
-The GUI includes:
-
-- a `Diagnostics` view that summarizes malformed-PDF warnings by file and page
-- a filtered review queue with search, bulk approve/reject, and keyboard shortcuts
-- next-item navigation on each change record
-- an attention-only queue for weak visual extractions or missing detail refs
-- optional manual AI verification for confusing items
-
-## Export Approved Results
+Run the current web review UI:
 
 ```powershell
-python -m revision_tool export workspace
+python -m backend serve workspace --port 5000
+```
+
+Export approved results:
+
+```powershell
+python -m backend export workspace
 ```
 
 If attention items are still pending, export is blocked by default. To allow an interim export anyway:
 
 ```powershell
-python -m revision_tool export workspace --force-attention
+python -m backend export workspace --force-attention
 ```
 
 Exports include:
 
-- `kevin_changelog.xlsx` — Kevin-shaped Excel deliverable (one row per cloud/detail with embedded crops; layout reverse-engineered from `mod_5_changelog.xlsx`, schema in `docs/kevin_changelog_format.md`)
+- `revision_changelog.xlsx`
 - `approved_changes.csv`
 - `approved_changes.json`
 - `pricing_change_candidates.csv`
@@ -69,23 +105,11 @@ Exports include:
 - `revision_index.csv`
 - `conformed_preview.pdf`
 
-`conformed_preview.pdf` is assembled from rendered page images rather than direct PDF page imports. This is intentional: it avoids brittle xref/object issues in malformed source PDFs and makes preview export more reliable.
+## Notes
 
-The scanner also uses PDF text first and falls back to local OCR on weak review crops when Tesseract is available.
-
-## Optional AI Verification
-
-The app works without model access.
-
-To enable manual verification buttons in the GUI:
-
-```powershell
-$env:OPENAI_API_KEY = "your-key"
-$env:OPENAI_VERIFY_MODEL = "gpt-4.1-mini"
-python -m revision_tool serve workspace
-```
-
-AI output is advisory only and is stored in the workspace audit history.
+- The old API-backed verification helper is archived. Human review is the active path until CloudHammer inference is reattached to the review queue.
+- `revision_sets/` still lives at the repo root for compatibility. The future target is `resources/revision_sets/`, but the path migration is staged.
+- Do not touch active CloudHammer API output folders while a prelabel run is in progress.
 
 ## Tests
 

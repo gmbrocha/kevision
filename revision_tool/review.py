@@ -1,10 +1,3 @@
-from __future__ import annotations
+"""Compatibility wrapper for migrated review helpers."""
 
-from .models import ChangeItem
-
-
-def change_item_needs_attention(item: ChangeItem) -> bool:
-    signal = float(item.provenance.get("extraction_signal", 1.0))
-    if item.provenance.get("source") != "visual-region":
-        return False
-    return signal < 0.48 or not item.detail_ref
+from backend.review import *  # noqa: F401,F403

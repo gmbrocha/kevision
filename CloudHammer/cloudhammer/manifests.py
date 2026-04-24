@@ -19,11 +19,13 @@ def read_jsonl(path: str | Path) -> Iterator[dict]:
 def write_jsonl(path: str | Path, rows: Iterable[dict]) -> int:
     manifest_path = Path(path)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = manifest_path.with_name(f"{manifest_path.name}.tmp")
     count = 0
-    with manifest_path.open("w", encoding="utf-8", newline="\n") as handle:
+    with temp_path.open("w", encoding="utf-8", newline="\n") as handle:
         for row in rows:
             handle.write(json.dumps(row, sort_keys=True) + "\n")
             count += 1
+    temp_path.replace(manifest_path)
     return count
 
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from revision_tool.scanner import RevisionScanner
+from backend.revision_state.tracker import RevisionScanner
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

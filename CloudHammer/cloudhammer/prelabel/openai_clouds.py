@@ -30,9 +30,15 @@ Ignore:
 - room labels
 - doors/walls/fixtures
 - dotted path lines
+- furniture, equipment, fixtures, and dental chair outlines
+- isolated curved arcs that are not a repeated scalloped boundary
 - tables/title blocks
 - straight boxes/arrows
 - random blueprint linework
+
+Do not label light gray room equipment or furniture just because it has curved
+segments. A valid revision cloud should read as an intentional repeated
+scalloped boundary around a changed area or note.
 
 Return JSON only:
 {
@@ -453,9 +459,19 @@ def _prediction_paths(cfg: CloudHammerConfig) -> tuple[Path, Path, Path, Path]:
     return (
         cfg.path("api_cloud_inputs"),
         cfg.path("api_cloud_predictions") / "predictions.jsonl",
-        cfg.path("api_cloud_labels"),
+        cfg.path("api_cloud_labels_unreviewed"),
         cfg.path("api_cloud_review"),
     )
+
+
+def resolve_roi_image_path(row: dict, cfg: CloudHammerConfig) -> Path:
+    source_path = Path(row.get("roi_image_path") or row.get("image_path"))
+    if source_path.exists():
+        return source_path
+    migrated_path = cfg.path("cloud_roi_images") / source_path.name
+    if migrated_path.exists():
+        return migrated_path
+    return source_path
 
 
 def prelabel_cloud_rois(
@@ -473,6 +489,7 @@ def prelabel_cloud_rois(
     request_delay: float = 0.5,
     max_retries: int = 3,
     retry_initial_delay: float = 2.0,
+    flush_every: int = 25,
 ) -> int:
     if detail not in {"low", "auto", "high"}:
         raise ValueError("detail must be one of: low, auto, high")
@@ -484,6 +501,8 @@ def prelabel_cloud_rois(
         raise ValueError("max_retries must be non-negative")
     if retry_initial_delay < 0:
         raise ValueError("retry_initial_delay must be non-negative")
+    if flush_every < 1:
+        raise ValueError("flush_every must be at least 1")
 
     cfg.ensure_directories()
     roi_manifest = Path(manifest_path) if manifest_path is not None else cfg.path("manifests") / "cloud_roi_manifest.jsonl"
@@ -517,7 +536,7 @@ def prelabel_cloud_rois(
         if not overwrite and roi_id in existing:
             skipped += 1
             continue
-        source_path = Path(row.get("roi_image_path") or row.get("image_path"))
+        source_path = resolve_roi_image_path(row, cfg)
         if not source_path.exists():
             failed += 1
             predictions[roi_id] = {
@@ -594,6 +613,9 @@ def prelabel_cloud_rois(
             }
         if request_delay > 0 and index < total:
             time.sleep(request_delay)
+        if not dry_run and (processed + failed) % flush_every == 0:
+            ordered_predictions = [predictions[key] for key in sorted(predictions)]
+            write_jsonl(predictions_path, ordered_predictions)
 
     if not dry_run:
         ordered_predictions = [predictions[key] for key in sorted(predictions)]

@@ -1,7 +1,6 @@
 # CloudHammer Handoff
 
-CloudHammer is the standalone cloud-detector subproject inside
-`drawing_revision`.
+CloudHammer is the cloud-detector subproject inside `KEVISION`.
 
 Its job is narrow:
 - detect revision clouds on real blueprint pages
@@ -31,9 +30,14 @@ It is not responsible for:
   all visible real cloud motifs, including thin/faint, intersected, partial, and
   bold examples. Leave triangles and digits unlabeled.
 - API-assisted labels are prelabels only. They live under
-  `data/api_cloud_labels`, with raw predictions in
+  `data/api_cloud_labels_unreviewed`, with raw predictions in
   `data/api_cloud_predictions/predictions.jsonl` and review overlays in
   `data/api_cloud_review`. Do not overwrite human-reviewed labels with these.
+- If an active prelabel run is in progress, treat the live API output folders as
+  hands-off until the run completes.
+- LabelImg review uses `data/cloud_roi_images` as the image directory and
+  `data/cloud_labels_reviewed` as the YOLO save directory. Copy only `.txt`
+  prelabels into the reviewed directory before correcting.
 - Start with real labeled data first. Synthetic generation is phase 2 only if
   the real-data baseline underperforms.
 - CloudHammer v1 ends at cloud detections: JSON, page-space boxes, crops, and

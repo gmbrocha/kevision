@@ -8,7 +8,8 @@ workspace_demo_accuracy/
 .cursor/
 
 # Generated experiment artifacts
-experiments/kevin_changelog_preview.xlsx
+experiments/revision_changelog_preview.xlsx
+.venv/
 experiments/**/output/
 
 # Tempfiles

@@ -1,5 +1,5 @@
-"""Revision review tool package."""
+"""Compatibility package for the migrated KEVISION backend."""
 
-from .cli import main
+from backend.cli import main
 
 __all__ = ["main"]

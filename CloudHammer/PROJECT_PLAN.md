@@ -164,7 +164,7 @@ CloudHammer/
     cloud_roi_images/
     api_cloud_inputs/
     api_cloud_predictions/
-    api_cloud_labels/
+    api_cloud_labels_unreviewed/
     api_cloud_review/
     roi_images/
     cloud_labels/
@@ -385,7 +385,7 @@ an OpenAI vision-capable model and write approximate prelabels:
 
 - compressed inputs: `data/api_cloud_inputs/`
 - raw/parsed predictions: `data/api_cloud_predictions/predictions.jsonl`
-- YOLO prelabels: `data/api_cloud_labels/*.txt`
+- YOLO prelabels: `data/api_cloud_labels_unreviewed/*.txt`
 - review overlays: `data/api_cloud_review/*.jpg`
 
 Prelabels are never human labels. Keep them separate until reviewed. The API

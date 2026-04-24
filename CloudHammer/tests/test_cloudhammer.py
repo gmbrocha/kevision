@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from cloudhammer.config import CloudHammerConfig
 from cloudhammer.bootstrap.delta_stack import normalize_delta_payload
 from cloudhammer.bootstrap.cloud_roi_extract import clip_bbox_xywh, derive_target_revision_digit
 from cloudhammer.bootstrap.roi_extract import clip_square_roi
@@ -14,7 +15,8 @@ from cloudhammer.infer.merge import bbox_iou_xywh, nms_detections
 from cloudhammer.infer.tiles import generate_tiles, tile_xyxy_to_page_xywh
 from cloudhammer.page_catalog import classify_pdf_from_path, extract_sheet_id
 from cloudhammer.page_filter import classify_roi_source_page
-from cloudhammer.prelabel.openai_clouds import DEFAULT_MODEL, load_env_file, validate_boxes, yolo_line
+from cloudhammer.prelabel.openai_clouds import DEFAULT_MODEL, load_env_file, resolve_roi_image_path, validate_boxes, yolo_line
+from cloudhammer.prelabel.review_prep import copy_unreviewed_labels_for_labelimg
 
 
 def test_page_path_classification() -> None:
@@ -173,3 +175,36 @@ def test_load_env_file_sets_missing_values_without_overwriting(tmp_path: Path, m
     assert os.environ["OPENAI_API_KEY"] == "from-file"
     assert os.environ["CLOUDHAMMER_TEST_VALUE"] == "quoted value"
     assert os.environ["EXISTING"] == "from-env"
+
+
+def test_review_prep_copies_only_txt_without_overwriting(tmp_path: Path) -> None:
+    src = tmp_path / "api_cloud_labels_unreviewed"
+    dst = tmp_path / "cloud_labels_reviewed"
+    src.mkdir()
+    src.joinpath("roi_001.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")
+    src.joinpath("roi_001.png").write_text("not an image copy candidate", encoding="utf-8")
+    dst.mkdir()
+    dst.joinpath("roi_001.txt").write_text("corrected\n", encoding="utf-8")
+
+    result = copy_unreviewed_labels_for_labelimg(
+        CloudHammerConfig(root=tmp_path, data={"paths": {}}),
+        source_dir=src,
+        reviewed_dir=dst,
+    )
+
+    assert result == {"copied": 0, "skipped": 1, "source_count": 1}
+    assert dst.joinpath("roi_001.txt").read_text(encoding="utf-8") == "corrected\n"
+    assert dst.joinpath("classes.txt").read_text(encoding="utf-8") == "cloud_motif\n"
+    assert not dst.joinpath("roi_001.png").exists()
+
+
+def test_prelabel_resolves_migrated_absolute_roi_path(tmp_path: Path) -> None:
+    image_dir = tmp_path / "data" / "cloud_roi_images"
+    image_dir.mkdir(parents=True)
+    image_path = image_dir / "roi_001.png"
+    image_path.write_text("placeholder", encoding="utf-8")
+    cfg = CloudHammerConfig(root=tmp_path, data={"paths": {"cloud_roi_images": "data/cloud_roi_images"}})
+
+    resolved = resolve_roi_image_path({"roi_image_path": "F:\\old\\CloudHammer\\data\\cloud_roi_images\\roi_001.png"}, cfg)
+
+    assert resolved == image_path.resolve()

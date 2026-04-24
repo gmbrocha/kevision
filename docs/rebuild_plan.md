@@ -1,15 +1,22 @@
 # Rebuild Plan
 
+Status: `Historical planning document. Read for context, not for the current implemented structure.`
+
 > **Status banner — updated 2026-04-21**
 >
 > This doc was written *before* the index parser and Kevin-changelog work landed. Status of the pieces it describes:
 >
-> - **Shipped** — `experiments/2026_04_index_parser/` (deterministic per-revision sheet table; hand-verified against `Rev2_final_current_state.csv` — this is the data spine and stays put). `revision_tool/kevin_changelog.py` (Kevin-shaped Excel exporter, tested, generated for real from `workspace_demo`).
+> - **Shipped at the time** — `experiments/2026_04_index_parser/` (deterministic per-revision sheet table; hand-verified against `Rev2_final_current_state.csv`). The workbook exporter originally lived at `revision_tool/kevin_changelog.py`; the current canonical implementation now lives under `backend/deliverables/revision_changelog_excel.py`.
 > - **Half-shipped** — Δ marker denoise pipeline in `experiments/delta_v3/` (`denoise_2.png` is the canonical pre-detection image). Detection-on-top is scrapped; restart needed. `2026_04_delta_marker_detector/` and `delta_v2/` are earlier abandoned approaches, kept for provenance.
 > - **Paused with documented next step** — `experiments/2026_04_cloud_detector_v2/` (paused at stage 3; blocked on scallop boundary repair before contour assembly works).
 > - **Pending** — Δ marker detection v4 (consume `delta_v3/denoise_2.png`, build a fresh detector). The per-file KILL/REWRITE/KEEP execution this doc proposes (see `docs/cleanup_audit_2026_04_21.md` for current state and recommended order). The target package architecture below is also unimplemented.
 >
 > Read the rest of this doc as the *plan*, not the *current state*.
+>
+> Current repo structure has partially moved ahead of this plan:
+> - runtime logic is split between `backend/`, `webapp/`, and `CloudHammer/`
+> - `revision_tool/` is now a compatibility layer
+> - the legacy API verification helper has been archived
 
 Two parts: an audit of what we have today and where it lands in the rebuild, and the target package architecture with explicit dependency rules so we don't end up with spaghetti.
 
@@ -85,7 +92,7 @@ Status legend:
 | `rev1_rev2_benchmark.md` | SALVAGE | Benchmark structure is reusable; metrics need re-framing around change-item recall/precision and review-time-saved (not pricing items). |
 | `rev1_rev2_benchmark_template.csv` | SALVAGE | Same. |
 | `demo_script.md` | KEEP (frozen) | Snapshot of pre-pivot state. Don't update; will be replaced by a new script post-rebuild. |
-| `KEVIN_QUESTIONS.md` (root) | KEEP, live document | Already in active use. |
+| `docs/history/stakeholder_questions.md` | KEEP, live document | Current home for stakeholder questions and answers. |
 | `rebuild_plan.md` (this file) | NEW | Source of truth for the rebuild. |
 
 ### Repo root

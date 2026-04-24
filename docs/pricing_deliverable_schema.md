@@ -1,5 +1,7 @@
 # Pricing Deliverable Schema
 
+Status: `Legacy reference. Kept for historical context only; do not treat this as the current deliverable spec.`
+
 ## Recommendation
 
 Do not replace the current workspace JSON store with SQLite yet.

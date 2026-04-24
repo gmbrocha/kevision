@@ -1,5 +1,7 @@
 # CV Handoff — 2026-04-22
 
+Status: `Historical handoff. Useful for detector lessons and experiment provenance, but not the current source of truth for repo structure.`
+
 This is the "if I get hit by a bus" document for the revision CV work.
 The repo is messy, but there are now a few genuinely good pieces worth
 salvaging into a cleaner project later.

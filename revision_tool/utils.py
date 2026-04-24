@@ -1,3 +1,6 @@
+"""Compatibility wrapper for migrated backend utilities."""
+
+from backend.utils import *  # noqa: F401,F403
 from __future__ import annotations
 
 import hashlib
