@@ -1,0 +1,146 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 4042.639091491699,
+        "y": 6502.245685139955
+      },
+      "digit": "1",
+      "geometry_score": 0.9796472184531887,
+      "interior_ink_ratio": 0.022388059701492536,
+      "score": 1.0996472184531887,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 4042.639091491699,
+          "y": 6458.379389404239
+        },
+        "left_base": {
+          "x": 4004.6497650146484,
+          "y": 6524.1788330078125
+        },
+        "right_base": {
+          "x": 4080.62841796875,
+          "y": 6524.1788330078125
+        }
+      }
+    },
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 3718.024169921875,
+        "y": 6855.356282552083
+      },
+      "digit": "1",
+      "geometry_score": 0.9667644183773215,
+      "interior_ink_ratio": 0.033235581622678395,
+      "score": 1.0867644183773215,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 3717.388916015625,
+          "y": 6811.46142578125
+        },
+        "left_base": {
+          "x": 3678.623779296875,
+          "y": 6875.72119140625
+        },
+        "right_base": {
+          "x": 3758.059814453125,
+          "y": 6878.88623046875
+        }
+      }
+    },
+    {
+      "base_support": 0.7916666666666666,
+      "center": {
+        "x": 4092.938576089548,
+        "y": 7292.580003378076
+      },
+      "digit": "2",
+      "geometry_score": 0.6598466781468284,
+      "interior_ink_ratio": 0.07799145299145299,
+      "score": 0.7798466781468284,
+      "side_support": 0.7142857142857143,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 4088.3317832943217,
+          "y": 7249.000264040476
+        },
+        "left_base": {
+          "x": 4056.9806490609662,
+          "y": 7314.369873046875
+        },
+        "right_base": {
+          "x": 4133.503295913357,
+          "y": 7314.369873046875
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 75.97865295410156,
+  "geometry_only_deltas": [
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 2798.662068684896,
+        "y": 4891.408040364583
+      },
+      "digit": null,
+      "geometry_score": 0.9807692307692307,
+      "interior_ink_ratio": 0.019230769230769232,
+      "score": 0.9807692307692307,
+      "side_support": 1.0,
+      "status": "geometry_only",
+      "triangle": {
+        "apex": {
+          "x": 2798.3128662109375,
+          "y": 4866.16259765625
+        },
+        "left_base": {
+          "x": 2775.398193359375,
+          "y": 4903.70849609375
+        },
+        "right_base": {
+          "x": 2822.275146484375,
+          "y": 4904.35302734375
+        }
+      }
+    },
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 10939.872007153375,
+        "y": 3949.90521707711
+      },
+      "digit": null,
+      "geometry_score": 0.9713636363636364,
+      "interior_ink_ratio": 0.013636363636363636,
+      "score": 0.9713636363636364,
+      "side_support": 0.9642857142857143,
+      "status": "geometry_only",
+      "triangle": {
+        "apex": {
+          "x": 10938.268364641182,
+          "y": 3923.1980731063304
+        },
+        "left_base": {
+          "x": 10920.264822328665,
+          "y": 3963.2587890625
+        },
+        "right_base": {
+          "x": 10961.082834490277,
+          "y": 3963.2587890625
+        }
+      }
+    }
+  ],
+  "historical_deltas": [],
+  "page_index": 196,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+  "target_digit": null
+}

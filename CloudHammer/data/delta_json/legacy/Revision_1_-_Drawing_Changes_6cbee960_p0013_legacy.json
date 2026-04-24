@@ -1,0 +1,187 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\Revision_1_-_Drawing_Changes_6cbee960_p0013_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+  "page_index": 13,
+  "target_digit": null,
+  "pdf_digit_words_count": 129,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 2,
+    "active_count": 2,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {
+      "1": 1,
+      "9": 1
+    },
+    "by_digit_source": {
+      "pdf_text_layer": 2
+    }
+  },
+  "all_deltas": [
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 7454.460205078125,
+        "y": 2387.077880859375
+      },
+      "digit_bbox": {
+        "x0": 7445.4970703125,
+        "y0": 2367.3125,
+        "x1": 7463.42333984375,
+        "y1": 2406.84326171875
+      },
+      "status": "active",
+      "center": {
+        "x": 7452.510904947917,
+        "y": 2381.0877685546875
+      },
+      "triangle": {
+        "apex": {
+          "x": 7454.08349609375,
+          "y": 2311.1947021484375
+        },
+        "left_base": {
+          "x": 7390.560546875,
+          "y": 2417.556884765625
+        },
+        "right_base": {
+          "x": 7512.888671875,
+          "y": 2414.51171875
+        }
+      },
+      "side_length_px": 121.01559520219094,
+      "score": 0.8996033196284453,
+      "geometry_score": 0.7796033196284453,
+      "side_support": 1.0,
+      "base_support": 0.7083333333333334,
+      "interior_ink_ratio": 0.018730013704888075,
+      "base_segment_overlap": 0.0
+    },
+    {
+      "digit": "9",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 7112.23291015625,
+        "y": 2495.5299072265625
+      },
+      "digit_bbox": {
+        "x0": 7103.99658203125,
+        "y0": 2476.582763671875,
+        "x1": 7120.46923828125,
+        "y1": 2514.47705078125
+      },
+      "status": "active",
+      "center": {
+        "x": 7095.625,
+        "y": 2519.73972115331
+      },
+      "triangle": {
+        "apex": {
+          "x": 7095.625,
+          "y": 2450.457688850555
+        },
+        "left_base": {
+          "x": 7035.625,
+          "y": 2554.3807373046875
+        },
+        "right_base": {
+          "x": 7155.625,
+          "y": 2554.3807373046875
+        }
+      },
+      "side_length_px": 120.0,
+      "score": 0.8233553914279105,
+      "geometry_score": 0.7033553914279105,
+      "side_support": 0.6071428571428571,
+      "base_support": 0.8333333333333334,
+      "interior_ink_ratio": 0.03101145038167939,
+      "base_segment_overlap": 0.6875
+    }
+  ],
+  "active_deltas": [
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 7454.460205078125,
+        "y": 2387.077880859375
+      },
+      "digit_bbox": {
+        "x0": 7445.4970703125,
+        "y0": 2367.3125,
+        "x1": 7463.42333984375,
+        "y1": 2406.84326171875
+      },
+      "status": "active",
+      "center": {
+        "x": 7452.510904947917,
+        "y": 2381.0877685546875
+      },
+      "triangle": {
+        "apex": {
+          "x": 7454.08349609375,
+          "y": 2311.1947021484375
+        },
+        "left_base": {
+          "x": 7390.560546875,
+          "y": 2417.556884765625
+        },
+        "right_base": {
+          "x": 7512.888671875,
+          "y": 2414.51171875
+        }
+      },
+      "side_length_px": 121.01559520219094,
+      "score": 0.8996033196284453,
+      "geometry_score": 0.7796033196284453,
+      "side_support": 1.0,
+      "base_support": 0.7083333333333334,
+      "interior_ink_ratio": 0.018730013704888075,
+      "base_segment_overlap": 0.0
+    },
+    {
+      "digit": "9",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 7112.23291015625,
+        "y": 2495.5299072265625
+      },
+      "digit_bbox": {
+        "x0": 7103.99658203125,
+        "y0": 2476.582763671875,
+        "x1": 7120.46923828125,
+        "y1": 2514.47705078125
+      },
+      "status": "active",
+      "center": {
+        "x": 7095.625,
+        "y": 2519.73972115331
+      },
+      "triangle": {
+        "apex": {
+          "x": 7095.625,
+          "y": 2450.457688850555
+        },
+        "left_base": {
+          "x": 7035.625,
+          "y": 2554.3807373046875
+        },
+        "right_base": {
+          "x": 7155.625,
+          "y": 2554.3807373046875
+        }
+      },
+      "side_length_px": 120.0,
+      "score": 0.8233553914279105,
+      "geometry_score": 0.7033553914279105,
+      "side_support": 0.6071428571428571,
+      "base_support": 0.8333333333333334,
+      "interior_ink_ratio": 0.03101145038167939,
+      "base_segment_overlap": 0.6875
+    }
+  ],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

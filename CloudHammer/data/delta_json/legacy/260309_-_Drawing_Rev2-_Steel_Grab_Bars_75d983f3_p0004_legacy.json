@@ -1,0 +1,347 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+  "page_index": 4,
+  "target_digit": null,
+  "pdf_digit_words_count": 46,
+  "canonical_side_px": 117.47210693359375,
+  "summary": {
+    "total_detections": 4,
+    "active_count": 4,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {
+      "1": 2,
+      "2": 2
+    },
+    "by_digit_source": {
+      "pdf_text_layer": 4
+    }
+  },
+  "all_deltas": [
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 6819.46044921875,
+        "y": 2267.5740966796875
+      },
+      "digit_bbox": {
+        "x0": 6810.4970703125,
+        "y0": 2247.808349609375,
+        "x1": 6828.423828125,
+        "y1": 2287.33984375
+      },
+      "status": "active",
+      "center": {
+        "x": 6819.375,
+        "y": 2263.8658233291835
+      },
+      "triangle": {
+        "apex": {
+          "x": 6819.375,
+          "y": 2196.0432707688005
+        },
+        "left_base": {
+          "x": 6760.638946533203,
+          "y": 2297.777099609375
+        },
+        "right_base": {
+          "x": 6878.111053466797,
+          "y": 2297.777099609375
+        }
+      },
+      "side_length_px": 117.47210693359375,
+      "score": 1.12,
+      "geometry_score": 1.0,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 1.0
+    },
+    {
+      "digit": "2",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 4381.46142578125,
+        "y": 2212.573974609375
+      },
+      "digit_bbox": {
+        "x0": 4372.498046875,
+        "y0": 2192.80810546875,
+        "x1": 4390.4248046875,
+        "y1": 2232.33984375
+      },
+      "status": "active",
+      "center": {
+        "x": 4381.038815752422,
+        "y": 2207.540960810648
+      },
+      "triangle": {
+        "apex": {
+          "x": 4380.847876670964,
+          "y": 2138.5550113381933
+        },
+        "left_base": {
+          "x": 4321.182334882978,
+          "y": 2242.033935546875
+        },
+        "right_base": {
+          "x": 4441.086235703324,
+          "y": 2242.033935546875
+        }
+      },
+      "side_length_px": 119.59174523602424,
+      "score": 1.1199999999999999,
+      "geometry_score": 0.9999999999999999,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 0.9591014071536016
+    },
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 2353.4619140625,
+        "y": 2308.073974609375
+      },
+      "digit_bbox": {
+        "x0": 2344.4990234375,
+        "y0": 2288.30810546875,
+        "x1": 2362.4248046875,
+        "y1": 2327.83984375
+      },
+      "status": "active",
+      "center": {
+        "x": 2353.0180727081124,
+        "y": 2303.1784114268935
+      },
+      "triangle": {
+        "apex": {
+          "x": 2352.8735862980575,
+          "y": 2233.98542959318
+        },
+        "left_base": {
+          "x": 2293.0412070944267,
+          "y": 2337.77490234375
+        },
+        "right_base": {
+          "x": 2413.139424731853,
+          "y": 2337.77490234375
+        }
+      },
+      "side_length_px": 119.90907103084942,
+      "score": 1.1199999999999999,
+      "geometry_score": 0.9999999999999999,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 0.9679577456424535
+    },
+    {
+      "digit": "2",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 3157.96240234375,
+        "y": 1761.5742797851562
+      },
+      "digit_bbox": {
+        "x0": 3148.9990234375,
+        "y0": 1741.8084716796875,
+        "x1": 3166.92578125,
+        "y1": 1781.340087890625
+      },
+      "status": "active",
+      "center": {
+        "x": 3157.6331787109375,
+        "y": 1755.465576171875
+      },
+      "triangle": {
+        "apex": {
+          "x": 3157.4178466796875,
+          "y": 1689.7242431640625
+        },
+        "left_base": {
+          "x": 3099.35400390625,
+          "y": 1788.1129150390625
+        },
+        "right_base": {
+          "x": 3216.127685546875,
+          "y": 1788.5595703125
+        }
+      },
+      "side_length_px": 113.95801720851327,
+      "score": 0.8633333333333333,
+      "geometry_score": 0.7433333333333333,
+      "side_support": 1.0,
+      "base_support": 0.08333333333333333,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 1.0
+    }
+  ],
+  "active_deltas": [
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 6819.46044921875,
+        "y": 2267.5740966796875
+      },
+      "digit_bbox": {
+        "x0": 6810.4970703125,
+        "y0": 2247.808349609375,
+        "x1": 6828.423828125,
+        "y1": 2287.33984375
+      },
+      "status": "active",
+      "center": {
+        "x": 6819.375,
+        "y": 2263.8658233291835
+      },
+      "triangle": {
+        "apex": {
+          "x": 6819.375,
+          "y": 2196.0432707688005
+        },
+        "left_base": {
+          "x": 6760.638946533203,
+          "y": 2297.777099609375
+        },
+        "right_base": {
+          "x": 6878.111053466797,
+          "y": 2297.777099609375
+        }
+      },
+      "side_length_px": 117.47210693359375,
+      "score": 1.12,
+      "geometry_score": 1.0,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 1.0
+    },
+    {
+      "digit": "2",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 4381.46142578125,
+        "y": 2212.573974609375
+      },
+      "digit_bbox": {
+        "x0": 4372.498046875,
+        "y0": 2192.80810546875,
+        "x1": 4390.4248046875,
+        "y1": 2232.33984375
+      },
+      "status": "active",
+      "center": {
+        "x": 4381.038815752422,
+        "y": 2207.540960810648
+      },
+      "triangle": {
+        "apex": {
+          "x": 4380.847876670964,
+          "y": 2138.5550113381933
+        },
+        "left_base": {
+          "x": 4321.182334882978,
+          "y": 2242.033935546875
+        },
+        "right_base": {
+          "x": 4441.086235703324,
+          "y": 2242.033935546875
+        }
+      },
+      "side_length_px": 119.59174523602424,
+      "score": 1.1199999999999999,
+      "geometry_score": 0.9999999999999999,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 0.9591014071536016
+    },
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 2353.4619140625,
+        "y": 2308.073974609375
+      },
+      "digit_bbox": {
+        "x0": 2344.4990234375,
+        "y0": 2288.30810546875,
+        "x1": 2362.4248046875,
+        "y1": 2327.83984375
+      },
+      "status": "active",
+      "center": {
+        "x": 2353.0180727081124,
+        "y": 2303.1784114268935
+      },
+      "triangle": {
+        "apex": {
+          "x": 2352.8735862980575,
+          "y": 2233.98542959318
+        },
+        "left_base": {
+          "x": 2293.0412070944267,
+          "y": 2337.77490234375
+        },
+        "right_base": {
+          "x": 2413.139424731853,
+          "y": 2337.77490234375
+        }
+      },
+      "side_length_px": 119.90907103084942,
+      "score": 1.1199999999999999,
+      "geometry_score": 0.9999999999999999,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 0.9679577456424535
+    },
+    {
+      "digit": "2",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 3157.96240234375,
+        "y": 1761.5742797851562
+      },
+      "digit_bbox": {
+        "x0": 3148.9990234375,
+        "y0": 1741.8084716796875,
+        "x1": 3166.92578125,
+        "y1": 1781.340087890625
+      },
+      "status": "active",
+      "center": {
+        "x": 3157.6331787109375,
+        "y": 1755.465576171875
+      },
+      "triangle": {
+        "apex": {
+          "x": 3157.4178466796875,
+          "y": 1689.7242431640625
+        },
+        "left_base": {
+          "x": 3099.35400390625,
+          "y": 1788.1129150390625
+        },
+        "right_base": {
+          "x": 3216.127685546875,
+          "y": 1788.5595703125
+        }
+      },
+      "side_length_px": 113.95801720851327,
+      "score": 0.8633333333333333,
+      "geometry_score": 0.7433333333333333,
+      "side_support": 1.0,
+      "base_support": 0.08333333333333333,
+      "interior_ink_ratio": 0.0,
+      "base_segment_overlap": 1.0
+    }
+  ],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

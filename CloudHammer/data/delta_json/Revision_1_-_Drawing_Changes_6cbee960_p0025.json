@@ -1,0 +1,37 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 9576.875,
+        "y": 5462.394872520497
+      },
+      "digit": "1",
+      "geometry_score": 0.9664528601169823,
+      "interior_ink_ratio": 0.01097328244274809,
+      "score": 1.0864528601169823,
+      "side_support": 0.9642857142857143,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 9576.875,
+          "y": 5393.112840217743
+        },
+        "left_base": {
+          "x": 9516.875,
+          "y": 5497.035888671875
+        },
+        "right_base": {
+          "x": 9636.875,
+          "y": 5497.035888671875
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 120.0,
+  "geometry_only_deltas": [],
+  "historical_deltas": [],
+  "page_index": 25,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+  "target_digit": null
+}

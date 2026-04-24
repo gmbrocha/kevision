@@ -1,0 +1,20 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+  "page_index": 3,
+  "target_digit": null,
+  "pdf_digit_words_count": 38,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 0,
+    "active_count": 0,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {},
+    "by_digit_source": {}
+  },
+  "all_deltas": [],
+  "active_deltas": [],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

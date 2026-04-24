@@ -1,0 +1,20 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0024_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+  "page_index": 24,
+  "target_digit": null,
+  "pdf_digit_words_count": 214,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 0,
+    "active_count": 0,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {},
+    "by_digit_source": {}
+  },
+  "all_deltas": [],
+  "active_deltas": [],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

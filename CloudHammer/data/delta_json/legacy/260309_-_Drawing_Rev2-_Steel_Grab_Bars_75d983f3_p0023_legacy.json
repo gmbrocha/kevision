@@ -1,0 +1,106 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0023_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+  "page_index": 23,
+  "target_digit": null,
+  "pdf_digit_words_count": 91,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 1,
+    "active_count": 1,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {
+      "2": 1
+    },
+    "by_digit_source": {
+      "pdf_text_layer": 1
+    }
+  },
+  "all_deltas": [
+    {
+      "digit": "2",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 2041.5087890625,
+        "y": 3298.0010986328125
+      },
+      "digit_bbox": {
+        "x0": 2030.4990234375,
+        "y0": 3278.0966796875,
+        "x1": 2052.5185546875,
+        "y1": 3317.905517578125
+      },
+      "status": "active",
+      "center": {
+        "x": 2038.4424845377605,
+        "y": 3294.6730143229165
+      },
+      "triangle": {
+        "apex": {
+          "x": 2040.9537963867188,
+          "y": 3251.14306640625
+        },
+        "left_base": {
+          "x": 2000.6353759765625,
+          "y": 3318.85546875
+        },
+        "right_base": {
+          "x": 2073.73828125,
+          "y": 3314.0205078125
+        }
+      },
+      "side_length_px": 74.3837528813994,
+      "score": 0.9912394705174488,
+      "geometry_score": 0.8712394705174488,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.12876052948255115,
+      "base_segment_overlap": 0.46192175453654366
+    }
+  ],
+  "active_deltas": [
+    {
+      "digit": "2",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 2041.5087890625,
+        "y": 3298.0010986328125
+      },
+      "digit_bbox": {
+        "x0": 2030.4990234375,
+        "y0": 3278.0966796875,
+        "x1": 2052.5185546875,
+        "y1": 3317.905517578125
+      },
+      "status": "active",
+      "center": {
+        "x": 2038.4424845377605,
+        "y": 3294.6730143229165
+      },
+      "triangle": {
+        "apex": {
+          "x": 2040.9537963867188,
+          "y": 3251.14306640625
+        },
+        "left_base": {
+          "x": 2000.6353759765625,
+          "y": 3318.85546875
+        },
+        "right_base": {
+          "x": 2073.73828125,
+          "y": 3314.0205078125
+        }
+      },
+      "side_length_px": 74.3837528813994,
+      "score": 0.9912394705174488,
+      "geometry_score": 0.8712394705174488,
+      "side_support": 1.0,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.12876052948255115,
+      "base_segment_overlap": 0.46192175453654366
+    }
+  ],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

@@ -1,0 +1,118 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 6819.375,
+        "y": 2263.8658233291835
+      },
+      "digit": "1",
+      "geometry_score": 1.0,
+      "interior_ink_ratio": 0.0,
+      "score": 1.12,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 6819.375,
+          "y": 2196.0432707688005
+        },
+        "left_base": {
+          "x": 6760.638946533203,
+          "y": 2297.777099609375
+        },
+        "right_base": {
+          "x": 6878.111053466797,
+          "y": 2297.777099609375
+        }
+      }
+    },
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 4381.038815752422,
+        "y": 2207.540960810648
+      },
+      "digit": "2",
+      "geometry_score": 0.9999999999999999,
+      "interior_ink_ratio": 0.0,
+      "score": 1.1199999999999999,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 4380.847876670964,
+          "y": 2138.5550113381933
+        },
+        "left_base": {
+          "x": 4321.182334882978,
+          "y": 2242.033935546875
+        },
+        "right_base": {
+          "x": 4441.086235703324,
+          "y": 2242.033935546875
+        }
+      }
+    },
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 2353.0180727081124,
+        "y": 2303.1784114268935
+      },
+      "digit": "1",
+      "geometry_score": 0.9999999999999999,
+      "interior_ink_ratio": 0.0,
+      "score": 1.1199999999999999,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 2352.8735862980575,
+          "y": 2233.98542959318
+        },
+        "left_base": {
+          "x": 2293.0412070944267,
+          "y": 2337.77490234375
+        },
+        "right_base": {
+          "x": 2413.139424731853,
+          "y": 2337.77490234375
+        }
+      }
+    },
+    {
+      "base_support": 0.08333333333333333,
+      "center": {
+        "x": 3157.6331787109375,
+        "y": 1755.465576171875
+      },
+      "digit": "2",
+      "geometry_score": 0.7433333333333333,
+      "interior_ink_ratio": 0.0,
+      "score": 0.8633333333333333,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 3157.4178466796875,
+          "y": 1689.7242431640625
+        },
+        "left_base": {
+          "x": 3099.35400390625,
+          "y": 1788.1129150390625
+        },
+        "right_base": {
+          "x": 3216.127685546875,
+          "y": 1788.5595703125
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 117.47210693359375,
+  "geometry_only_deltas": [],
+  "historical_deltas": [],
+  "page_index": 4,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+  "target_digit": null
+}

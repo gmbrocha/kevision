@@ -1,0 +1,20 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\RFP-0011_AE_Dwg_Rev_3_-_EHRM_2ecb1954_p0002_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #3 - EHRM Drawings\\RFP-0011 AE Dwg Rev 3 - EHRM.pdf",
+  "page_index": 2,
+  "target_digit": null,
+  "pdf_digit_words_count": 0,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 0,
+    "active_count": 0,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {},
+    "by_digit_source": {}
+  },
+  "all_deltas": [],
+  "active_deltas": [],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

@@ -1,0 +1,64 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 10910.878124334144,
+        "y": 1572.7806232206046
+      },
+      "digit": "1",
+      "geometry_score": 0.9670245979186377,
+      "interior_ink_ratio": 0.017975402081362345,
+      "score": 1.0870245979186377,
+      "side_support": 0.9642857142857143,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 10910.873554088297,
+          "y": 1523.6363032555637
+        },
+        "left_base": {
+          "x": 10868.483649687148,
+          "y": 1597.352783203125
+        },
+        "right_base": {
+          "x": 10953.277169226987,
+          "y": 1597.352783203125
+        }
+      }
+    },
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 7386.8698514871185,
+        "y": 6032.15216987598
+      },
+      "digit": "1",
+      "geometry_score": 0.940719557195572,
+      "interior_ink_ratio": 0.04428044280442804,
+      "score": 1.060719557195572,
+      "side_support": 0.9642857142857143,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 7386.844118894934,
+          "y": 5989.84469322169
+        },
+        "left_base": {
+          "x": 7350.363031370772,
+          "y": 6053.305908203125
+        },
+        "right_base": {
+          "x": 7423.40240419565,
+          "y": 6053.305908203125
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 120.0,
+  "geometry_only_deltas": [],
+  "historical_deltas": [],
+  "page_index": 194,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+  "target_digit": null
+}

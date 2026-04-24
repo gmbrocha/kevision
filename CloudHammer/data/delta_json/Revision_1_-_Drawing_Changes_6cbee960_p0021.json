@@ -1,0 +1,119 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 0.7916666666666666,
+      "center": {
+        "x": 11849.244140625,
+        "y": 4304.514892578125
+      },
+      "digit": "1",
+      "geometry_score": 0.9342213432604312,
+      "interior_ink_ratio": 0.007445323406235459,
+      "score": 1.0542213432604313,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 11850.5146484375,
+          "y": 4235.549560546875
+        },
+        "left_base": {
+          "x": 11787.7890625,
+          "y": 4339.9013671875
+        },
+        "right_base": {
+          "x": 11909.4287109375,
+          "y": 4338.09375
+        }
+      }
+    },
+    {
+      "base_support": 0.5833333333333334,
+      "center": {
+        "x": 2038.2224934895833,
+        "y": 704.7203470865885
+      },
+      "digit": "1",
+      "geometry_score": 0.8734767025089606,
+      "interior_ink_ratio": 0.00985663082437276,
+      "score": 0.9934767025089606,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 2040.1336669921875,
+          "y": 634.9986267089844
+        },
+        "left_base": {
+          "x": 1976.3760986328125,
+          "y": 741.0562133789062
+        },
+        "right_base": {
+          "x": 2098.15771484375,
+          "y": 738.106201171875
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 100.30154418945312,
+  "geometry_only_deltas": [
+    {
+      "base_support": 0.9583333333333334,
+      "center": {
+        "x": 6457.31148780468,
+        "y": 5065.967324186924
+      },
+      "digit": null,
+      "geometry_score": 0.8674014336917564,
+      "interior_ink_ratio": 0.06093189964157706,
+      "score": 0.8674014336917564,
+      "side_support": 0.8571428571428571,
+      "status": "geometry_only",
+      "triangle": {
+        "apex": {
+          "x": 6454.463095755578,
+          "y": 5016.945917873271
+        },
+        "left_base": {
+          "x": 6424.825009696462,
+          "y": 5090.47802734375
+        },
+        "right_base": {
+          "x": 6492.646357962,
+          "y": 5090.47802734375
+        }
+      }
+    },
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 9403.65020509647,
+        "y": 5405.019764433601
+      },
+      "digit": null,
+      "geometry_score": 0.8427438307873091,
+      "interior_ink_ratio": 0.08225616921269095,
+      "score": 0.8427438307873091,
+      "side_support": 0.8214285714285714,
+      "status": "geometry_only",
+      "triangle": {
+        "apex": {
+          "x": 9403.544605136214,
+          "y": 5358.413785488306
+        },
+        "left_base": {
+          "x": 9367.82634455333,
+          "y": 5428.32275390625
+        },
+        "right_base": {
+          "x": 9439.579665599864,
+          "y": 5428.32275390625
+        }
+      }
+    }
+  ],
+  "historical_deltas": [],
+  "page_index": 21,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+  "target_digit": null
+}

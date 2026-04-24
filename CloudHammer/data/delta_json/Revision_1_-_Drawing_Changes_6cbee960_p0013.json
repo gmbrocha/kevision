@@ -1,0 +1,64 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 0.7083333333333334,
+      "center": {
+        "x": 7452.510904947917,
+        "y": 2381.0877685546875
+      },
+      "digit": "1",
+      "geometry_score": 0.7796033196284453,
+      "interior_ink_ratio": 0.018730013704888075,
+      "score": 0.8996033196284453,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 7454.08349609375,
+          "y": 2311.1947021484375
+        },
+        "left_base": {
+          "x": 7390.560546875,
+          "y": 2417.556884765625
+        },
+        "right_base": {
+          "x": 7512.888671875,
+          "y": 2414.51171875
+        }
+      }
+    },
+    {
+      "base_support": 0.8333333333333334,
+      "center": {
+        "x": 7095.625,
+        "y": 2519.73972115331
+      },
+      "digit": "9",
+      "geometry_score": 0.7033553914279105,
+      "interior_ink_ratio": 0.03101145038167939,
+      "score": 0.8233553914279105,
+      "side_support": 0.6071428571428571,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 7095.625,
+          "y": 2450.457688850555
+        },
+        "left_base": {
+          "x": 7035.625,
+          "y": 2554.3807373046875
+        },
+        "right_base": {
+          "x": 7155.625,
+          "y": 2554.3807373046875
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 120.0,
+  "geometry_only_deltas": [],
+  "historical_deltas": [],
+  "page_index": 13,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+  "target_digit": null
+}

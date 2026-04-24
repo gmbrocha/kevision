@@ -1,0 +1,37 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 1.0,
+      "center": {
+        "x": 8195.217223815778,
+        "y": 3922.5226507358443
+      },
+      "digit": "2",
+      "geometry_score": 0.9999999999999999,
+      "interior_ink_ratio": 0.0,
+      "score": 1.1199999999999999,
+      "side_support": 1.0,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 8195.377618330995,
+          "y": 3853.4971514262843
+        },
+        "left_base": {
+          "x": 8135.206939909064,
+          "y": 3957.035400390625
+        },
+        "right_base": {
+          "x": 8255.067113207277,
+          "y": 3957.035400390625
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 120.0,
+  "geometry_only_deltas": [],
+  "historical_deltas": [],
+  "page_index": 18,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+  "target_digit": null
+}

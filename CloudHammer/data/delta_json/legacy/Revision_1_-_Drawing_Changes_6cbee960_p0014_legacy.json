@@ -1,0 +1,106 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\Revision_1_-_Drawing_Changes_6cbee960_p0014_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+  "page_index": 14,
+  "target_digit": null,
+  "pdf_digit_words_count": 170,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 1,
+    "active_count": 1,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {
+      "1": 1
+    },
+    "by_digit_source": {
+      "pdf_text_layer": 1
+    }
+  },
+  "all_deltas": [
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 7441.460205078125,
+        "y": 2282.578125
+      },
+      "digit_bbox": {
+        "x0": 7432.4970703125,
+        "y0": 2262.812744140625,
+        "x1": 7450.42333984375,
+        "y1": 2302.343505859375
+      },
+      "status": "active",
+      "center": {
+        "x": 7441.875,
+        "y": 2278.7344721298723
+      },
+      "triangle": {
+        "apex": {
+          "x": 7441.875,
+          "y": 2209.4524398271174
+        },
+        "left_base": {
+          "x": 7381.875,
+          "y": 2313.37548828125
+        },
+        "right_base": {
+          "x": 7501.875,
+          "y": 2313.37548828125
+        }
+      },
+      "side_length_px": 120.0,
+      "score": 0.8781871394163745,
+      "geometry_score": 0.7581871394163745,
+      "side_support": 0.6428571428571429,
+      "base_support": 0.875,
+      "interior_ink_ratio": 0.019083969465648856,
+      "base_segment_overlap": 0.8437540690104167
+    }
+  ],
+  "active_deltas": [
+    {
+      "digit": "1",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 7441.460205078125,
+        "y": 2282.578125
+      },
+      "digit_bbox": {
+        "x0": 7432.4970703125,
+        "y0": 2262.812744140625,
+        "x1": 7450.42333984375,
+        "y1": 2302.343505859375
+      },
+      "status": "active",
+      "center": {
+        "x": 7441.875,
+        "y": 2278.7344721298723
+      },
+      "triangle": {
+        "apex": {
+          "x": 7441.875,
+          "y": 2209.4524398271174
+        },
+        "left_base": {
+          "x": 7381.875,
+          "y": 2313.37548828125
+        },
+        "right_base": {
+          "x": 7501.875,
+          "y": 2313.37548828125
+        }
+      },
+      "side_length_px": 120.0,
+      "score": 0.8781871394163745,
+      "geometry_score": 0.7581871394163745,
+      "side_support": 0.6428571428571429,
+      "base_support": 0.875,
+      "interior_ink_ratio": 0.019083969465648856,
+      "base_segment_overlap": 0.8437540690104167
+    }
+  ],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

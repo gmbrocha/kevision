@@ -1,0 +1,106 @@
+{
+  "image_path": "F:\\Desktop\\m\\projects\\drawing_revision\\CloudHammer\\outputs\\audit\\denoise\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0144_denoise_2.png",
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+  "page_index": 144,
+  "target_digit": null,
+  "pdf_digit_words_count": 2,
+  "canonical_side_px": 120.0,
+  "summary": {
+    "total_detections": 1,
+    "active_count": 1,
+    "historical_count": 0,
+    "geometry_only_count": 0,
+    "by_digit": {
+      "3": 1
+    },
+    "by_digit_source": {
+      "pdf_text_layer": 1
+    }
+  },
+  "all_deltas": [
+    {
+      "digit": "3",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 2504.138671875,
+        "y": 2800.3363037109375
+      },
+      "digit_bbox": {
+        "x0": 2493.048583984375,
+        "y0": 2780.361328125,
+        "x1": 2515.228759765625,
+        "y1": 2820.311279296875
+      },
+      "status": "active",
+      "center": {
+        "x": 2505.204247201093,
+        "y": 2798.212043776993
+      },
+      "triangle": {
+        "apex": {
+          "x": 2503.362898043604,
+          "y": 2751.9394760575424
+        },
+        "left_base": {
+          "x": 2468.623036539051,
+          "y": 2821.3483276367188
+        },
+        "right_base": {
+          "x": 2543.6268070206233,
+          "y": 2821.3483276367188
+        }
+      },
+      "side_length_px": 78.92963106492512,
+      "score": 1.0520899470899472,
+      "geometry_score": 0.9320899470899472,
+      "side_support": 0.9642857142857143,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.05291005291005291,
+      "base_segment_overlap": 0.9499554980123373
+    }
+  ],
+  "active_deltas": [
+    {
+      "digit": "3",
+      "digit_source": "pdf_text_layer",
+      "digit_centroid": {
+        "x": 2504.138671875,
+        "y": 2800.3363037109375
+      },
+      "digit_bbox": {
+        "x0": 2493.048583984375,
+        "y0": 2780.361328125,
+        "x1": 2515.228759765625,
+        "y1": 2820.311279296875
+      },
+      "status": "active",
+      "center": {
+        "x": 2505.204247201093,
+        "y": 2798.212043776993
+      },
+      "triangle": {
+        "apex": {
+          "x": 2503.362898043604,
+          "y": 2751.9394760575424
+        },
+        "left_base": {
+          "x": 2468.623036539051,
+          "y": 2821.3483276367188
+        },
+        "right_base": {
+          "x": 2543.6268070206233,
+          "y": 2821.3483276367188
+        }
+      },
+      "side_length_px": 78.92963106492512,
+      "score": 1.0520899470899472,
+      "geometry_score": 0.9320899470899472,
+      "side_support": 0.9642857142857143,
+      "base_support": 1.0,
+      "interior_ink_ratio": 0.05291005291005291,
+      "base_segment_overlap": 0.9499554980123373
+    }
+  ],
+  "historical_deltas": [],
+  "geometry_only_deltas": []
+}

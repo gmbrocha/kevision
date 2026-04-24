@@ -1,0 +1,91 @@
+{
+  "active_deltas": [
+    {
+      "base_support": 0.875,
+      "center": {
+        "x": 10173.569401855631,
+        "y": 5300.7280401080825
+      },
+      "digit": "1",
+      "geometry_score": 0.8106598407281002,
+      "interior_ink_ratio": 0.019340159271899887,
+      "score": 0.9306598407281002,
+      "side_support": 0.6785714285714286,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 10171.291155048497,
+          "y": 5254.4224015742475
+        },
+        "left_base": {
+          "x": 10137.811591001999,
+          "y": 5323.880859375
+        },
+        "right_base": {
+          "x": 10211.605459516397,
+          "y": 5323.880859375
+        }
+      }
+    },
+    {
+      "base_support": 0.875,
+      "center": {
+        "x": 10171.307252759154,
+        "y": 5658.140216462872
+      },
+      "digit": "1",
+      "geometry_score": 0.804914481185861,
+      "interior_ink_ratio": 0.02508551881413911,
+      "score": 0.924914481185861,
+      "side_support": 0.6785714285714286,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 10168.691588020272,
+          "y": 5611.724360326118
+        },
+        "left_base": {
+          "x": 10136.10799240372,
+          "y": 5681.34814453125
+        },
+        "right_base": {
+          "x": 10209.122177853471,
+          "y": 5681.34814453125
+        }
+      }
+    },
+    {
+      "base_support": 0.75,
+      "center": {
+        "x": 8929.350040602405,
+        "y": 6301.96746500997
+      },
+      "digit": "1",
+      "geometry_score": 0.7957142857142857,
+      "interior_ink_ratio": 0.014285714285714285,
+      "score": 0.9157142857142857,
+      "side_support": 0.7142857142857143,
+      "status": "active",
+      "triangle": {
+        "apex": {
+          "x": 8928.879777463982,
+          "y": 6255.234914561161
+        },
+        "left_base": {
+          "x": 8895.04478124154,
+          "y": 6325.333740234375
+        },
+        "right_base": {
+          "x": 8964.12556310169,
+          "y": 6325.333740234375
+        }
+      }
+    }
+  ],
+  "canonical_side_px": 78.69129180908203,
+  "geometry_only_deltas": [],
+  "historical_deltas": [],
+  "page_index": 38,
+  "pdf_path": "F:\\Desktop\\m\\projects\\drawing_revision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+  "target_digit": null
+}
