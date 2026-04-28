@@ -180,6 +180,8 @@ The maintained docs are:
 - `KEVISION.md`: repo architecture, setup, and workflow
 - `PRODUCT_AND_DELIVERABLE.md`: stakeholder decisions, workbook rules, benchmark, open questions, backlog
 - `CLOUDHAMMER.md`: CV pipeline, labeling, prelabeling, training, inference, output contract
+- `SECURITY_PRIVACY_POLICY.md`: sensitive-project data policy and external API approval gate
+- `ROADMAP.md`: milestone roadmap and near-term sequencing
 
 Older handoffs, epoch plans, and historical notes belong under `archive/`.
 
