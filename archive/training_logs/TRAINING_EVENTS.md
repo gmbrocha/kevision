@@ -2383,3 +2383,56 @@ Verification:
 
 - `.\.venv\Scripts\python.exe -m pytest tests/test_app.py -q`
 - Result: `24 passed`
+
+## 2026-04-28 17:12 - Corrected Split-Review Release Export
+
+Goal:
+
+- Apply the human split-review feedback to the low-fill tuned CloudHammer
+  release, replace accepted overmerged candidates with reviewed split groups,
+  and rerun the real backend exporter.
+
+Split-review input:
+
+- Reviewed split queue: `39/39`
+- Selected split proposals: `28`
+- Selected split groups emitted: `79`
+- Current candidate kept as-is: `1`
+- Still-overmerged parents excluded from this corrected release: `10`
+
+Corrected release:
+
+- Original release candidates: `137`
+- Split-review replacement candidates: `80`
+- Corrected release candidates: `217`
+- Tightened corrected release artifacts generated:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/release_v1/corrected_release_v1/tightened_corrected_release_artifacts/tightened_candidates_manifest.jsonl`
+- Tightening result: `217` candidates, median crop area reduction `63.63%`
+
+Command run from repo root:
+
+```powershell
+.\.venv\Scripts\python.exe -m backend scan revision_sets runs\cloudhammer_real_export_corrected_split_v1_20260428_171246 --cloudhammer-manifest CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\release_v1\corrected_release_v1\tightened_corrected_release_artifacts\tightened_candidates_manifest.jsonl --approve-cloudhammer-detections
+.\.venv\Scripts\python.exe -m backend export runs\cloudhammer_real_export_corrected_split_v1_20260428_171246 --force-attention
+```
+
+Verified output:
+
+- Workspace:
+  `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246`
+- Real exporter workbook:
+  `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog.xlsx`
+- Corrected manifest rows: `217`
+- Approved CloudHammer change items: `217`
+- Embedded workbook crop images: `217`
+- Cloud-only detail display rows: `217` rows show `N/A - Cloud Only`
+- Additional pending narrative items: `13`
+
+Notes:
+
+- This is the first real backend export using the split-review-corrected
+  CloudHammer release.
+- The remaining `10` still-overmerged parents are intentionally excluded until
+  the split proposal logic improves or they are handled manually.
+- Scope text remains placeholder CloudHammer metadata until OCR/scope
+  extraction is wired.

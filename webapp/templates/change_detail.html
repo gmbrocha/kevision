@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 {% block title %}{{ item.sheet_id }} {{ item.detail_ref or "" }}{% endblock %}
-{% block page_heading %}{{ item.sheet_id }} {{ item.detail_ref or "Review Item" }}{% endblock %}
-{% block page_lead %}Review extracted text, compare it to the crop and full sheet, then approve or reject the item. Automated review assist is currently archived until the local CloudHammer model is wired in.{% endblock %}
+{% block page_heading %}{{ item.sheet_id }} {{ item.detail_ref or "Drawing Change" }}{% endblock %}
+{% block page_lead %}Compare the crop to the source drawing, confirm whether it belongs in the workbook, and add clear notes for follow-up when needed.{% endblock %}
 {% block content %}
   <section class="panel queue-header" data-prev-url="{% if navigation.previous_change_id %}{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}" data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}">
     <div>
-      <p class="eyebrow">Queue Navigation</p>
-      <h2>{{ item.sheet_id }} · {{ item.detail_ref or "no detail ref" }}</h2>
+      <p class="eyebrow">Change Review</p>
+      <h2>{{ item.sheet_id }} - {{ item.detail_ref or "cloud area" }}</h2>
       <p class="muted">
         <span class="status {{ item.status }}">{{ item.status }}</span>
-        {% if item_needs_attention %}<span class="status attention">attention</span>{% endif %}
-        · sheet <a href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">{{ sheet.sheet_id }}</a>
+        {% if item_needs_attention %}<span class="status attention">needs check</span>{% endif %}
+        - drawing <a href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">{{ sheet.sheet_id }}</a>
         {% if navigation.index %}
-          · item {{ navigation.index }} of {{ navigation.total }} in {{ queue_status }} queue
+          - item {{ navigation.index }} of {{ navigation.total }}
         {% endif %}
       </p>
     </div>
     <div class="queue-nav">
-      <a class="pill" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Back to Queue</a>
+      <a class="pill" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Back to Changes</a>
       {% if navigation.previous_change_id %}
         <a class="pill" href="{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Previous</a>
       {% endif %}
@@ -29,7 +29,7 @@
 
   {% if item_needs_attention %}
     <section class="callout attention-banner">
-      <strong>Attention item.</strong> This candidate has a weak extraction signal or no detail reference. Review the crop and nearby text before approving it.
+      <strong>Needs check.</strong> Review the crop and surrounding drawing context before accepting this item.
     </section>
   {% endif %}
 
@@ -38,10 +38,10 @@
       <div class="section-heading">
         <div>
           <p class="eyebrow">Decision</p>
-          <h2>Review</h2>
+          <h2>Keep this change?</h2>
         </div>
         {% if item.provenance.extraction_signal is defined %}
-          <span class="signal-badge {% if item_needs_attention %}signal-badge--low{% endif %}">signal {{ "%.2f"|format(item.provenance.extraction_signal) }}</span>
+          <span class="signal-badge {% if item_needs_attention %}signal-badge--low{% endif %}">review signal {{ "%.2f"|format(item.provenance.extraction_signal) }}</span>
         {% endif %}
       </div>
       <form method="post" action="{{ url_for('review_change', change_id=item.id) }}" class="review-form js-review-form">
@@ -52,15 +52,15 @@
         <input type="hidden" name="next_change_id" value="{{ navigation.next_change_id or '' }}">
         <input type="hidden" name="advance" value="">
         <label>
-          <span class="label-text">Status</span>
+          <span class="label-text">Decision</span>
           <select name="status">
-            {% for value in ["pending", "approved", "rejected"] %}
-              <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ value }}</option>
+            {% for value, label in [("pending", "To Review"), ("approved", "Accepted"), ("rejected", "Rejected")] %}
+              <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </label>
         <label>
-          <span class="label-text">Reviewer Text</span>
+          <span class="label-text">Workbook Text</span>
           <textarea name="reviewer_text" rows="8">{{ item.reviewer_text or item.raw_text }}</textarea>
         </label>
         <label>
@@ -68,32 +68,32 @@
           <textarea name="reviewer_notes" rows="4">{{ item.reviewer_notes }}</textarea>
         </label>
         <div class="button-row">
-          <button type="submit">Save Review</button>
+          <button type="submit">Save</button>
           {% if navigation.next_change_id %}
-            <button type="submit" onclick="this.form.elements.advance.value='next';">Save + Next Pending</button>
-            <button type="submit" name="status_override" value="approved" formnovalidate onclick="this.form.elements.advance.value='next';">Approve + Next</button>
+            <button type="submit" onclick="this.form.elements.advance.value='next';">Save + Next</button>
+            <button type="submit" name="status_override" value="approved" formnovalidate onclick="this.form.elements.advance.value='next';">Accept + Next</button>
             <button type="submit" name="status_override" value="rejected" formnovalidate onclick="this.form.elements.advance.value='next';">Reject + Next</button>
           {% else %}
-            <button type="submit" name="status_override" value="approved">Approve</button>
+            <button type="submit" name="status_override" value="approved">Accept</button>
             <button type="submit" name="status_override" value="rejected">Reject</button>
           {% endif %}
         </div>
       </form>
-      <p class="muted">Shortcuts: <code>a</code> approve + next, <code>r</code> reject + next, <code>s</code> save, <code>[</code>/<code>]</code> move between items.</p>
+      <p class="muted">Shortcuts: <code>a</code> accept + next, <code>r</code> reject + next, <code>s</code> save, <code>[</code>/<code>]</code> move between items.</p>
     </article>
 
     <article class="panel">
       <div class="section-heading">
         <div>
           <p class="eyebrow">Evidence</p>
-          <h2>Source Context</h2>
+          <h2>Drawing crop</h2>
         </div>
-        <span class="pill">{{ item.provenance.source }}</span>
+        <span class="pill">{% if item.provenance.source == "visual-region" %}drawing crop{% else %}package note{% endif %}</span>
       </div>
       <div class="stack">
-        <div><strong>Raw text:</strong> {{ item.raw_text }}</div>
+        <div><strong>Detected note:</strong> {{ item.raw_text }}</div>
         {% if item.provenance.extraction_method %}
-          <div><strong>Extraction:</strong> {{ item.provenance.extraction_method }}</div>
+          <div><strong>Method:</strong> Drawing change detection</div>
         {% endif %}
         {% if cloud %}
           <img class="crop-image" src="{{ cloud.image_path|asset_path }}" alt="Review crop">
@@ -102,7 +102,7 @@
           <p>No crop was associated with this item.</p>
         {% endif %}
         <details>
-          <summary>Full page preview</summary>
+          <summary>Open full drawing page</summary>
           <img class="full-image" src="{{ sheet.render_path|asset_path }}" alt="Full page">
         </details>
       </div>
@@ -112,14 +112,13 @@
   <section class="panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Review Assist</p>
-        <h2>Current Status</h2>
+        <p class="eyebrow">Notes</p>
+        <h2>Review guidance</h2>
       </div>
-      <span class="pill">archived</span>
+      <span class="pill">local review</span>
     </div>
     <div class="stack">
-      <p>The old API-backed verification helper has been removed from the active workflow.</p>
-      <p>Use reviewer text, notes, and the page/crop evidence as the source of truth until CloudHammer inference is connected to this queue.</p>
+      <p>Accept the item when the crop shows a real revised area that belongs in the workbook. Reject obvious noise. Leave short notes for anything the project team should confirm later.</p>
       {% if verifications %}
         <details>
           <summary>Historical verification records</summary>

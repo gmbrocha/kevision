@@ -1,46 +1,48 @@
 {% extends "base.html" %}
-{% block title %}Export{% endblock %}
-{% block page_heading %}Export Approved Results{% endblock %}
-{% block page_lead %}Approved queue items are written to clean CSV and JSON outputs, and the preview PDF is assembled from rendered images for resilience against malformed source PDFs.{% endblock %}
+{% block title %}Export Workbook{% endblock %}
+{% block page_heading %}Export Workbook{% endblock %}
+{% block page_lead %}Generate the review workbook and supporting files, then open the Drive folder where review copies are kept for Google Sheets access.{% endblock %}
 {% block content %}
   <section class="split">
     <article class="panel">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Run Export</p>
-          <h2>Generate Outputs</h2>
+          <p class="eyebrow">Workbook</p>
+          <h2>Generate review workbook</h2>
         </div>
       </div>
-      <p>Only approved change items are included in the approved change exports. Superseded and active sheets are still included in the preview PDF so the package can be reviewed visually.</p>
+      <p>Accepted changes are written into the workbook with crop evidence. Current and superseded sheets remain available for comparison.</p>
       {% if attention_pending_count %}
         <div class="callout attention-banner">
-          <strong>Export is currently blocked.</strong> {{ attention_pending_count }} attention item(s) are still pending review.
-          Check the queue or force the export below if you need an interim package.
+          <strong>Some items still need review.</strong> {{ attention_pending_count }} item(s) are flagged for a closer look.
+          Review them first, or create an interim workbook if the meeting needs it.
         </div>
       {% endif %}
-      <form method="post" action="{{ url_for('export_run') }}">
+      <form method="post" action="{{ url_for('export_run') }}" class="stack">
         {% if attention_pending_count %}
           <label class="checkbox-row">
             <input type="checkbox" name="force_attention" value="1">
-            <span>Force export with pending attention items</span>
+            <span>Create workbook with flagged items still pending</span>
           </label>
         {% endif %}
-        <button type="submit">Run Export</button>
+        <button type="submit">Create Workbook</button>
       </form>
     </article>
 
     <article class="panel">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Reliability</p>
-          <h2>Export Notes</h2>
+          <p class="eyebrow">Review Packet</p>
+          <h2>Open quick visual review</h2>
         </div>
       </div>
-      <ul class="flat-list">
-        <li class="list-card">Source PDFs are never modified in place.</li>
-        <li class="list-card">`conformed_preview.pdf` is assembled from rendered page images rather than direct page imports.</li>
-        <li class="list-card">Preflight diagnostics are exported alongside approved results so PDF issues stay visible.</li>
-      </ul>
+      <p>The review packet shows each workbook crop beside a marked source drawing context, so it is easier to verify rows without opening the full PDFs.</p>
+      <div class="button-row">
+        <form method="post" action="{{ url_for('review_packet_run') }}">
+          <button type="submit">Open Review Packet</button>
+        </form>
+        <a class="pill" href="{{ drive_review_folder_url }}" target="_blank" rel="noopener">Open Google Drive Folder</a>
+      </div>
     </article>
   </section>
 
@@ -48,7 +50,7 @@
     <div class="section-heading">
       <div>
         <p class="eyebrow">History</p>
-        <h2>Export History</h2>
+        <h2>Recent exports</h2>
       </div>
     </div>
     <ul class="flat-list">
@@ -56,15 +58,15 @@
         <li class="list-card">
           <div class="list-card__header">
             <strong>{{ entry.created_at }}</strong>
-            <span class="pill">approved {{ entry.approved_count }}</span>
+            <span class="pill">accepted {{ entry.approved_count }}</span>
           </div>
           <div class="muted">
             pending {{ entry.pending_count }}
             {% if entry.attention_pending_count is defined %}
-              · attention {{ entry.attention_pending_count }}
+              - needs check {{ entry.attention_pending_count }}
             {% endif %}
             {% if entry.forced_attention %}
-              · forced
+              - interim
             {% endif %}
           </div>
           <div class="verification-card">

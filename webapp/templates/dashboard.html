@@ -1,40 +1,76 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
-{% block page_heading %}Revision Intelligence Dashboard{% endblock %}
-{% block page_lead %}A single local workspace for scanned revision sets, uncertain extractions, malformed PDF diagnostics, and reviewer-approved outputs.{% endblock %}
+{% block title %}KEVISION Project Review{% endblock %}
+{% block page_heading %}Project Change Review{% endblock %}
+{% block page_lead %}Review the changed drawing areas, confirm what matters, and send a clean workbook forward without digging through the full PDF set.{% endblock %}
 {% block content %}
+  <section class="command-band">
+    <article class="command-band__primary">
+      <p class="eyebrow">Current Package</p>
+      <h2>{{ pricing_summary.revision_set_count }} revision set{{ "s" if pricing_summary.revision_set_count != 1 else "" }} analyzed</h2>
+      <p>{{ pricing_summary.active_sheet_count }} current drawing sheets with {{ pricing_summary.superseded_sheet_count }} superseded sheets retained for comparison.</p>
+    </article>
+    <div class="command-band__actions">
+      <a class="button-like button-like--primary" href="{{ url_for('changes', status='approved') }}">Review Accepted Changes</a>
+      <form method="post" action="{{ url_for('review_packet_run') }}">
+        <button type="submit" class="button-like">Open Review Packet</button>
+      </form>
+      <a class="button-like" href="{{ url_for('export_view') }}">Export Workbook</a>
+      <a class="button-like button-like--subtle" href="{{ drive_review_folder_url }}" target="_blank" rel="noopener">Open Drive Folder</a>
+    </div>
+  </section>
+
+  <section class="workflow-steps">
+    <article class="workflow-step workflow-step--done">
+      <span class="workflow-step__number">1</span>
+      <div>
+        <h3>Drawings Analyzed</h3>
+        <p>Revision sets have been scanned and current sheets identified.</p>
+      </div>
+    </article>
+    <article class="workflow-step {% if pending_review_count == 0 %}workflow-step--done{% endif %}">
+      <span class="workflow-step__number">2</span>
+      <div>
+        <h3>Review Changes</h3>
+        <p>{{ pending_review_count }} item{{ "s" if pending_review_count != 1 else "" }} still waiting for a decision.</p>
+      </div>
+    </article>
+    <article class="workflow-step {% if output_files.workbook.exists() %}workflow-step--done{% endif %}">
+      <span class="workflow-step__number">3</span>
+      <div>
+        <h3>Workbook Ready</h3>
+        <p>{% if output_files.workbook.exists() %}The Excel workbook has been generated.{% else %}Export when the review state is ready.{% endif %}</p>
+      </div>
+    </article>
+  </section>
+
   <section class="panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Pricing Readiness</p>
-        <h2>How close are we to a usable pricing list?</h2>
+        <p class="eyebrow">Review Summary</p>
+        <h2>What is ready for review?</h2>
       </div>
-      <a class="pill" href="{{ url_for('export_view') }}">Run Export</a>
+      <a class="pill" href="{{ url_for('export_view') }}">Export Workbook</a>
     </div>
     <section class="cards">
       <a class="card card--link" href="{{ url_for('export_view') }}">
-        <p class="eyebrow">Ready for Pricing</p>
-        <p class="metric">{{ pricing_summary.pricing_log_count }}</p>
-        <p class="muted">Approved scope on the latest version of each sheet. These rows will appear in <code>pricing_change_log.csv</code>.</p>
+        <p class="eyebrow">Workbook Rows</p>
+        <p class="metric">{{ approved_count }}</p>
+        <p class="muted">Accepted changes that will be available in the review workbook.</p>
       </a>
       <a class="card card--link" href="{{ url_for('changes', status='pending') }}">
-        <p class="eyebrow">Candidates to Review</p>
-        <p class="metric">{{ pricing_summary.pricing_candidate_count }}</p>
-        <p class="muted">Visible scope changes still waiting on approve / reject.
-          {% if pricing_summary.filtered_count %}
-            <br><span class="muted">({{ pricing_summary.filtered_count }} noisy rows filtered out for you.)</span>
-          {% endif %}
-        </p>
+        <p class="eyebrow">Still To Review</p>
+        <p class="metric">{{ pending_review_count }}</p>
+        <p class="muted">Items waiting for accept, reject, or follow-up notes.</p>
       </a>
       <a class="card card--link" href="{{ url_for('conformed') }}">
-        <p class="eyebrow">Conformed Sheets</p>
+        <p class="eyebrow">Current Sheets</p>
         <p class="metric">{{ pricing_summary.active_sheet_count }}</p>
-        <p class="muted">Latest sheet versions ({{ pricing_summary.superseded_sheet_count }} superseded across {{ pricing_summary.revision_set_count }} revision set{{ "s" if pricing_summary.revision_set_count != 1 else "" }}).</p>
+        <p class="muted">Latest versions identified across the drawing packages.</p>
       </a>
       <a class="card card--link {% if pricing_summary.attention_pending_count %}card--warn{% endif %}" href="{{ url_for('changes', status='pending', attention='1') }}">
-        <p class="eyebrow">Needs Attention</p>
+        <p class="eyebrow">Needs Check</p>
         <p class="metric">{{ pricing_summary.attention_pending_count }}</p>
-        <p class="muted">{% if pricing_summary.attention_pending_count %}Resolve these before exporting, or use Force Attention.{% else %}Nothing flagged. You can export without forcing.{% endif %}</p>
+        <p class="muted">{% if pricing_summary.attention_pending_count %}These should be reviewed before a final handoff.{% else %}Nothing is currently flagged for extra review.{% endif %}</p>
       </a>
     </section>
   </section>
@@ -42,10 +78,10 @@
   <section class="panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Overview</p>
-        <h2>Dataset Overview</h2>
+        <p class="eyebrow">Drawing Packages</p>
+        <h2>Revision sets in this review</h2>
       </div>
-      <a class="pill" href="{{ url_for('changes', status='pending', attention='1') }}">Open Attention Queue</a>
+      <a class="pill" href="{{ url_for('sheets') }}">Open Drawings</a>
     </div>
     <div class="table-scroll">
       <table class="data-table">
@@ -53,9 +89,9 @@
           <tr>
             <th>Revision Set</th>
             <th>Sheets</th>
-            <th>Active</th>
+            <th>Current</th>
             <th>Superseded</th>
-            <th>Narrative Items</th>
+            <th>Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -77,10 +113,10 @@
     <article class="panel">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Review Queue</p>
-          <h2>Recent Change Items</h2>
+          <p class="eyebrow">Recent Items</p>
+          <h2>Changes in the workbook</h2>
         </div>
-        <a class="pill" href="{{ url_for('changes', status='pending') }}">View Full Queue</a>
+        <a class="pill" href="{{ url_for('changes', status='approved') }}">View Changes</a>
       </div>
       <div class="table-scroll">
         <table class="data-table">
@@ -100,7 +136,7 @@
                 <td>
                   <span class="status {{ item.status }}">{{ item.status }}</span>
                   {% if needs_attention(item) %}
-                    <span class="status attention">attention</span>
+                    <span class="status attention">needs check</span>
                   {% endif %}
                 </td>
                 <td>{{ item.reviewer_text or item.raw_text }}</td>
@@ -114,22 +150,22 @@
     <article class="panel">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Triage</p>
-          <h2>Attention Queue</h2>
+          <p class="eyebrow">Follow Up</p>
+          <h2>Needs a closer look</h2>
         </div>
-        <a class="pill" href="{{ url_for('changes', status='pending', attention='1') }}">Review Attention Items</a>
+        <a class="pill" href="{{ url_for('changes', status='pending', attention='1') }}">Review Flagged Items</a>
       </div>
       <ul class="flat-list">
         {% for item in attention_items %}
           <li class="list-card">
             <div class="list-card__header">
-              <strong><a href="{{ url_for('change_detail', change_id=item.id, queue='pending', attention='1') }}">{{ item.sheet_id }} {{ item.detail_ref or "no detail ref" }}</a></strong>
-              <span class="status attention">attention</span>
+              <strong><a href="{{ url_for('change_detail', change_id=item.id, queue='pending', attention='1') }}">{{ item.sheet_id }} {{ item.detail_ref or "cloud area" }}</a></strong>
+              <span class="status attention">needs check</span>
             </div>
             <div class="muted">{{ item.raw_text }}</div>
           </li>
         {% else %}
-          <li class="list-card">No weak extractions are currently flagged.</li>
+          <li class="list-card">No items are currently flagged for extra review.</li>
         {% endfor %}
       </ul>
     </article>
@@ -138,8 +174,8 @@
   <section class="panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Preflight</p>
-        <h2>PDF Hotspots</h2>
+        <p class="eyebrow">File Health</p>
+        <h2>PDF warnings</h2>
       </div>
       <a class="pill" href="{{ url_for('diagnostics') }}">Open Diagnostics</a>
     </div>

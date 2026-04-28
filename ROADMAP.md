@@ -33,12 +33,15 @@ Working:
 
 Latest verified integration checkpoint:
 
-- input: low-fill tuned CloudHammer release manifest
-- output workspace: `runs/cloudhammer_real_export_v3`
-- manifest rows: `137`
-- workspace CloudHammer clouds: `137`
-- approved CloudHammer change items: `137`
-- embedded workbook crop images: `137`
+- input: split-review-corrected low-fill tuned CloudHammer release manifest
+- output workspace:
+  `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246`
+- corrected manifest rows: `217`
+- approved CloudHammer change items: `217`
+- embedded workbook crop images: `217`
+- human split-review replacements included: `80`
+- Google Drive review handoff folder:
+  `https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT`
 
 Known gaps:
 
@@ -156,8 +159,9 @@ Key work:
 - define how revision sets map to higher-level mods
 - decide how carry-forward notes from superseded sheets should be surfaced
 - decide where no-drawing-change RFIs belong
-- confirm duplicate standalone sheet behavior such as the Rev 2 AE107/AE107.1
-  case
+- implement duplicate standalone/package sheet behavior: keep both candidate
+  sources visible when they differ or might differ, and let the reviewer compare
+  them
 
 Exit criteria:
 
@@ -196,8 +200,10 @@ Exit criteria:
 2. Continue CloudHammer candidate/split feedback loops on the strongest queues.
 3. Generate the next release manifest after split/crop tuning.
 4. Run the real backend scan/export using that manifest.
-5. Compare the resulting workbook against the Rev 1 / Rev 2 benchmark criteria.
-6. Start collecting RFI/mod examples for discovery, without external API use.
+5. Put any generated review workbook in Google Drive `/kevin_usage/` for
+   Google Sheets review.
+6. Compare the resulting workbook against the Rev 1 / Rev 2 benchmark criteria.
+7. Start collecting RFI/mod examples for discovery, without external API use.
 
 ## Open Decisions
 
@@ -205,7 +211,5 @@ Exit criteria:
 - ESA: whether Zero Data Retention or Modified Abuse Monitoring is required.
 - Kevin: exact workbook header fields after he sees a first real example.
 - Kevin: preferred review order by sheet, trade, revision set, or mod.
-- Kevin/ESA: how standalone sheet PDFs should supersede matching package pages
-  when dates or content differ.
 - Kevin/ESA: whether no-drawing-change RFIs belong in the same workbook or a
   separate artifact.

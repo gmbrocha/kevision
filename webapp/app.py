@@ -7,6 +7,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from backend.diagnostics import build_diagnostic_summary, configure_mupdf, format_pdf_label
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
+from backend.deliverables.review_packet import build_review_packet
 from backend.review import change_item_needs_attention
 from backend.workspace import WorkspaceStore
 
@@ -56,6 +57,9 @@ def build_change_navigation(items: list, current_id: str) -> dict[str, object]:
     }
 
 
+DRIVE_REVIEW_FOLDER_URL = "https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT"
+
+
 def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
     configure_mupdf()
     app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -77,6 +81,7 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             "ai_enabled": provider.enabled,
             "diagnostic_summary": diagnostic_summary,
             "needs_attention": change_item_needs_attention,
+            "drive_review_folder_url": DRIVE_REVIEW_FOLDER_URL,
         }
 
     @app.template_filter("asset_path")
@@ -119,6 +124,21 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             key=lambda item: (item.max_severity != "high", item.max_severity != "medium", -item.warning_count, item.source_pdf),
         )[:10]
         pricing_summary = Exporter(store).pricing_summary()
+        approved_cloudhammer_count = len(
+            [
+                item
+                for item in store.data.change_items
+                if item.status == "approved"
+                and item.provenance.get("source") == "visual-region"
+                and item.provenance.get("extraction_method") == "cloudhammer_manifest"
+            ]
+        )
+        pending_review_count = len([item for item in store.data.change_items if item.status == "pending"])
+        output_files = {
+            "workbook": store.output_dir / "revision_changelog.xlsx",
+            "review_packet": store.output_dir / "revision_changelog_review_packet.html",
+            "preview_pdf": store.output_dir / "conformed_preview.pdf",
+        }
         return render_template(
             "dashboard.html",
             revision_rows=rows,
@@ -126,6 +146,9 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             attention_items=attention_items,
             noisy_documents=noisy_documents,
             pricing_summary=pricing_summary,
+            approved_cloudhammer_count=approved_cloudhammer_count,
+            pending_review_count=pending_review_count,
+            output_files=output_files,
         )
 
     @app.route("/conformed")
@@ -337,6 +360,12 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         flash(f"Exported {len(outputs)} files to {store.output_dir}.", "success")
         return redirect(url_for("export_view"))
 
+    @app.post("/review-packet/run")
+    def review_packet_run():
+        result = build_review_packet(store)
+        flash(f"Review packet ready with {result.item_count} change crops.", "success")
+        return redirect(url_for("output_asset", asset_path=result.html_path.relative_to(store.output_dir).as_posix()))
+
     @app.route("/settings")
     def settings():
         verification_history = list(reversed(store.data.verifications))
@@ -362,5 +391,9 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
     @app.route("/workspace-assets/<path:asset_path>")
     def workspace_asset(asset_path: str):
         return send_from_directory(store.assets_dir, asset_path)
+
+    @app.route("/outputs/<path:asset_path>")
+    def output_asset(asset_path: str):
+        return send_from_directory(store.output_dir, asset_path)
 
     return app

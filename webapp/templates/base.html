@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>{% block title %}Revision Review Tool{% endblock %}</title>
+    <title>{% block title %}KEVISION{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
     <script defer src="{{ url_for('static', filename='app.js') }}"></script>
@@ -11,19 +11,18 @@
     <header class="navbar">
       <div class="navbar__container">
         <a id="navbar__logo" href="{{ url_for('dashboard') }}">
-          <span class="navbar__logo-primary">Revision</span>
+          <span class="navbar__logo-primary">KEVISION</span>
           <span class="navbar__logo-divider"></span>
-          <span class="navbar__logo-secondary">Review Tool</span>
+          <span class="navbar__logo-secondary">Change Review</span>
         </a>
         <nav>
           <ul class="navbar__menu">
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('sheets') }}">Sheets</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('conformed') }}">Conformed</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('changes') }}">Queue</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('diagnostics') }}">Diagnostics</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('export_view') }}">Export</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('settings') }}">Settings</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('dashboard') }}">Project</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('changes') }}">Review Changes</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('sheets') }}">Drawings</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('conformed') }}">Latest Set</a></li>
+            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('diagnostics') }}">PDF Health</a></li>
+            <li class="navbar__item"><a class="navbar__links navbar__links--primary" href="{{ url_for('export_view') }}">Export Workbook</a></li>
           </ul>
         </nav>
       </div>
@@ -32,32 +31,32 @@
     <main class="page-shell">
       <section class="hero-panel page-hero">
         <div class="page-hero__content">
-          <p class="eyebrow">Local Review Workspace</p>
-          <h1>{% block page_heading %}Drawing Revision Review{% endblock %}</h1>
-          <p class="page-lead">{% block page_lead %}Review revision packages, verify ambiguous extractions, and export approved outputs without touching source PDFs.{% endblock %}</p>
+          <p class="eyebrow">Drawing Change Review</p>
+          <h1>{% block page_heading %}Project Review{% endblock %}</h1>
+          <p class="page-lead">{% block page_lead %}Find changed drawing areas, review the evidence, and produce a workbook for downstream pricing and coordination.{% endblock %}</p>
         </div>
       </section>
 
       <section class="summary-strip">
         <article class="summary-strip__item">
           <span class="summary-strip__value">{{ pending_count }}</span>
-          <h3>Pending</h3>
-          <p>Queue items still waiting on review.</p>
+          <h3>To Review</h3>
+          <p>Changes still waiting for a decision.</p>
         </article>
         <article class="summary-strip__item">
           <span class="summary-strip__value">{{ approved_count }}</span>
-          <h3>Approved</h3>
-          <p>Items ready to appear in exports.</p>
+          <h3>Accepted</h3>
+          <p>Changes ready for the workbook.</p>
         </article>
         <article class="summary-strip__item">
           <span class="summary-strip__value">{{ attention_count }}</span>
-          <h3>Needs Attention</h3>
-          <p>Low-signal visual extractions or missing detail refs.</p>
+          <h3>Needs Check</h3>
+          <p>Items that should get a human look.</p>
         </article>
         <article class="summary-strip__item">
           <span class="summary-strip__value">{{ diagnostic_summary.affected_document_count }}</span>
-          <h3>Docs With Warnings</h3>
-          <p>Preflight-detected PDF integrity issues.</p>
+          <h3>PDF Warnings</h3>
+          <p>Files with import warnings.</p>
         </article>
       </section>
 

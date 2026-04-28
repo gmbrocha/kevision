@@ -239,8 +239,6 @@ Workflow / deliverable:
 - Is the Excel workbook still the right first review surface?
 - What exact header fields should appear on the first demo deliverable?
 - Should review happen by sheet, revision set, trade, or mod?
-- How should standalone sheet PDFs be handled when they duplicate package
-  pages but differ slightly?
 - Should no-drawing-change RFIs live in the same workbook or a separate
   artifact?
 
@@ -297,6 +295,7 @@ After the meeting, record:
 - approved/prohibited data categories
 - Kevin's workbook feedback
 - Kevin's preferred review flow
+- whether duplicate standalone/package sheet rows are too noisy in practice
 - sample documents promised
 - benchmark target package
 - next checkpoint date

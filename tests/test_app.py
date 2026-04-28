@@ -9,7 +9,7 @@ import pytest
 from backend.cli import approve_cloudhammer_detections
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
-from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, SheetVersion
+from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
 from backend.review import change_item_needs_attention
 from backend.revision_state.tracker import RevisionScanner
 from backend.workspace import WorkspaceStore
@@ -289,6 +289,89 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
     assert not ws._images, "No embedded crop images are expected while CloudHammer inference is disconnected"
 
 
+def test_revision_changelog_stacks_multiple_items_in_same_cloud(tmp_path: Path):
+    """Kevin confirmed same-cloud scope items can share one row if listed."""
+    from openpyxl import load_workbook
+    from PIL import Image
+
+    from backend.deliverables.revision_changelog_excel import ROWS_PER_GROUP, write_revision_changelog
+
+    store = WorkspaceStore(tmp_path / "workspace").create(tmp_path / "input")
+    crop_path = tmp_path / "same_cloud.png"
+    Image.new("RGB", (180, 100), "white").save(crop_path)
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1 - Drawing Changes",
+            source_dir=str(tmp_path),
+            set_number=1,
+            set_date="04/28/2026",
+        )
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-1",
+            revision_set_id="rev-1",
+            source_pdf=str(tmp_path / "revision.pdf"),
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Plan",
+            issue_date="04/28/2026",
+        )
+    ]
+    store.data.clouds = [
+        CloudCandidate(
+            id="cloud-1",
+            sheet_version_id="sheet-1",
+            bbox=[10, 20, 180, 100],
+            image_path=str(crop_path),
+            page_image_path="",
+            confidence=0.9,
+            extraction_method="test",
+            nearby_text="",
+            detail_ref=None,
+        )
+    ]
+    store.data.change_items = [
+        ChangeItem(
+            id="item-1",
+            sheet_version_id="sheet-1",
+            cloud_candidate_id="cloud-1",
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text="Install grab bar blocking",
+            normalized_text="install grab bar blocking",
+            status="approved",
+            reviewer_text="Install grab bar blocking",
+        ),
+        ChangeItem(
+            id="item-2",
+            sheet_version_id="sheet-1",
+            cloud_candidate_id="cloud-1",
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text="Patch wall tile",
+            normalized_text="patch wall tile",
+            status="approved",
+            reviewer_text="Patch wall tile",
+        ),
+    ]
+
+    output_path = write_revision_changelog(store, tmp_path / "revision_changelog.xlsx")
+
+    ws = load_workbook(output_path)["Sheet1"]
+    populated_drawings = [
+        ws.cell(row=row, column=2).value
+        for row in range(2, ws.max_row + 1)
+        if ws.cell(row=row, column=2).value
+    ]
+    assert populated_drawings == ["AE-101"]
+    assert ws.max_row == 1 + ROWS_PER_GROUP
+    assert ws.cell(row=2, column=4).value == "N/A - Cloud Only "
+    assert ws.cell(row=2, column=5).value == "1) Install grab bar blocking\n2) Patch wall tile"
+    assert len(ws._images) == 1
+
+
 def test_pricing_outputs_filter_placeholder_revision_regions(workspace_copy):
     store = WorkspaceStore(workspace_copy).load()
     seed_item = next(item for item in store.data.change_items if item.status == "pending")
@@ -437,7 +520,7 @@ def test_web_routes_render_without_ai(workspace_copy):
     assert client.get("/sheets").status_code == 200
     queue = client.get("/changes")
     assert queue.status_code == 200
-    assert b"Bulk Action" in queue.data
+    assert b"Apply to selected" in queue.data
     diagnostics = client.get("/diagnostics")
     assert diagnostics.status_code == 200
     assert b"Preflight Summary" in diagnostics.data
@@ -452,11 +535,11 @@ def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
     response = client.get("/")
     assert response.status_code == 200
     body = response.data
-    assert b"Pricing Readiness" in body
-    assert b"Ready for Pricing" in body
-    assert b"Candidates to Review" in body
-    assert b"Conformed Sheets" in body
-    assert b"Needs Attention" in body
+    assert b"Review Summary" in body
+    assert b"Workbook Rows" in body
+    assert b"Still To Review" in body
+    assert b"Current Sheets" in body
+    assert b"Needs Check" in body
 
 
 def test_conformed_page_lists_revised_sheets_by_default(workspace_copy):
@@ -481,7 +564,7 @@ def test_navbar_includes_conformed_link(workspace_copy):
     client = app.test_client()
     response = client.get("/")
     assert b'href="/conformed"' in response.data
-    assert b">Conformed</a>" in response.data
+    assert b">Latest Set</a>" in response.data
 
 
 def test_bulk_review_and_next_navigation(workspace_copy):
@@ -502,7 +585,7 @@ def test_bulk_review_and_next_navigation(workspace_copy):
     remaining_pending = [item for item in refreshed.data.change_items if item.status == "pending"][:2]
     detail = client.get(f"/changes/{remaining_pending[0].id}?queue=pending")
     assert detail.status_code == 200
-    assert b"Save + Next Pending" in detail.data
+    assert b"Save + Next" in detail.data
 
     advance = client.post(
         f"/changes/{remaining_pending[0].id}/review",

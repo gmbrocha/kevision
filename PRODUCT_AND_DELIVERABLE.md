@@ -37,6 +37,8 @@ Reasons:
 - Kevin's team is comfortable in Excel.
 - He does not yet need or want a custom viewer as the mandatory review surface.
 - Excel can carry review flags, notes, and blanks for downstream pricing.
+- Review copies should also be placed in Google Drive under `/kevin_usage/`
+  so they can be opened in Google Sheets when local Excel is unavailable.
 
 Implementation policy:
 
@@ -44,6 +46,9 @@ Implementation policy:
   needs to be surfaced.
 - Do not show numeric confidence as the primary review signal.
 - Keep numeric confidence internally for thresholds and debugging.
+- For future review exports, upload/copy review workbooks to Google Drive
+  folder `kevin_usage`:
+  `https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT`.
 
 ## Recall And Noise Policy
 
@@ -94,6 +99,13 @@ Confirmed rules:
 - Same note across sheets referencing one master detail should remain called
   out, with wording such as `See XX Detail for reference`.
 - Cross-sheet duplicates should be noted per sheet for now.
+- If multiple scope items are in the same cloud, they can be one workbook row
+  as long as the specific cloud's included items are listed.
+- If multiple small clouds are near each other but clearly separate, list them
+  as separate details.
+- If duplicate standalone/package sheet PDFs differ or might differ, duplicate
+  the candidate rows and let the reviewer compare both instead of silently
+  choosing one.
 
 Current-set updates are more than sheet replacement. RFI information, ESA
 notes, and comments from superseded sheets may need to carry forward to the
@@ -105,10 +117,10 @@ superseded sheets where prior notes/comments may need review.
 If a standalone sheet PDF and a full-package sheet have the same latest
 bottom-left revision date, both can be trusted.
 
-If dates differ:
+If dates differ or the content appears to differ:
 
-- prefer the latest date when available
-- flag the conflict for review
+- keep both candidate sources visible for reviewer comparison
+- flag the conflict/redundancy for review
 - do not assume the package PDF always wins
 
 Known open case:
@@ -116,7 +128,8 @@ Known open case:
 - Rev 2 includes both the main package and standalone AE107 / AE107.1 PDFs.
 - `Drawing Rev2- Steel Grab Bars R1 AE107.1.pdf` appears to cloud a slightly
   larger area than the main package's AE107.1 page.
-- Confirm whether standalone `R1` files supersede the matching package page.
+- Kevin's current preference is to duplicate both sources and let the reviewer
+  confirm whether they are actually different.
 
 ## Current Workbook Shape
 
@@ -174,6 +187,21 @@ Plan cloud enclosing a detail callout:
 Dropping the `Cloud Only` anchor loses location/context and violates the
 completeness principle.
 
+Leader-only cloud with no readable scope:
+
+- `Scope Included` should say `See Detail <n> on <sheet/page> for scope` when
+  the referenced detail can be identified.
+- The row should reference which deliverable row/detail carries the actual
+  scope when that relationship is known.
+- If the referenced detail cannot be identified, keep the row and flag it for
+  review rather than inventing scope.
+
+Multiple drawings/details on one sheet:
+
+- each detail must be listed separately.
+- Sheet-level reference alone is not enough when the page contains multiple
+  details.
+
 ## Scope Included Rules
 
 `Scope Included` may be:
@@ -183,6 +211,9 @@ completeness principle.
 
 Sub-item rollup has implementation freedom. Default to one row per cloud/detail
 with bullets stacked in `Scope Included`, matching Kevin's Mod 5 workbook.
+
+Kevin confirmed on 2026-04-28 that multiple items in one cloud can remain one
+row if the row lists the items included in that specific cloud.
 
 ## Crops / Detail View
 
@@ -278,8 +309,6 @@ Product/workflow:
 - What exact header field list should appear after Kevin sees the first example?
 - What iteration order does Kevin prefer: sheet-by-sheet, by trade, one
   revision set at a time, or multiple sets together?
-- For standalone single-sheet PDFs that duplicate pages in a package, which
-  source wins when dates/content differ?
 - What does `R1` mean in standalone sheet filenames such as the AE107.1 case?
 - Are there other pain points adjacent to revision packages that should shape
   v1 review/export?
@@ -287,11 +316,8 @@ Product/workflow:
 Specific interpretation:
 
 - SF110 row 14: identify the black-filled square inside the cloud.
-- Cloud contains only a leader, no symbol/text: how should the workbook describe
-  the change?
 - Textual cloud contents: should each dimension/note edit become its own change
   item?
-- Multiple drawings on one page: should each drawing be referenced separately?
 - Index title vs drawing title: capture both verbatim unless told otherwise.
 - Index page changes: decide whether revised index rows become change rows.
 - Symbol overlaps cloud boundary: confirm centroid-containment is the right

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .cloudhammer_client.inference import ManifestCloudInferenceClient
 from .deliverables.excel_exporter import ExportBlockedError, Exporter
+from .deliverables.review_packet import build_review_packet
 from .revision_state.tracker import RevisionScanner
 from .workspace import WorkspaceStore
 from webapp.app import create_app
@@ -59,6 +60,10 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser = subparsers.add_parser("export", help="Export approved review data.")
     export_parser.add_argument("workspace_dir", type=Path)
     export_parser.add_argument("--force-attention", action="store_true", help="Allow export even when attention items remain pending.")
+
+    packet_parser = subparsers.add_parser("review-packet", help="Build a browser review packet with crop and source-page context images.")
+    packet_parser.add_argument("workspace_dir", type=Path)
+    packet_parser.add_argument("--output", type=Path, default=None, help="Optional HTML output path.")
     return parser
 
 
@@ -106,6 +111,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  python -m backend serve {args.workspace_dir}")
             return 1
         print(format_export_summary(exporter.last_summary, outputs, args.workspace_dir))
+        return 0
+
+    if args.command == "review-packet":
+        store = WorkspaceStore(args.workspace_dir).load()
+        result = build_review_packet(store, output_path=args.output)
+        print("Review packet complete.")
+        print(f"  Items: {result.item_count}")
+        print(f"  Assets: {result.asset_count}")
+        print(f"  HTML: {result.html_path}")
         return 0
 
     parser.error(f"Unsupported command: {args.command}")

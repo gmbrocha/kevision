@@ -77,13 +77,14 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
 
     grouped_rows: list[tuple[str, int, RevisionChangelogRow]] = []
     sheet_counters: dict[str, int] = {}
-    for (sheet_id, _, detail_ref), items in groups.items():
+    for (sheet_id, group_kind, group_ref), items in groups.items():
         sheet_counters[sheet_id] = sheet_counters.get(sheet_id, 0) + 1
         seq = sheet_counters[sheet_id]
         canonical_sheet = items[0]
         sheet = sheets_by_id.get(canonical_sheet.sheet_version_id)
         revision_set = revision_sets_by_id.get(sheet.revision_set_id) if sheet else None
         crop_path = _pick_crop_path(items, clouds_by_id)
+        detail_ref = group_ref if group_kind == "detail" else None
         revision_row = RevisionChangelogRow(
             correlation=_format_correlation(sheet_id, seq),
             drawing=_format_drawing(sheet_id),
