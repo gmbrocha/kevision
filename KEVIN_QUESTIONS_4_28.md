@@ -1,5 +1,5 @@
 1. For the Excel deliverable, is a slightly loose but legible crop acceptable, or does each crop need to be tightly framed around only the clouded area?
-- Michael answer (kevin not needed): we will strive to get as good of a crop as possible.
+- Michael answer (kevin not needed): we will strive to get as good of a crop as possible. We will continue until we hit diminishing returns with this.
 
 2. If one clouded region contains multiple scope items, should that be one workbook row with stacked items, or multiple rows sharing the same drawing/detail/crop?
 

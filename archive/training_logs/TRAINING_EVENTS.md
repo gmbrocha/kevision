@@ -1980,3 +1980,124 @@ Readout:
 Verification:
 
 - CloudHammer tests passed: `34 passed`
+
+## 2026-04-28 - Split-Risk Review Completed
+
+Goal:
+
+- Review the `needs_split_review` policy bucket to determine which candidate
+  split strategy works for overmerged whole-cloud groups.
+- Convert selected split proposals into concrete replacement crop artifacts.
+
+Review tooling:
+
+- `CloudHammer/utilities/whole_cloud_split_reviewer.py`
+- active split review log:
+  `CloudHammer/data/whole_cloud_split_reviews/whole_cloud_candidates_broad_deduped_lowconf_context_20260428.split_review.jsonl`
+- accidental early clicks were preserved separately:
+  `whole_cloud_candidates_broad_deduped_lowconf_context_20260428.split_review.accidental_20260428_101901.jsonl`
+
+Analysis and artifact scripts:
+
+- `CloudHammer/scripts/analyze_whole_cloud_split_reviews.py`
+- `CloudHammer/scripts/export_split_review_artifacts.py`
+
+Split review results:
+
+- split-risk candidates reviewed: `37 / 37`
+- selected split proposal candidates: `26`
+- selected split-group replacement boxes emitted: `79`
+- current group accepted as-is: `1`
+- still overmerged / not solved by proposed splitters: `10`
+
+Selected proposal counts:
+
+| Proposal | Count |
+| --- | ---: |
+| `very_tight` | `15` |
+| `balanced` | `7` |
+| `tight` | `4` |
+
+Generated artifacts:
+
+- analysis:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/split_review_analysis`
+- resolved crop artifacts:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/split_review_artifacts`
+- resolved artifact manifest:
+  `split_review_artifacts/resolved_split_artifacts.jsonl`
+- quick visual scan:
+  `split_review_artifacts/contact_sheets/resolved_split_artifacts.png`
+
+Readout:
+
+- Most solvable overmerge cases wanted tighter grouping than the current
+  default splitter.
+- `10` cases remained unsolved by geometry-only split proposals and should be
+  treated as either more advanced splitting work or detector-recall work.
+
+Verification:
+
+- split review analysis generated successfully
+- split review crop artifacts generated successfully
+- CloudHammer tests passed: `34 passed`
+
+## 2026-04-28 - Corrected Whole-Cloud Candidate Manifest v1
+
+Goal:
+
+- Fold the split-review feedback back into a corrected candidate set.
+- Replace solved overmerged parents with selected split/current-ok artifacts.
+- Quarantine still-overmerged parents instead of letting them pollute the next
+  candidate/export pass.
+
+Code:
+
+- `CloudHammer/scripts/build_corrected_whole_cloud_candidate_manifest.py`
+
+Inputs:
+
+- base policy candidates:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/policy_v1/candidates_with_policy.jsonl`
+- selected split/current-ok artifacts:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/split_review_artifacts/resolved_split_artifacts.jsonl`
+- unresolved split parents:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/split_review_analysis/still_overmerged_candidates.jsonl`
+
+Output:
+
+- `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/corrected_candidates_v1`
+
+Corrected manifest results:
+
+- corrected candidates: `326`
+- kept original candidates: `246`
+- split/current-ok replacement candidates: `80`
+- unresolved split parents quarantined: `10`
+- human-accepted corrected candidates: `243`
+  - original accepted candidates retained: `163`
+  - selected split/current-ok replacements: `80`
+
+Corrected policy rerun:
+
+| Bucket | Total | Accepted | Issues | Accept Rate |
+| --- | ---: | ---: | ---: | ---: |
+| `auto_deliverable_candidate` | `170` | `161` | `9` | `94.7%` |
+| `likely_false_positive` | `32` | `0` | `32` | `0.0%` |
+| `low_priority_review` | `23` | `5` | `18` | `21.7%` |
+| `needs_split_review` | `14` | `14` | `0` | `100.0%` |
+| `review_candidate` | `87` | `63` | `24` | `72.4%` |
+
+Readout:
+
+- No more human review is required for this correction pass.
+- `needs_split_review` in the corrected policy output is now a geometry caution,
+  not a request for immediate user review: all `14` are human-selected split
+  replacements that remain sparse by policy thresholds.
+- The immediate next engineering task is to tune the splitter defaults using the
+  selected proposal distribution, especially the `very_tight` wins.
+
+Verification:
+
+- corrected manifest generated successfully
+- corrected policy rerun generated successfully
