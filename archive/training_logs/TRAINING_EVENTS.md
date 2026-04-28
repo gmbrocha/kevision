@@ -1939,3 +1939,44 @@ Verification:
 - review analysis generated successfully
 - reviewed artifact export generated successfully
 - CloudHammer tests passed: `33 passed`
+
+## 2026-04-28 - Whole-Cloud Candidate Policy v1
+
+Goal:
+
+- Use the completed 283-candidate review pass to build a measurable routing
+  policy for whole-cloud candidates.
+- Separate high-trust deliverable candidates from obvious false positives and
+  overmerge/split-risk candidates before deeper model or grouping work.
+
+Code:
+
+- `CloudHammer/cloudhammer/infer/candidate_policy.py`
+- `CloudHammer/scripts/apply_whole_cloud_candidate_policy.py`
+
+Policy v1 output:
+
+- `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/policy_v1`
+
+Measured on reviewed candidates:
+
+| Bucket | Total | Accepted | Issues | Accept Rate |
+| --- | ---: | ---: | ---: | ---: |
+| `auto_deliverable_candidate` | `110` | `101` | `9` | `91.8%` |
+| `likely_false_positive` | `32` | `0` | `32` | `0.0%` |
+| `low_priority_review` | `23` | `5` | `18` | `21.7%` |
+| `needs_split_review` | `37` | `10` | `27` | `27.0%` |
+| `review_candidate` | `81` | `57` | `24` | `70.4%` |
+
+Readout:
+
+- A conservative policy can remove `32` obvious junk candidates without losing
+  reviewed accepts in this pass.
+- The high-trust bucket gives a useful immediate deliverable queue:
+  `110` candidates at `91.8%` accept rate.
+- The split-risk bucket is mostly true overmerge and should drive the next
+  grouping/splitting iteration.
+
+Verification:
+
+- CloudHammer tests passed: `34 passed`

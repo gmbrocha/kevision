@@ -14,6 +14,7 @@ from cloudhammer.bootstrap.cloud_roi_extract import clip_bbox_xywh, derive_targe
 from cloudhammer.bootstrap.roi_extract import clip_square_roi
 from cloudhammer.contracts.detections import CloudDetection, DetectionPage
 from cloudhammer.data.yolo import _convert_voc_xml_to_yolo, _write_label
+from cloudhammer.infer.candidate_policy import classify_whole_cloud_candidate
 from cloudhammer.infer.detect import infer_page_image
 from cloudhammer.infer.fragment_grouping import GroupingParams, group_fragment_detections
 from cloudhammer.infer.merge import bbox_iou_xywh, nms_detections
@@ -639,3 +640,30 @@ def test_whole_cloud_confidence_rewards_multi_fragment_groups() -> None:
     )
 
     assert whole_cloud_confidence(multi, 1000, 1000) > whole_cloud_confidence(singleton, 1000, 1000)
+
+
+def test_whole_cloud_candidate_policy_buckets_review_risk() -> None:
+    assert (
+        classify_whole_cloud_candidate(
+            {"whole_cloud_confidence": 0.3, "member_count": 1, "group_fill_ratio": 0.5}
+        )["policy_bucket"]
+        == "likely_false_positive"
+    )
+    assert (
+        classify_whole_cloud_candidate(
+            {"whole_cloud_confidence": 0.9, "member_count": 3, "group_fill_ratio": 0.4}
+        )["policy_bucket"]
+        == "auto_deliverable_candidate"
+    )
+    assert (
+        classify_whole_cloud_candidate(
+            {"whole_cloud_confidence": 0.98, "member_count": 11, "group_fill_ratio": 0.2}
+        )["policy_bucket"]
+        == "needs_split_review"
+    )
+    assert (
+        classify_whole_cloud_candidate(
+            {"whole_cloud_confidence": 0.55, "member_count": 1, "group_fill_ratio": 0.5}
+        )["policy_bucket"]
+        == "low_priority_review"
+    )
