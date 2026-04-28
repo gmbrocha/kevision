@@ -12,12 +12,18 @@ from cloudhammer.config import CloudHammerConfig
 from cloudhammer.bootstrap.delta_stack import normalize_delta_payload
 from cloudhammer.bootstrap.cloud_roi_extract import clip_bbox_xywh, derive_target_revision_digit
 from cloudhammer.bootstrap.roi_extract import clip_square_roi
-from cloudhammer.contracts.detections import CloudDetection
+from cloudhammer.contracts.detections import CloudDetection, DetectionPage
 from cloudhammer.data.yolo import _convert_voc_xml_to_yolo, _write_label
 from cloudhammer.infer.detect import infer_page_image
 from cloudhammer.infer.fragment_grouping import GroupingParams, group_fragment_detections
 from cloudhammer.infer.merge import bbox_iou_xywh, nms_detections
 from cloudhammer.infer.tiles import generate_tiles, tile_xyxy_to_page_xywh
+from cloudhammer.infer.whole_clouds import (
+    WholeCloudExportParams,
+    build_whole_cloud_candidates_for_page,
+    crop_box_for_candidate,
+    whole_cloud_confidence,
+)
 from cloudhammer.page_catalog import classify_pdf_from_path, extract_sheet_id
 from cloudhammer.page_filter import classify_roi_source_page
 from cloudhammer.prelabel.openai_clouds import DEFAULT_MODEL, load_env_file, resolve_roi_image_path, validate_boxes, yolo_line
@@ -571,3 +577,65 @@ def test_fragment_grouping_splits_oversized_low_fill_component() -> None:
 
     assert len(groups) == 2
     assert sorted(group.metadata["member_count"] for group in groups) == [3, 3]
+
+
+def test_whole_cloud_candidate_adds_crop_box_and_confidence_metadata() -> None:
+    page = DetectionPage(
+        pdf="revision.pdf",
+        page=1,
+        render_path="page.png",
+        detections=[
+            CloudDetection(
+                0.85,
+                [100, 120, 300, 180],
+                None,
+                "fragment_group",
+                metadata={"member_count": 3, "member_confidences": [0.85, 0.8, 0.75]},
+            )
+        ],
+    )
+
+    candidates = build_whole_cloud_candidates_for_page(
+        page,
+        image_width=800,
+        image_height=600,
+        params=WholeCloudExportParams(crop_margin_ratio=0.1, min_crop_margin=25, max_crop_margin=50),
+    )
+
+    assert len(candidates) == 1
+    candidate = candidates[0]
+    assert candidate.source_mode == "whole_cloud_candidate"
+    assert candidate.confidence > 0.8
+    assert candidate.metadata["size_bucket"] == "small"
+    crop = candidate.metadata["crop_box_page"]
+    assert crop[0] < 100
+    assert crop[1] < 120
+    assert crop[0] + crop[2] > 400
+    assert crop[1] + crop[3] > 300
+
+
+def test_whole_cloud_crop_box_clips_to_page_bounds() -> None:
+    crop = crop_box_for_candidate(
+        [5, 10, 100, 120],
+        image_width=180,
+        image_height=160,
+        params=WholeCloudExportParams(crop_margin_ratio=0.5, min_crop_margin=50, max_crop_margin=80),
+    )
+
+    assert crop[0] == 0
+    assert crop[1] == 0
+    assert crop[0] + crop[2] <= 180
+    assert crop[1] + crop[3] <= 160
+
+
+def test_whole_cloud_confidence_rewards_multi_fragment_groups() -> None:
+    singleton = CloudDetection(0.75, [0, 0, 100, 80], None, "fragment_group", metadata={"member_count": 1})
+    multi = CloudDetection(
+        0.75,
+        [0, 0, 300, 180],
+        None,
+        "fragment_group",
+        metadata={"member_count": 4, "member_confidences": [0.75, 0.72, 0.7, 0.68]},
+    )
+
+    assert whole_cloud_confidence(multi, 1000, 1000) > whole_cloud_confidence(singleton, 1000, 1000)

@@ -134,6 +134,14 @@ Inference:
 python scripts/infer_pages.py --model runs/cloudhammer_roi\weights\best.pt --limit 5
 ```
 
+Whole-cloud candidate extraction:
+
+```powershell
+python scripts\infer_pages.py --config configs\fullpage_all_broad_deduped_lowconf_20260428.yaml --model runs\cloudhammer_roi-broad-deduped-20260428\weights\best.pt --pages-manifest data\manifests\pages_standard_drawings_no_index_20260427.jsonl
+python scripts\group_fragment_detections.py --detections-dir runs\fullpage_all_broad_deduped_lowconf_20260428\outputs\detections --output-dir runs\fragment_grouping_fullpage_all_broad_deduped_lowconf_20260428
+python scripts\export_whole_cloud_candidates.py --grouped-detections-dir runs\fragment_grouping_fullpage_all_broad_deduped_lowconf_20260428\detections_grouped --output-dir runs\whole_cloud_candidates_broad_deduped_lowconf_context_20260428 --crop-margin-ratio 0.16 --min-crop-margin 550 --max-crop-margin 950
+```
+
 ## Delta Bootstrap Stack
 
 The bootstrap dependency is not just `delta_v4`.
@@ -321,6 +329,45 @@ redesign.
 
 Backend integration should happen through `backend/cloudhammer_client/`, not by
 making CloudHammer own product review/export concerns.
+
+## Current Whole-Cloud Export
+
+Current best artifact run:
+
+- `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428`
+
+Inputs:
+
+- model: `CloudHammer/runs/cloudhammer_roi-broad-deduped-20260428/weights/best.pt`
+- standard non-index pages: `CloudHammer/data/manifests/pages_standard_drawings_no_index_20260427.jsonl`
+- low-confidence tiled detections: `CloudHammer/runs/fullpage_all_broad_deduped_lowconf_20260428/outputs/detections`
+- grouped fragments: `CloudHammer/runs/fragment_grouping_fullpage_all_broad_deduped_lowconf_20260428/detections_grouped`
+
+Outputs:
+
+- manifest: `whole_cloud_candidates_manifest.jsonl`
+- per-PDF whole-cloud detection JSON: `detections_whole/`
+- crop artifacts: `crops/`
+- debug overlays: `overlays/`
+- contact sheets: `contact_sheets/`
+- manual audit: `manual_large_cloud_audit_summary.md`
+
+Current counts:
+
+- pages processed: `115`
+- whole-cloud candidates: `283`
+- size buckets: `136 small`, `76 medium`, `52 large`, `19 xlarge`
+- confidence tiers: `210 high`, `18 medium`, `55 low`
+- manual large-cloud audit: `78 / 78` hand-labeled large-cloud boxes have at
+  least `95%` containment inside exported crop artifacts
+
+Important interpretation:
+
+- `bbox_page_xyxy` is the model/grouping evidence box.
+- `crop_box_page_xyxy` is the high-recall extraction artifact box used to save
+  the whole-cloud crop.
+- The wider crop context is intentional because some large clouds only produce
+  partial motif detections on one edge.
 
 ## GPT Prelabel Benchmark
 

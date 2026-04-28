@@ -7,7 +7,7 @@ from typing import Literal
 from cloudhammer.manifests import read_json, write_json
 
 
-SourceMode = Literal["roi_bootstrap", "page_tile", "fragment_group"]
+SourceMode = Literal["roi_bootstrap", "page_tile", "fragment_group", "whole_cloud_candidate"]
 
 
 def xyxy_to_xywh(box: tuple[float, float, float, float]) -> list[float]:
@@ -51,7 +51,7 @@ class CloudDetection:
     @classmethod
     def from_dict(cls, payload: dict) -> "CloudDetection":
         source_mode = payload["source_mode"]
-        if source_mode not in {"roi_bootstrap", "page_tile", "fragment_group"}:
+        if source_mode not in {"roi_bootstrap", "page_tile", "fragment_group", "whole_cloud_candidate"}:
             raise ValueError(f"Invalid source_mode: {source_mode}")
         return cls(
             confidence=float(payload["confidence"]),
