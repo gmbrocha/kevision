@@ -580,6 +580,37 @@ def test_fragment_grouping_splits_oversized_low_fill_component() -> None:
     assert sorted(group.metadata["member_count"] for group in groups) == [3, 3]
 
 
+def test_fragment_grouping_can_refine_overmerged_sparse_groups() -> None:
+    detections = [
+        CloudDetection(0.92, [100, 100, 180, 90], None, "page_tile"),
+        CloudDetection(0.91, [290, 100, 180, 90], None, "page_tile"),
+        CloudDetection(0.90, [760, 100, 180, 90], None, "page_tile"),
+        CloudDetection(0.89, [950, 100, 180, 90], None, "page_tile"),
+    ]
+
+    groups = group_fragment_detections(
+        detections,
+        image_width=1400,
+        image_height=500,
+        params=GroupingParams(
+            expansion_ratio=1.5,
+            min_padding=300,
+            max_padding=500,
+            group_margin_ratio=0.0,
+            min_group_margin=0,
+            max_group_margin=0,
+            split_min_members=10,
+            overmerge_refinement_enabled=True,
+            overmerge_refinement_profile="very_tight",
+            overmerge_refine_min_members=4,
+            overmerge_refine_max_fill_ratio=1.0,
+        ),
+    )
+
+    assert len(groups) == 2
+    assert sorted(group.metadata["member_count"] for group in groups) == [2, 2]
+
+
 def test_whole_cloud_candidate_adds_crop_box_and_confidence_metadata() -> None:
     page = DetectionPage(
         pdf="revision.pdf",

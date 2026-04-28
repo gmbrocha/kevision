@@ -157,6 +157,14 @@ def main() -> int:
     parser.add_argument("--split-gap-ratio", type=float, default=0.16)
     parser.add_argument("--split-min-gap", type=float, default=550.0)
     parser.add_argument("--split-max-fill-ratio", type=float, default=0.28)
+    parser.add_argument("--overmerge-refinement", action="store_true")
+    parser.add_argument(
+        "--overmerge-refinement-profile",
+        choices=["very_tight", "tight", "balanced", "review_v1"],
+        default="review_v1",
+    )
+    parser.add_argument("--overmerge-refine-min-members", type=int, default=9)
+    parser.add_argument("--overmerge-refine-max-fill-ratio", type=float, default=0.15)
     args = parser.parse_args()
 
     params = GroupingParams(
@@ -171,6 +179,10 @@ def main() -> int:
         split_gap_ratio=args.split_gap_ratio,
         split_min_gap=args.split_min_gap,
         split_max_fill_ratio=args.split_max_fill_ratio,
+        overmerge_refinement_enabled=args.overmerge_refinement,
+        overmerge_refinement_profile=args.overmerge_refinement_profile,
+        overmerge_refine_min_members=args.overmerge_refine_min_members,
+        overmerge_refine_max_fill_ratio=args.overmerge_refine_max_fill_ratio,
     )
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)

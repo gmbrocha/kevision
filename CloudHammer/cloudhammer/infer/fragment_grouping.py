@@ -21,6 +21,10 @@ class GroupingParams:
     split_gap_ratio: float = 0.16
     split_min_gap: float = 550.0
     split_max_fill_ratio: float = 0.28
+    overmerge_refinement_enabled: bool = False
+    overmerge_refinement_profile: str = "very_tight"
+    overmerge_refine_min_members: int = 9
+    overmerge_refine_max_fill_ratio: float = 0.15
 
 
 def _area(box: XYXY) -> float:
@@ -125,6 +129,105 @@ def _split_large_component(
     return _split_large_component(left, boxes, params) + _split_large_component(right, boxes, params)
 
 
+def _review_refinement_params(profile: str) -> GroupingParams:
+    if profile == "tight":
+        return GroupingParams(
+            expansion_ratio=0.12,
+            min_padding=20.0,
+            max_padding=90.0,
+            group_margin_ratio=0.05,
+            min_group_margin=10.0,
+            max_group_margin=120.0,
+            split_min_members=3,
+            split_min_partition_members=1,
+            split_gap_ratio=0.08,
+            split_min_gap=120.0,
+            split_max_fill_ratio=0.65,
+        )
+    if profile == "balanced":
+        return GroupingParams(
+            expansion_ratio=0.22,
+            min_padding=45.0,
+            max_padding=180.0,
+            group_margin_ratio=0.06,
+            min_group_margin=15.0,
+            max_group_margin=180.0,
+            split_min_members=4,
+            split_min_partition_members=1,
+            split_gap_ratio=0.10,
+            split_min_gap=180.0,
+            split_max_fill_ratio=0.55,
+        )
+    if profile == "review_v1":
+        return GroupingParams(
+            expansion_ratio=0.04,
+            min_padding=8.0,
+            max_padding=45.0,
+            group_margin_ratio=0.04,
+            min_group_margin=8.0,
+            max_group_margin=80.0,
+            split_min_members=2,
+            split_min_partition_members=1,
+            split_gap_ratio=0.06,
+            split_min_gap=80.0,
+            split_max_fill_ratio=0.75,
+        )
+    if profile != "very_tight":
+        raise ValueError(f"Unknown overmerge refinement profile: {profile}")
+    return GroupingParams(
+        expansion_ratio=0.04,
+        min_padding=8.0,
+        max_padding=45.0,
+        group_margin_ratio=0.04,
+        min_group_margin=8.0,
+        max_group_margin=80.0,
+        split_min_members=2,
+        split_min_partition_members=1,
+        split_gap_ratio=0.06,
+        split_min_gap=80.0,
+        split_max_fill_ratio=0.75,
+    )
+
+
+def _cluster_indexes_by_expansion(indexes: list[int], boxes: list[XYXY], params: GroupingParams) -> list[list[int]]:
+    if not indexes:
+        return []
+    expanded = {index: _expand(boxes[index], params) for index in indexes}
+    uf = UnionFind(max(indexes) + 1)
+
+    for left_pos, left_index in enumerate(indexes):
+        for right_index in indexes[left_pos + 1 :]:
+            if _intersects(expanded[left_index], expanded[right_index]):
+                uf.union(left_index, right_index)
+
+    components: dict[int, list[int]] = {}
+    for index in indexes:
+        components.setdefault(uf.find(index), []).append(index)
+    return list(components.values())
+
+
+def _should_refine_overmerge(indexes: list[int], boxes: list[XYXY], params: GroupingParams) -> bool:
+    if not params.overmerge_refinement_enabled:
+        return False
+    if len(indexes) >= params.overmerge_refine_min_members:
+        return True
+    return _fill_ratio_for_indexes(indexes, boxes) < params.overmerge_refine_max_fill_ratio
+
+
+def _refine_overmerge_component(
+    indexes: list[int],
+    boxes: list[XYXY],
+    params: GroupingParams,
+) -> list[list[int]]:
+    if not _should_refine_overmerge(indexes, boxes, params):
+        return [indexes]
+    refinement_params = _review_refinement_params(params.overmerge_refinement_profile)
+    refined: list[list[int]] = []
+    for component in _cluster_indexes_by_expansion(indexes, boxes, refinement_params):
+        refined.extend(_split_large_component(component, boxes, refinement_params))
+    return refined
+
+
 class UnionFind:
     def __init__(self, size: int) -> None:
         self.parent = list(range(size))
@@ -171,10 +274,14 @@ def group_fragment_detections(
     for index in range(len(detections)):
         components.setdefault(uf.find(index), []).append(index)
 
-    grouped: list[CloudDetection] = []
+    grouped_indexes: list[list[int]] = []
     for member_indexes in components.values():
         for split_indexes in _split_large_component(member_indexes, boxes, params):
-            grouped.append(_group_from_indexes(split_indexes, detections, boxes, image_width, image_height, params))
+            grouped_indexes.extend(_refine_overmerge_component(split_indexes, boxes, params))
+
+    grouped: list[CloudDetection] = []
+    for split_indexes in grouped_indexes:
+        grouped.append(_group_from_indexes(split_indexes, detections, boxes, image_width, image_height, params))
 
     return sorted(grouped, key=lambda det: (-len(det.metadata.get("member_indexes", [])), -det.confidence))
 

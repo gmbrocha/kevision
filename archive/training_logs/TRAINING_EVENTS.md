@@ -2101,3 +2101,72 @@ Verification:
 
 - corrected manifest generated successfully
 - corrected policy rerun generated successfully
+
+## 2026-04-28 - Adaptive Overmerge Refinement Trial
+
+Goal:
+
+- Tune grouping using the split-review feedback without sacrificing large-cloud
+  recall.
+- Test whether a tighter second pass should run only on high-risk groups.
+
+Code:
+
+- `CloudHammer/cloudhammer/infer/fragment_grouping.py`
+- `CloudHammer/scripts/group_fragment_detections.py`
+
+Implementation:
+
+- Added optional overmerge refinement to `group_fragment_detections`.
+- The first pass keeps the normal grouping behavior.
+- Any group matching refinement criteria can be regrouped with a tighter
+  review-derived profile.
+- This is behind CLI flags; it is not silently enabled for all runs.
+
+Aggressive trial:
+
+```powershell
+cd F:\Desktop\m\projects\kevision\CloudHammer
+..\.venv\Scripts\python.exe scripts\group_fragment_detections.py --detections-dir runs\fullpage_all_broad_deduped_lowconf_20260428\outputs\detections --output-dir runs\fragment_grouping_fullpage_all_broad_deduped_lowconf_tuned_20260428 --overmerge-refinement --overmerge-refinement-profile review_v1 --overmerge-refine-min-members 9 --overmerge-refine-max-fill-ratio 0.15
+```
+
+Aggressive result:
+
+- grouped candidates: `398`
+- whole-cloud candidates: `398`
+- manual large-cloud audit matched: `73 / 78`
+- median IoU improved to `0.603`, but losing `5` manual labels is not
+  acceptable as a default.
+
+Safer low-fill trial:
+
+```powershell
+cd F:\Desktop\m\projects\kevision\CloudHammer
+..\.venv\Scripts\python.exe scripts\group_fragment_detections.py --detections-dir runs\fullpage_all_broad_deduped_lowconf_20260428\outputs\detections --output-dir runs\fragment_grouping_fullpage_all_broad_deduped_lowconf_lowfill_tuned_20260428 --overmerge-refinement --overmerge-refinement-profile review_v1 --overmerge-refine-min-members 999 --overmerge-refine-max-fill-ratio 0.15
+..\.venv\Scripts\python.exe scripts\export_whole_cloud_candidates.py --grouped-detections-dir runs\fragment_grouping_fullpage_all_broad_deduped_lowconf_lowfill_tuned_20260428\detections_grouped --output-dir runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428 --crop-margin-ratio 0.16 --min-crop-margin 550 --max-crop-margin 950 --no-overlays
+```
+
+Safer result:
+
+- grouped candidates: `292`
+- whole-cloud candidates: `292`
+- manual large-cloud audit matched: `78 / 78`
+- high-confidence candidates: `219`
+- low-confidence candidates: `55`
+- policy bucket comparison against original reviewed run:
+  - `auto_deliverable_candidate`: `110 -> 121`
+  - `needs_split_review`: `37 -> 35`
+  - `likely_false_positive`: unchanged at `32`
+
+Readout:
+
+- The aggressive high-member refinement is too risky for default use: it
+  tightens large clouds but can cut off valid extents.
+- The safer low-fill-only refinement preserves the manual large-cloud audit and
+  modestly improves the high-trust bucket.
+- Current recommendation: use low-fill refinement as an optional candidate
+  generation mode, not as the final default, until it gets a short visual audit.
+
+Verification:
+
+- CloudHammer tests passed: `35 passed`
