@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images\\Revision_1_-_Drawing_Changes_6cbee960_p0011_m032.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\labels\\Revision_1_-_Drawing_Changes_6cbee960_p0011_m032.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-28T05:00:00.309959+00:00",
+  "shape_count": 1
+}

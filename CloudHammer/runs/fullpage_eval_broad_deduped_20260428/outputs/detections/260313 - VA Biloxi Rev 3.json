@@ -1,0 +1,64 @@
+{
+  "model": "runs\\cloudhammer_roi-broad-deduped-20260428\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            7926.2918701171875,
+            4301.662841796875,
+            480.5472412109375,
+            239.7666015625
+          ],
+          "confidence": 0.9005857110023499,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\260313_-_VA_Biloxi_Rev_3_67050d16_p0172_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7906.95166015625,
+            4352.0,
+            685.9453125,
+            486.5767822265625
+          ],
+          "confidence": 0.7498237490653992,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\260313_-_VA_Biloxi_Rev_3_67050d16_p0172_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 173,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            7689.60498046875,
+            4241.443664550781,
+            118.3671875,
+            290.23431396484375
+          ],
+          "confidence": 0.8751292824745178,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\260313_-_VA_Biloxi_Rev_3_67050d16_p0173_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7618.1435546875,
+            4352.0,
+            1148.73388671875,
+            941.4021606445312
+          ],
+          "confidence": 0.6371610760688782,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\260313_-_VA_Biloxi_Rev_3_67050d16_p0173_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 174,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

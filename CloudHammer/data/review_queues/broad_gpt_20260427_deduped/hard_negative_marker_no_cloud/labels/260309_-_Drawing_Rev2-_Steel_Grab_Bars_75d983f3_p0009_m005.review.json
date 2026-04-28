@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\hard_negative_marker_no_cloud\\images\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009_m005.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\hard_negative_marker_no_cloud\\labels\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009_m005.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-28T03:50:32.692343+00:00",
+  "shape_count": 1
+}

@@ -14,21 +14,44 @@ from cloudhammer.manifests import read_jsonl, write_jsonl
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def resolve_cloudhammer_path(path: Path) -> Path:
+    if path.exists():
+        return path.resolve()
+    parts = path.parts
+    for index, part in enumerate(parts):
+        if part.lower() == "cloudhammer":
+            relocated = ROOT.joinpath(*parts[index + 1 :])
+            if relocated.exists():
+                return relocated.resolve()
+    return path
+
+
 def is_reviewed_newer_than_raw(reviewed_label: Path, api_label: Path) -> bool:
     if not reviewed_label.exists() or not api_label.exists():
         return False
     return reviewed_label.stat().st_mtime > api_label.stat().st_mtime + 1.0
 
 
+def has_review_marker(reviewed_label: Path) -> bool:
+    return reviewed_label.with_suffix(".review.json").exists()
+
+
+def is_reviewed(reviewed_label: Path, api_label: Path) -> bool:
+    return is_reviewed_newer_than_raw(reviewed_label, api_label) or has_review_marker(reviewed_label)
+
+
 def make_training_rows(batch_manifest: Path, val_fraction: float, seed: int) -> list[dict]:
     rows = []
-    for row in read_jsonl(batch_manifest):
-        image_path = Path(row["image_path"])
-        label_path = Path(row["label_path"])
-        api_label_path = Path(row["api_label_path"])
+    manifest_rows = list(read_jsonl(batch_manifest))
+    marker_mode = any(has_review_marker(resolve_cloudhammer_path(Path(row["label_path"]))) for row in manifest_rows)
+    for row in manifest_rows:
+        image_path = resolve_cloudhammer_path(Path(row["image_path"]))
+        label_path = resolve_cloudhammer_path(Path(row["label_path"]))
+        api_label_path = resolve_cloudhammer_path(Path(row["api_label_path"]))
         if not image_path.exists():
             continue
-        if not is_reviewed_newer_than_raw(label_path, api_label_path):
+        reviewed = has_review_marker(label_path) if marker_mode else is_reviewed(label_path, api_label_path)
+        if not reviewed:
             continue
         rows.append(
             {

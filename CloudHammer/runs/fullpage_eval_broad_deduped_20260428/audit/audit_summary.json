@@ -1,0 +1,171 @@
+{
+  "run_root": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428",
+  "overlay_contact_sheet": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\audit\\overlay_contact_sheet.png",
+  "detection_crop_contact_sheet": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\audit\\detection_crop_contact_sheet.png",
+  "page_count": 14,
+  "detection_count": 72,
+  "pages": [
+    {
+      "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+      "page": 1,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0000_clouds.png",
+      "detections": 1,
+      "max_confidence": 0.9063869118690491
+    },
+    {
+      "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+      "page": 2,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_clouds.png",
+      "detections": 14,
+      "max_confidence": 0.9173979759216309
+    },
+    {
+      "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+      "page": 3,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_23c18bed_p0002_clouds.png",
+      "detections": 10,
+      "max_confidence": 0.9458723664283752
+    },
+    {
+      "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+      "page": 4,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_23c18bed_p0003_clouds.png",
+      "detections": 2,
+      "max_confidence": 0.9468193054199219
+    },
+    {
+      "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+      "page": 5,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0004_clouds.png",
+      "detections": 3,
+      "max_confidence": 0.9462664723396301
+    },
+    {
+      "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+      "page": 6,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0005_clouds.png",
+      "detections": 2,
+      "max_confidence": 0.865368664264679
+    },
+    {
+      "pdf_stem": "260313 - VA Biloxi Rev 3",
+      "page": 173,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260313_-_VA_Biloxi_Rev_3_67050d16_p0172_clouds.png",
+      "detections": 2,
+      "max_confidence": 0.9005857110023499
+    },
+    {
+      "pdf_stem": "260313 - VA Biloxi Rev 3",
+      "page": 174,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\260313_-_VA_Biloxi_Rev_3_67050d16_p0173_clouds.png",
+      "detections": 2,
+      "max_confidence": 0.8751292824745178
+    },
+    {
+      "pdf_stem": "Drawing Rev2- Steel Grab Bars AE107",
+      "page": 1,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\Drawing_Rev2-_Steel_Grab_Bars_AE107_c7f54136_p0000_clouds.png",
+      "detections": 2,
+      "max_confidence": 0.865368664264679
+    },
+    {
+      "pdf_stem": "Drawing Rev2- Steel Grab Bars R1 AE107.1",
+      "page": 1,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_7c0d35cd_p0000_clouds.png",
+      "detections": 2,
+      "max_confidence": 0.9535117149353027
+    },
+    {
+      "pdf_stem": "Revision #1 - Drawing Changes",
+      "page": 2,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0001.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_clouds.png",
+      "detections": 6,
+      "max_confidence": 0.8988629579544067
+    },
+    {
+      "pdf_stem": "Revision #1 - Drawing Changes",
+      "page": 3,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0002.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_clouds.png",
+      "detections": 4,
+      "max_confidence": 0.9585297703742981
+    },
+    {
+      "pdf_stem": "Revision Set #7",
+      "page": 3,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0002.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\Revision_Set_7_ff5d86f3_p0002_clouds.png",
+      "detections": 3,
+      "max_confidence": 0.9107301831245422
+    },
+    {
+      "pdf_stem": "Revision Set #7",
+      "page": 4,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\overlays\\Revision_Set_7_ff5d86f3_p0003_clouds.png",
+      "detections": 19,
+      "max_confidence": 0.974648118019104
+    }
+  ],
+  "detections_by_source": [
+    {
+      "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+      "pages": 2,
+      "detections": 15,
+      "max_confidence": 0.9173979759216309
+    },
+    {
+      "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+      "pages": 2,
+      "detections": 12,
+      "max_confidence": 0.9468193054199219
+    },
+    {
+      "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+      "pages": 2,
+      "detections": 5,
+      "max_confidence": 0.9462664723396301
+    },
+    {
+      "pdf_stem": "260313 - VA Biloxi Rev 3",
+      "pages": 2,
+      "detections": 4,
+      "max_confidence": 0.9005857110023499
+    },
+    {
+      "pdf_stem": "Drawing Rev2- Steel Grab Bars AE107",
+      "pages": 1,
+      "detections": 2,
+      "max_confidence": 0.865368664264679
+    },
+    {
+      "pdf_stem": "Drawing Rev2- Steel Grab Bars R1 AE107.1",
+      "pages": 1,
+      "detections": 2,
+      "max_confidence": 0.9535117149353027
+    },
+    {
+      "pdf_stem": "Revision #1 - Drawing Changes",
+      "pages": 2,
+      "detections": 10,
+      "max_confidence": 0.9585297703742981
+    },
+    {
+      "pdf_stem": "Revision Set #7",
+      "pages": 2,
+      "detections": 22,
+      "max_confidence": 0.974648118019104
+    }
+  ]
+}

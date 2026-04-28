@@ -12,5 +12,16 @@ experiments/revision_changelog_preview.xlsx
 .venv/
 experiments/**/output/
 
+# Generated CloudHammer raster artifacts are reproducible and too large for Git.
+CloudHammer/runs/**/*.png
+CloudHammer/runs/**/*.jpg
+CloudHammer/runs/**/*.jpeg
+CloudHammer/data/**/*.png
+CloudHammer/data/**/*.jpg
+CloudHammer/data/**/*.jpeg
+runs/**/*.png
+runs/**/*.jpg
+runs/**/*.jpeg
+
 # Tempfiles
 *.tmp

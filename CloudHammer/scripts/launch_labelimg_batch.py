@@ -10,6 +10,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def resolve_cloudhammer_path(path: Path) -> Path:
+    if path.exists():
+        return path.resolve()
+    parts = path.parts
+    for index, part in enumerate(parts):
+        if part.lower() == "cloudhammer":
+            relocated = ROOT.joinpath(*parts[index + 1 :])
+            if relocated.exists():
+                return relocated.resolve()
+    return path
+
+
 def read_manifest(path: Path) -> list[dict]:
     rows: list[dict] = []
     with path.open("r", encoding="utf-8") as handle:
@@ -21,11 +33,21 @@ def read_manifest(path: Path) -> list[dict]:
 
 
 def reviewed_newer_than_raw(row: dict, tolerance_seconds: float = 1.0) -> bool:
-    label_path = Path(row["label_path"])
-    api_label_path = Path(row["api_label_path"])
+    label_path = resolve_cloudhammer_path(Path(row["label_path"]))
+    api_label_path = resolve_cloudhammer_path(Path(row["api_label_path"]))
     if not label_path.exists() or not api_label_path.exists():
         return False
     return label_path.stat().st_mtime > api_label_path.stat().st_mtime + tolerance_seconds
+
+
+def has_review_marker(row: dict) -> bool:
+    label_path = resolve_cloudhammer_path(Path(row["label_path"]))
+    marker_path = label_path.with_suffix(".review.json")
+    return marker_path.exists()
+
+
+def is_reviewed(row: dict) -> bool:
+    return reviewed_newer_than_raw(row) or has_review_marker(row)
 
 
 def main() -> int:
@@ -36,26 +58,48 @@ def main() -> int:
     parser.add_argument("--class-file", type=Path, default=ROOT / "configs" / "cloud_classes.txt")
     parser.add_argument("--labelimg", type=Path, default=ROOT.parent / ".venv" / "Scripts" / "labelImg.exe")
     parser.add_argument("--start-first", action="store_true", help="Open the first batch image instead of resuming.")
+    parser.add_argument("--start-index", type=int, help="Open a 1-based item number from the batch manifest.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     batch_dir = (args.batch_root / args.batch).resolve()
     manifest_path = batch_dir / "manifest.jsonl"
-    image_list_path = batch_dir / "images.txt"
     rows = read_manifest(manifest_path)
     if not rows:
         raise RuntimeError(f"No rows found in {manifest_path}")
 
+    resolved_images = [resolve_cloudhammer_path(Path(row["image_path"])) for row in rows]
+    marker_mode = any(has_review_marker(row) for row in rows)
+
+    start_index = 0
     start_row = rows[0]
-    if not args.start_first:
+    if args.start_index is not None:
+        if args.start_index < 1 or args.start_index > len(rows):
+            raise RuntimeError(f"--start-index must be between 1 and {len(rows)}")
+        start_index = args.start_index - 1
+        start_row = rows[start_index]
+    elif not args.start_first:
         for row in rows:
-            if not reviewed_newer_than_raw(row):
+            reviewed = has_review_marker(row) if marker_mode else is_reviewed(row)
+            if not reviewed:
+                start_index = rows.index(row)
                 start_row = row
                 break
 
-    start_image = Path(start_row["image_path"]).resolve()
+    if args.start_index is not None:
+        image_list_path = batch_dir / f"images_from_{start_index + 1:03d}.txt"
+        launch_images = resolved_images[start_index:]
+    else:
+        image_list_path = batch_dir / "images_resolved.txt"
+        launch_images = resolved_images
+    image_list_path.write_text("\n".join(str(path) for path in launch_images) + "\n", encoding="utf-8")
+
+    start_image = resolve_cloudhammer_path(Path(start_row["image_path"]))
     print(f"Launching LabelImg for {args.batch}: {len(rows)} images")
+    print(f"Start item: {start_index + 1}")
     print(f"Start image: {start_image.name}")
+    if args.start_index is not None:
+        print(f"Sliced review list: {len(launch_images)} images")
     if args.dry_run:
         return 0
 
@@ -65,7 +109,7 @@ def main() -> int:
     subprocess.Popen(
         [
             str(args.labelimg.resolve()),
-            str(Path(rows[0]["image_path"]).resolve().parent),
+            str(launch_images[0].parent),
             str(args.class_file.resolve()),
             str(args.reviewed_label_dir.resolve()),
         ],

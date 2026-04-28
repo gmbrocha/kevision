@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images\\Revision_1_-_Drawing_Changes_6cbee960_p0004_random_0707.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\labels\\Revision_1_-_Drawing_Changes_6cbee960_p0004_random_0707.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-28T03:21:51.135236+00:00",
+  "shape_count": 1
+}

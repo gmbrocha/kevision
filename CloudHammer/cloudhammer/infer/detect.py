@@ -39,7 +39,8 @@ def infer_page_image(
     detections: list[CloudDetection] = []
     for tile in generate_tiles(width, height, tile_size, tile_overlap):
         crop = image[tile.y : tile.y + tile.height, tile.x : tile.x + tile.width]
-        results = model.predict(source=crop, conf=confidence_threshold, verbose=False)
+        crop_bgr = cv2.cvtColor(crop, cv2.COLOR_GRAY2BGR)
+        results = model.predict(source=crop_bgr, conf=confidence_threshold, verbose=False)
         if not results:
             continue
         boxes = getattr(results[0], "boxes", None)

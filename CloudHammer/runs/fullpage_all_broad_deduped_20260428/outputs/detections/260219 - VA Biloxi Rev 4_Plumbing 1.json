@@ -1,0 +1,437 @@
+{
+  "model": "runs\\cloudhammer_roi-broad-deduped-20260428\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            6135.4482421875,
+            5465.516662597656,
+            401.76953125,
+            137.17050170898438
+          ],
+          "confidence": 0.9063869118690491,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0000_cloud_001.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 1,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3733.874267578125,
+            2827.7039794921875,
+            258.20458984375,
+            133.177978515625
+          ],
+          "confidence": 0.9173979759216309,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2745.2493896484375,
+            2809.97802734375,
+            257.93408203125,
+            134.40380859375
+          ],
+          "confidence": 0.913435697555542,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            999.707275390625,
+            4234.288513183594,
+            175.841552734375,
+            111.56646728515625
+          ],
+          "confidence": 0.9121584892272949,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1011.59033203125,
+            4464.233917236328,
+            173.84765625,
+            110.00152587890625
+          ],
+          "confidence": 0.9097486138343811,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1041.053955078125,
+            3990.06591796875,
+            174.47802734375,
+            111.962646484375
+          ],
+          "confidence": 0.909547746181488,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1040.5050048828125,
+            3587.3860473632812,
+            174.705810546875,
+            111.69537353515625
+          ],
+          "confidence": 0.9070909023284912,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1452.0078125,
+            3307.457275390625,
+            208.1285400390625,
+            105.14111328125
+          ],
+          "confidence": 0.8947174549102783,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3264.6971130371094,
+            2829.5760498046875,
+            256.3147277832031,
+            135.624755859375
+          ],
+          "confidence": 0.8922878503799438,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1428.5196533203125,
+            3663.2347106933594,
+            206.81036376953125,
+            106.3837890625
+          ],
+          "confidence": 0.8756428956985474,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2313.499298095703,
+            2803.8363037109375,
+            257.87860107421875,
+            133.2767333984375
+          ],
+          "confidence": 0.8753322958946228,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_010.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1915.6828002929688,
+            3315.051513671875,
+            173.6058349609375,
+            171.7421875
+          ],
+          "confidence": 0.8663651943206787,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_011.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1954.6788330078125,
+            3165.7927856445312,
+            260.058349609375,
+            130.24652099609375
+          ],
+          "confidence": 0.8648161888122559,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_012.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            572.7142333984375,
+            4572.0782470703125,
+            166.099609375,
+            172.81561279296875
+          ],
+          "confidence": 0.8201983571052551,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_013.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            571.0771484375,
+            4657.370269775391,
+            169.440185546875,
+            130.0062255859375
+          ],
+          "confidence": 0.5963135361671448,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_cloud_014.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1702.272705078125,
+            3849.8028564453125,
+            241.237060546875,
+            162.207763671875
+          ],
+          "confidence": 0.913788914680481,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0002_cloud_001.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0002.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1672.2444458007812,
+            3727.5598754882812,
+            264.579345703125,
+            183.0111083984375
+          ],
+          "confidence": 0.9493173956871033,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0003_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3749.9097900390625,
+            3137.1726684570312,
+            244.4365234375,
+            237.24700927734375
+          ],
+          "confidence": 0.9314901232719421,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0003_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6472.7012939453125,
+            3718.7828369140625,
+            225.899658203125,
+            168.8814697265625
+          ],
+          "confidence": 0.8878015875816345,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0003_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3748.0332641601562,
+            3264.0,
+            249.94189453125,
+            109.43348693847656
+          ],
+          "confidence": 0.8522247076034546,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0003_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 4,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            5792.25732421875,
+            2167.266845703125,
+            275.78179931640625,
+            145.40673828125
+          ],
+          "confidence": 0.9267473816871643,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4792.878875732422,
+            5192.501708984375,
+            386.5254211425781,
+            246.7962646484375
+          ],
+          "confidence": 0.9235826134681702,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4628.985778808594,
+            1509.6790161132812,
+            256.8599853515625,
+            116.7646484375
+          ],
+          "confidence": 0.9169921278953552,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2905.30126953125,
+            1275.1685638427734,
+            222.5087890625,
+            147.54481506347656
+          ],
+          "confidence": 0.9154775738716125,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2548.808349609375,
+            1410.6415405273438,
+            182.72418212890625,
+            122.3118896484375
+          ],
+          "confidence": 0.9153615236282349,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2323.9249877929688,
+            1577.7470092773438,
+            179.9630126953125,
+            115.2529296875
+          ],
+          "confidence": 0.9113026261329651,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3660.4007568359375,
+            1476.3236083984375,
+            183.0472412109375,
+            115.921142578125
+          ],
+          "confidence": 0.9081987738609314,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2432.4180297851562,
+            1833.5302734375,
+            201.096435546875,
+            173.2879638671875
+          ],
+          "confidence": 0.9079582095146179,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5921.438385009766,
+            1960.1890869140625,
+            232.04684448242188,
+            120.181640625
+          ],
+          "confidence": 0.905451238155365,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9635.096557617188,
+            4966.415344238281,
+            159.248779296875,
+            130.0064697265625
+          ],
+          "confidence": 0.9044149518013,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_010.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3054.8585205078125,
+            887.330810546875,
+            237.3984375,
+            136.2508544921875
+          ],
+          "confidence": 0.9026296138763428,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_011.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4746.678192138672,
+            1241.2194213867188,
+            246.02542114257812,
+            139.2115478515625
+          ],
+          "confidence": 0.8950722217559814,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_012.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4222.9810791015625,
+            1341.0466003417969,
+            279.796630859375,
+            127.4486083984375
+          ],
+          "confidence": 0.8923001289367676,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_013.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6906.07177734375,
+            2509.3863525390625,
+            276.7047119140625,
+            143.8134765625
+          ],
+          "confidence": 0.8890114426612854,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_014.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4751.165069580078,
+            1239.724609375,
+            236.47457885742188,
+            40.275390625
+          ],
+          "confidence": 0.678961992263794,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_015.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2324.110107421875,
+            1585.5888671875,
+            43.889892578125,
+            110.1903076171875
+          ],
+          "confidence": 0.5724784731864929,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0004_cloud_016.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 5,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

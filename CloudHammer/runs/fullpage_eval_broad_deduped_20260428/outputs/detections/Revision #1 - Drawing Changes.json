@@ -1,0 +1,130 @@
+{
+  "model": "runs\\cloudhammer_roi-broad-deduped-20260428\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            2176.0,
+            2091.2999267578125,
+            221.94410705566406,
+            232.4697265625
+          ],
+          "confidence": 0.8988629579544067,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.686767578125,
+            2119.471435546875,
+            264.9237365722656,
+            243.9580078125
+          ],
+          "confidence": 0.8791658282279968,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.030822753906,
+            2176.0,
+            267.569580078125,
+            337.6893310546875
+          ],
+          "confidence": 0.8681042194366455,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1703.319091796875,
+            2189.5596618652344,
+            664.680908203125,
+            330.1647033691406
+          ],
+          "confidence": 0.8459497690200806,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6346.6414794921875,
+            2177.793487548828,
+            373.30615234375,
+            333.78460693359375
+          ],
+          "confidence": 0.8133633732795715,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1727.792724609375,
+            2090.6365966796875,
+            639.1229248046875,
+            266.846435546875
+          ],
+          "confidence": 0.7001446485519409,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_cloud_006.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0001.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            6235.1141357421875,
+            1088.9947509765625,
+            484.8858642578125,
+            457.47650146484375
+          ],
+          "confidence": 0.9585297703742981,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6238.3525390625,
+            519.763427734375,
+            477.1630859375,
+            756.475830078125
+          ],
+          "confidence": 0.9299315214157104,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.0,
+            1088.39990234375,
+            814.8848266601562,
+            455.34222412109375
+          ],
+          "confidence": 0.9023961424827576,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.0,
+            521.7352294921875,
+            817.0558471679688,
+            758.2647705078125
+          ],
+          "confidence": 0.8791196346282959,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\crops\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0002.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

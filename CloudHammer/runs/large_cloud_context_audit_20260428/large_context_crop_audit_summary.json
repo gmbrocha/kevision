@@ -1,0 +1,677 @@
+{
+  "crop_contact_sheet": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\large_cloud_context_audit_20260428\\large_context_crop_contact_sheet.png",
+  "crop_count": 67,
+  "total_labels": 78,
+  "rows": [
+    {
+      "index": 1,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_region_001.png",
+      "image_stem": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 563,
+      "crop_height": 563,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.largecloud.json"
+    },
+    {
+      "index": 2,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_region_001.png",
+      "image_stem": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 4744,
+      "crop_height": 4744,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.largecloud.json"
+    },
+    {
+      "index": 3,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_region_001.png",
+      "image_stem": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 551,
+      "crop_height": 551,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003.largecloud.json"
+    },
+    {
+      "index": 4,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005_region_001.png",
+      "image_stem": "260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1213,
+      "crop_height": 1214,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005.largecloud.json"
+    },
+    {
+      "index": 5,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_region_001.png",
+      "image_stem": "260313_-_VA_Biloxi_Rev_3_ff19da68_p0172",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 919,
+      "crop_height": 918,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.largecloud.json"
+    },
+    {
+      "index": 6,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_region_002.png",
+      "image_stem": "260313_-_VA_Biloxi_Rev_3_ff19da68_p0172",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 1186,
+      "crop_height": 1186,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.largecloud.json"
+    },
+    {
+      "index": 7,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_region_001.png",
+      "image_stem": "260313_-_VA_Biloxi_Rev_3_ff19da68_p0173",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1355,
+      "crop_height": 1354,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.largecloud.json"
+    },
+    {
+      "index": 8,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_region_001.png",
+      "image_stem": "Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1195,
+      "crop_height": 1196,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.largecloud.json"
+    },
+    {
+      "index": 9,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_region_001.png",
+      "image_stem": "Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1028,
+      "crop_height": 1028,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000.largecloud.json"
+    },
+    {
+      "index": 10,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0001_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0001",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 930,
+      "crop_height": 930,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0001.largecloud.json"
+    },
+    {
+      "index": 11,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0001_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0001",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 617,
+      "crop_height": 617,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0001.largecloud.json"
+    },
+    {
+      "index": 12,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0002_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0002",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1482,
+      "crop_height": 1481,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0002.largecloud.json"
+    },
+    {
+      "index": 13,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0003_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0003",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1348,
+      "crop_height": 1348,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0003.largecloud.json"
+    },
+    {
+      "index": 14,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0004_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0004",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1231,
+      "crop_height": 1231,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0004.largecloud.json"
+    },
+    {
+      "index": 15,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0005_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0005",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 593,
+      "crop_height": 593,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0005.largecloud.json"
+    },
+    {
+      "index": 16,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0005_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0005",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 536,
+      "crop_height": 537,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0005.largecloud.json"
+    },
+    {
+      "index": 17,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0005_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0005",
+      "region_id": "region_003",
+      "labels": 1,
+      "crop_width": 597,
+      "crop_height": 598,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0005.largecloud.json"
+    },
+    {
+      "index": 18,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0007_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0007",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 2529,
+      "crop_height": 2529,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0007.largecloud.json"
+    },
+    {
+      "index": 19,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0007_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0007",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 2362,
+      "crop_height": 2362,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0007.largecloud.json"
+    },
+    {
+      "index": 20,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0010",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 2205,
+      "crop_height": 2205,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010.largecloud.json"
+    },
+    {
+      "index": 21,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0010",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 2187,
+      "crop_height": 2187,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010.largecloud.json"
+    },
+    {
+      "index": 22,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0010",
+      "region_id": "region_003",
+      "labels": 2,
+      "crop_width": 1612,
+      "crop_height": 1612,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010.largecloud.json"
+    },
+    {
+      "index": 23,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010_region_004.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0010",
+      "region_id": "region_004",
+      "labels": 1,
+      "crop_width": 2473,
+      "crop_height": 2473,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010.largecloud.json"
+    },
+    {
+      "index": 24,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010_region_005.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0010",
+      "region_id": "region_005",
+      "labels": 1,
+      "crop_width": 2059,
+      "crop_height": 2059,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0010.largecloud.json"
+    },
+    {
+      "index": 25,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0011_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0011",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1941,
+      "crop_height": 1940,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0011.largecloud.json"
+    },
+    {
+      "index": 26,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0011_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0011",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 884,
+      "crop_height": 884,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0011.largecloud.json"
+    },
+    {
+      "index": 27,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0011_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0011",
+      "region_id": "region_003",
+      "labels": 1,
+      "crop_width": 574,
+      "crop_height": 575,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0011.largecloud.json"
+    },
+    {
+      "index": 28,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0015_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0015",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 4094,
+      "crop_height": 4094,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0015.largecloud.json"
+    },
+    {
+      "index": 29,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0016_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0016",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 4112,
+      "crop_height": 4111,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0016.largecloud.json"
+    },
+    {
+      "index": 30,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0016_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0016",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 1225,
+      "crop_height": 1225,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0016.largecloud.json"
+    },
+    {
+      "index": 31,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0017_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0017",
+      "region_id": "region_001",
+      "labels": 2,
+      "crop_width": 1709,
+      "crop_height": 1708,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0017.largecloud.json"
+    },
+    {
+      "index": 32,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0017_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0017",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 712,
+      "crop_height": 712,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0017.largecloud.json"
+    },
+    {
+      "index": 33,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0017_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0017",
+      "region_id": "region_003",
+      "labels": 1,
+      "crop_width": 2214,
+      "crop_height": 2215,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0017.largecloud.json"
+    },
+    {
+      "index": 34,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0018_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0018",
+      "region_id": "region_001",
+      "labels": 2,
+      "crop_width": 2807,
+      "crop_height": 2806,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0018.largecloud.json"
+    },
+    {
+      "index": 35,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0018_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0018",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 869,
+      "crop_height": 869,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0018.largecloud.json"
+    },
+    {
+      "index": 36,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0018_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0018",
+      "region_id": "region_003",
+      "labels": 1,
+      "crop_width": 451,
+      "crop_height": 451,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0018.largecloud.json"
+    },
+    {
+      "index": 37,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0020_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0020",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1558,
+      "crop_height": 1557,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0020.largecloud.json"
+    },
+    {
+      "index": 38,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0020_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0020",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 1274,
+      "crop_height": 1274,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0020.largecloud.json"
+    },
+    {
+      "index": 39,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0021_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0021",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 746,
+      "crop_height": 746,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0021.largecloud.json"
+    },
+    {
+      "index": 40,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0021_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0021",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 863,
+      "crop_height": 863,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0021.largecloud.json"
+    },
+    {
+      "index": 41,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0023_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0023",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 6858,
+      "crop_height": 6858,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0023.largecloud.json"
+    },
+    {
+      "index": 42,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0024",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1066,
+      "crop_height": 1066,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024.largecloud.json"
+    },
+    {
+      "index": 43,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0024",
+      "region_id": "region_002",
+      "labels": 3,
+      "crop_width": 4220,
+      "crop_height": 4219,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024.largecloud.json"
+    },
+    {
+      "index": 44,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0024",
+      "region_id": "region_003",
+      "labels": 2,
+      "crop_width": 3585,
+      "crop_height": 3584,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024.largecloud.json"
+    },
+    {
+      "index": 45,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024_region_004.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0024",
+      "region_id": "region_004",
+      "labels": 2,
+      "crop_width": 3624,
+      "crop_height": 3623,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0024.largecloud.json"
+    },
+    {
+      "index": 46,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0025_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0025",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1060,
+      "crop_height": 1061,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0025.largecloud.json"
+    },
+    {
+      "index": 47,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0026",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 4391,
+      "crop_height": 4391,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026.largecloud.json"
+    },
+    {
+      "index": 48,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0026",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 4561,
+      "crop_height": 4560,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026.largecloud.json"
+    },
+    {
+      "index": 49,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0026",
+      "region_id": "region_003",
+      "labels": 1,
+      "crop_width": 1314,
+      "crop_height": 1314,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026.largecloud.json"
+    },
+    {
+      "index": 50,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_004.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0026",
+      "region_id": "region_004",
+      "labels": 1,
+      "crop_width": 571,
+      "crop_height": 571,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026.largecloud.json"
+    },
+    {
+      "index": 51,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0027_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0027",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 5540,
+      "crop_height": 5540,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0027.largecloud.json"
+    },
+    {
+      "index": 52,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0041_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0041",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 7281,
+      "crop_height": 7281,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0041.largecloud.json"
+    },
+    {
+      "index": 53,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0041_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0041",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 8870,
+      "crop_height": 8870,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0041.largecloud.json"
+    },
+    {
+      "index": 54,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0042_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0042",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 2859,
+      "crop_height": 2859,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0042.largecloud.json"
+    },
+    {
+      "index": 55,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0043_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0043",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1507,
+      "crop_height": 1507,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0043.largecloud.json"
+    },
+    {
+      "index": 56,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0045_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0045",
+      "region_id": "region_001",
+      "labels": 2,
+      "crop_width": 3503,
+      "crop_height": 3504,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0045.largecloud.json"
+    },
+    {
+      "index": 57,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0046_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0046",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 2613,
+      "crop_height": 2613,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0046.largecloud.json"
+    },
+    {
+      "index": 58,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0046_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0046",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 1090,
+      "crop_height": 1089,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0046.largecloud.json"
+    },
+    {
+      "index": 59,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0046_region_003.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0046",
+      "region_id": "region_003",
+      "labels": 1,
+      "crop_width": 1972,
+      "crop_height": 1971,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0046.largecloud.json"
+    },
+    {
+      "index": 60,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0048_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0048",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1152,
+      "crop_height": 1152,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0048.largecloud.json"
+    },
+    {
+      "index": 61,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0048_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0048",
+      "region_id": "region_002",
+      "labels": 2,
+      "crop_width": 3464,
+      "crop_height": 3464,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0048.largecloud.json"
+    },
+    {
+      "index": 62,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0049_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0049",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1537,
+      "crop_height": 1537,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0049.largecloud.json"
+    },
+    {
+      "index": 63,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0049_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0049",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 1894,
+      "crop_height": 1893,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0049.largecloud.json"
+    },
+    {
+      "index": 64,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0050_region_001.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0050",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 1046,
+      "crop_height": 1046,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0050.largecloud.json"
+    },
+    {
+      "index": 65,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0050_region_002.png",
+      "image_stem": "Revision_1_-_Drawing_Changes_6cbee960_p0050",
+      "region_id": "region_002",
+      "labels": 1,
+      "crop_width": 1690,
+      "crop_height": 1690,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0050.largecloud.json"
+    },
+    {
+      "index": 66,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_Set_7_37f6066a_p0002_region_001.png",
+      "image_stem": "Revision_Set_7_37f6066a_p0002",
+      "region_id": "region_001",
+      "labels": 1,
+      "crop_width": 2858,
+      "crop_height": 2858,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_Set_7_37f6066a_p0002.largecloud.json"
+    },
+    {
+      "index": 67,
+      "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_Set_7_37f6066a_p0003_region_001.png",
+      "image_stem": "Revision_Set_7_37f6066a_p0003",
+      "region_id": "region_001",
+      "labels": 3,
+      "crop_width": 6127,
+      "crop_height": 6126,
+      "sidecar": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_labels_20260428\\Revision_Set_7_37f6066a_p0003.largecloud.json"
+    }
+  ]
+}

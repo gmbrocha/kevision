@@ -1,0 +1,35 @@
+{
+  "model": "runs\\cloudhammer_roi-broad-deduped-20260428\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1793.2283935546875,
+            1393.2264404296875,
+            572.79833984375,
+            736.0909423828125
+          ],
+          "confidence": 0.865368664264679,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Drawing_Rev2-_Steel_Grab_Bars_AE107_c7f54136_p0000_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.0,
+            1402.7875061035156,
+            487.3956298828125,
+            738.7172546386719
+          ],
+          "confidence": 0.725349485874176,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Drawing_Rev2-_Steel_Grab_Bars_AE107_c7f54136_p0000_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 1,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\Drawing Rev2- Steel Grab Bars AE107.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

@@ -1,0 +1,6 @@
+path: F:\Desktop\m\projects\kevision\CloudHammer\data\yolo_reviewed_batch_001_002_004partial_plus_broad_deduped_20260428
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: cloud_motif

@@ -1,0 +1,29 @@
+{
+  "launched_at": "2026-04-27T23:57:31",
+  "pid": 30468,
+  "queue_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive",
+  "image_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images",
+  "label_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\labels",
+  "class_file": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\configs\\cloud_classes.txt",
+  "labelimg": "F:\\Desktop\\m\\projects\\kevision\\.venv\\Scripts\\labelImg.exe",
+  "command": [
+    "F:\\Desktop\\m\\projects\\kevision\\.venv\\Scripts\\labelImg.exe",
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images",
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\configs\\cloud_classes.txt",
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\labels"
+  ],
+  "cwd": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer",
+  "total_images": 4,
+  "start_index": 1,
+  "start_image": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images\\Revision_1_-_Drawing_Changes_6cbee960_p0012_m029.png",
+  "launch_image_list": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images.txt",
+  "stdout_log": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\labelimg_logs\\labelimg_20260427_235731.stdout.log",
+  "stderr_log": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\labelimg_logs\\labelimg_20260427_235731.stderr.log",
+  "env": {
+    "LABELIMG_IMAGE_LIST": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images.txt",
+    "LABELIMG_START_IMAGE": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\ambiguous_positive\\images\\Revision_1_-_Drawing_Changes_6cbee960_p0012_m029.png",
+    "PYTHONFAULTHANDLER": "1",
+    "PYTHONUNBUFFERED": "1",
+    "QT_DEBUG_PLUGINS": ""
+  }
+}

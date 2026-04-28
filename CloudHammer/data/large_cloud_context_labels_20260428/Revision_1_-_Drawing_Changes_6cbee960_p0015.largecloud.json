@@ -1,0 +1,65 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:46:19+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0015.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 3148.63,
+        "y1": 4813.943,
+        "x2": 7243.075,
+        "y2": 8908.388,
+        "width": 4094.445,
+        "height": 4094.445
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 3621.066,
+            "y1": 5812.565,
+            "x2": 6770.639,
+            "y2": 7909.766,
+            "width": 3149.573,
+            "height": 2097.201
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0015_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 472.436,
+            "y1": 998.622,
+            "x2": 3622.009,
+            "y2": 3095.823,
+            "width": 3149.573,
+            "height": 2097.201
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 15,
+    "page_kind": "drawing",
+    "page_number": 16,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+    "pdf_stem": "Revision #1 - Drawing Changes",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0015.png",
+    "sheet_id": "AE110",
+    "sheet_title": "6B103",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "manual_revision1_large_cloud_review",
+      "reason": "user_requested_revision_set_1_full_standard_non_index_pages"
+    }
+  }
+}

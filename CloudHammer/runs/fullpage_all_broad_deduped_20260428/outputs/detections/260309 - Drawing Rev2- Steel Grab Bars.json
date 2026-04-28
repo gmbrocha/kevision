@@ -1,0 +1,1743 @@
+{
+  "model": "runs\\cloudhammer_roi-broad-deduped-20260428\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3264.0,
+            1824.6641845703125,
+            178.60598754882812,
+            359.9437255859375
+          ],
+          "confidence": 0.9462664723396301,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0004_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3090.019287109375,
+            1826.525390625,
+            357.851806640625,
+            361.401123046875
+          ],
+          "confidence": 0.9255926012992859,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0004_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4451.034164428711,
+            1802.4195556640625,
+            387.76380920410156,
+            368.6690673828125
+          ],
+          "confidence": 0.887560248374939,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0004_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 5,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1793.2283935546875,
+            1393.2264404296875,
+            572.79833984375,
+            736.0909423828125
+          ],
+          "confidence": 0.865368664264679,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0005_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.0,
+            1402.7875061035156,
+            487.3956298828125,
+            738.7172546386719
+          ],
+          "confidence": 0.725349485874176,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0005_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 6,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1949.8162841796875,
+            1587.0966796875,
+            417.12548828125,
+            701.993896484375
+          ],
+          "confidence": 0.9535117149353027,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0006_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.1492919921875,
+            1576.2581787109375,
+            532.3487548828125,
+            687.876953125
+          ],
+          "confidence": 0.9466801881790161,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0006_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 7,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0006.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3264.0,
+            2176.0,
+            621.3155517578125,
+            140.53932189941406
+          ],
+          "confidence": 0.8449249863624573,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0007_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3264.0,
+            1221.412841796875,
+            628.8379516601562,
+            1093.3709716796875
+          ],
+          "confidence": 0.7920697331428528,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0007_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2255.1983642578125,
+            2176.0,
+            1200.8016357421875,
+            145.4442901611328
+          ],
+          "confidence": 0.7186616659164429,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0007_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 8,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0007.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1837.528076171875,
+            1314.2923583984375,
+            528.4935302734375,
+            739.1378173828125
+          ],
+          "confidence": 0.9680992364883423,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0008_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.0,
+            1311.9630432128906,
+            550.0603637695312,
+            748.2153015136719
+          ],
+          "confidence": 0.9219841957092285,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0008_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 9,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0008.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            2176.287841796875,
+            1597.82177734375,
+            575.256591796875,
+            663.037841796875
+          ],
+          "confidence": 0.9576672911643982,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0009_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1934.530517578125,
+            1605.939208984375,
+            430.868408203125,
+            655.4818115234375
+          ],
+          "confidence": 0.9558704495429993,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0009_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.0,
+            2176.205406188965,
+            532.610595703125,
+            82.51792907714844
+          ],
+          "confidence": 0.859725832939148,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0009_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1981.5470581054688,
+            2176.475975036621,
+            386.45294189453125,
+            82.89250183105469
+          ],
+          "confidence": 0.7548096776008606,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0009_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 10,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            2498.1763305664062,
+            6280.922546386719,
+            525.0250244140625,
+            436.20172119140625
+          ],
+          "confidence": 0.8925227522850037,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0010_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3264.0,
+            1332.009765625,
+            813.7471923828125,
+            1010.461669921875
+          ],
+          "confidence": 0.8924909234046936,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0010_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2185.4198608398438,
+            6528.0,
+            842.0466918945312,
+            463.3906555175781
+          ],
+          "confidence": 0.8681878447532654,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0010_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2699.5257568359375,
+            1105.5994873046875,
+            744.0147705078125,
+            746.8763427734375
+          ],
+          "confidence": 0.842021644115448,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0010_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3463.6474609375,
+            2176.0,
+            572.8651123046875,
+            183.1875
+          ],
+          "confidence": 0.7877426147460938,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0010_cloud_005.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 11,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0010.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3611.5572509765625,
+            1949.2041625976562,
+            350.516357421875,
+            351.74212646484375
+          ],
+          "confidence": 0.9246730208396912,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0011_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5017.0953369140625,
+            1897.71240234375,
+            354.135498046875,
+            355.1343994140625
+          ],
+          "confidence": 0.9184743165969849,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0011_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3636.454132080078,
+            2176.197509765625,
+            355.2424011230469,
+            126.7879638671875
+          ],
+          "confidence": 0.5326352715492249,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0011_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 12,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0011.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3589.3359375,
+            1811.436767578125,
+            359.658203125,
+            360.864990234375
+          ],
+          "confidence": 0.9176921248435974,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0012_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4995.22314453125,
+            1771.22265625,
+            325.4814453125,
+            286.37646484375
+          ],
+          "confidence": 0.9020937085151672,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0012_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 13,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0012.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1899.3466796875,
+            1490.814697265625,
+            468.6533203125,
+            585.7030029296875
+          ],
+          "confidence": 0.9404503107070923,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0013_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.593994140625,
+            1494.4198303222656,
+            563.9493408203125,
+            575.2426452636719
+          ],
+          "confidence": 0.9152795076370239,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0013_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10880.0,
+            5674.3204345703125,
+            1254.8687744140625,
+            1045.6795654296875
+          ],
+          "confidence": 0.5244600772857666,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0013_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 14,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0013.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            2183.2321166992188,
+            2176.173141479492,
+            567.98974609375,
+            152.00430297851562
+          ],
+          "confidence": 0.6743822693824768,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0014_cloud_001.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 15,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            5281.77197265625,
+            3265.3406372070312,
+            348.578369140625,
+            657.7081909179688
+          ],
+          "confidence": 0.857491672039032,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0015_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.0,
+            3374.1925659179688,
+            867.81494140625,
+            839.1787109375
+          ],
+          "confidence": 0.8541324138641357,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0015_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5440.0,
+            2565.3667907714844,
+            1257.3204345703125,
+            890.6332092285156
+          ],
+          "confidence": 0.5337693691253662,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0015_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.0,
+            800.5953369140625,
+            739.4453125,
+            475.77490234375
+          ],
+          "confidence": 0.5226349830627441,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0015_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 16,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            11320.0,
+            6528.0,
+            844.135498046875,
+            669.8809814453125
+          ],
+          "confidence": 0.9607324004173279,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9437.219848632812,
+            6528.0,
+            544.71484375,
+            678.9698486328125
+          ],
+          "confidence": 0.9355885982513428,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1102.10498046875,
+            3614.44775390625,
+            1250.42041015625,
+            100.309814453125
+          ],
+          "confidence": 0.9054757356643677,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6539.1392822265625,
+            6491.4849853515625,
+            1252.2158203125,
+            94.48828125
+          ],
+          "confidence": 0.9044421911239624,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7626.821044921875,
+            6491.951171875,
+            1252.5693359375,
+            93.67919921875
+          ],
+          "confidence": 0.9041873216629028,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11321.651000976562,
+            3469.912109375,
+            843.8848876953125,
+            1074.087890625
+          ],
+          "confidence": 0.9021362662315369,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2187.2371826171875,
+            6611.239852905273,
+            1090.0732421875,
+            105.44857788085938
+          ],
+          "confidence": 0.8845440745353699,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5440.0,
+            3654.530975341797,
+            554.5320434570312,
+            883.0041809082031
+          ],
+          "confidence": 0.875623881816864,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4352.0,
+            3615.055419921875,
+            1224.69482421875,
+            115.177978515625
+          ],
+          "confidence": 0.8706414103507996,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            642.82666015625,
+            3642.4845275878906,
+            637.17333984375,
+            901.5154724121094
+          ],
+          "confidence": 0.8686769008636475,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_010.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6531.16455078125,
+            3489.623306274414,
+            1244.496826171875,
+            106.06932067871094
+          ],
+          "confidence": 0.8623020648956299,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_011.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.3134765625,
+            3614.7020874023438,
+            1211.703125,
+            108.4146728515625
+          ],
+          "confidence": 0.8576104044914246,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_012.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3331.3943481445312,
+            3625.6302490234375,
+            776.407958984375,
+            918.3697509765625
+          ],
+          "confidence": 0.8565199375152588,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_013.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5440.164367675781,
+            6528.0,
+            551.2191772460938,
+            184.05886840820312
+          ],
+          "confidence": 0.8472256064414978,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_014.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1088.0,
+            5775.805938720703,
+            1231.859375,
+            922.8136901855469
+          ],
+          "confidence": 0.8445411920547485,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_015.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            3490.5709381103516,
+            1251.529296875,
+            99.74522399902344
+          ],
+          "confidence": 0.8394348621368408,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_016.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3314.314453125,
+            5440.0,
+            1134.835205078125,
+            1127.2318115234375
+          ],
+          "confidence": 0.8302432298660278,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_017.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11343.934448242188,
+            4352.0,
+            818.53564453125,
+            1092.40234375
+          ],
+          "confidence": 0.8267675638198853,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_018.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3343.9078369140625,
+            3614.4348754882812,
+            1200.0921630859375,
+            95.0234375
+          ],
+          "confidence": 0.8261163234710693,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_019.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8704.0,
+            3520.810546875,
+            662.0918579101562,
+            1023.189453125
+          ],
+          "confidence": 0.8224376440048218,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_020.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            645.0029296875,
+            6528.0,
+            634.9970703125,
+            186.3311309814453
+          ],
+          "confidence": 0.8222005367279053,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_021.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4359.9964599609375,
+            6614.530479431152,
+            1254.6207275390625,
+            99.31769561767578
+          ],
+          "confidence": 0.8177971839904785,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_022.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3355.1851806640625,
+            6610.687774658203,
+            1188.8148193359375,
+            104.14263916015625
+          ],
+          "confidence": 0.8170351982116699,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_023.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11346.21630859375,
+            5455.715087890625,
+            819.144287109375,
+            1172.8017578125
+          ],
+          "confidence": 0.8158289194107056,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_024.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            642.378173828125,
+            5440.0,
+            637.621826171875,
+            1153.5069580078125
+          ],
+          "confidence": 0.8148659467697144,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_025.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1095.6318359375,
+            6614.998970031738,
+            1255.2744140625,
+            99.64641571044922
+          ],
+          "confidence": 0.8081380724906921,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_026.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6155.4248046875,
+            3510.2149658203125,
+            558.9775390625,
+            1033.7850341796875
+          ],
+          "confidence": 0.795610785484314,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_027.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3328.1235961914062,
+            4362.9349365234375,
+            781.1624145507812,
+            1183.90869140625
+          ],
+          "confidence": 0.7772454023361206,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_028.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6153.8665771484375,
+            5548.255615234375,
+            564.16455078125,
+            1053.34619140625
+          ],
+          "confidence": 0.7617483735084534,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_029.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2178.6783447265625,
+            5698.3043212890625,
+            1116.983642578125,
+            1010.1309814453125
+          ],
+          "confidence": 0.7595599889755249,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_030.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8704.0,
+            5449.21484375,
+            663.39453125,
+            1187.519775390625
+          ],
+          "confidence": 0.7407075762748718,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_031.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3342.1279296875,
+            3622.359893798828,
+            113.8720703125,
+            921.6401062011719
+          ],
+          "confidence": 0.7374414801597595,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_032.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9428.97265625,
+            5440.0,
+            554.2222900390625,
+            1177.128173828125
+          ],
+          "confidence": 0.7105481624603271,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_033.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9430.088623046875,
+            3475.6820068359375,
+            552.5211181640625,
+            1068.3179931640625
+          ],
+          "confidence": 0.7048892974853516,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_034.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            643.2952880859375,
+            4596.0030517578125,
+            635.84619140625,
+            1035.9969482421875
+          ],
+          "confidence": 0.7043214440345764,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_035.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6153.1748046875,
+            4352.0,
+            566.8251953125,
+            1117.1580810546875
+          ],
+          "confidence": 0.6964819431304932,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_036.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8706.461730957031,
+            4352.0,
+            660.6099243164062,
+            1169.7730712890625
+          ],
+          "confidence": 0.6836598515510559,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_037.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8704.0,
+            6528.204933166504,
+            633.057861328125,
+            63.610862731933594
+          ],
+          "confidence": 0.6690360903739929,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_038.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4352.0,
+            5890.6593017578125,
+            1250.44189453125,
+            806.3885498046875
+          ],
+          "confidence": 0.652032732963562,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_039.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6221.94873046875,
+            6528.349689483643,
+            494.2333984375,
+            60.073577880859375
+          ],
+          "confidence": 0.6515008211135864,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_040.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10888.879638671875,
+            7098.175048828125,
+            1258.943115234375,
+            110.78173828125
+          ],
+          "confidence": 0.6393035650253296,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_041.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5440.0,
+            5453.83935546875,
+            556.5426025390625,
+            1176.3133544921875
+          ],
+          "confidence": 0.6388077735900879,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_042.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9429.61962890625,
+            4352.0,
+            554.38037109375,
+            1166.9658203125
+          ],
+          "confidence": 0.6208550333976746,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_043.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3343.3016357421875,
+            4352.0,
+            112.6983642578125,
+            1100.92236328125
+          ],
+          "confidence": 0.6188117265701294,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_044.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3343.2158203125,
+            5440.0,
+            112.7841796875,
+            1096.2392578125
+          ],
+          "confidence": 0.5922555923461914,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_045.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7619.631103515625,
+            5564.223236083984,
+            1248.65576171875,
+            1010.4858703613281
+          ],
+          "confidence": 0.5866242051124573,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_046.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9798.625732421875,
+            7098.4854736328125,
+            1255.3177490234375,
+            110.6717529296875
+          ],
+          "confidence": 0.5827420353889465,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_047.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5440.0,
+            4352.0,
+            557.304931640625,
+            1160.175048828125
+          ],
+          "confidence": 0.5566391944885254,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_048.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10886.5478515625,
+            3465.5899963378906,
+            1259.218505859375,
+            152.7161865234375
+          ],
+          "confidence": 0.5370169878005981,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0016_cloud_049.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 17,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            8517.679321289062,
+            3396.2307739257812,
+            377.93310546875,
+            127.57638549804688
+          ],
+          "confidence": 0.8835747838020325,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8519.909057617188,
+            3547.3724975585938,
+            374.7568359375,
+            130.7193603515625
+          ],
+          "confidence": 0.836249053478241,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11320.0,
+            3554.2386474609375,
+            740.1134033203125,
+            121.5546875
+          ],
+          "confidence": 0.8143176436424255,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8712.094116210938,
+            3410.8923950195312,
+            1263.0263671875,
+            114.00643920898438
+          ],
+          "confidence": 0.7756859660148621,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9792.0,
+            3544.5684814453125,
+            1222.7958984375,
+            146.1129150390625
+          ],
+          "confidence": 0.7718408107757568,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8511.723815917969,
+            3394.922119140625,
+            384.27618408203125,
+            61.077880859375
+          ],
+          "confidence": 0.7701070308685303,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10896.241088867188,
+            3401.611297607422,
+            1239.0887451171875,
+            122.14569091796875
+          ],
+          "confidence": 0.7401890158653259,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9803.79052734375,
+            3395.8905639648438,
+            1266.7060546875,
+            129.85247802734375
+          ],
+          "confidence": 0.6773946285247803,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8704.0,
+            3553.8268127441406,
+            1230.107666015625,
+            125.16485595703125
+          ],
+          "confidence": 0.6648627519607544,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0017_cloud_009.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 18,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            7618.027404785156,
+            3229.97216796875,
+            532.9976806640625,
+            225.716796875
+          ],
+          "confidence": 0.8802763819694519,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6781.61474609375,
+            3228.500732421875,
+            1026.38525390625,
+            220.34619140625
+          ],
+          "confidence": 0.8490857481956482,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            4352.0,
+            534.2918090820312,
+            188.32559204101562
+          ],
+          "confidence": 0.8356155753135681,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6765.407958984375,
+            4404.7906494140625,
+            1042.09814453125,
+            132.24981689453125
+          ],
+          "confidence": 0.8190979957580566,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.0,
+            2192.2588500976562,
+            1138.9521484375,
+            910.6358032226562
+          ],
+          "confidence": 0.807198703289032,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            3504.0447998046875,
+            534.533935546875,
+            1021.8773193359375
+          ],
+          "confidence": 0.7200179100036621,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6528.0,
+            1717.927001953125,
+            1094.1446533203125,
+            644.973388671875
+          ],
+          "confidence": 0.7057083249092102,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6509.805908203125,
+            2176.0,
+            210.194091796875,
+            974.461669921875
+          ],
+          "confidence": 0.6520121097564697,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0018_cloud_008.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 19,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            11320.0,
+            4195.281433105469,
+            507.42462158203125,
+            205.68707275390625
+          ],
+          "confidence": 0.957477867603302,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10880.0,
+            3796.2380981445312,
+            954.8360595703125,
+            212.981201171875
+          ],
+          "confidence": 0.953088641166687,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7038.7578125,
+            4193.822570800781,
+            763.93896484375,
+            207.62542724609375
+          ],
+          "confidence": 0.9255387783050537,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8704.0,
+            3796.38134765625,
+            1219.1005859375,
+            215.64013671875
+          ],
+          "confidence": 0.8808285593986511,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7039.488800048828,
+            3797.7732543945312,
+            768.5111999511719,
+            202.837890625
+          ],
+          "confidence": 0.8795021772384644,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9792.0,
+            3798.305419921875,
+            1219.57666015625,
+            213.959228515625
+          ],
+          "confidence": 0.8775352835655212,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9792.0,
+            4189.964782714844,
+            1217.870849609375,
+            212.28521728515625
+          ],
+          "confidence": 0.877502977848053,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8704.0,
+            4190.54541015625,
+            1218.3128662109375,
+            211.614501953125
+          ],
+          "confidence": 0.8767181038856506,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            4190.1015625,
+            1216.83544921875,
+            211.999755859375
+          ],
+          "confidence": 0.872197687625885,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            3796.748291015625,
+            1217.380615234375,
+            214.146728515625
+          ],
+          "confidence": 0.8587126731872559,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_010.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11320.0,
+            4352.022727966309,
+            558.5326538085938,
+            51.303314208984375
+          ],
+          "confidence": 0.6077754497528076,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0019_cloud_011.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 20,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0019.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1953.215576171875,
+            3344.662178039551,
+            247.1820068359375,
+            244.65026092529297
+          ],
+          "confidence": 0.9023846983909607,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0020_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1947.26611328125,
+            3344.7528076171875,
+            252.6650390625,
+            111.2471923828125
+          ],
+          "confidence": 0.8548035621643066,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0020_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 21,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1973.6922607421875,
+            3362.5552673339844,
+            234.2490234375,
+            186.38040161132812
+          ],
+          "confidence": 0.8641641139984131,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0021_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1975.546142578125,
+            3363.554931640625,
+            232.405517578125,
+            92.445068359375
+          ],
+          "confidence": 0.8584482669830322,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0021_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 22,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0021.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1559.2642822265625,
+            3318.4664611816406,
+            687.7386474609375,
+            391.9824523925781
+          ],
+          "confidence": 0.8756396174430847,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0022_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.0,
+            3310.6940307617188,
+            82.04344940185547,
+            422.04730224609375
+          ],
+          "confidence": 0.7162556052207947,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0022_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1562.216552734375,
+            3321.626708984375,
+            694.720458984375,
+            134.05712890625
+          ],
+          "confidence": 0.7054243087768555,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0022_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.0,
+            3313.678955078125,
+            82.78451538085938,
+            142.00537109375
+          ],
+          "confidence": 0.6070268154144287,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0022_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 23,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            2176.0,
+            3309.690460205078,
+            335.41607666015625,
+            329.871337890625
+          ],
+          "confidence": 0.9247739911079407,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0023_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1980.0657958984375,
+            3309.222869873047,
+            387.9342041015625,
+            329.069580078125
+          ],
+          "confidence": 0.9074715375900269,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0023_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1982.4827270507812,
+            3309.720947265625,
+            385.51727294921875,
+            146.279052734375
+          ],
+          "confidence": 0.8164349794387817,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0023_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2177.057586669922,
+            3310.1488037109375,
+            336.1826171875,
+            145.8511962890625
+          ],
+          "confidence": 0.7589958310127258,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0023_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 24,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0023.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1975.7886962890625,
+            3334.029754638672,
+            242.4375,
+            276.59124755859375
+          ],
+          "confidence": 0.8957489132881165,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0024_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            1975.6177978515625,
+            3333.82080078125,
+            241.15380859375,
+            121.17724609375
+          ],
+          "confidence": 0.8394917845726013,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0024_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2176.7512168884277,
+            3321.044677734375,
+            40.775386810302734,
+            291.02899169921875
+          ],
+          "confidence": 0.5762802362442017,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0024_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 25,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0024.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            5440.62092590332,
+            4044.4608154296875,
+            152.35684204101562,
+            499.5391845703125
+          ],
+          "confidence": 0.8740818500518799,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5440.573486328125,
+            4354.389404296875,
+            151.8809814453125,
+            516.30712890625
+          ],
+          "confidence": 0.8496355414390564,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4437.87890625,
+            4353.932922363281,
+            106.12109375,
+            510.67730712890625
+          ],
+          "confidence": 0.8034024834632874,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4434.495361328125,
+            4044.807373046875,
+            109.504638671875,
+            498.1298828125
+          ],
+          "confidence": 0.7625688314437866,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4410.78662109375,
+            4046.2713623046875,
+            1213.77490234375,
+            497.7286376953125
+          ],
+          "confidence": 0.7259078621864319,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4441.0225830078125,
+            4358.5711669921875,
+            1190.9774169921875,
+            511.36126708984375
+          ],
+          "confidence": 0.6743439435958862,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2424.85009765625,
+            2088.9888916015625,
+            603.7420654296875,
+            276.0283203125
+          ],
+          "confidence": 0.5736443400382996,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5764.99755859375,
+            2087.5391235351562,
+            568.8724365234375,
+            279.10736083984375
+          ],
+          "confidence": 0.5523812174797058,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0025_cloud_008.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 26,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3401.111053466797,
+            2176.0,
+            184.08468627929688,
+            300.5643005371094
+          ],
+          "confidence": 0.8651432394981384,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0026_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3438.7435913085938,
+            1581.0452880859375,
+            150.35430908203125,
+            786.9547119140625
+          ],
+          "confidence": 0.6151002645492554,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0026_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 27,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3809.2581787109375,
+            2176.0,
+            167.122314453125,
+            441.344482421875
+          ],
+          "confidence": 0.8644249439239502,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0027_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3807.6592407226562,
+            1765.7674560546875,
+            174.596435546875,
+            600.6988525390625
+          ],
+          "confidence": 0.8563984632492065,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0027_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 28,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            567.730224609375,
+            2177.7913818359375,
+            712.269775390625,
+            579.0036010742188
+          ],
+          "confidence": 0.9217226505279541,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0028_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            564.75,
+            347.9581298828125,
+            715.25,
+            932.0418701171875
+          ],
+          "confidence": 0.8344960808753967,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0028_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            3290.0211791992188,
+            2184.6473999023438,
+            953.9949340820312,
+            571.2861938476562
+          ],
+          "confidence": 0.7409347295761108,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0028_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            554.978759765625,
+            1089.2622680664062,
+            725.021240234375,
+            845.74951171875
+          ],
+          "confidence": 0.5873876810073853,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0028_cloud_004.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 29,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

@@ -1,0 +1,40 @@
+{
+  "base_manifests": [
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\manifests\\reviewed_batch_001_002_plus_004partial_current_20260427.jsonl"
+  ],
+  "box_count": {
+    "0": 254,
+    "1": 390,
+    "2": 112,
+    "3": 41,
+    "4": 41,
+    "5": 28,
+    "6": 16,
+    "7": 8,
+    "8": 3
+  },
+  "has_cloud": {
+    "False": 254,
+    "True": 639
+  },
+  "output": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\manifests\\reviewed_batch_001_002_004partial_plus_broad_deduped_20260428.jsonl",
+  "queue_roots": [
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped"
+  ],
+  "skipped_duplicate_ids": 73,
+  "source_queue": {
+    "ambiguous_positive": 4,
+    "hard_negative_marker_no_cloud": 41,
+    "high_conf_positive": 51,
+    "weird_multi_faint_partial": 74
+  },
+  "splits": {
+    "train": 690,
+    "val": 203
+  },
+  "total_rows": 893,
+  "training_source": {
+    "base_manifest": 723,
+    "review_queue": 170
+  }
+}

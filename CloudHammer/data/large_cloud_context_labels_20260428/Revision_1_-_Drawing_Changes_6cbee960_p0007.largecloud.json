@@ -1,0 +1,103 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:42:56+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0007.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 10015.829,
+        "y1": 5830.327,
+        "x2": 12544.529,
+        "y2": 8359.026,
+        "width": 2528.7,
+        "height": 2528.7
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 10307.602,
+            "y1": 6671.135,
+            "x2": 12252.756,
+            "y2": 7518.218,
+            "width": 1945.153,
+            "height": 847.083
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0007_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 291.773,
+            "y1": 840.808,
+            "x2": 2236.927,
+            "y2": 1687.891,
+            "width": 1945.153,
+            "height": 847.083
+          }
+        }
+      ]
+    },
+    {
+      "id": "region_002",
+      "crop_box": {
+        "x1": 6601.115,
+        "y1": 550.319,
+        "x2": 8962.965,
+        "y2": 2912.169,
+        "width": 2361.85,
+        "height": 2361.85
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 6873.636,
+            "y1": 1277.755,
+            "x2": 8690.444,
+            "y2": 2184.733,
+            "width": 1816.808,
+            "height": 906.978
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0007_region_002.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 272.521,
+            "y1": 727.436,
+            "x2": 2089.329,
+            "y2": 1634.414,
+            "width": 1816.808,
+            "height": 906.978
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 7,
+    "page_kind": "drawing",
+    "page_number": 8,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+    "pdf_stem": "Revision #1 - Drawing Changes",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0007.png",
+    "sheet_id": "AD705",
+    "sheet_title": "REMOVE EXISTING PAINT / COATING AT ALL EXISTING MASONRY AND AT ALL WOOD AND PLASTER",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "manual_revision1_large_cloud_review",
+      "reason": "user_requested_revision_set_1_full_standard_non_index_pages"
+    }
+  }
+}

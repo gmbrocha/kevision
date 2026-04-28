@@ -1,0 +1,87 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:56:40+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0045.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 9096.814,
+        "y1": 1860.348,
+        "x2": 12600.0,
+        "y2": 5363.534,
+        "width": 3503.186,
+        "height": 3503.186
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 9526.289,
+            "y1": 2777.401,
+            "x2": 10872.108,
+            "y2": 3417.325,
+            "width": 1345.819,
+            "height": 639.924
+          }
+        },
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 10100.241,
+            "y1": 3542.671,
+            "x2": 12389.453,
+            "y2": 4446.481,
+            "width": 2289.212,
+            "height": 903.81
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0045_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 429.475,
+            "y1": 917.053,
+            "x2": 1775.294,
+            "y2": 1556.977,
+            "width": 1345.819,
+            "height": 639.924
+          }
+        },
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 1003.427,
+            "y1": 1682.323,
+            "x2": 3292.639,
+            "y2": 2586.133,
+            "width": 2289.212,
+            "height": 903.81
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 45,
+    "page_kind": "drawing",
+    "page_number": 46,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+    "pdf_stem": "Revision #1 - Drawing Changes",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0045.png",
+    "sheet_id": "MH301",
+    "sheet_title": "LOCKABLE COVER",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "manual_revision1_large_cloud_review",
+      "reason": "user_requested_revision_set_1_full_standard_non_index_pages"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+paths:
+  outputs: runs/fullpage_eval_broad_deduped_20260428/outputs
+
+inference:
+  confidence_threshold: 0.5
+  tile_size: 1280
+  tile_overlap: 192
+  nms_iou: 0.5

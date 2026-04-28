@@ -1,0 +1,105 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:35:18+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 7798.311,
+        "y1": 4109.637,
+        "x2": 8716.886,
+        "y2": 5028.213,
+        "width": 918.575,
+        "height": 918.575
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 7904.3,
+            "y1": 4287.484,
+            "x2": 8610.897,
+            "y2": 4850.366,
+            "width": 706.597,
+            "height": 562.882
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 105.989,
+            "y1": 177.847,
+            "x2": 812.586,
+            "y2": 740.729,
+            "width": 706.597,
+            "height": 562.882
+          }
+        }
+      ]
+    },
+    {
+      "id": "region_002",
+      "crop_box": {
+        "x1": 1569.502,
+        "y1": 2864.665,
+        "x2": 2755.709,
+        "y2": 4050.871,
+        "width": 1186.206,
+        "height": 1186.206
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 1706.372,
+            "y1": 3072.071,
+            "x2": 2618.839,
+            "y2": 3843.465,
+            "width": 912.466,
+            "height": 771.394
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_region_002.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 136.87,
+            "y1": 207.406,
+            "x2": 1049.336,
+            "y2": 978.8,
+            "width": 912.466,
+            "height": 771.394
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 172,
+    "page_kind": "drawing",
+    "page_number": 173,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+    "pdf_stem": "260313 - VA Biloxi Rev 3",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.png",
+    "sheet_id": "P-418",
+    "sheet_title": "1/2\" CW,",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "fullpage_eval_broad_deduped_20260428",
+      "detection_count": 2,
+      "max_confidence": 0.900586,
+      "reason": "stress_page_sorted_by_detector_fragment_count"
+    }
+  }
+}

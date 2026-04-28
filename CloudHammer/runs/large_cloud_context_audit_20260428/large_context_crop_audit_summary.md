@@ -1,0 +1,75 @@
+# Large Cloud Context Crop Audit
+
+Crop contact sheet: `F:\Desktop\m\projects\kevision\CloudHammer\runs\large_cloud_context_audit_20260428\large_context_crop_contact_sheet.png`
+Crops: `67`
+Labels: `78`
+
+| # | Crop | Labels | Size | Source |
+| ---: | --- | ---: | ---: | --- |
+| `1` | `260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_region_001.png` | `1` | `563x563` | `260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000` |
+| `2` | `260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_region_001.png` | `1` | `4744x4744` | `260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002` |
+| `3` | `260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_region_001.png` | `1` | `551x551` | `260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003` |
+| `4` | `260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005_region_001.png` | `1` | `1213x1214` | `260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005` |
+| `5` | `260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_region_001.png` | `1` | `919x918` | `260313_-_VA_Biloxi_Rev_3_ff19da68_p0172` |
+| `6` | `260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_region_002.png` | `1` | `1186x1186` | `260313_-_VA_Biloxi_Rev_3_ff19da68_p0172` |
+| `7` | `260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_region_001.png` | `1` | `1355x1354` | `260313_-_VA_Biloxi_Rev_3_ff19da68_p0173` |
+| `8` | `Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_region_001.png` | `1` | `1195x1196` | `Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000` |
+| `9` | `Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_region_001.png` | `1` | `1028x1028` | `Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000` |
+| `10` | `Revision_1_-_Drawing_Changes_6cbee960_p0001_region_001.png` | `1` | `930x930` | `Revision_1_-_Drawing_Changes_6cbee960_p0001` |
+| `11` | `Revision_1_-_Drawing_Changes_6cbee960_p0001_region_002.png` | `1` | `617x617` | `Revision_1_-_Drawing_Changes_6cbee960_p0001` |
+| `12` | `Revision_1_-_Drawing_Changes_6cbee960_p0002_region_001.png` | `1` | `1482x1481` | `Revision_1_-_Drawing_Changes_6cbee960_p0002` |
+| `13` | `Revision_1_-_Drawing_Changes_6cbee960_p0003_region_001.png` | `1` | `1348x1348` | `Revision_1_-_Drawing_Changes_6cbee960_p0003` |
+| `14` | `Revision_1_-_Drawing_Changes_6cbee960_p0004_region_001.png` | `1` | `1231x1231` | `Revision_1_-_Drawing_Changes_6cbee960_p0004` |
+| `15` | `Revision_1_-_Drawing_Changes_6cbee960_p0005_region_001.png` | `1` | `593x593` | `Revision_1_-_Drawing_Changes_6cbee960_p0005` |
+| `16` | `Revision_1_-_Drawing_Changes_6cbee960_p0005_region_002.png` | `1` | `536x537` | `Revision_1_-_Drawing_Changes_6cbee960_p0005` |
+| `17` | `Revision_1_-_Drawing_Changes_6cbee960_p0005_region_003.png` | `1` | `597x598` | `Revision_1_-_Drawing_Changes_6cbee960_p0005` |
+| `18` | `Revision_1_-_Drawing_Changes_6cbee960_p0007_region_001.png` | `1` | `2529x2529` | `Revision_1_-_Drawing_Changes_6cbee960_p0007` |
+| `19` | `Revision_1_-_Drawing_Changes_6cbee960_p0007_region_002.png` | `1` | `2362x2362` | `Revision_1_-_Drawing_Changes_6cbee960_p0007` |
+| `20` | `Revision_1_-_Drawing_Changes_6cbee960_p0010_region_001.png` | `1` | `2205x2205` | `Revision_1_-_Drawing_Changes_6cbee960_p0010` |
+| `21` | `Revision_1_-_Drawing_Changes_6cbee960_p0010_region_002.png` | `1` | `2187x2187` | `Revision_1_-_Drawing_Changes_6cbee960_p0010` |
+| `22` | `Revision_1_-_Drawing_Changes_6cbee960_p0010_region_003.png` | `2` | `1612x1612` | `Revision_1_-_Drawing_Changes_6cbee960_p0010` |
+| `23` | `Revision_1_-_Drawing_Changes_6cbee960_p0010_region_004.png` | `1` | `2473x2473` | `Revision_1_-_Drawing_Changes_6cbee960_p0010` |
+| `24` | `Revision_1_-_Drawing_Changes_6cbee960_p0010_region_005.png` | `1` | `2059x2059` | `Revision_1_-_Drawing_Changes_6cbee960_p0010` |
+| `25` | `Revision_1_-_Drawing_Changes_6cbee960_p0011_region_001.png` | `1` | `1941x1940` | `Revision_1_-_Drawing_Changes_6cbee960_p0011` |
+| `26` | `Revision_1_-_Drawing_Changes_6cbee960_p0011_region_002.png` | `1` | `884x884` | `Revision_1_-_Drawing_Changes_6cbee960_p0011` |
+| `27` | `Revision_1_-_Drawing_Changes_6cbee960_p0011_region_003.png` | `1` | `574x575` | `Revision_1_-_Drawing_Changes_6cbee960_p0011` |
+| `28` | `Revision_1_-_Drawing_Changes_6cbee960_p0015_region_001.png` | `1` | `4094x4094` | `Revision_1_-_Drawing_Changes_6cbee960_p0015` |
+| `29` | `Revision_1_-_Drawing_Changes_6cbee960_p0016_region_001.png` | `1` | `4112x4111` | `Revision_1_-_Drawing_Changes_6cbee960_p0016` |
+| `30` | `Revision_1_-_Drawing_Changes_6cbee960_p0016_region_002.png` | `1` | `1225x1225` | `Revision_1_-_Drawing_Changes_6cbee960_p0016` |
+| `31` | `Revision_1_-_Drawing_Changes_6cbee960_p0017_region_001.png` | `2` | `1709x1708` | `Revision_1_-_Drawing_Changes_6cbee960_p0017` |
+| `32` | `Revision_1_-_Drawing_Changes_6cbee960_p0017_region_002.png` | `1` | `712x712` | `Revision_1_-_Drawing_Changes_6cbee960_p0017` |
+| `33` | `Revision_1_-_Drawing_Changes_6cbee960_p0017_region_003.png` | `1` | `2214x2215` | `Revision_1_-_Drawing_Changes_6cbee960_p0017` |
+| `34` | `Revision_1_-_Drawing_Changes_6cbee960_p0018_region_001.png` | `2` | `2807x2806` | `Revision_1_-_Drawing_Changes_6cbee960_p0018` |
+| `35` | `Revision_1_-_Drawing_Changes_6cbee960_p0018_region_002.png` | `1` | `869x869` | `Revision_1_-_Drawing_Changes_6cbee960_p0018` |
+| `36` | `Revision_1_-_Drawing_Changes_6cbee960_p0018_region_003.png` | `1` | `451x451` | `Revision_1_-_Drawing_Changes_6cbee960_p0018` |
+| `37` | `Revision_1_-_Drawing_Changes_6cbee960_p0020_region_001.png` | `1` | `1558x1557` | `Revision_1_-_Drawing_Changes_6cbee960_p0020` |
+| `38` | `Revision_1_-_Drawing_Changes_6cbee960_p0020_region_002.png` | `1` | `1274x1274` | `Revision_1_-_Drawing_Changes_6cbee960_p0020` |
+| `39` | `Revision_1_-_Drawing_Changes_6cbee960_p0021_region_001.png` | `1` | `746x746` | `Revision_1_-_Drawing_Changes_6cbee960_p0021` |
+| `40` | `Revision_1_-_Drawing_Changes_6cbee960_p0021_region_002.png` | `1` | `863x863` | `Revision_1_-_Drawing_Changes_6cbee960_p0021` |
+| `41` | `Revision_1_-_Drawing_Changes_6cbee960_p0023_region_001.png` | `1` | `6858x6858` | `Revision_1_-_Drawing_Changes_6cbee960_p0023` |
+| `42` | `Revision_1_-_Drawing_Changes_6cbee960_p0024_region_001.png` | `1` | `1066x1066` | `Revision_1_-_Drawing_Changes_6cbee960_p0024` |
+| `43` | `Revision_1_-_Drawing_Changes_6cbee960_p0024_region_002.png` | `3` | `4220x4219` | `Revision_1_-_Drawing_Changes_6cbee960_p0024` |
+| `44` | `Revision_1_-_Drawing_Changes_6cbee960_p0024_region_003.png` | `2` | `3585x3584` | `Revision_1_-_Drawing_Changes_6cbee960_p0024` |
+| `45` | `Revision_1_-_Drawing_Changes_6cbee960_p0024_region_004.png` | `2` | `3624x3623` | `Revision_1_-_Drawing_Changes_6cbee960_p0024` |
+| `46` | `Revision_1_-_Drawing_Changes_6cbee960_p0025_region_001.png` | `1` | `1060x1061` | `Revision_1_-_Drawing_Changes_6cbee960_p0025` |
+| `47` | `Revision_1_-_Drawing_Changes_6cbee960_p0026_region_001.png` | `1` | `4391x4391` | `Revision_1_-_Drawing_Changes_6cbee960_p0026` |
+| `48` | `Revision_1_-_Drawing_Changes_6cbee960_p0026_region_002.png` | `1` | `4561x4560` | `Revision_1_-_Drawing_Changes_6cbee960_p0026` |
+| `49` | `Revision_1_-_Drawing_Changes_6cbee960_p0026_region_003.png` | `1` | `1314x1314` | `Revision_1_-_Drawing_Changes_6cbee960_p0026` |
+| `50` | `Revision_1_-_Drawing_Changes_6cbee960_p0026_region_004.png` | `1` | `571x571` | `Revision_1_-_Drawing_Changes_6cbee960_p0026` |
+| `51` | `Revision_1_-_Drawing_Changes_6cbee960_p0027_region_001.png` | `1` | `5540x5540` | `Revision_1_-_Drawing_Changes_6cbee960_p0027` |
+| `52` | `Revision_1_-_Drawing_Changes_6cbee960_p0041_region_001.png` | `1` | `7281x7281` | `Revision_1_-_Drawing_Changes_6cbee960_p0041` |
+| `53` | `Revision_1_-_Drawing_Changes_6cbee960_p0041_region_002.png` | `1` | `8870x8870` | `Revision_1_-_Drawing_Changes_6cbee960_p0041` |
+| `54` | `Revision_1_-_Drawing_Changes_6cbee960_p0042_region_001.png` | `1` | `2859x2859` | `Revision_1_-_Drawing_Changes_6cbee960_p0042` |
+| `55` | `Revision_1_-_Drawing_Changes_6cbee960_p0043_region_001.png` | `1` | `1507x1507` | `Revision_1_-_Drawing_Changes_6cbee960_p0043` |
+| `56` | `Revision_1_-_Drawing_Changes_6cbee960_p0045_region_001.png` | `2` | `3503x3504` | `Revision_1_-_Drawing_Changes_6cbee960_p0045` |
+| `57` | `Revision_1_-_Drawing_Changes_6cbee960_p0046_region_001.png` | `1` | `2613x2613` | `Revision_1_-_Drawing_Changes_6cbee960_p0046` |
+| `58` | `Revision_1_-_Drawing_Changes_6cbee960_p0046_region_002.png` | `1` | `1090x1089` | `Revision_1_-_Drawing_Changes_6cbee960_p0046` |
+| `59` | `Revision_1_-_Drawing_Changes_6cbee960_p0046_region_003.png` | `1` | `1972x1971` | `Revision_1_-_Drawing_Changes_6cbee960_p0046` |
+| `60` | `Revision_1_-_Drawing_Changes_6cbee960_p0048_region_001.png` | `1` | `1152x1152` | `Revision_1_-_Drawing_Changes_6cbee960_p0048` |
+| `61` | `Revision_1_-_Drawing_Changes_6cbee960_p0048_region_002.png` | `2` | `3464x3464` | `Revision_1_-_Drawing_Changes_6cbee960_p0048` |
+| `62` | `Revision_1_-_Drawing_Changes_6cbee960_p0049_region_001.png` | `1` | `1537x1537` | `Revision_1_-_Drawing_Changes_6cbee960_p0049` |
+| `63` | `Revision_1_-_Drawing_Changes_6cbee960_p0049_region_002.png` | `1` | `1894x1893` | `Revision_1_-_Drawing_Changes_6cbee960_p0049` |
+| `64` | `Revision_1_-_Drawing_Changes_6cbee960_p0050_region_001.png` | `1` | `1046x1046` | `Revision_1_-_Drawing_Changes_6cbee960_p0050` |
+| `65` | `Revision_1_-_Drawing_Changes_6cbee960_p0050_region_002.png` | `1` | `1690x1690` | `Revision_1_-_Drawing_Changes_6cbee960_p0050` |
+| `66` | `Revision_Set_7_37f6066a_p0002_region_001.png` | `1` | `2858x2858` | `Revision_Set_7_37f6066a_p0002` |
+| `67` | `Revision_Set_7_37f6066a_p0003_region_001.png` | `3` | `6127x6126` | `Revision_Set_7_37f6066a_p0003` |

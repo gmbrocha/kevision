@@ -1,0 +1,16 @@
+{
+  "count": 200,
+  "crop_size": 1024,
+  "drawing_area_margins": {
+    "bottom": 0.12,
+    "left": 0.04,
+    "right": 0.18,
+    "top": 0.06
+  },
+  "images_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\random_drawing_crops\\images",
+  "manifest": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\random_drawing_crops\\manifest.jsonl",
+  "min_ink_ratio": 0.002,
+  "output_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\random_drawing_crops",
+  "review_sheet": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\random_drawing_crops\\review_sheet.csv",
+  "seed": 20260424
+}

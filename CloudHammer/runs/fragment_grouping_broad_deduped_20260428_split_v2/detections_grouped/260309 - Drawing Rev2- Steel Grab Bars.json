@@ -1,0 +1,129 @@
+{
+  "model": "grouped_from:F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\260309 - Drawing Rev2- Steel Grab Bars.json",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3060.95830078125,
+            1795.6031982421875,
+            415.97377929687536,
+            421.38430175781264
+          ],
+          "confidence": 0.9462664723396301,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 1.1045802413446841,
+            "group_area": 175284.82053857227,
+            "member_area_sum": 193616.1493745558,
+            "member_boxes_page": [
+              [
+                3264.0,
+                1824.6641845703125,
+                3442.605987548828,
+                2184.60791015625
+              ],
+              [
+                3090.019287109375,
+                1826.525390625,
+                3447.87109375,
+                2187.926513671875
+              ]
+            ],
+            "member_confidences": [
+              0.9462664723396301,
+              0.9255926012992859
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              2
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            4420.013059692383,
+            1771.3984509277343,
+            449.80601867675796,
+            430.7112768554689
+          ],
+          "confidence": 0.887560248374939,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.7378914335775691,
+            "group_area": 193736.5246415413,
+            "member_area_sum": 142956.52190408297,
+            "member_boxes_page": [
+              [
+                4451.034164428711,
+                1802.4195556640625,
+                4838.7979736328125,
+                2171.088623046875
+              ]
+            ],
+            "member_confidences": [
+              0.887560248374939
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              3
+            ]
+          },
+          "source_mode": "fragment_group"
+        }
+      ],
+      "page": 5,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1723.6150146484374,
+            1323.6130615234374,
+            1009.3939941406252,
+            887.5050781250002
+          ],
+          "confidence": 0.865368664264679,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.8725634357911728,
+            "group_area": 895842.2956286815,
+            "member_area_sum": 781679.2314008139,
+            "member_boxes_page": [
+              [
+                1793.2283935546875,
+                1393.2264404296875,
+                2366.0267333984375,
+                2129.3173828125
+              ],
+              [
+                2176.0,
+                1402.7875061035156,
+                2663.3956298828125,
+                2141.5047607421875
+              ]
+            ],
+            "member_confidences": [
+              0.865368664264679,
+              0.725349485874176
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              2
+            ]
+          },
+          "source_mode": "fragment_group"
+        }
+      ],
+      "page": 6,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

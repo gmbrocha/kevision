@@ -1,0 +1,169 @@
+{
+  "model": "grouped_from:F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\Revision #1 - Drawing Changes.json",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1647.749090576172,
+            2035.0665954589845,
+            805.7650177001951,
+            540.2277709960936
+          ],
+          "confidence": 0.8988629579544067,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 1.0144740278281439,
+            "group_area": 435296.6394588043,
+            "member_area_sum": 441597.1351318285,
+            "member_boxes_page": [
+              [
+                2176.0,
+                2091.2999267578125,
+                2397.944107055664,
+                2323.7696533203125
+              ],
+              [
+                1703.319091796875,
+                2189.5596618652344,
+                2368.0,
+                2519.724365234375
+              ],
+              [
+                1727.792724609375,
+                2090.6365966796875,
+                2366.9156494140625,
+                2357.4830322265625
+              ]
+            ],
+            "member_confidences": [
+              0.8988629579544067,
+              0.8459497690200806,
+              0.7001446485519409
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              1,
+              4,
+              6
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            6310.724765625,
+            2083.5547216796876,
+            520.7923510742185,
+            466.0513232421872
+          ],
+          "confidence": 0.8791658282279968,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 1.1519205486764823,
+            "group_area": 242715.96435254923,
+            "member_area_sum": 279589.50682953,
+            "member_boxes_page": [
+              [
+                6528.686767578125,
+                2119.471435546875,
+                6793.610504150391,
+                2363.429443359375
+              ],
+              [
+                6528.030822753906,
+                2176.0,
+                6795.600402832031,
+                2513.6893310546875
+              ],
+              [
+                6346.6414794921875,
+                2177.793487548828,
+                6719.9476318359375,
+                2511.578094482422
+              ]
+            ],
+            "member_confidences": [
+              0.8791658282279968,
+              0.8681042194366455,
+              0.8133633732795715
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              2,
+              3,
+              5
+            ]
+          },
+          "source_mode": "fragment_group"
+        }
+      ],
+      "page": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0001.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            6146.318798828125,
+            430.9680908203125,
+            1287.5323852539059,
+            1204.2984985351563
+          ],
+          "confidence": 0.9585297703742981,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 1.0147100723838696,
+            "group_area": 1550573.3183766673,
+            "member_area_sum": 1573382.3641264848,
+            "member_boxes_page": [
+              [
+                6235.1141357421875,
+                1088.9947509765625,
+                6720.0,
+                1546.4712524414062
+              ],
+              [
+                6238.3525390625,
+                519.763427734375,
+                6715.515625,
+                1276.2392578125
+              ],
+              [
+                6528.0,
+                1088.39990234375,
+                7342.884826660156,
+                1543.7421264648438
+              ],
+              [
+                6528.0,
+                521.7352294921875,
+                7345.055847167969,
+                1280.0
+              ]
+            ],
+            "member_confidences": [
+              0.9585297703742981,
+              0.9299315214157104,
+              0.9023961424827576,
+              0.8791196346282959
+            ],
+            "member_count": 4,
+            "member_indexes": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "source_mode": "fragment_group"
+        }
+      ],
+      "page": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0002.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

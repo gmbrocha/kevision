@@ -1,0 +1,29 @@
+{
+  "launched_at": "2026-04-27T22:07:36",
+  "pid": 19836,
+  "queue_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial",
+  "image_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images",
+  "label_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\labels",
+  "class_file": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\configs\\cloud_classes.txt",
+  "labelimg": "F:\\Desktop\\m\\projects\\kevision\\.venv\\Scripts\\labelImg.exe",
+  "command": [
+    "F:\\Desktop\\m\\projects\\kevision\\.venv\\Scripts\\labelImg.exe",
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images",
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\configs\\cloud_classes.txt",
+    "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\labels"
+  ],
+  "cwd": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer",
+  "total_images": 80,
+  "start_index": 35,
+  "start_image": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_random_0379.png",
+  "launch_image_list": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images_from_035.txt",
+  "stdout_log": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\labelimg_logs\\labelimg_20260427_220736.stdout.log",
+  "stderr_log": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\labelimg_logs\\labelimg_20260427_220736.stderr.log",
+  "env": {
+    "LABELIMG_IMAGE_LIST": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images_from_035.txt",
+    "LABELIMG_START_IMAGE": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427\\weird_multi_faint_partial\\images\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_random_0379.png",
+    "PYTHONFAULTHANDLER": "1",
+    "PYTHONUNBUFFERED": "1",
+    "QT_DEBUG_PLUGINS": ""
+  }
+}

@@ -1,0 +1,11 @@
+﻿{
+    "reviewed":  true,
+    "reviewed_at":  "2026-04-25T15:20:12.5003038Z",
+    "review_tool":  "backfill_from_reviewed_manifest",
+    "image_path":  "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_roi_images\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009_m010.png",
+    "label_path":  "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_labels_reviewed\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009_m010.txt",
+    "format":  "YOLO",
+    "shape_count":  0,
+    "review_result":  "negative_no_cloud",
+    "source_manifest":  "CloudHammer\\data\\manifests\\reviewed_batch_004_hard_negatives_partial_001_325.jsonl"
+}

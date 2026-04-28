@@ -1,0 +1,62 @@
+{
+  "actual_total": 2185,
+  "counts_by_candidate_source": {
+    "random_standard_drawing_crop": 613,
+    "target_marker_neighborhood": 1572
+  },
+  "counts_by_revision": {
+    "Revision #1 - Drawing Changes": 1093,
+    "Revision #2 - Mod 5 grab bar supports": 301,
+    "Revision #3 - EHRM Drawings": 243,
+    "Revision #4 - Dental Air": 308,
+    "Revision #5 - RFI 126 - Concrete Repairs": 120,
+    "Revision #7 - RFI 141 - Deteriorated Attic Wood": 120
+  },
+  "counts_by_revision_and_source": {
+    "Revision #1 - Drawing Changes": {
+      "random_standard_drawing_crop": 93,
+      "target_marker_neighborhood": 1000
+    },
+    "Revision #2 - Mod 5 grab bar supports": {
+      "random_standard_drawing_crop": 93,
+      "target_marker_neighborhood": 208
+    },
+    "Revision #3 - EHRM Drawings": {
+      "random_standard_drawing_crop": 93,
+      "target_marker_neighborhood": 150
+    },
+    "Revision #4 - Dental Air": {
+      "random_standard_drawing_crop": 94,
+      "target_marker_neighborhood": 214
+    },
+    "Revision #5 - RFI 126 - Concrete Repairs": {
+      "random_standard_drawing_crop": 120
+    },
+    "Revision #7 - RFI 141 - Deteriorated Attic Wood": {
+      "random_standard_drawing_crop": 120
+    }
+  },
+  "manifest": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\gpt_prelabel_broad_20260427\\manifest.jsonl",
+  "seed": 20260427,
+  "selection_rule": {
+    "random_standard_drawing_crop": {
+      "Revision #1 - Drawing Changes": 93,
+      "Revision #2 - Mod 5 grab bar supports": 93,
+      "Revision #3 - EHRM Drawings": 93,
+      "Revision #4 - Dental Air": 94,
+      "Revision #5 - RFI 126 - Concrete Repairs": 120,
+      "Revision #7 - RFI 141 - Deteriorated Attic Wood": 120
+    },
+    "target_marker_neighborhood": {
+      "Revision #1 - Drawing Changes": 1000,
+      "Revision #2 - Mod 5 grab bar supports": 208,
+      "Revision #3 - EHRM Drawings": 150,
+      "Revision #4 - Dental Air": 214
+    }
+  },
+  "source_manifests": {
+    "random_standard_drawing_crop": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\random_drawing_crops_broad_20260427\\manifest.jsonl",
+    "target_marker_neighborhood": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\manifests\\cloud_roi_broad_candidates_20260427.jsonl"
+  },
+  "target_total": 2185
+}

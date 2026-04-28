@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from revision_tool.exporter import ExportBlockedError, Exporter
-from revision_tool.review import change_item_needs_attention
-from revision_tool.scanner import RevisionScanner
-from revision_tool.web import create_app
-from revision_tool.workspace import WorkspaceStore
+from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
+from backend.review import change_item_needs_attention
+from backend.revision_state.tracker import RevisionScanner
+from backend.workspace import WorkspaceStore
+from webapp.app import create_app
 
 
 def test_regression_fixture_metrics(workspace_copy):
@@ -241,7 +241,7 @@ def test_pricing_relevance_filter_overrides_reviewer_for_placeholder_text():
 
 
 def test_cli_export_summary_is_human_readable():
-    from revision_tool.cli import format_export_summary
+    from backend.cli import format_export_summary
 
     summary = {
         "output_dir": "/tmp/workspace/outputs",

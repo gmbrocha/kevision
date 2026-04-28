@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_roi_images\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_m007.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_labels_reviewed\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_m007.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-27T22:31:01.984110+00:00",
+  "shape_count": 1
+}

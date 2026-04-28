@@ -18,6 +18,8 @@ def main() -> int:
     parser.add_argument("--imgsz", type=int, default=None)
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--batch", type=int, default=None)
+    parser.add_argument("--dataset-dir", type=Path, default=None)
+    parser.add_argument("--name", type=str, default="cloudhammer_roi")
     args = parser.parse_args()
 
     cfg = CloudHammerConfig.load(args.config)
@@ -28,6 +30,8 @@ def main() -> int:
         imgsz=args.imgsz,
         epochs=args.epochs,
         batch=args.batch,
+        dataset_dir=args.dataset_dir,
+        run_name=args.name,
     )
     return 0
 

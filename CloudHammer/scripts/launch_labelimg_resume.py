@@ -16,6 +16,8 @@ def natural_key(value: str) -> list[object]:
 
 
 def is_reviewed(label_path: Path, raw_label_path: Path, tolerance_seconds: float = 1.0) -> bool:
+    if label_path.with_suffix(".review.json").exists():
+        return True
     if not label_path.exists() or not raw_label_path.exists():
         return False
     return label_path.stat().st_mtime > raw_label_path.stat().st_mtime + tolerance_seconds

@@ -1,0 +1,179 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:53:01+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0026.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 8209.402,
+        "y1": 755.337,
+        "x2": 12600.0,
+        "y2": 5145.935,
+        "width": 4390.598,
+        "height": 4390.598
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 8734.68,
+            "y1": 1930.509,
+            "x2": 12236.534,
+            "y2": 3970.763,
+            "width": 3501.854,
+            "height": 2040.254
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 525.278,
+            "y1": 1175.172,
+            "x2": 4027.132,
+            "y2": 3215.426,
+            "width": 3501.854,
+            "height": 2040.254
+          }
+        }
+      ]
+    },
+    {
+      "id": "region_002",
+      "crop_box": {
+        "x1": 1189.233,
+        "y1": 0.0,
+        "x2": 5749.624,
+        "y2": 4560.391,
+        "width": 4560.391,
+        "height": 4560.391
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 2444.314,
+            "y1": 384.106,
+            "x2": 4494.544,
+            "y2": 4015.658,
+            "width": 2050.23,
+            "height": 3631.552
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_002.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 1255.08,
+            "y1": 384.106,
+            "x2": 3305.311,
+            "y2": 4015.658,
+            "width": 2050.23,
+            "height": 3631.552
+          }
+        }
+      ]
+    },
+    {
+      "id": "region_003",
+      "crop_box": {
+        "x1": 957.319,
+        "y1": 4736.807,
+        "x2": 2271.464,
+        "y2": 6050.952,
+        "width": 1314.145,
+        "height": 1314.145
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 1244.741,
+            "y1": 4888.439,
+            "x2": 1984.042,
+            "y2": 5899.32,
+            "width": 739.301,
+            "height": 1010.881
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_003.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 287.422,
+            "y1": 151.632,
+            "x2": 1026.723,
+            "y2": 1162.513,
+            "width": 739.301,
+            "height": 1010.881
+          }
+        }
+      ]
+    },
+    {
+      "id": "region_004",
+      "crop_box": {
+        "x1": 8175.349,
+        "y1": 5775.281,
+        "x2": 8746.346,
+        "y2": 6346.277,
+        "width": 570.997,
+        "height": 570.997
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 8242.659,
+            "y1": 5841.165,
+            "x2": 8679.035,
+            "y2": 6280.393,
+            "width": 436.376,
+            "height": 439.228
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Revision_1_-_Drawing_Changes_6cbee960_p0026_region_004.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 67.31,
+            "y1": 65.884,
+            "x2": 503.686,
+            "y2": 505.112,
+            "width": 436.376,
+            "height": 439.228
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 26,
+    "page_kind": "drawing",
+    "page_number": 27,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+    "pdf_stem": "Revision #1 - Drawing Changes",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0026.png",
+    "sheet_id": "AE611",
+    "sheet_title": "9'-0\"",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "manual_revision1_large_cloud_review",
+      "reason": "user_requested_revision_set_1_full_standard_non_index_pages"
+    }
+  }
+}

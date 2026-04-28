@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\hard_negative_marker_no_cloud\\images\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0176_m003.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped\\hard_negative_marker_no_cloud\\labels\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0176_m003.txt",
+  "review_result": "negative_no_cloud",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-28T03:43:38.094141+00:00",
+  "shape_count": 0
+}

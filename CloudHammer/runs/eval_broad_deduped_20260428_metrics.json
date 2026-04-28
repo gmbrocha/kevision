@@ -1,0 +1,26 @@
+[
+  {
+    "map50": 0.9148287081754967,
+    "map5095": 0.7548589331236303,
+    "model_path": "runs/cloudhammer_roi-3/weights/best.pt",
+    "name": "cloudhammer_roi-3",
+    "precision": 0.9067906028531628,
+    "recall": 0.8615384615384616
+  },
+  {
+    "map50": 0.8933207184758468,
+    "map5095": 0.7418194863949229,
+    "model_path": "runs/cloudhammer_roi-hardneg-20260427/weights/best.pt",
+    "name": "cloudhammer_roi-hardneg-20260427",
+    "precision": 0.880044514354239,
+    "recall": 0.8803720943456907
+  },
+  {
+    "map50": 0.9229743300010127,
+    "map5095": 0.7551621722474294,
+    "model_path": "runs/cloudhammer_roi-broad-deduped-20260428/weights/best.pt",
+    "name": "cloudhammer_roi-broad-deduped-20260428",
+    "precision": 0.9081320388347353,
+    "recall": 0.9124811901395333
+  }
+]

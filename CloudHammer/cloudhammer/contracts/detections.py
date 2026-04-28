@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
 from cloudhammer.manifests import read_json, write_json
 
 
-SourceMode = Literal["roi_bootstrap", "page_tile"]
+SourceMode = Literal["roi_bootstrap", "page_tile", "fragment_group"]
 
 
 def xyxy_to_xywh(box: tuple[float, float, float, float]) -> list[float]:
@@ -35,25 +35,30 @@ class CloudDetection:
     bbox_page: list[float]
     crop_path: str | None
     source_mode: SourceMode
+    metadata: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {
+        payload = {
             "confidence": float(self.confidence),
             "bbox_page": [float(v) for v in self.bbox_page],
             "crop_path": self.crop_path,
             "source_mode": self.source_mode,
         }
+        if self.metadata:
+            payload["metadata"] = self.metadata
+        return payload
 
     @classmethod
     def from_dict(cls, payload: dict) -> "CloudDetection":
         source_mode = payload["source_mode"]
-        if source_mode not in {"roi_bootstrap", "page_tile"}:
+        if source_mode not in {"roi_bootstrap", "page_tile", "fragment_group"}:
             raise ValueError(f"Invalid source_mode: {source_mode}")
         return cls(
             confidence=float(payload["confidence"]),
             bbox_page=[float(v) for v in payload["bbox_page"]],
             crop_path=payload.get("crop_path"),
             source_mode=source_mode,
+            metadata=dict(payload.get("metadata") or {}),
         )
 
 

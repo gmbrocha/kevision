@@ -1,0 +1,393 @@
+{
+  "model": "grouped_from:F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\260219 - VA Biloxi Rev 4_Plumbing 1.json",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            6115.359765625,
+            5445.428186035157,
+            441.9464843749993,
+            177.34745483398365
+          ],
+          "confidence": 0.9063869118690491,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.7031420677325761,
+            "group_area": 78378.08417673304,
+            "member_area_sum": 55110.928172945976,
+            "member_boxes_page": [
+              [
+                6135.4482421875,
+                5465.516662597656,
+                6537.2177734375,
+                5602.687164306641
+              ]
+            ],
+            "member_confidences": [
+              0.9063869118690491
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ]
+          },
+          "source_mode": "fragment_group"
+        }
+      ],
+      "page": 1,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            970.4987991333007,
+            3960.857441711426,
+            274.24165954589853,
+            642.5864776611324
+          ],
+          "confidence": 0.9121584892272949,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.33069590937689725,
+            "group_area": 176223.9820355424,
+            "member_area_sum": 58276.549993261695,
+            "member_boxes_page": [
+              [
+                999.707275390625,
+                4234.288513183594,
+                1175.548828125,
+                4345.85498046875
+              ],
+              [
+                1011.59033203125,
+                4464.233917236328,
+                1185.43798828125,
+                4574.235443115234
+              ],
+              [
+                1041.053955078125,
+                3990.06591796875,
+                1215.531982421875,
+                4102.028564453125
+              ]
+            ],
+            "member_confidences": [
+              0.9121584892272949,
+              0.9097486138343811,
+              0.909547746181488
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              3,
+              4,
+              5
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            1895.6828002929688,
+            3145.7927856445312,
+            339.05438232421875,
+            361.00091552734375
+          ],
+          "confidence": 0.8663651943206787,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.5203242763852446,
+            "group_area": 122398.942432601,
+            "member_area_sum": 63687.14115156233,
+            "member_boxes_page": [
+              [
+                1915.6828002929688,
+                3315.051513671875,
+                2089.2886352539062,
+                3486.793701171875
+              ],
+              [
+                1954.6788330078125,
+                3165.7927856445312,
+                2214.7371826171875,
+                3296.039306640625
+              ]
+            ],
+            "member_confidences": [
+              0.8663651943206787,
+              0.8648161888122559
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              11,
+              12
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            551.0771484375,
+            4552.0782470703125,
+            209.440185546875,
+            255.29824829101562
+          ],
+          "confidence": 0.8201983571052551,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.9488153648117055,
+            "group_area": 53469.712491862476,
+            "member_area_sum": 50732.8847643435,
+            "member_boxes_page": [
+              [
+                572.7142333984375,
+                4572.0782470703125,
+                738.8138427734375,
+                4744.893859863281
+              ],
+              [
+                571.0771484375,
+                4657.370269775391,
+                740.517333984375,
+                4787.376495361328
+              ]
+            ],
+            "member_confidences": [
+              0.8201983571052551,
+              0.5963135361671448
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              13,
+              14
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            3713.874267578125,
+            2807.7039794921875,
+            298.20458984375,
+            173.177978515625
+          ],
+          "confidence": 0.9173979759216309,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.665869905431475,
+            "group_area": 51642.4680532217,
+            "member_area_sum": 34387.1653188467,
+            "member_boxes_page": [
+              [
+                3733.874267578125,
+                2827.7039794921875,
+                3992.078857421875,
+                2960.8819580078125
+              ]
+            ],
+            "member_confidences": [
+              0.9173979759216309
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            2725.2493896484375,
+            2789.97802734375,
+            297.93408203125,
+            174.40380859375
+          ],
+          "confidence": 0.913435697555542,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.667181745222435,
+            "group_area": 51960.838616132736,
+            "member_area_sum": 34667.322991132736,
+            "member_boxes_page": [
+              [
+                2745.2493896484375,
+                2809.97802734375,
+                3003.1834716796875,
+                2944.3818359375
+              ]
+            ],
+            "member_confidences": [
+              0.913435697555542
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              2
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            1020.5050048828125,
+            3567.3860473632812,
+            214.705810546875,
+            151.69537353515625
+          ],
+          "confidence": 0.9070909023284912,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.5991373590426866,
+            "group_area": 32569.878131076694,
+            "member_area_sum": 19513.830767795444,
+            "member_boxes_page": [
+              [
+                1040.5050048828125,
+                3587.3860473632812,
+                1215.2108154296875,
+                3699.0814208984375
+              ]
+            ],
+            "member_confidences": [
+              0.9070909023284912
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              6
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            1432.0078125,
+            3287.457275390625,
+            248.1285400390625,
+            145.14111328125
+          ],
+          "confidence": 0.8947174549102783,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.6076269654166584,
+            "group_area": 36013.65253812075,
+            "member_area_sum": 21882.866405308247,
+            "member_boxes_page": [
+              [
+                1452.0078125,
+                3307.457275390625,
+                1660.1363525390625,
+                3412.598388671875
+              ]
+            ],
+            "member_confidences": [
+              0.8947174549102783
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              7
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            3244.6971130371094,
+            2809.5760498046875,
+            296.3147277832031,
+            175.624755859375
+          ],
+          "confidence": 0.8922878503799438,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.6679955347371076,
+            "group_area": 52040.20172446221,
+            "member_area_sum": 34762.622378759086,
+            "member_boxes_page": [
+              [
+                3264.6971130371094,
+                2829.5760498046875,
+                3521.0118408203125,
+                2965.2008056640625
+              ]
+            ],
+            "member_confidences": [
+              0.8922878503799438
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              8
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            1408.5196533203125,
+            3643.2347106933594,
+            246.81036376953125,
+            146.3837890625
+          ],
+          "confidence": 0.8756428956985474,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.608963659480478,
+            "group_area": 36129.036228477955,
+            "member_area_sum": 22001.270115196705,
+            "member_boxes_page": [
+              [
+                1428.5196533203125,
+                3663.2347106933594,
+                1635.3300170898438,
+                3769.6184997558594
+              ]
+            ],
+            "member_confidences": [
+              0.8756428956985474
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              9
+            ]
+          },
+          "source_mode": "fragment_group"
+        },
+        {
+          "bbox_page": [
+            2293.499298095703,
+            2783.8363037109375,
+            297.87860107421875,
+            173.2767333984375
+          ],
+          "confidence": 0.8753322958946228,
+          "crop_path": null,
+          "metadata": {
+            "fill_ratio": 0.6658709795951212,
+            "group_area": 51615.43094343692,
+            "member_area_sum": 34369.21756453067,
+            "member_boxes_page": [
+              [
+                2313.499298095703,
+                2803.8363037109375,
+                2571.377899169922,
+                2937.113037109375
+              ]
+            ],
+            "member_confidences": [
+              0.8753322958946228
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              10
+            ]
+          },
+          "source_mode": "fragment_group"
+        }
+      ],
+      "page": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

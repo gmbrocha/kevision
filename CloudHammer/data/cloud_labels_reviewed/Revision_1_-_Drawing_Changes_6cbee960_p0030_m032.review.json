@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_roi_images\\Revision_1_-_Drawing_Changes_6cbee960_p0030_m032.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_labels_reviewed\\Revision_1_-_Drawing_Changes_6cbee960_p0030_m032.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-25T15:43:07.559930+00:00",
+  "shape_count": 4
+}

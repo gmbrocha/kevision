@@ -1,0 +1,67 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:30:54+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 3308.192,
+        "y1": 2809.457,
+        "x2": 8051.605,
+        "y2": 7552.87,
+        "width": 4743.413,
+        "height": 4743.413
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 3855.509,
+            "y1": 4000.22,
+            "x2": 7504.288,
+            "y2": 6362.107,
+            "width": 3648.779,
+            "height": 2361.887
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 547.317,
+            "y1": 1190.763,
+            "x2": 4196.096,
+            "y2": 3552.65,
+            "width": 3648.779,
+            "height": 2361.887
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 2,
+    "page_kind": "drawing",
+    "page_number": 3,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+    "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png",
+    "sheet_id": "C10",
+    "sheet_title": "PLATE 5/16\"X4\"X0'-6\"",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "fullpage_eval_broad_deduped_20260428",
+      "detection_count": 10,
+      "max_confidence": 0.945872,
+      "reason": "stress_page_sorted_by_detector_fragment_count"
+    }
+  }
+}

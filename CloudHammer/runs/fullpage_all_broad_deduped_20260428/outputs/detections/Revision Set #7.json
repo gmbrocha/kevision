@@ -1,0 +1,262 @@
+{
+  "model": "runs\\cloudhammer_roi-broad-deduped-20260428\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            9792.80029296875,
+            7365.1697998046875,
+            1255.222900390625,
+            139.6005859375
+          ],
+          "confidence": 0.9107301831245422,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0002_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9433.793334960938,
+            7353.91943359375,
+            542.0557861328125,
+            156.6162109375
+          ],
+          "confidence": 0.7945252656936646,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0002_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10897.9072265625,
+            7358.1671142578125,
+            601.6436767578125,
+            154.165283203125
+          ],
+          "confidence": 0.7055011987686157,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0002_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0002.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            9799.798461914062,
+            4367.401062011719,
+            915.504638671875,
+            713.7113647460938
+          ],
+          "confidence": 0.974648118019104,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9392.574951171875,
+            6528.0,
+            589.36083984375,
+            750.9144897460938
+          ],
+          "confidence": 0.9546297192573547,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7140.3511962890625,
+            4352.083190917969,
+            660.3128662109375,
+            729.0543212890625
+          ],
+          "confidence": 0.9473516941070557,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7144.873291015625,
+            2998.6474609375,
+            660.682861328125,
+            456.8544921875
+          ],
+          "confidence": 0.9304400086402893,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10881.065063476562,
+            6530.314208984375,
+            571.9191284179688,
+            738.65576171875
+          ],
+          "confidence": 0.9303250312805176,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9792.0,
+            6528.0,
+            1217.83935546875,
+            749.2157592773438
+          ],
+          "confidence": 0.9199475646018982,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9392.748901367188,
+            5098.801513671875,
+            589.8411865234375,
+            533.198486328125
+          ],
+          "confidence": 0.887517511844635,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10882.820495605469,
+            5096.5277099609375,
+            572.2131958007812,
+            533.328369140625
+          ],
+          "confidence": 0.8854939341545105,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11320.941177368164,
+            5115.370361328125,
+            136.17039489746094,
+            516.629638671875
+          ],
+          "confidence": 0.8759059906005859,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6774.02001953125,
+            5403.375732421875,
+            1029.8330078125,
+            214.9501953125
+          ],
+          "confidence": 0.8547301292419434,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_010.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11320.457168579102,
+            6530.893615722656,
+            135.18527221679688,
+            716.8883666992188
+          ],
+          "confidence": 0.8421647548675537,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_011.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9792.0,
+            3006.4573364257812,
+            905.776611328125,
+            446.10052490234375
+          ],
+          "confidence": 0.8278202414512634,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_012.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            5401.7391357421875,
+            1225.215087890625,
+            223.468505859375
+          ],
+          "confidence": 0.7816945314407349,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_013.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9396.914672851562,
+            5440.8966064453125,
+            587.0853271484375,
+            1034.288818359375
+          ],
+          "confidence": 0.7713972926139832,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_014.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9792.0,
+            3276.5194091796875,
+            912.392822265625,
+            1147.2139892578125
+          ],
+          "confidence": 0.7295375466346741,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_015.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10880.0,
+            5440.0,
+            571.65380859375,
+            1159.39453125
+          ],
+          "confidence": 0.6721919775009155,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_016.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11322.652877807617,
+            5440.0,
+            127.61894226074219,
+            1146.677001953125
+          ],
+          "confidence": 0.6358532905578613,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_017.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7134.1265869140625,
+            3274.12890625,
+            667.38232421875,
+            1182.3736572265625
+          ],
+          "confidence": 0.6098902821540833,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_018.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8706.645652770996,
+            5440.0,
+            114.6867904663086,
+            1143.175048828125
+          ],
+          "confidence": 0.5330528020858765,
+          "crop_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_all_broad_deduped_20260428\\outputs\\crops\\Revision_Set_7_ff5d86f3_p0003_cloud_019.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 4,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

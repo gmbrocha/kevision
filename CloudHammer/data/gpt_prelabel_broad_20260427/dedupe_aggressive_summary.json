@@ -1,0 +1,37 @@
+{
+  "excluded_by_reason": {
+    "same_page_overlapping_crop": 1088
+  },
+  "excluded_by_revision": {
+    "Revision #1 - Drawing Changes": 558,
+    "Revision #2 - Mod 5 grab bar supports": 128,
+    "Revision #3 - EHRM Drawings": 92,
+    "Revision #4 - Dental Air": 212,
+    "Revision #5 - RFI 126 - Concrete Repairs": 34,
+    "Revision #7 - RFI 141 - Deteriorated Attic Wood": 64
+  },
+  "excluded_by_source": {
+    "random_standard_drawing_crop": 178,
+    "target_marker_neighborhood": 910
+  },
+  "excluded_manifest": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\gpt_prelabel_broad_20260427\\manifest_deduped_aggressive_excluded.jsonl",
+  "excluded_rows": 1088,
+  "input_rows": 2185,
+  "iou_threshold": 0.3,
+  "kept_by_revision": {
+    "Revision #1 - Drawing Changes": 535,
+    "Revision #2 - Mod 5 grab bar supports": 173,
+    "Revision #3 - EHRM Drawings": 151,
+    "Revision #4 - Dental Air": 96,
+    "Revision #5 - RFI 126 - Concrete Repairs": 86,
+    "Revision #7 - RFI 141 - Deteriorated Attic Wood": 56
+  },
+  "kept_by_source": {
+    "random_standard_drawing_crop": 435,
+    "target_marker_neighborhood": 662
+  },
+  "kept_rows": 1097,
+  "manifest": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\gpt_prelabel_broad_20260427\\manifest.jsonl",
+  "output_manifest": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\gpt_prelabel_broad_20260427\\manifest_deduped_aggressive.jsonl",
+  "overlap_smaller_threshold": 0.65
+}

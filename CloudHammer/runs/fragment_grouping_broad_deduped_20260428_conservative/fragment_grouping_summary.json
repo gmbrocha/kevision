@@ -1,0 +1,406 @@
+{
+  "source_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections",
+  "output_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative",
+  "params": {
+    "expansion_ratio": 0.3,
+    "min_padding": 70.0,
+    "max_padding": 360.0,
+    "group_margin_ratio": 0.05,
+    "min_group_margin": 20.0,
+    "max_group_margin": 180.0
+  },
+  "results": [
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\260219 - VA Biloxi Rev 4_Plumbing 1.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\260219 - VA Biloxi Rev 4_Plumbing 1.json",
+      "pages": [
+        {
+          "fragment_count": 1,
+          "group_count": 1,
+          "multi_fragment_group_count": 0,
+          "singleton_group_count": 1,
+          "largest_group_member_count": 1,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+          "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+          "page": 1,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0000_grouped.png"
+        },
+        {
+          "fragment_count": 14,
+          "group_count": 10,
+          "multi_fragment_group_count": 3,
+          "singleton_group_count": 7,
+          "largest_group_member_count": 3,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+          "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+          "page": 2,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\260303-VA Biloxi Rev 5 RFI-126.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\260303-VA Biloxi Rev 5 RFI-126.json",
+      "pages": [
+        {
+          "fragment_count": 10,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 10,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+          "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+          "page": 3,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_23c18bed_p0002_grouped.png"
+        },
+        {
+          "fragment_count": 2,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+          "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+          "page": 4,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_23c18bed_p0003_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\260309 - Drawing Rev2- Steel Grab Bars.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\260309 - Drawing Rev2- Steel Grab Bars.json",
+      "pages": [
+        {
+          "fragment_count": 3,
+          "group_count": 2,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 1,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "page": 5,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0004_grouped.png"
+        },
+        {
+          "fragment_count": 2,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "page": 6,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0005_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\260313 - VA Biloxi Rev 3.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\260313 - VA Biloxi Rev 3.json",
+      "pages": [
+        {
+          "fragment_count": 2,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+          "pdf_stem": "260313 - VA Biloxi Rev 3",
+          "page": 173,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260313_-_VA_Biloxi_Rev_3_67050d16_p0172_grouped.png"
+        },
+        {
+          "fragment_count": 2,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+          "pdf_stem": "260313 - VA Biloxi Rev 3",
+          "page": 174,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260313_-_VA_Biloxi_Rev_3_67050d16_p0173_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\Drawing Rev2- Steel Grab Bars AE107.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\Drawing Rev2- Steel Grab Bars AE107.json",
+      "pages": [
+        {
+          "fragment_count": 2,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\Drawing Rev2- Steel Grab Bars AE107.pdf",
+          "pdf_stem": "Drawing Rev2- Steel Grab Bars AE107",
+          "page": 1,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Drawing_Rev2-_Steel_Grab_Bars_AE107_c7f54136_p0000_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\Drawing Rev2- Steel Grab Bars R1 AE107.1.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\Drawing Rev2- Steel Grab Bars R1 AE107.1.json",
+      "pages": [
+        {
+          "fragment_count": 2,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 2,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\Drawing Rev2- Steel Grab Bars R1 AE107.1.pdf",
+          "pdf_stem": "Drawing Rev2- Steel Grab Bars R1 AE107.1",
+          "page": 1,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_7c0d35cd_p0000_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\Revision #1 - Drawing Changes.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\Revision #1 - Drawing Changes.json",
+      "pages": [
+        {
+          "fragment_count": 6,
+          "group_count": 2,
+          "multi_fragment_group_count": 2,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 3,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "page": 2,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0001.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_grouped.png"
+        },
+        {
+          "fragment_count": 4,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 4,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "page": 3,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0002.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_grouped.png"
+        }
+      ]
+    },
+    {
+      "source_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fullpage_eval_broad_deduped_20260428\\outputs\\detections\\Revision Set #7.json",
+      "grouped_detection_json": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\detections_grouped\\Revision Set #7.json",
+      "pages": [
+        {
+          "fragment_count": 3,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 3,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf",
+          "pdf_stem": "Revision Set #7",
+          "page": 3,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0002.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_Set_7_ff5d86f3_p0002_grouped.png"
+        },
+        {
+          "fragment_count": 19,
+          "group_count": 1,
+          "multi_fragment_group_count": 1,
+          "singleton_group_count": 0,
+          "largest_group_member_count": 19,
+          "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf",
+          "pdf_stem": "Revision Set #7",
+          "page": 4,
+          "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png",
+          "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_Set_7_ff5d86f3_p0003_grouped.png"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "fragment_count": 1,
+      "group_count": 1,
+      "multi_fragment_group_count": 0,
+      "singleton_group_count": 1,
+      "largest_group_member_count": 1,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+      "page": 1,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0000_grouped.png"
+    },
+    {
+      "fragment_count": 14,
+      "group_count": 10,
+      "multi_fragment_group_count": 3,
+      "singleton_group_count": 7,
+      "largest_group_member_count": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+      "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+      "page": 2,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_516f622c_p0001_grouped.png"
+    },
+    {
+      "fragment_count": 10,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 10,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+      "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+      "page": 3,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_23c18bed_p0002_grouped.png"
+    },
+    {
+      "fragment_count": 2,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+      "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+      "page": 4,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_23c18bed_p0003_grouped.png"
+    },
+    {
+      "fragment_count": 3,
+      "group_count": 2,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 1,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+      "page": 5,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0004_grouped.png"
+    },
+    {
+      "fragment_count": 2,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+      "page": 6,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_16f0785e_p0005_grouped.png"
+    },
+    {
+      "fragment_count": 2,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+      "pdf_stem": "260313 - VA Biloxi Rev 3",
+      "page": 173,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0172.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260313_-_VA_Biloxi_Rev_3_67050d16_p0172_grouped.png"
+    },
+    {
+      "fragment_count": 2,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+      "pdf_stem": "260313 - VA Biloxi Rev 3",
+      "page": 174,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\260313_-_VA_Biloxi_Rev_3_67050d16_p0173_grouped.png"
+    },
+    {
+      "fragment_count": 2,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\Drawing Rev2- Steel Grab Bars AE107.pdf",
+      "pdf_stem": "Drawing Rev2- Steel Grab Bars AE107",
+      "page": 1,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Drawing_Rev2-_Steel_Grab_Bars_AE107_c7f54136_p0000_grouped.png"
+    },
+    {
+      "fragment_count": 2,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 2,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\Drawing Rev2- Steel Grab Bars R1 AE107.1.pdf",
+      "pdf_stem": "Drawing Rev2- Steel Grab Bars R1 AE107.1",
+      "page": 1,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_7c0d35cd_p0000_grouped.png"
+    },
+    {
+      "fragment_count": 6,
+      "group_count": 2,
+      "multi_fragment_group_count": 2,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "pdf_stem": "Revision #1 - Drawing Changes",
+      "page": 2,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0001.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_1_-_Drawing_Changes_7d303c1f_p0001_grouped.png"
+    },
+    {
+      "fragment_count": 4,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 4,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "pdf_stem": "Revision #1 - Drawing Changes",
+      "page": 3,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0002.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_1_-_Drawing_Changes_7d303c1f_p0002_grouped.png"
+    },
+    {
+      "fragment_count": 3,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 3,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf",
+      "pdf_stem": "Revision Set #7",
+      "page": 3,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0002.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_Set_7_ff5d86f3_p0002_grouped.png"
+    },
+    {
+      "fragment_count": 19,
+      "group_count": 1,
+      "multi_fragment_group_count": 1,
+      "singleton_group_count": 0,
+      "largest_group_member_count": 19,
+      "pdf": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf",
+      "pdf_stem": "Revision Set #7",
+      "page": 4,
+      "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png",
+      "overlay_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\runs\\fragment_grouping_broad_deduped_20260428_conservative\\overlays\\Revision_Set_7_ff5d86f3_p0003_grouped.png"
+    }
+  ],
+  "totals": {
+    "pages": 14,
+    "fragments": 72,
+    "groups": 25,
+    "multi_fragment_groups": 16
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "allow_partial": false,
+  "filter_to_manifest": true,
+  "manifest": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\gpt_prelabel_broad_20260427\\manifest_deduped_aggressive.jsonl",
+  "max_per_queue": 80,
+  "output_dir": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\review_queues\\broad_gpt_20260427_deduped",
+  "prediction_summary": {
+    "accepted_box_count": {
+      "0": 613,
+      "1": 314,
+      "2": 103,
+      "3": 40,
+      "4": 15,
+      "5": 8,
+      "7": 2,
+      "8": 2
+    },
+    "box_visual_type": {
+      "bold": 190,
+      "faint": 12,
+      "intersected": 40,
+      "partial": 278,
+      "thin": 58
+    },
+    "candidate_source": {
+      "random_standard_drawing_crop": 435,
+      "target_marker_neighborhood": 662
+    },
+    "confidence_bucket": {
+      "0.70-0.79": 16,
+      "0.80-0.89": 61,
+      "0.90-0.94": 133,
+      ">=0.95": 274,
+      "none": 613
+    },
+    "expected_rows": 1097,
+    "extra_predictions": [],
+    "has_cloud": {
+      "False": 613,
+      "True": 484
+    },
+    "missing_predictions": [],
+    "prediction_rows": 1097,
+    "review_bucket": {
+      "ambiguous_positive": 4,
+      "gpt_negative_spotcheck": 373,
+      "hard_negative_marker_no_cloud": 240,
+      "high_conf_positive": 119,
+      "weird_multi_faint_partial": 361
+    },
+    "revision": {
+      "Revision #1 - Drawing Changes": {
+        "accepted_boxes": 503,
+        "has_cloud": 316,
+        "no_cloud": 219,
+        "review:ambiguous_positive": 4,
+        "review:gpt_negative_spotcheck": 65,
+        "review:hard_negative_marker_no_cloud": 154,
+        "review:high_conf_positive": 66,
+        "review:weird_multi_faint_partial": 246,
+        "rows": 535,
+        "source:random_standard_drawing_crop": 71,
+        "source:target_marker_neighborhood": 464,
+        "status:ok": 535
+      },
+      "Revision #2 - Mod 5 grab bar supports": {
+        "accepted_boxes": 55,
+        "has_cloud": 41,
+        "no_cloud": 132,
+        "review:gpt_negative_spotcheck": 82,
+        "review:hard_negative_marker_no_cloud": 50,
+        "review:high_conf_positive": 11,
+        "review:weird_multi_faint_partial": 30,
+        "rows": 173,
+        "source:random_standard_drawing_crop": 87,
+        "source:target_marker_neighborhood": 86,
+        "status:ok": 173
+      },
+      "Revision #3 - EHRM Drawings": {
+        "accepted_boxes": 81,
+        "has_cloud": 64,
+        "no_cloud": 87,
+        "review:gpt_negative_spotcheck": 63,
+        "review:hard_negative_marker_no_cloud": 24,
+        "review:high_conf_positive": 28,
+        "review:weird_multi_faint_partial": 36,
+        "rows": 151,
+        "source:random_standard_drawing_crop": 79,
+        "source:target_marker_neighborhood": 72,
+        "status:ok": 151
+      },
+      "Revision #4 - Dental Air": {
+        "accepted_boxes": 97,
+        "has_cloud": 35,
+        "no_cloud": 61,
+        "review:gpt_negative_spotcheck": 49,
+        "review:hard_negative_marker_no_cloud": 12,
+        "review:high_conf_positive": 11,
+        "review:weird_multi_faint_partial": 24,
+        "rows": 96,
+        "source:random_standard_drawing_crop": 56,
+        "source:target_marker_neighborhood": 40,
+        "status:ok": 96
+      },
+      "Revision #5 - RFI 126 - Concrete Repairs": {
+        "accepted_boxes": 16,
+        "has_cloud": 16,
+        "no_cloud": 70,
+        "review:gpt_negative_spotcheck": 70,
+        "review:high_conf_positive": 3,
+        "review:weird_multi_faint_partial": 13,
+        "rows": 86,
+        "source:random_standard_drawing_crop": 86,
+        "status:ok": 86
+      },
+      "Revision #7 - RFI 141 - Deteriorated Attic Wood": {
+        "accepted_boxes": 18,
+        "has_cloud": 12,
+        "no_cloud": 44,
+        "review:gpt_negative_spotcheck": 44,
+        "review:weird_multi_faint_partial": 12,
+        "rows": 56,
+        "source:random_standard_drawing_crop": 56,
+        "status:ok": 56
+      }
+    },
+    "status": {
+      "ok": 1097
+    }
+  },
+  "predictions": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\gpt_prelabel_broad_20260427\\api_predictions\\predictions.jsonl",
+  "queues": [
+    {
+      "count": 80,
+      "images_copied": 80,
+      "labels_copied": 80,
+      "missing_images": 0,
+      "name": "high_conf_positive",
+      "overlays_copied": 80
+    },
+    {
+      "count": 4,
+      "images_copied": 4,
+      "labels_copied": 4,
+      "missing_images": 0,
+      "name": "ambiguous_positive",
+      "overlays_copied": 4
+    },
+    {
+      "count": 80,
+      "images_copied": 80,
+      "labels_copied": 80,
+      "missing_images": 0,
+      "name": "weird_multi_faint_partial",
+      "overlays_copied": 80
+    },
+    {
+      "count": 80,
+      "images_copied": 80,
+      "labels_copied": 80,
+      "missing_images": 0,
+      "name": "hard_negative_marker_no_cloud",
+      "overlays_copied": 80
+    },
+    {
+      "count": 80,
+      "images_copied": 80,
+      "labels_copied": 80,
+      "missing_images": 0,
+      "name": "gpt_negative_spotcheck",
+      "overlays_copied": 80
+    }
+  ],
+  "seed": 20260427
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:36:29+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 1635.511,
+        "y1": 1176.732,
+        "x2": 2831.302,
+        "y2": 2372.523,
+        "width": 1195.791,
+        "height": 1195.791
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 1773.487,
+            "y1": 1392.312,
+            "x2": 2693.326,
+            "y2": 2156.943,
+            "width": 919.839,
+            "height": 764.631
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 137.976,
+            "y1": 215.58,
+            "x2": 1057.815,
+            "y2": 980.211,
+            "width": 919.839,
+            "height": 764.631
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 0,
+    "page_kind": "drawing",
+    "page_number": 1,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\Drawing Rev2- Steel Grab Bars AE107.pdf",
+    "pdf_stem": "Drawing Rev2- Steel Grab Bars AE107",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000.png",
+    "sheet_id": "AE126",
+    "sheet_title": "SIM",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "fullpage_eval_broad_deduped_20260428",
+      "detection_count": 2,
+      "max_confidence": 0.865369,
+      "reason": "stress_page_sorted_by_detector_fragment_count"
+    }
+  }
+}

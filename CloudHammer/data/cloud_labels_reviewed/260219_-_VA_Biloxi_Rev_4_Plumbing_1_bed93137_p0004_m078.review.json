@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_roi_images\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_m078.png",
+  "label_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\cloud_labels_reviewed\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_m078.txt",
+  "review_result": "negative_no_cloud",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-04-27T23:19:05.208109+00:00",
+  "shape_count": 0
+}

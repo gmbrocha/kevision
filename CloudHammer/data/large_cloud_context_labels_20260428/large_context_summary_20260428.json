@@ -1,0 +1,28 @@
+{
+  "sidecars": 37,
+  "regions": 68,
+  "regions_with_crop": 67,
+  "regions_with_labels": 67,
+  "labels": 78,
+  "empty_regions": 1,
+  "missing_crop_paths": [],
+  "files_with_no_labels": [],
+  "by_prefix": {
+    "stress_sample": 10,
+    "revision1": 27
+  },
+  "crop_pngs": 67,
+  "regions_per_file": {
+    "1": 19,
+    "2": 10,
+    "3": 4,
+    "5": 1,
+    "4": 3
+  },
+  "labels_per_region": {
+    "1": 58,
+    "2": 7,
+    "0": 1,
+    "3": 2
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:36:46+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 6052.143,
+        "y1": 5248.313,
+        "x2": 6614.625,
+        "y2": 5810.796,
+        "width": 562.482,
+        "height": 562.482
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 6117.045,
+            "y1": 5454.133,
+            "x2": 6549.724,
+            "y2": 5604.976,
+            "width": 432.679,
+            "height": 150.842
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 64.902,
+            "y1": 205.82,
+            "x2": 497.581,
+            "y2": 356.662,
+            "width": 432.679,
+            "height": 150.842
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 0,
+    "page_kind": "drawing",
+    "page_number": 1,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf",
+    "pdf_stem": "260219 - VA Biloxi Rev 4_Plumbing 1",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000.png",
+    "sheet_id": "PL302",
+    "sheet_title": "EXISTING 1ST FLOOR - MED GAS",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "fullpage_eval_broad_deduped_20260428",
+      "detection_count": 1,
+      "max_confidence": 0.906387,
+      "reason": "stress_page_sorted_by_detector_fragment_count"
+    }
+  }
+}

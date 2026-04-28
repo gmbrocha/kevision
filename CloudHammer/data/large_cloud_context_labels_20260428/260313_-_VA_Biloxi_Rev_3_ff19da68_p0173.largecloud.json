@@ -1,0 +1,67 @@
+{
+  "schema": "cloudhammer.large_cloud_context.v1",
+  "updated_at": "2026-04-28T11:35:43+00:00",
+  "image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.png",
+  "image_width": 12600,
+  "image_height": 9000,
+  "coordinate_space": "source_image_pixels",
+  "default_class_name": "cloud_whole",
+  "regions": [
+    {
+      "id": "region_001",
+      "crop_box": {
+        "x1": 7516.47,
+        "y1": 3903.646,
+        "x2": 8870.98,
+        "y2": 5258.156,
+        "width": 1354.51,
+        "height": 1354.51
+      },
+      "labels": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 7672.76,
+            "y1": 4235.587,
+            "x2": 8714.69,
+            "y2": 4926.215,
+            "width": 1041.93,
+            "height": 690.628
+          }
+        }
+      ],
+      "crop_image_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\large_cloud_context_crops_20260428\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_region_001.png",
+      "labels_crop_xyxy": [
+        {
+          "class_name": "cloud_whole",
+          "box": {
+            "x1": 156.29,
+            "y1": 331.941,
+            "x2": 1198.22,
+            "y2": 1022.569,
+            "width": 1041.93,
+            "height": 690.628
+          }
+        }
+      ]
+    }
+  ],
+  "source_manifest_row": {
+    "height_px": 9000,
+    "page_index": 173,
+    "page_kind": "drawing",
+    "page_number": 174,
+    "pdf_path": "F:\\Desktop\\m\\projects\\kevision\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+    "pdf_stem": "260313 - VA Biloxi Rev 3",
+    "render_path": "F:\\Desktop\\m\\projects\\kevision\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0173.png",
+    "sheet_id": "P-418",
+    "sheet_title": "FD-C",
+    "width_px": 12600,
+    "large_cloud_context_priority": {
+      "source": "fullpage_eval_broad_deduped_20260428",
+      "detection_count": 2,
+      "max_confidence": 0.875129,
+      "reason": "stress_page_sorted_by_detector_fragment_count"
+    }
+  }
+}
