@@ -1875,3 +1875,67 @@ Readout:
 - Next best step is qualitative review/tuning of the top-stress grouped
   overlays, then add post-group filters or a verifier before treating grouped
   candidates as final detections.
+
+## 2026-04-28 - Whole-Cloud Candidate Review Completed
+
+Goal:
+
+- Hand-review the broad whole-cloud candidate export to separate deliverable
+  candidates from false positives and grouping failures.
+- Preserve the review labels as reusable feedback for filtering, grouping
+  tuning, and future verifier training.
+
+Reviewed source run:
+
+- `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428`
+
+Review tooling:
+
+- `CloudHammer/utilities/whole_cloud_candidate_reviewer.py`
+- review log:
+  `CloudHammer/data/whole_cloud_candidate_reviews/whole_cloud_candidates_broad_deduped_lowconf_context_20260428.review.jsonl`
+- review analyzer:
+  `CloudHammer/scripts/analyze_whole_cloud_candidate_reviews.py`
+- reviewed artifact exporter:
+  `CloudHammer/scripts/export_reviewed_whole_cloud_artifacts.py`
+
+Review results:
+
+- candidates reviewed: `283 / 283`
+- accepted: `173`
+- false positives: `50`
+- overmerged: `51`
+- partial: `9`
+- overall accept rate: `61.1%`
+
+Accepted artifact bundle:
+
+- output:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_context_20260428/reviewed_artifacts`
+- accepted crop artifacts copied: `173`
+- accepted manifest:
+  `reviewed_artifacts/accepted_whole_cloud_candidates.jsonl`
+- issue feedback manifests:
+  - `reviewed_artifacts/feedback_false_positive_candidates.jsonl`
+  - `reviewed_artifacts/feedback_overmerged_candidates.jsonl`
+  - `reviewed_artifacts/feedback_partial_candidates.jsonl`
+  - `reviewed_artifacts/feedback_issue_candidates.jsonl`
+
+Important readout:
+
+- Low-confidence candidates were mostly false positives:
+  - confidence `< 0.50`: `1 / 39` accepted
+  - confidence `0.50-0.65`: `4 / 16` accepted
+- Very high confidence did not mean deliverable-ready. The `0.97-1.01`
+  bucket was often overmerged: `23 / 52` accepted, `28` overmerged.
+- Overmerge is primarily a grouping/splitting problem, not a confidence
+  threshold problem.
+- The accepted set is immediately useful as reviewed whole-cloud crop
+  artifacts. The issue set is useful as feedback for post-group filters,
+  overmerge splitting rules, and a later verifier.
+
+Verification:
+
+- review analysis generated successfully
+- reviewed artifact export generated successfully
+- CloudHammer tests passed: `33 passed`

@@ -1,0 +1,570 @@
+2026-04-28 09:20:51,363 INFO Starting reviewer manifest=F:\Desktop\m\projects\kevision\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_context_20260428\whole_cloud_candidates_manifest.jsonl review_log=F:\Desktop\m\projects\kevision\CloudHammer\data\whole_cloud_candidate_reviews\whole_cloud_candidates_broad_deduped_lowconf_context_20260428.review.jsonl candidates=283 reviewed=0 order=confidence_asc
+2026-04-28 09:20:51,600 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_003
+2026-04-28 09:24:21,029 INFO Starting reviewer manifest=F:\Desktop\m\projects\kevision\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_context_20260428\whole_cloud_candidates_manifest.jsonl review_log=F:\Desktop\m\projects\kevision\CloudHammer\data\whole_cloud_candidate_reviews\whole_cloud_candidates_broad_deduped_lowconf_context_20260428.review.jsonl candidates=283 reviewed=0 order=confidence_asc
+2026-04-28 09:24:21,251 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_003
+2026-04-28 09:24:35,342 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_003 as false_positive
+2026-04-28 09:24:35,349 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_007
+2026-04-28 09:24:39,264 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_007 as false_positive
+2026-04-28 09:24:39,279 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0174_whole_002
+2026-04-28 09:24:52,607 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0174_whole_002 as false_positive
+2026-04-28 09:24:52,607 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_007
+2026-04-28 09:24:55,741 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_007 as false_positive
+2026-04-28 09:24:55,773 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_002
+2026-04-28 09:25:00,357 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_002 as false_positive
+2026-04-28 09:25:00,367 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_005
+2026-04-28 09:25:02,947 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_005 as false_positive
+2026-04-28 09:25:02,963 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_004
+2026-04-28 09:25:04,207 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_004 as false_positive
+2026-04-28 09:25:04,222 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014_whole_002
+2026-04-28 09:25:08,048 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014_whole_002 as false_positive
+2026-04-28 09:25:08,048 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_006
+2026-04-28 09:25:09,810 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_006 as false_positive
+2026-04-28 09:25:09,824 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_004
+2026-04-28 09:25:12,146 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_004 as false_positive
+2026-04-28 09:25:12,156 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_003
+2026-04-28 09:25:12,924 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_003 as false_positive
+2026-04-28 09:25:12,949 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_008
+2026-04-28 09:25:14,197 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_008 as false_positive
+2026-04-28 09:25:14,234 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_003
+2026-04-28 09:25:15,009 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_003 as false_positive
+2026-04-28 09:25:15,021 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_006
+2026-04-28 09:25:15,703 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_006 as false_positive
+2026-04-28 09:25:15,728 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0019_whole_002
+2026-04-28 09:25:16,427 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0019_whole_002 as false_positive
+2026-04-28 09:25:16,443 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_004
+2026-04-28 09:25:16,991 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_004 as false_positive
+2026-04-28 09:25:17,013 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_004
+2026-04-28 09:25:17,837 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_004 as false_positive
+2026-04-28 09:25:17,848 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0045_whole_002
+2026-04-28 09:25:18,662 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0045_whole_002 as false_positive
+2026-04-28 09:25:18,672 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_005
+2026-04-28 09:25:20,076 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_005 as false_positive
+2026-04-28 09:25:20,092 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_003
+2026-04-28 09:25:20,898 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_003 as false_positive
+2026-04-28 09:25:20,914 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_002
+2026-04-28 09:25:21,851 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_002 as false_positive
+2026-04-28 09:25:21,873 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0180_whole_003
+2026-04-28 09:25:23,567 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0180_whole_003 as false_positive
+2026-04-28 09:25:23,583 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_014
+2026-04-28 09:25:28,337 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_014 as partial
+2026-04-28 09:25:28,353 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_006
+2026-04-28 09:25:29,727 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_006 as false_positive
+2026-04-28 09:25:29,739 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_013
+2026-04-28 09:25:31,370 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_013 as partial
+2026-04-28 09:25:31,393 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_001
+2026-04-28 09:25:33,226 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_001 as false_positive
+2026-04-28 09:25:33,242 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0192_whole_003
+2026-04-28 09:25:38,815 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0192_whole_003 as false_positive
+2026-04-28 09:25:38,832 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_005
+2026-04-28 09:25:39,504 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_005 as false_positive
+2026-04-28 09:25:39,528 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_002
+2026-04-28 09:25:44,218 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_002 as partial
+2026-04-28 09:25:44,236 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_005
+2026-04-28 09:25:45,314 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_005 as false_positive
+2026-04-28 09:25:45,330 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_005
+2026-04-28 09:25:46,045 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_005 as false_positive
+2026-04-28 09:25:46,087 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_004
+2026-04-28 09:25:47,822 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_004 as false_positive
+2026-04-28 09:25:47,840 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_013
+2026-04-28 09:25:49,559 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_013 as partial
+2026-04-28 09:25:49,585 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0016_whole_002
+2026-04-28 09:25:50,893 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0016_whole_002 as false_positive
+2026-04-28 09:25:50,922 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_002
+2026-04-28 09:25:52,077 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_002 as false_positive
+2026-04-28 09:25:52,087 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_002
+2026-04-28 09:25:53,227 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_002 as false_positive
+2026-04-28 09:25:53,242 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_008
+2026-04-28 09:25:59,946 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_008 as accept
+2026-04-28 09:25:59,956 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_002
+2026-04-28 09:26:01,635 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_002 as false_positive
+2026-04-28 09:26:01,651 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_007
+2026-04-28 09:26:04,027 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_007 as false_positive
+2026-04-28 09:26:04,042 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_003
+2026-04-28 09:26:05,030 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_003 as false_positive
+2026-04-28 09:26:05,060 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_006
+2026-04-28 09:26:05,673 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_006 as false_positive
+2026-04-28 09:26:05,683 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_002
+2026-04-28 09:26:09,451 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_002 as false_positive
+2026-04-28 09:26:09,480 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_001
+2026-04-28 09:26:14,893 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_001 as false_positive
+2026-04-28 09:26:14,911 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_004
+2026-04-28 09:26:16,744 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_004 as accept
+2026-04-28 09:26:16,759 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_002
+2026-04-28 09:26:18,330 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_002 as false_positive
+2026-04-28 09:26:18,354 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0014_whole_002
+2026-04-28 09:26:20,347 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0014_whole_002 as partial
+2026-04-28 09:26:20,383 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0013_whole_001
+2026-04-28 09:26:23,871 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0013_whole_001 as false_positive
+2026-04-28 09:26:23,884 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0006_whole_002
+2026-04-28 09:26:24,852 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0006_whole_002 as false_positive
+2026-04-28 09:26:24,854 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_004
+2026-04-28 09:26:27,967 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_004 as accept
+2026-04-28 09:26:27,981 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_004
+2026-04-28 09:26:29,112 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_004 as false_positive
+2026-04-28 09:26:29,131 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_003
+2026-04-28 09:26:30,624 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_003 as false_positive
+2026-04-28 09:26:30,634 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_002
+2026-04-28 09:26:31,340 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_002 as false_positive
+2026-04-28 09:26:31,364 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_012
+2026-04-28 09:26:34,386 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_012 as accept
+2026-04-28 09:26:34,402 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_004
+2026-04-28 09:26:35,615 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_004 as false_positive
+2026-04-28 09:26:35,630 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_007
+2026-04-28 09:26:38,361 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_007 as accept
+2026-04-28 09:26:38,377 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014_whole_001
+2026-04-28 09:26:47,426 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014_whole_001 as accept
+2026-04-28 09:26:47,447 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_003
+2026-04-28 09:26:49,227 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_003 as false_positive
+2026-04-28 09:26:49,243 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_012
+2026-04-28 09:26:53,181 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_012 as accept
+2026-04-28 09:26:53,200 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_005
+2026-04-28 09:26:54,989 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_005 as accept
+2026-04-28 09:26:55,010 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_003
+2026-04-28 09:26:56,863 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_003 as false_positive
+2026-04-28 09:26:56,881 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_006
+2026-04-28 09:26:58,913 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_006 as accept
+2026-04-28 09:26:58,936 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_011
+2026-04-28 09:26:59,816 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_011 as accept
+2026-04-28 09:26:59,848 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_011
+2026-04-28 09:27:01,524 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_011 as accept
+2026-04-28 09:27:01,555 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_007
+2026-04-28 09:27:02,900 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_007 as accept
+2026-04-28 09:27:02,917 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_003
+2026-04-28 09:28:30,172 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_003 as accept
+2026-04-28 09:28:30,187 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_004
+2026-04-28 09:28:32,003 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_004 as false_positive
+2026-04-28 09:28:32,019 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_002
+2026-04-28 09:28:34,197 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_002 as accept
+2026-04-28 09:28:34,213 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0013_whole_001
+2026-04-28 09:28:37,495 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0013_whole_001 as accept
+2026-04-28 09:28:37,513 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_004
+2026-04-28 09:28:38,865 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_004 as false_positive
+2026-04-28 09:28:38,881 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0043_whole_001
+2026-04-28 09:28:42,867 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0043_whole_001 as accept
+2026-04-28 09:28:42,882 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_010
+2026-04-28 09:28:44,965 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_010 as accept
+2026-04-28 09:28:44,986 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0189_whole_002
+2026-04-28 09:28:46,576 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0189_whole_002 as accept
+2026-04-28 09:28:46,592 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_005
+2026-04-28 09:28:47,806 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_005 as accept
+2026-04-28 09:28:47,823 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_001
+2026-04-28 09:28:48,705 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_001 as accept
+2026-04-28 09:28:48,715 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_009
+2026-04-28 09:28:49,981 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_009 as accept
+2026-04-28 09:28:49,997 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026_whole_001
+2026-04-28 09:28:51,322 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026_whole_001 as accept
+2026-04-28 09:28:51,335 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_006
+2026-04-28 09:28:53,196 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_006 as accept
+2026-04-28 09:28:53,224 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_010
+2026-04-28 09:28:54,326 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_010 as accept
+2026-04-28 09:28:54,351 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0190_whole_002
+2026-04-28 09:30:08,037 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0190_whole_002 as accept
+2026-04-28 09:30:08,045 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_003
+2026-04-28 09:30:52,323 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_003 as overmerged
+2026-04-28 09:30:52,333 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_001
+2026-04-28 09:30:54,757 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_001 as accept
+2026-04-28 09:30:54,773 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0044_whole_001
+2026-04-28 09:30:56,722 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0044_whole_001 as accept
+2026-04-28 09:30:56,729 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0177_whole_001
+2026-04-28 09:30:59,064 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0177_whole_001 as accept
+2026-04-28 09:30:59,088 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0180_whole_002
+2026-04-28 09:31:00,781 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0180_whole_002 as accept
+2026-04-28 09:31:00,822 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0176_whole_001
+2026-04-28 09:31:02,417 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0176_whole_001 as accept
+2026-04-28 09:31:02,440 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_004
+2026-04-28 09:31:03,542 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_004 as accept
+2026-04-28 09:31:03,558 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_005
+2026-04-28 09:31:04,430 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_005 as accept
+2026-04-28 09:31:04,455 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_whole_001
+2026-04-28 09:31:08,953 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_whole_001 as accept
+2026-04-28 09:31:08,969 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0192_whole_001
+2026-04-28 09:31:09,923 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0192_whole_001 as accept
+2026-04-28 09:31:09,955 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_001
+2026-04-28 09:31:13,081 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0015_whole_001 as accept
+2026-04-28 09:31:13,099 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0007_whole_001
+2026-04-28 09:31:17,617 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0007_whole_001 as accept
+2026-04-28 09:31:17,633 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0194_whole_002
+2026-04-28 09:31:21,729 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0194_whole_002 as accept
+2026-04-28 09:31:21,777 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0175_whole_001
+2026-04-28 09:31:28,438 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0175_whole_001 as accept
+2026-04-28 09:31:28,452 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_002
+2026-04-28 09:32:02,693 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_002 as accept
+2026-04-28 09:32:02,725 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_003
+2026-04-28 09:32:05,300 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_003 as accept
+2026-04-28 09:32:05,324 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0190_whole_003
+2026-04-28 09:32:06,855 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0190_whole_003 as accept
+2026-04-28 09:32:06,871 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_008
+2026-04-28 09:32:09,119 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_008 as accept
+2026-04-28 09:32:09,135 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_009
+2026-04-28 09:32:09,857 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_009 as accept
+2026-04-28 09:32:09,873 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0035_whole_002
+2026-04-28 09:32:10,627 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0035_whole_002 as accept
+2026-04-28 09:32:10,647 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_002
+2026-04-28 09:32:11,909 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_002 as accept
+2026-04-28 09:32:11,925 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_004
+2026-04-28 09:32:12,551 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_004 as accept
+2026-04-28 09:32:12,566 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0011_whole_002
+2026-04-28 09:32:13,592 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0011_whole_002 as accept
+2026-04-28 09:32:13,592 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0010_whole_001
+2026-04-28 09:32:19,453 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0010_whole_001 as overmerged
+2026-04-28 09:32:19,469 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0021_whole_001
+2026-04-28 09:32:21,368 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0021_whole_001 as accept
+2026-04-28 09:32:21,377 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_003
+2026-04-28 09:32:26,325 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_003 as overmerged
+2026-04-28 09:32:26,372 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0042_whole_001
+2026-04-28 09:32:35,392 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0042_whole_001 as accept
+2026-04-28 09:32:35,408 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_003
+2026-04-28 09:32:39,556 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_003 as overmerged
+2026-04-28 09:32:39,568 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_002
+2026-04-28 09:32:45,649 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_002 as accept
+2026-04-28 09:32:45,710 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0182_whole_002
+2026-04-28 09:32:52,768 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0182_whole_002 as false_positive
+2026-04-28 09:32:52,793 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0192_whole_002
+2026-04-28 09:32:55,932 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0192_whole_002 as accept
+2026-04-28 09:32:55,941 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_005
+2026-04-28 09:33:00,913 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_005 as accept
+2026-04-28 09:33:00,945 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0189_whole_001
+2026-04-28 09:33:02,512 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0189_whole_001 as accept
+2026-04-28 09:33:02,517 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0009_whole_001
+2026-04-28 09:33:03,818 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0009_whole_001 as accept
+2026-04-28 09:33:03,836 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_002
+2026-04-28 09:34:11,950 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_002 as accept
+2026-04-28 09:34:11,967 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005_whole_001
+2026-04-28 09:34:17,027 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005_whole_001 as accept
+2026-04-28 09:34:17,043 INFO Loaded candidate Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_whole_001
+2026-04-28 09:34:23,655 INFO Reviewed candidate Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_whole_001 as accept
+2026-04-28 09:34:23,674 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_001
+2026-04-28 09:34:28,965 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_001 as accept
+2026-04-28 09:34:28,982 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_002
+2026-04-28 09:34:32,531 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_002 as accept
+2026-04-28 09:34:32,545 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0003_whole_001
+2026-04-28 09:34:35,444 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0003_whole_001 as accept
+2026-04-28 09:34:35,461 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0008_whole_001
+2026-04-28 09:34:37,095 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0008_whole_001 as accept
+2026-04-28 09:34:37,124 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0049_whole_001
+2026-04-28 09:34:41,415 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0049_whole_001 as accept
+2026-04-28 09:34:41,490 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0183_whole_001
+2026-04-28 09:34:45,709 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0183_whole_001 as accept
+2026-04-28 09:34:45,811 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0182_whole_001
+2026-04-28 09:34:48,999 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0182_whole_001 as accept
+2026-04-28 09:34:49,018 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_002
+2026-04-28 09:34:56,698 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_002 as accept
+2026-04-28 09:34:56,708 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_003
+2026-04-28 09:34:58,707 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_003 as accept
+2026-04-28 09:34:58,721 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022_whole_001
+2026-04-28 09:35:01,236 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022_whole_001 as accept
+2026-04-28 09:35:01,247 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_007
+2026-04-28 09:35:01,846 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_007 as accept
+2026-04-28 09:35:01,862 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_002
+2026-04-28 09:35:03,156 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_002 as accept
+2026-04-28 09:35:03,167 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0024_whole_001
+2026-04-28 09:35:03,850 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0024_whole_001 as accept
+2026-04-28 09:35:03,865 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_003
+2026-04-28 09:35:04,648 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_003 as accept
+2026-04-28 09:35:04,666 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0179_whole_001
+2026-04-28 09:35:05,433 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0179_whole_001 as accept
+2026-04-28 09:35:05,456 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0191_whole_001
+2026-04-28 09:35:06,734 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0191_whole_001 as accept
+2026-04-28 09:35:06,752 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_009
+2026-04-28 09:35:07,536 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_009 as accept
+2026-04-28 09:35:07,708 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001
+2026-04-28 09:35:14,675 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001 as overmerged
+2026-04-28 09:35:14,703 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0011_whole_001
+2026-04-28 09:35:17,171 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0011_whole_001 as accept
+2026-04-28 09:35:17,188 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0035_whole_001
+2026-04-28 09:35:34,621 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0035_whole_001 as accept
+2026-04-28 09:35:34,635 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_004
+2026-04-28 09:35:35,169 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_004 as accept
+2026-04-28 09:35:35,197 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0178_whole_001
+2026-04-28 09:35:38,281 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0178_whole_001 as accept
+2026-04-28 09:35:38,303 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0189_whole_003
+2026-04-28 09:35:39,249 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0189_whole_003 as accept
+2026-04-28 09:35:39,264 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_001
+2026-04-28 09:35:40,589 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_001 as accept
+2026-04-28 09:35:40,602 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_003
+2026-04-28 09:35:42,793 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_003 as accept
+2026-04-28 09:35:42,808 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_003
+2026-04-28 09:35:43,516 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_003 as accept
+2026-04-28 09:35:43,529 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_008
+2026-04-28 09:35:44,018 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_008 as accept
+2026-04-28 09:35:44,029 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0012_whole_002
+2026-04-28 09:35:44,727 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0012_whole_002 as accept
+2026-04-28 09:35:44,743 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_002
+2026-04-28 09:35:45,336 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_002 as accept
+2026-04-28 09:35:45,349 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0039_whole_002
+2026-04-28 09:35:45,886 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0039_whole_002 as accept
+2026-04-28 09:35:45,895 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_006
+2026-04-28 09:35:46,481 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_006 as accept
+2026-04-28 09:35:46,534 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_001
+2026-04-28 09:35:48,105 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_001 as accept
+2026-04-28 09:35:48,122 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_003
+2026-04-28 09:35:49,215 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_003 as accept
+2026-04-28 09:35:49,233 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0006_whole_001
+2026-04-28 09:35:52,270 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0006_whole_001 as accept
+2026-04-28 09:35:52,286 INFO Loaded candidate Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_whole_001
+2026-04-28 09:35:53,712 INFO Reviewed candidate Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_whole_001 as accept
+2026-04-28 09:35:53,727 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027_whole_001
+2026-04-28 09:35:54,809 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027_whole_001 as accept
+2026-04-28 09:35:54,820 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_001
+2026-04-28 09:35:55,462 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_001 as accept
+2026-04-28 09:35:55,478 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0006_whole_002
+2026-04-28 09:35:59,647 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0006_whole_002 as partial
+2026-04-28 09:35:59,679 INFO Loaded candidate Revision_Set_7_37f6066a_p0002_whole_001
+2026-04-28 09:36:02,905 INFO Reviewed candidate Revision_Set_7_37f6066a_p0002_whole_001 as accept
+2026-04-28 09:36:02,924 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_002
+2026-04-28 09:36:05,425 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_002 as accept
+2026-04-28 09:36:05,434 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_005
+2026-04-28 09:36:06,158 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_005 as accept
+2026-04-28 09:36:06,189 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0019_whole_001
+2026-04-28 09:36:09,220 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0019_whole_001 as overmerged
+2026-04-28 09:36:09,237 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_001
+2026-04-28 09:40:45,415 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_001 as accept
+2026-04-28 09:40:45,429 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_004
+2026-04-28 09:40:46,167 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_004 as accept
+2026-04-28 09:40:46,185 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_002
+2026-04-28 09:40:48,482 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_002 as accept
+2026-04-28 09:40:48,496 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_003
+2026-04-28 09:40:49,124 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_003 as accept
+2026-04-28 09:40:49,161 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0190_whole_001
+2026-04-28 09:40:50,592 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0190_whole_001 as accept
+2026-04-28 09:40:50,616 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_002
+2026-04-28 09:40:51,468 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0038_whole_002 as accept
+2026-04-28 09:40:51,482 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0039_whole_003
+2026-04-28 09:40:51,936 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0039_whole_003 as accept
+2026-04-28 09:40:52,022 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0027_whole_001
+2026-04-28 09:40:53,409 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0027_whole_001 as accept
+2026-04-28 09:40:53,441 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_001
+2026-04-28 09:42:27,563 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_001 as accept
+2026-04-28 09:42:27,615 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_whole_001
+2026-04-28 09:42:29,387 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_whole_001 as accept
+2026-04-28 09:42:29,406 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0002_whole_001
+2026-04-28 09:42:30,330 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0002_whole_001 as accept
+2026-04-28 09:42:30,340 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0006_whole_001
+2026-04-28 09:42:31,081 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0006_whole_001 as accept
+2026-04-28 09:42:31,097 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0025_whole_001
+2026-04-28 09:42:31,770 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0025_whole_001 as accept
+2026-04-28 09:42:31,791 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_001
+2026-04-28 09:42:32,587 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_001 as accept
+2026-04-28 09:42:32,603 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_002
+2026-04-28 09:42:33,244 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_002 as accept
+2026-04-28 09:42:33,259 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_001
+2026-04-28 09:42:33,907 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_001 as accept
+2026-04-28 09:42:33,937 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017_whole_001
+2026-04-28 09:42:38,479 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017_whole_001 as overmerged
+2026-04-28 09:42:38,527 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0005_whole_001
+2026-04-28 09:42:40,993 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0005_whole_001 as accept
+2026-04-28 09:42:41,008 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0012_whole_001
+2026-04-28 09:42:41,833 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0012_whole_001 as accept
+2026-04-28 09:42:41,848 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0174_whole_001
+2026-04-28 09:42:42,814 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0174_whole_001 as accept
+2026-04-28 09:42:42,854 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001
+2026-04-28 09:42:47,671 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001 as overmerged
+2026-04-28 09:42:47,686 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_005
+2026-04-28 09:42:49,505 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_005 as accept
+2026-04-28 09:42:49,520 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_002
+2026-04-28 09:42:50,169 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_002 as accept
+2026-04-28 09:42:50,185 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_001
+2026-04-28 09:42:50,647 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0040_whole_001 as accept
+2026-04-28 09:42:50,666 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0020_whole_001
+2026-04-28 09:42:51,618 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0020_whole_001 as accept
+2026-04-28 09:42:51,647 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_006
+2026-04-28 09:42:53,907 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_006 as partial
+2026-04-28 09:42:53,925 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0014_whole_001
+2026-04-28 09:42:55,940 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0014_whole_001 as accept
+2026-04-28 09:42:55,956 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_004
+2026-04-28 09:42:56,631 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_004 as accept
+2026-04-28 09:42:56,656 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_002
+2026-04-28 09:42:58,007 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_002 as accept
+2026-04-28 09:42:58,045 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0049_whole_002
+2026-04-28 09:43:05,713 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0049_whole_002 as overmerged
+2026-04-28 09:43:05,729 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_001
+2026-04-28 09:43:07,659 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_001 as accept
+2026-04-28 09:43:07,675 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_001
+2026-04-28 09:43:09,635 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_001 as accept
+2026-04-28 09:43:09,729 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0184_whole_001
+2026-04-28 09:43:12,759 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0184_whole_001 as accept
+2026-04-28 09:43:12,792 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_004
+2026-04-28 09:43:16,676 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_004 as overmerged
+2026-04-28 09:43:16,707 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_004
+2026-04-28 09:43:21,229 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_004 as overmerged
+2026-04-28 09:43:21,248 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_005
+2026-04-28 09:44:29,770 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0012_whole_005 as accept
+2026-04-28 09:44:29,783 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_003
+2026-04-28 09:44:30,560 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_003 as accept
+2026-04-28 09:44:30,584 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0010_whole_002
+2026-04-28 09:44:37,808 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0010_whole_002 as accept
+2026-04-28 09:44:37,832 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0020_whole_002
+2026-04-28 09:44:41,012 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0020_whole_002 as accept
+2026-04-28 09:44:41,017 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_002
+2026-04-28 09:44:41,717 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_002 as accept
+2026-04-28 09:44:41,730 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0195_whole_001
+2026-04-28 09:44:43,328 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0195_whole_001 as overmerged
+2026-04-28 09:44:43,345 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_004
+2026-04-28 09:44:44,453 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_004 as accept
+2026-04-28 09:44:44,496 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_002
+2026-04-28 09:44:49,272 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_002 as accept
+2026-04-28 09:44:49,291 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_004
+2026-04-28 09:44:49,963 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_004 as accept
+2026-04-28 09:44:50,030 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0046_whole_001
+2026-04-28 09:44:55,042 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0046_whole_001 as overmerged
+2026-04-28 09:44:55,059 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020_whole_001
+2026-04-28 09:44:56,479 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020_whole_001 as accept
+2026-04-28 09:44:56,582 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-04-28 09:46:48,774 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002 as overmerged
+2026-04-28 09:46:48,790 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_003
+2026-04-28 09:46:54,890 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_003 as overmerged
+2026-04-28 09:46:54,922 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0185_whole_001
+2026-04-28 09:46:56,701 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0185_whole_001 as accept
+2026-04-28 09:46:56,733 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_001
+2026-04-28 09:46:58,979 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_001 as overmerged
+2026-04-28 09:46:59,013 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_001
+2026-04-28 09:47:01,311 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_001 as overmerged
+2026-04-28 09:47:01,381 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_002
+2026-04-28 09:47:03,646 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_002 as accept
+2026-04-28 09:47:03,689 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0186_whole_001
+2026-04-28 09:47:05,952 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0186_whole_001 as accept
+2026-04-28 09:47:05,983 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_002
+2026-04-28 09:47:07,917 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_002 as overmerged
+2026-04-28 09:47:08,028 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_001
+2026-04-28 09:47:16,328 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_001 as overmerged
+2026-04-28 09:47:16,360 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0009_whole_002
+2026-04-28 09:47:18,043 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0009_whole_002 as accept
+2026-04-28 09:47:18,059 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0193_whole_001
+2026-04-28 09:47:20,135 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0193_whole_001 as accept
+2026-04-28 09:47:20,165 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0039_whole_001
+2026-04-28 09:47:23,199 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0039_whole_001 as overmerged
+2026-04-28 09:47:23,211 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_001
+2026-04-28 09:47:26,307 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_001 as partial
+2026-04-28 09:47:26,312 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_whole_001
+2026-04-28 09:47:27,280 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_whole_001 as accept
+2026-04-28 09:47:27,394 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-04-28 09:47:29,071 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_001 as overmerged
+2026-04-28 09:47:29,103 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0050_whole_001
+2026-04-28 09:47:30,338 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0050_whole_001 as accept
+2026-04-28 09:47:30,354 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_003
+2026-04-28 09:47:31,287 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0005_whole_003 as accept
+2026-04-28 09:47:31,303 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_001
+2026-04-28 09:47:31,936 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0003_whole_001 as accept
+2026-04-28 09:47:31,952 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_005
+2026-04-28 09:47:32,617 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_005 as accept
+2026-04-28 09:47:32,673 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001
+2026-04-28 09:47:37,360 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001 as accept
+2026-04-28 09:47:37,413 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0187_whole_001
+2026-04-28 09:47:40,697 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0187_whole_001 as accept
+2026-04-28 09:47:40,713 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_whole_002
+2026-04-28 09:47:41,414 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_whole_002 as accept
+2026-04-28 09:47:41,430 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_003
+2026-04-28 09:47:42,602 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_003 as accept
+2026-04-28 09:47:42,618 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_005
+2026-04-28 09:47:44,850 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_005 as overmerged
+2026-04-28 09:47:44,883 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_007
+2026-04-28 09:47:48,249 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_007 as accept
+2026-04-28 09:47:48,301 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0019_whole_001
+2026-04-28 09:47:50,110 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0019_whole_001 as overmerged
+2026-04-28 09:47:50,125 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_001
+2026-04-28 09:47:52,435 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0022_whole_001 as accept
+2026-04-28 09:47:52,451 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_002
+2026-04-28 09:47:54,082 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_002 as overmerged
+2026-04-28 09:47:54,113 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0046_whole_002
+2026-04-28 09:47:56,860 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0046_whole_002 as partial
+2026-04-28 09:47:56,889 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_002
+2026-04-28 09:47:58,593 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_002 as accept
+2026-04-28 09:47:58,614 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0013_whole_002
+2026-04-28 09:47:59,831 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0013_whole_002 as accept
+2026-04-28 09:47:59,916 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0023_whole_001
+2026-04-28 09:48:02,912 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0023_whole_001 as accept
+2026-04-28 09:48:02,943 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_002
+2026-04-28 09:48:04,934 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_002 as accept
+2026-04-28 09:48:04,973 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0180_whole_001
+2026-04-28 09:48:07,258 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0180_whole_001 as accept
+2026-04-28 09:48:07,274 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_003
+2026-04-28 09:48:10,520 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_003 as overmerged
+2026-04-28 09:48:10,536 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0193_whole_003
+2026-04-28 09:48:12,698 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0193_whole_003 as accept
+2026-04-28 09:48:12,714 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0004_whole_001
+2026-04-28 09:48:14,585 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0004_whole_001 as accept
+2026-04-28 09:48:14,601 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_003
+2026-04-28 09:48:16,021 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_003 as overmerged
+2026-04-28 09:48:16,021 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0023_whole_001
+2026-04-28 09:48:17,526 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0023_whole_001 as accept
+2026-04-28 09:48:17,542 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_006
+2026-04-28 09:48:19,930 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_006 as accept
+2026-04-28 09:48:19,953 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_003
+2026-04-28 09:48:20,640 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_003 as accept
+2026-04-28 09:48:20,663 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0006_whole_001
+2026-04-28 09:48:22,477 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0006_whole_001 as accept
+2026-04-28 09:48:22,493 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0196_whole_001
+2026-04-28 09:48:24,199 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0196_whole_001 as overmerged
+2026-04-28 09:48:24,221 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_003
+2026-04-28 09:48:27,203 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_003 as overmerged
+2026-04-28 09:48:27,279 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_001
+2026-04-28 09:48:32,156 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_001 as overmerged
+2026-04-28 09:48:32,232 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_004
+2026-04-28 09:48:39,009 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_004 as overmerged
+2026-04-28 09:48:39,089 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_002
+2026-04-28 09:48:41,385 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_002 as overmerged
+2026-04-28 09:48:41,427 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-04-28 09:48:47,278 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001 as overmerged
+2026-04-28 09:48:47,299 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001
+2026-04-28 09:48:50,950 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001 as overmerged
+2026-04-28 09:48:50,966 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0194_whole_001
+2026-04-28 09:48:52,614 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0194_whole_001 as accept
+2026-04-28 09:48:52,630 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_001
+2026-04-28 09:48:53,741 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0021_whole_001 as accept
+2026-04-28 09:48:53,761 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_002
+2026-04-28 09:48:55,734 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_002 as overmerged
+2026-04-28 09:48:55,766 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_002
+2026-04-28 09:49:00,911 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_002 as overmerged
+2026-04-28 09:49:00,933 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_001
+2026-04-28 09:49:02,452 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0004_whole_001 as overmerged
+2026-04-28 09:49:02,477 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0013_whole_002
+2026-04-28 09:49:05,899 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0013_whole_002 as accept
+2026-04-28 09:49:05,915 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0005_whole_002
+2026-04-28 09:49:06,819 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0005_whole_002 as accept
+2026-04-28 09:49:06,834 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0197_whole_001
+2026-04-28 09:49:08,520 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0197_whole_001 as overmerged
+2026-04-28 09:49:08,552 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0045_whole_001
+2026-04-28 09:49:10,662 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0045_whole_001 as overmerged
+2026-04-28 09:49:10,739 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0181_whole_001
+2026-04-28 09:49:13,002 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0181_whole_001 as accept
+2026-04-28 09:49:13,069 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_001
+2026-04-28 09:49:15,375 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_001 as overmerged
+2026-04-28 09:49:15,423 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_001
+2026-04-28 09:49:18,975 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_001 as overmerged
+2026-04-28 09:49:19,004 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0193_whole_002
+2026-04-28 09:49:22,498 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0193_whole_002 as accept
+2026-04-28 09:49:22,565 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_001
+2026-04-28 09:49:25,592 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_001 as overmerged
+2026-04-28 09:49:25,660 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001
+2026-04-28 09:49:27,516 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001 as overmerged
+2026-04-28 09:49:27,547 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_005
+2026-04-28 09:49:29,512 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_005 as accept
+2026-04-28 09:49:29,554 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_001
+2026-04-28 09:49:33,148 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_001 as overmerged
+2026-04-28 09:49:33,180 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_002
+2026-04-28 09:49:35,006 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_002 as overmerged
+2026-04-28 09:49:35,026 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_001
+2026-04-28 09:49:37,451 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_001 as overmerged
+2026-04-28 09:49:37,467 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0008_whole_001
+2026-04-28 09:49:42,458 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0008_whole_001 as accept
+2026-04-28 09:49:42,474 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009_whole_001
+2026-04-28 09:49:45,122 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0009_whole_001 as accept
+2026-04-28 09:49:45,139 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_001
+2026-04-28 09:49:46,508 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_001 as accept
+2026-04-28 09:49:46,533 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_004
+2026-04-28 09:49:48,209 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_004 as overmerged
+2026-04-28 09:49:48,223 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0050_whole_002
+2026-04-28 09:49:49,493 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0050_whole_002 as accept
+2026-04-28 09:49:49,585 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_001
+2026-04-28 09:49:55,703 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_001 as overmerged
+2026-04-28 09:49:55,808 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0016_whole_001
+2026-04-28 09:50:04,977 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0016_whole_001 as overmerged
+2026-04-28 09:50:05,026 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_003
+2026-04-28 09:50:08,269 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_003 as overmerged
+2026-04-28 09:50:08,348 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0028_whole_001
+2026-04-28 09:50:11,990 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0028_whole_001 as overmerged
+2026-04-28 09:50:12,079 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001
+2026-04-28 09:50:13,739 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001 as overmerged
+2026-04-28 09:50:13,812 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_001
+2026-04-28 09:50:17,564 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_001 as accept
+2026-04-28 09:50:17,635 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_001
