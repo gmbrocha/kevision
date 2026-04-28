@@ -24,6 +24,16 @@ CloudHammer/data/**/*.jpeg
 runs/**/*.png
 runs/**/*.jpg
 runs/**/*.jpeg
+CloudHammer/data/rasterized_pages/
+CloudHammer/data/raw_pdfs/
+CloudHammer/data/*roi_images*/
+CloudHammer/data/*crops*/
+CloudHammer/data/*predictions*/
+CloudHammer/data/*prelabel*/
+CloudHammer/data/yolo*/
+
+# Local scratch/reference captures
+REVISIT_INDIVIDUAL_REV_SCOPE/
 
 # Tempfiles
 *.tmp

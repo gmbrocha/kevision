@@ -1,0 +1,80 @@
+2026-04-28 12:53:22,744 INFO Starting split reviewer manifest=F:\Desktop\m\projects\kevision\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\release_v1\split_review_queue.jsonl review_log=F:\Desktop\m\projects\kevision\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.release_v1.split_review.jsonl candidates=39 reviewed=0
+2026-04-28 12:53:23,265 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001
+2026-04-28 12:54:33,944 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001 as still_overmerged
+2026-04-28 12:54:34,117 INFO Loaded split candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-04-28 12:55:51,175 INFO Reviewed split candidate Revision_Set_7_37f6066a_p0003_whole_001 as still_overmerged
+2026-04-28 12:55:51,299 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001
+2026-04-28 12:56:41,728 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001 as still_overmerged
+2026-04-28 12:56:41,807 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0028_whole_001
+2026-04-28 12:56:54,689 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0028_whole_001 as still_overmerged
+2026-04-28 12:56:54,756 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001
+2026-04-28 12:57:24,846 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001 as still_overmerged
+2026-04-28 12:57:24,947 INFO Loaded split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0184_whole_001
+2026-04-28 12:57:49,146 INFO Reviewed split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0184_whole_001 as split_variant_4
+2026-04-28 12:57:49,257 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0016_whole_001
+2026-04-28 12:57:56,898 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0016_whole_001 as split_variant_4
+2026-04-28 12:57:57,040 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_001
+2026-04-28 12:58:07,974 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_001 as split_variant_4
+2026-04-28 12:58:08,052 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0019_whole_001
+2026-04-28 12:58:17,378 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0019_whole_001 as split_variant_4
+2026-04-28 12:58:17,488 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0023_whole_001
+2026-04-28 12:58:59,619 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0023_whole_001 as current_ok
+2026-04-28 12:58:59,736 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0027_whole_001
+2026-04-28 12:59:15,941 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0027_whole_001 as split_variant_2
+2026-04-28 12:59:16,037 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_001
+2026-04-28 12:59:32,582 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0015_whole_001 as split_variant_2
+2026-04-28 12:59:32,630 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-04-28 13:00:58,342 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001 as still_overmerged
+2026-04-28 13:00:58,385 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_002
+2026-04-28 13:01:07,766 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0026_whole_002 as split_variant_4
+2026-04-28 13:01:07,905 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-04-28 13:03:14,271 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002 as still_overmerged
+2026-04-28 13:03:14,344 INFO Loaded split candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001
+2026-04-28 13:03:20,876 INFO Reviewed split candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001 as split_variant_4
+2026-04-28 13:03:20,979 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_001
+2026-04-28 13:03:46,565 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0010_whole_001 as split_variant_1
+2026-04-28 13:03:46,632 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_001
+2026-04-28 13:04:11,619 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_001 as still_overmerged
+2026-04-28 13:04:11,684 INFO Loaded split candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_whole_001
+2026-04-28 13:04:21,110 INFO Reviewed split candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0004_whole_001 as split_variant_2
+2026-04-28 13:04:21,162 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_001
+2026-04-28 13:05:09,567 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_001 as split_variant_4
+2026-04-28 13:05:09,618 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_001
+2026-04-28 13:05:20,292 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_001 as split_variant_4
+2026-04-28 13:05:20,359 INFO Loaded split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_001
+2026-04-28 13:05:31,485 INFO Reviewed split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_001 as split_variant_4
+2026-04-28 13:05:31,536 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017_whole_001
+2026-04-28 13:05:40,443 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017_whole_001 as still_overmerged
+2026-04-28 13:05:40,529 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0046_whole_001
+2026-04-28 13:05:53,988 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0046_whole_001 as split_variant_2
+2026-04-28 13:05:54,038 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001
+2026-04-28 13:06:03,962 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001 as still_overmerged
+2026-04-28 13:06:04,050 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_001
+2026-04-28 13:06:09,399 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_001 as split_variant_4
+2026-04-28 13:06:09,451 INFO Loaded split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0186_whole_001
+2026-04-28 13:06:14,822 INFO Reviewed split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0186_whole_001 as split_variant_4
+2026-04-28 13:06:14,888 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_002
+2026-04-28 13:06:27,252 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_002 as split_variant_4
+2026-04-28 13:06:27,303 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_002
+2026-04-28 13:06:43,796 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_002 as split_variant_4
+2026-04-28 13:06:43,812 INFO Loaded split candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001
+2026-04-28 13:06:50,768 INFO Reviewed split candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001 as split_variant_4
+2026-04-28 13:06:50,823 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_003
+2026-04-28 13:07:05,984 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_003 as split_variant_4
+2026-04-28 13:07:06,065 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_004
+2026-04-28 13:07:14,237 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_004 as split_variant_4
+2026-04-28 13:07:14,254 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_001
+2026-04-28 13:07:21,277 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0048_whole_001 as split_variant_4
+2026-04-28 13:07:21,326 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0045_whole_001
+2026-04-28 13:07:41,193 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0045_whole_001 as split_variant_2
+2026-04-28 13:07:41,226 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_004
+2026-04-28 13:08:01,377 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0029_whole_004 as split_variant_4
+2026-04-28 13:08:01,393 INFO Loaded split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0195_whole_001
+2026-04-28 13:08:18,841 INFO Reviewed split candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0195_whole_001 as split_variant_4
+2026-04-28 13:08:18,858 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_003
+2026-04-28 13:08:27,815 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0011_whole_003 as split_variant_4
+2026-04-28 13:08:27,832 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_001
+2026-04-28 13:08:35,572 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0017_whole_001 as split_variant_4
+2026-04-28 13:08:35,589 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_004
+2026-04-28 13:08:46,180 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_004 as split_variant_4
+2026-04-28 13:08:46,197 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0030_whole_004

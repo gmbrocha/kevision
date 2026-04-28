@@ -70,14 +70,14 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
     clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
 
     approved = [item for item in store.data.change_items if item.status == "approved"]
-    groups: dict[tuple[str, str | None], list[ChangeItem]] = {}
+    groups: dict[tuple[str, str, str], list[ChangeItem]] = {}
     for item in approved:
-        key = (item.sheet_id, item.detail_ref or None)
+        key = _group_key(item)
         groups.setdefault(key, []).append(item)
 
     grouped_rows: list[tuple[str, int, RevisionChangelogRow]] = []
     sheet_counters: dict[str, int] = {}
-    for (sheet_id, detail_ref), items in groups.items():
+    for (sheet_id, _, detail_ref), items in groups.items():
         sheet_counters[sheet_id] = sheet_counters.get(sheet_id, 0) + 1
         seq = sheet_counters[sheet_id]
         canonical_sheet = items[0]
@@ -97,6 +97,14 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
 
     grouped_rows.sort(key=lambda triple: (triple[0], triple[1]))
     return [row for _, _, row in grouped_rows]
+
+
+def _group_key(item: ChangeItem) -> tuple[str, str, str]:
+    if item.detail_ref:
+        return (item.sheet_id, "detail", item.detail_ref)
+    if item.cloud_candidate_id:
+        return (item.sheet_id, "cloud", item.cloud_candidate_id)
+    return (item.sheet_id, "item", item.id)
 
 
 def _format_correlation(sheet_id: str, seq: int) -> str:

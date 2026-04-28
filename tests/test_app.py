@@ -6,7 +6,10 @@ from pathlib import Path
 
 import pytest
 
+from backend.cli import approve_cloudhammer_detections
+from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
+from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, SheetVersion
 from backend.review import change_item_needs_attention
 from backend.revision_state.tracker import RevisionScanner
 from backend.workspace import WorkspaceStore
@@ -54,6 +57,152 @@ def test_export_does_not_block_without_attention_items(workspace_copy):
     store = WorkspaceStore(workspace_copy).load()
     outputs = Exporter(store).export()
     assert "revision_changelog_xlsx" in outputs
+
+
+def test_manifest_cloudhammer_client_returns_scaled_detections(tmp_path: Path):
+    crop_path = tmp_path / "crop.png"
+    crop_path.write_bytes(b"png")
+    pdf_path = tmp_path / "revision.pdf"
+    pdf_path.write_bytes(b"%PDF")
+    manifest = tmp_path / "manifest.jsonl"
+    manifest.write_text(
+        json.dumps(
+            {
+                "candidate_id": "cand-1",
+                "pdf_path": str(pdf_path),
+                "page_number": 2,
+                "page_width": 1000,
+                "page_height": 500,
+                "tight_crop_image_path": str(crop_path),
+                "bbox_page_xywh": [100, 50, 200, 100],
+                "whole_cloud_confidence": 0.91,
+                "policy_bucket": "auto_deliverable_candidate",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf=str(pdf_path),
+        page_number=2,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        render_path=str(tmp_path / "page.png"),
+        width=500,
+        height=250,
+    )
+
+    detections = ManifestCloudInferenceClient(manifest).detect(page=None, sheet=sheet)  # type: ignore[arg-type]
+
+    assert len(detections) == 1
+    assert detections[0].bbox == [50, 25, 100, 50]
+    assert detections[0].image_path == str(crop_path.resolve())
+    assert detections[0].extraction_method == "cloudhammer_manifest"
+
+
+def test_approve_cloudhammer_detections_only_marks_manifest_visual_items(tmp_path: Path):
+    store = WorkspaceStore(tmp_path / "workspace").create(tmp_path)
+    store.data.change_items = [
+        ChangeItem(
+            id="cloud",
+            sheet_version_id="s1",
+            cloud_candidate_id="c1",
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text="CloudHammer detected revision cloud",
+            normalized_text="cloudhammer detected revision cloud",
+            provenance={"source": "visual-region", "extraction_method": "cloudhammer_manifest"},
+        ),
+        ChangeItem(
+            id="narrative",
+            sheet_version_id="s1",
+            cloud_candidate_id=None,
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text="Narrative item",
+            normalized_text="narrative item",
+            provenance={"source": "narrative"},
+        ),
+    ]
+
+    changed = approve_cloudhammer_detections(store)
+
+    assert changed == 1
+    assert store.data.change_items[0].status == "approved"
+    assert store.data.change_items[1].status == "pending"
+
+
+def test_visual_region_signal_score_handles_cloudhammer_placeholder():
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+    )
+
+    score = scanner._signal_score("CloudHammer detected revision cloud. OCR/scope extraction is not wired yet.", sheet)
+
+    assert score > 0.5
+
+
+def test_cloudhammer_manifest_clouds_get_visual_items_even_with_narratives():
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    narrative = NarrativeEntry(
+        id="narrative-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        heading="Revision narrative",
+        summary="Replace existing fixture.",
+    )
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        narrative_entry_ids=[narrative.id],
+    )
+    clouds = [
+        CloudCandidate(
+            id="cloud-1",
+            sheet_version_id=sheet.id,
+            bbox=[0, 0, 10, 10],
+            image_path="crop-1.png",
+            page_image_path="page.png",
+            confidence=0.9,
+            extraction_method="cloudhammer_manifest",
+            nearby_text="Cloud Only - CloudHammer detected revision cloud. candidate=c1",
+            detail_ref=None,
+        ),
+        CloudCandidate(
+            id="cloud-2",
+            sheet_version_id=sheet.id,
+            bbox=[20, 20, 10, 10],
+            image_path="crop-2.png",
+            page_image_path="page.png",
+            confidence=0.8,
+            extraction_method="cloudhammer_manifest",
+            nearby_text="Cloud Only - CloudHammer detected revision cloud. candidate=c2",
+            detail_ref=None,
+        ),
+    ]
+
+    items = scanner._generate_change_items([narrative], [sheet], clouds)
+
+    assert len(items) == 3
+    assert Counter(item.provenance["source"] for item in items) == {"narrative": 1, "visual-region": 2}
+    assert {item.cloud_candidate_id for item in items if item.provenance["source"] == "visual-region"} == {"cloud-1", "cloud-2"}
 
 
 def test_export_only_approved_items_when_forced(workspace_copy):

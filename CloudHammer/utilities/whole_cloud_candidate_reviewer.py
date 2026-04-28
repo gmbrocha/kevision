@@ -446,6 +446,7 @@ class ReviewerWindow(QMainWindow):
             f"Confidence: {candidate.confidence:.3f} ({row.get('confidence_tier')})",
             f"Size: {candidate.size_bucket}",
             f"Members: {candidate.member_count}",
+            f"Policy: {row.get('policy_bucket', 'unbucketed')}",
             f"Page: {compact_middle(str(row.get('pdf_stem')), 34)} p{row.get('page_number')}",
             "",
             f"Crop: {compact_middle(crop_name, 42)}",

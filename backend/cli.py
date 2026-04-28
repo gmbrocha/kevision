@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from .cloudhammer_client.inference import ManifestCloudInferenceClient
 from .deliverables.excel_exporter import ExportBlockedError, Exporter
 from .revision_state.tracker import RevisionScanner
 from .workspace import WorkspaceStore
@@ -37,6 +38,17 @@ def build_parser() -> argparse.ArgumentParser:
     scan_parser = subparsers.add_parser("scan", help="Scan revision PDFs into a workspace.")
     scan_parser.add_argument("input_dir", type=Path)
     scan_parser.add_argument("workspace_dir", type=Path)
+    scan_parser.add_argument(
+        "--cloudhammer-manifest",
+        type=Path,
+        default=None,
+        help="Attach CloudHammer detections from a release/tight-crop manifest during scan.",
+    )
+    scan_parser.add_argument(
+        "--approve-cloudhammer-detections",
+        action="store_true",
+        help="Mark CloudHammer visual detections approved so the workbook exporter includes them immediately.",
+    )
 
     serve_parser = subparsers.add_parser("serve", help="Run the local review app.")
     serve_parser.add_argument("workspace_dir", type=Path)
@@ -55,8 +67,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "scan":
-        scanner = RevisionScanner(args.input_dir, args.workspace_dir)
+        cloud_client = ManifestCloudInferenceClient(args.cloudhammer_manifest) if args.cloudhammer_manifest else None
+        scanner = RevisionScanner(args.input_dir, args.workspace_dir, cloud_inference_client=cloud_client)
         store = scanner.scan()
+        approved_cloudhammer = 0
+        if args.approve_cloudhammer_detections:
+            approved_cloudhammer = approve_cloudhammer_detections(store)
         affected_documents = len([document for document in store.data.documents if document.issue_count])
         message = (
             f"Scanned {len(store.data.revision_sets)} revision sets, "
@@ -64,6 +80,10 @@ def main(argv: list[str] | None = None) -> int:
             f"{len(store.data.change_items)} change items, "
             f"{len(store.data.preflight_issues)} diagnostics across {affected_documents} documents into {args.workspace_dir}"
         )
+        if args.cloudhammer_manifest:
+            message += f" with {len(store.data.clouds)} CloudHammer cloud candidate(s)"
+        if approved_cloudhammer:
+            message += f" ({approved_cloudhammer} CloudHammer change item(s) auto-approved for preview export)"
         if scanner.cache_hits:
             message += f" ({scanner.cache_hits} unchanged PDFs reused from cache)"
         print(message)
@@ -90,6 +110,21 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.error(f"Unsupported command: {args.command}")
     return 2
+
+
+def approve_cloudhammer_detections(store: WorkspaceStore) -> int:
+    changed = 0
+    updated = []
+    for item in store.data.change_items:
+        if item.provenance.get("source") == "visual-region" and item.provenance.get("extraction_method") == "cloudhammer_manifest":
+            item.status = "approved"
+            item.reviewer_text = item.reviewer_text or item.raw_text
+            changed += 1
+        updated.append(item)
+    store.data.change_items = updated
+    if changed:
+        store.save()
+    return changed
 
 
 def format_export_summary(summary: dict, outputs: dict[str, str], workspace_dir: Path) -> str:

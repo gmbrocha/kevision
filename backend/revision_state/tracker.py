@@ -508,6 +508,43 @@ class RevisionScanner:
             )
         return candidates
 
+    def _signal_score(self, raw_text: str, sheet: SheetVersion) -> float:
+        """Estimate whether a visual-region item carries useful scope text.
+
+        Visual detections can exist before OCR/scope extraction is fully wired.
+        The score is diagnostic only; it should not decide whether a cloud is
+        exported.
+        """
+
+        text = normalize_text(raw_text)
+        if not text:
+            return 0.1
+        if "cloudhammer detected revision cloud" in text:
+            return 0.65
+        if text.startswith("possible revision region"):
+            return 0.25 if sheet.sheet_id.lower() in text else 0.2
+        scope_terms = (
+            "install",
+            "replace",
+            "remove",
+            "repair",
+            "provide",
+            "modify",
+            "relocate",
+            "reroute",
+            "patch",
+            "infill",
+            "connect",
+        )
+        score = 0.35
+        if any(term in text for term in scope_terms):
+            score += 0.35
+        if parse_detail_ref(raw_text, sheet.sheet_id):
+            score += 0.15
+        if len(text) > 80:
+            score += 0.1
+        return min(1.0, score)
+
     def _generate_change_items(
         self,
         narratives: list[NarrativeEntry],
@@ -543,9 +580,9 @@ class RevisionScanner:
                         },
                     )
                     unique[(item.sheet_id, item.detail_ref, item.normalized_text)] = item
-                continue
 
-            for cloud in sheet_clouds:
+            visual_clouds = [cloud for cloud in sheet_clouds if cloud.extraction_method == "cloudhammer_manifest"] if sheet_narratives else sheet_clouds
+            for cloud in visual_clouds:
                 raw_text = cloud.nearby_text or (f"Possible revision region near {cloud.detail_ref}" if cloud.detail_ref else "Possible revision region")
                 dedupe_key = (sheet.sheet_id, cloud.detail_ref, normalize_text(raw_text))
                 if (

@@ -2170,3 +2170,216 @@ Readout:
 Verification:
 
 - CloudHammer tests passed: `35 passed`
+
+## 2026-04-28 - Low-Fill Tuned Audit 80 and Tight Crop Artifacts
+
+Goal:
+
+- Measure the safer low-fill tuned whole-cloud candidate run with real human
+  review.
+- Start separating candidate correctness from deliverable crop presentation by
+  creating tighter crop artifacts from accepted candidates only.
+
+Audit queue:
+
+- Manifest:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/audit_queue_080/manifest.jsonl`
+- Review log:
+  `CloudHammer/data/whole_cloud_candidate_reviews/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.audit80.review.jsonl`
+- Review analysis:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/audit_queue_080/review_analysis`
+
+Audit result:
+
+- reviewed: `80 / 80`
+- accepted: `56`
+- overmerged: `14`
+- false positive: `6`
+- partial: `4`
+- overall accept rate: `70.0%`
+
+Notable readout:
+
+- High-confidence candidates were `51 / 66` accepted.
+- Low-confidence candidates were mostly not usable: `1 / 10` accepted.
+- Small candidates were strongest in this audit: `32 / 38` accepted.
+- Larger candidates still need split/overmerge work before auto-export.
+
+Crop tightening:
+
+- Code:
+  - `CloudHammer/cloudhammer/infer/crop_tightening.py`
+  - `CloudHammer/scripts/tighten_whole_cloud_candidate_crops.py`
+- Output:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/audit_queue_080/tightened_crops_v1`
+- Input scope: reviewed `accept` rows only.
+- Tightened artifacts: `56`
+- Median tightened crop area ratio vs original crop: `0.170598`
+- Median area reduction: `82.94%`
+- Contact sheet:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/audit_queue_080/tightened_crops_v1/contact_sheets/before_after.png`
+
+Readout:
+
+- This first tightening pass does not change model/grouping output or review
+  truth.
+- It recrops accepted candidates from original page renders around the detected
+  whole-cloud box with a smaller adaptive margin.
+- The pass is suitable for visual inspection and downstream deliverable artifact
+  experiments.
+- It should not yet be used to override model evaluation boxes or treat rejected
+  candidates as solved.
+
+Verification:
+
+- CloudHammer tests passed: `37 passed`
+- Audit analysis generated successfully.
+- Tightened crop artifacts generated successfully.
+
+## 2026-04-28 - Candidate Release V1 and Split-Risk Queue
+
+Goal:
+
+- Convert the low-fill tuned candidate run into a practical release/export
+  structure.
+- Keep reviewed rejections out of the default release.
+- Keep unreviewed high-trust candidates moving.
+- Isolate overmerge-risk candidates for focused split review instead of broad
+  relabeling.
+
+Code:
+
+- `CloudHammer/cloudhammer/infer/candidate_release.py`
+- `CloudHammer/scripts/build_whole_cloud_candidate_release.py`
+- `CloudHammer/scripts/tighten_whole_cloud_candidate_crops.py`
+
+Inputs:
+
+- Policy manifest:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/policy_v1/candidates_with_policy.jsonl`
+- Review log:
+  `CloudHammer/data/whole_cloud_candidate_reviews/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.audit80.review.jsonl`
+
+Release rules:
+
+- Human `accept` wins and enters the release.
+- Human `overmerged` goes to split review.
+- Human `false_positive`, `partial`, or `uncertain` is quarantined.
+- Unreviewed `auto_deliverable_candidate` enters the release.
+- Unreviewed `needs_split_review` goes to split review.
+- Unreviewed `likely_false_positive` is quarantined.
+- Unreviewed `review_candidate` and `low_priority_review` remain review queues.
+
+Release output:
+
+- Directory:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/release_v1`
+- Total candidates: `292`
+- Default release candidates: `137`
+  - `56` admitted by human accept
+  - `81` admitted by policy auto-deliverable route
+- Split-review queue: `39`
+  - `25` from policy `needs_split_review`
+  - `14` from human `overmerged`
+- Normal review queue: `61`
+- Low-priority review queue: `18`
+- Quarantined candidates: `37`
+  - `27` policy likely false positives
+  - `10` human rejected/issue candidates
+
+Tightened release artifacts:
+
+- Directory:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/release_v1/tightened_release_artifacts`
+- Tightened release crops: `137`
+- Median tightened crop area ratio vs original crop: `0.162592`
+- Median area reduction: `83.74%`
+- Contact sheet:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/release_v1/tightened_release_artifacts/contact_sheets/before_after.png`
+
+Split queue readiness:
+
+- Manifest:
+  `CloudHammer/runs/whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428/release_v1/split_review_queue.jsonl`
+- Candidates: `39`
+- Candidates with split proposals: `39`
+- Total split proposal variants: `156`
+- Total proposed split groups across variants: `439`
+
+Readout:
+
+- This is the first usable CloudHammer release candidate pack for downstream
+  deliverable experiments.
+- It is intentionally conservative: reviewed bad candidates and likely false
+  positives are not exported by default.
+- The next human task, when needed, is focused split review on the `39`
+  overmerge-risk candidates, not broad candidate review.
+
+Verification:
+
+- CloudHammer tests passed: `39 passed`
+- Candidate release manifest generated successfully.
+- Tightened release crop artifacts generated successfully.
+- Split-review queue loads successfully in the existing split proposal machinery.
+
+## 2026-04-28 - End-to-End CloudHammer Deliverable Preview Attempt
+
+- A synthetic preview bundle was briefly used to sanity-check whether
+  CloudHammer crop rows could reach the existing workbook writer.
+- That scaffold is not the target product path and is not being preserved as a
+  committed command.
+- The useful finding from the attempt was an exporter bug: cloud-only changes
+  on the same sheet were grouped by `(sheet_id, detail_ref)`, collapsing `137`
+  release candidates to `40` workbook crop rows.
+- The exporter grouping fix is kept: distinct cloud candidates on the same sheet
+  now remain separate workbook rows.
+
+## 2026-04-28 14:27 - Real Backend Export With CloudHammer Manifest
+
+Correction:
+
+- The earlier synthetic preview bundle was only a scaffold around the exporter.
+  It is not the target production path.
+- The real path is now wired through `backend scan`, using a CloudHammer release
+  manifest as the scanner's cloud inference source.
+
+Command run from repo root:
+
+```powershell
+.\.venv\Scripts\python.exe -m backend scan revision_sets runs\cloudhammer_real_export_v3 --cloudhammer-manifest CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\release_v1\tightened_release_artifacts\tightened_candidates_manifest.jsonl --approve-cloudhammer-detections
+.\.venv\Scripts\python.exe -m backend export runs\cloudhammer_real_export_v3 --force-attention
+```
+
+Backend changes:
+
+- Added `ManifestCloudInferenceClient`, which maps CloudHammer manifest rows to
+  real scanned sheet pages and returns `CloudDetection` records.
+- Added `--cloudhammer-manifest` and `--approve-cloudhammer-detections` to the
+  real backend `scan` command.
+- Fixed scanner change-item generation so CloudHammer manifest clouds always
+  get exportable visual-region rows, even on sheets that also have narrative
+  entries.
+- Kept the exporter grouping fix so separate cloud candidates on the same sheet
+  remain separate workbook rows.
+
+Verified output:
+
+- Workspace: `runs/cloudhammer_real_export_v3`
+- Real exporter workbook:
+  `runs/cloudhammer_real_export_v3/outputs/revision_changelog.xlsx`
+- Manifest rows: `137`
+- Workspace CloudHammer clouds: `137`
+- Approved CloudHammer change items: `137`
+- Embedded workbook crop images: `137`
+- Additional pending narrative items: `13`
+
+Notes:
+
+- The pricing CSVs are legacy exporter outputs and are not meaningful for the
+  CloudHammer cloud-crop milestone.
+- Scope text is still placeholder text until OCR/scope extraction is wired.
+
+Verification:
+
+- `.\.venv\Scripts\python.exe -m pytest tests/test_app.py -q`
+- Result: `24 passed`

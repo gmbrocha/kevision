@@ -14,7 +14,9 @@ from cloudhammer.bootstrap.cloud_roi_extract import clip_bbox_xywh, derive_targe
 from cloudhammer.bootstrap.roi_extract import clip_square_roi
 from cloudhammer.contracts.detections import CloudDetection, DetectionPage
 from cloudhammer.data.yolo import _convert_voc_xml_to_yolo, _write_label
+from cloudhammer.infer.candidate_release import attach_release_decisions, decide_candidate_release
 from cloudhammer.infer.candidate_policy import classify_whole_cloud_candidate
+from cloudhammer.infer.crop_tightening import CropTighteningParams, crop_metrics, tightened_crop_box_for_bbox
 from cloudhammer.infer.detect import infer_page_image
 from cloudhammer.infer.fragment_grouping import GroupingParams, group_fragment_detections
 from cloudhammer.infer.merge import bbox_iou_xywh, nms_detections
@@ -673,6 +675,34 @@ def test_whole_cloud_confidence_rewards_multi_fragment_groups() -> None:
     assert whole_cloud_confidence(multi, 1000, 1000) > whole_cloud_confidence(singleton, 1000, 1000)
 
 
+def test_tightened_crop_box_uses_smaller_adaptive_margin() -> None:
+    crop = tightened_crop_box_for_bbox(
+        (100.0, 120.0, 400.0, 280.0),
+        page_width=800,
+        page_height=600,
+        params=CropTighteningParams(margin_ratio=0.1, min_margin=35, max_margin=80, min_crop_side=120),
+    )
+
+    assert crop == (65.0, 85.0, 435.0, 315.0)
+    metrics = crop_metrics((0.0, 0.0, 700.0, 500.0), crop, (100.0, 120.0, 400.0, 280.0))
+    assert metrics["area_ratio_vs_original"] < 0.25
+    assert metrics["area_reduction_pct"] > 75.0
+
+
+def test_tightened_crop_box_clips_to_page_bounds() -> None:
+    crop = tightened_crop_box_for_bbox(
+        (5.0, 10.0, 80.0, 90.0),
+        page_width=120,
+        page_height=110,
+        params=CropTighteningParams(margin_ratio=0.5, min_margin=50, max_margin=80, min_crop_side=100),
+    )
+
+    assert crop[0] == 0.0
+    assert crop[1] == 0.0
+    assert crop[2] <= 120.0
+    assert crop[3] <= 110.0
+
+
 def test_whole_cloud_candidate_policy_buckets_review_risk() -> None:
     assert (
         classify_whole_cloud_candidate(
@@ -698,3 +728,41 @@ def test_whole_cloud_candidate_policy_buckets_review_risk() -> None:
         )["policy_bucket"]
         == "low_priority_review"
     )
+
+
+def test_release_decision_uses_human_review_before_policy() -> None:
+    auto_overmerged = decide_candidate_release(
+        {
+            "policy_bucket": "auto_deliverable_candidate",
+            "review_status": "overmerged",
+        }
+    )
+    likely_fp_accepted = decide_candidate_release(
+        {
+            "policy_bucket": "likely_false_positive",
+            "review_status": "accept",
+        }
+    )
+
+    assert auto_overmerged.action == "needs_split_review"
+    assert not auto_overmerged.include_in_default_release
+    assert likely_fp_accepted.action == "release_candidate"
+    assert likely_fp_accepted.include_in_default_release
+
+
+def test_attach_release_decisions_routes_unreviewed_policy_buckets() -> None:
+    rows = attach_release_decisions(
+        [
+            {"candidate_id": "a", "policy_bucket": "auto_deliverable_candidate"},
+            {"candidate_id": "b", "policy_bucket": "needs_split_review"},
+            {"candidate_id": "c", "policy_bucket": "likely_false_positive"},
+            {"candidate_id": "d", "policy_bucket": "review_candidate"},
+        ]
+    )
+
+    assert [row["release_action"] for row in rows] == [
+        "release_candidate",
+        "needs_split_review",
+        "quarantine_likely_false_positive",
+        "review_candidate",
+    ]
