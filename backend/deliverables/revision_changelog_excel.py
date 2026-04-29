@@ -45,6 +45,16 @@ ROWS_PER_GROUP = 14
 SCOPE_COL = 5
 DETAIL_VIEW_COL = 6
 CROP_TARGET_PX = (520, ROWS_PER_GROUP * 18)
+HEADER_FILL = "111827"
+HEADER_TEXT = "FFFFFF"
+BLOCK_FILL = "FFFFFF"
+BLOCK_ALT_FILL = "F8FAFC"
+META_FILL = "EEF3F8"
+META_ALT_FILL = "E7EEF6"
+CROP_FILL = "FFFFFF"
+BORDER_COLOR = "CDD6E2"
+BORDER_STRONG_COLOR = "7D8DA1"
+ACCENT_COLOR = "0F766E"
 
 
 @dataclass
@@ -179,28 +189,37 @@ def _pick_crop_path(items: list[ChangeItem], clouds_by_id: dict[str, object]) ->
 
 def _write_workbook(rows: list[RevisionChangelogRow], output_path: Path) -> None:
     wb = Workbook()
+    wb.properties.creator = "KEVISION"
+    wb.properties.title = "Revision Changelog"
     ws = wb.active
     ws.title = "Sheet1"
+    ws.sheet_view.showGridLines = False
+    ws.freeze_panes = "A2"
+    ws.sheet_properties.tabColor = ACCENT_COLOR
 
-    header_font = Font(bold=True)
-    header_fill = PatternFill("solid", fgColor="DDDDDD")
-    thin = Side(border_style="thin", color="888888")
+    header_font = Font(bold=True, color=HEADER_TEXT)
+    header_fill = PatternFill("solid", fgColor=HEADER_FILL)
+    thin = Side(border_style="thin", color=BORDER_COLOR)
+    strong = Side(border_style="medium", color=BORDER_STRONG_COLOR)
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    header_alignment = Alignment(wrap_text=True, vertical="center", horizontal="center")
     wrap = Alignment(wrap_text=True, vertical="top")
+    center_wrap = Alignment(wrap_text=True, vertical="top", horizontal="center")
 
     for idx, (header, width) in enumerate(COLUMNS, 1):
         cell = ws.cell(row=1, column=idx, value=header)
         cell.font = header_font
         cell.fill = header_fill
-        cell.alignment = wrap
+        cell.alignment = header_alignment
         cell.border = border
         ws.column_dimensions[get_column_letter(idx)].width = width
-    ws.row_dimensions[1].height = 22
+    ws.row_dimensions[1].height = 30
 
     cursor = 2
-    for revision_row in rows:
+    for row_index, revision_row in enumerate(rows):
         block_top = cursor
         block_bottom = cursor + ROWS_PER_GROUP - 1
+        is_alt = row_index % 2 == 1
 
         ws.cell(row=block_top, column=1, value=revision_row.correlation).alignment = wrap
         ws.cell(row=block_top, column=2, value=revision_row.drawing).alignment = wrap
@@ -210,6 +229,25 @@ def _write_workbook(rows: list[RevisionChangelogRow], output_path: Path) -> None
         scope_text = _format_scope_text(revision_row.scope_lines)
         scope_cell = ws.cell(row=block_top, column=SCOPE_COL, value=scope_text)
         scope_cell.alignment = wrap
+
+        block_fill = PatternFill("solid", fgColor=BLOCK_ALT_FILL if is_alt else BLOCK_FILL)
+        meta_fill = PatternFill("solid", fgColor=META_ALT_FILL if is_alt else META_FILL)
+        crop_fill = PatternFill("solid", fgColor=CROP_FILL)
+        for r in range(block_top, block_bottom + 1):
+            ws.row_dimensions[r].height = 19
+            for c in range(1, len(COLUMNS) + 1):
+                cell = ws.cell(row=r, column=c)
+                cell.fill = meta_fill if c <= 4 else (crop_fill if c == DETAIL_VIEW_COL else block_fill)
+                cell.alignment = center_wrap if c <= 4 else wrap
+                cell.border = Border(
+                    left=thin,
+                    right=thin,
+                    top=strong if r == block_top else thin,
+                    bottom=strong if r == block_bottom else thin,
+                )
+                if r == block_top and c <= 4:
+                    cell.font = Font(bold=True, color="111827")
+
         if block_bottom > block_top:
             ws.merge_cells(
                 start_row=block_top, start_column=SCOPE_COL,
@@ -220,9 +258,6 @@ def _write_workbook(rows: list[RevisionChangelogRow], output_path: Path) -> None
                 end_row=block_bottom, end_column=DETAIL_VIEW_COL,
             )
 
-        for r in range(block_top, block_bottom + 1):
-            ws.row_dimensions[r].height = 18
-
         if revision_row.crop_path:
             try:
                 _embed_image(ws, revision_row.crop_path, anchor_row=block_top, anchor_col=DETAIL_VIEW_COL)
@@ -230,6 +265,14 @@ def _write_workbook(rows: list[RevisionChangelogRow], output_path: Path) -> None
                 ws.cell(row=block_top, column=DETAIL_VIEW_COL, value=f"[crop: {Path(revision_row.crop_path).name}]")
 
         cursor = block_bottom + 1
+
+    last_column = get_column_letter(len(COLUMNS))
+    ws.auto_filter.ref = f"A1:{last_column}{max(ws.max_row, 1)}"
+    ws.print_title_rows = "1:1"
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(output_path)

@@ -267,6 +267,9 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
     expected_headers = [header or None for header, _ in COLUMNS]
     assert headers == expected_headers, "Headers must mirror Kevin's mod_5_changelog.xlsx exactly (typo and trailing spaces preserved)"
     assert headers[9] == "Qoute Received?", "Preserve Kevin's typo verbatim until he renames the column"
+    assert ws.freeze_panes == "A2"
+    assert ws.sheet_view.showGridLines is False
+    assert ws.cell(row=1, column=1).fill.fgColor.rgb.endswith("111827")
 
     drawing_col_values = [ws.cell(row=r, column=2).value for r in range(2, ws.max_row + 1)]
     populated_drawings = [v for v in drawing_col_values if v]
