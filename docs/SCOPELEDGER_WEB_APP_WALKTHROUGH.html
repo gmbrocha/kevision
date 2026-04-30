@@ -134,21 +134,21 @@
       <h1>Web App Walkthrough</h1>
       <p class="tagline">Turn drawing revisions into accountable scope records.</p>
       <p>
-        This guide is written to sit beside the live app during a demo or working review.
-        It explains what each page is for, what the reviewer is deciding, and what
-        ScopeLedger is doing behind the scenes.
+        This guide is written for anyone using or reviewing the live app. It explains
+        what each page is for, what decisions the reviewer makes, and what ScopeLedger
+        stores or exports behind the scenes.
       </p>
       <div class="callout">
-        <strong>Demo URL:</strong> <code>http://127.0.0.1:5000</code><br>
+        <strong>App URL:</strong> use the active ScopeLedger URL provided for the review session.<br>
         <strong>Landing page:</strong> Projects. Choose the active project before opening project-scoped pages.<br>
         <strong>Current active project:</strong> <code>Demo Project</code><br>
-        <strong>Primary story:</strong> select a project, import or append revision packages,
+        <strong>Basic workflow:</strong> select a project, import or append revision packages,
         review detected changes, verify drawing context, and export a pricing-ready workbook.
       </div>
     </section>
 
     <section class="page-break">
-      <h2>Fast Demo Path</h2>
+      <h2>Fast Workflow Path</h2>
       <table class="toc">
         <tr>
           <td>1. Projects</td>
@@ -156,7 +156,7 @@
         </tr>
         <tr>
           <td>2. Overview</td>
-          <td>Show the selected project's progress, stage package files, run Populate Workspace, and check export readiness.</td>
+          <td>Check the selected project's progress, stage package files, run Populate Workspace, and review export readiness.</td>
         </tr>
         <tr>
           <td>3. Review Changes</td>
@@ -168,7 +168,7 @@
         </tr>
         <tr>
           <td>5. Drawings</td>
-          <td>Show active and superseded drawing versions and open a sheet for full context.</td>
+          <td>Review active and superseded drawing versions and open a sheet for full context.</td>
         </tr>
         <tr>
           <td>6. Sheet Detail</td>
@@ -237,7 +237,7 @@
         the app is showing. Once a project is selected, Overview, Review Changes, Drawings,
         Latest Set, Export, and Diagnostics all load that project's workspace data.
       </p>
-      <h3>What to point out</h3>
+      <h3>Reader checklist</h3>
       <ul>
         <li><strong>Selected project:</strong> the active project driving every downstream page.</li>
         <li><strong>Create project:</strong> adds a new project with optional initial package files from the user's browser.</li>
@@ -247,8 +247,9 @@
         <li><strong>Restore:</strong> brings an archived project back into the active list.</li>
       </ul>
       <div class="callout">
-        <strong>Demo phrasing:</strong> "This is now structured as a project system, not a one-off demo.
-        Demo Project is the current workspace, but the same workflow can be repeated per job."
+        <strong>Project scope:</strong> the selected project controls which packages, drawings,
+        review queue, and exports appear throughout the app. Use a separate project for each
+        job or review package that should be tracked independently.
       </div>
 
       <h2>Overview</h2>
@@ -257,7 +258,7 @@
         package, project packages and files, package import controls, Populate Workspace,
         and export readiness.
       </p>
-      <h3>What to point out</h3>
+      <h3>Reader checklist</h3>
       <ul>
         <li><strong>Review next:</strong> jumps directly to the next pending record when work remains.</li>
         <li><strong>Pending review:</strong> records still awaiting a human decision.</li>
@@ -269,8 +270,8 @@
         <li><strong>Populate Workspace:</strong> runs the backend scan over staged source files to generate sheet versions, drawing renders, diagnostics, and change items.</li>
       </ul>
       <p>
-        This page is also the right place to explain that all stats are project-specific.
-        Switching projects changes the package list, drawing set, review queue, and exports.
+        All stats on this page are project-specific. Switching projects changes the package
+        list, drawing set, review queue, and exports.
       </p>
       <div class="callout">
         <strong>First-run workflow:</strong> create/select project, stage one or more package PDFs,
@@ -392,7 +393,7 @@
         </tr>
       </table>
       <p>
-        Use this page to demonstrate that ScopeLedger tracks sheet versions, not just a flat
+        Use this page to verify that ScopeLedger tracks sheet versions, not just a flat
         list of extracted notes.
       </p>
 
@@ -436,10 +437,10 @@
 
       <h2>Export Workbook</h2>
       <p>
-        Export is the handoff page. It centralizes generated artifact links so the demo can
+        Export is the handoff page. It centralizes generated file links so the user can
         move cleanly from review to deliverables.
       </p>
-      <h3>Direct artifact buttons</h3>
+      <h3>Direct output buttons</h3>
       <table>
         <tr>
           <th>Button</th>
@@ -494,8 +495,8 @@
         </tr>
       </table>
       <p>
-        The key demo message is that diagnostics are available, but the normal reviewer does
-        not need to adjudicate every low-level PDF warning.
+        Diagnostics are available when troubleshooting is needed, but the normal reviewer does
+        not need to adjudicate every low-level PDF warning during scope review.
       </p>
 
       <h2>Status Meanings</h2>
@@ -531,8 +532,8 @@
     <section class="page-break">
       <h2>Current Limits</h2>
       <p>
-        ScopeLedger is already useful as a structured review and export surface, but the demo
-        should be precise about what is and is not fully wired.
+        ScopeLedger is already useful as a structured review and export surface, but users
+        should understand what is and is not fully wired.
       </p>
       <ul>
         <li>Cloud/crop evidence is wired into the web app and now uses high-resolution viewer assets.</li>
@@ -550,21 +551,19 @@
         progress, so the web app is not making new API verification calls from the review screen.
       </p>
       <p>
-        For a meeting, the clean security message is: ScopeLedger can produce a structured
-        workbook and review packet from project drawings while keeping review state and source
-        context auditable in the local workspace.
+        ScopeLedger can produce a structured workbook and review packet from project drawings
+        while keeping review state and source context auditable in the local workspace.
       </p>
 
-      <h2>Recommended Talk Track</h2>
+      <h2>Quick Reference</h2>
       <ol>
-        <li>"ScopeLedger turns drawing revisions into accountable scope records."</li>
-        <li>"Projects keep each job's packages, counts, drawings, and exports separated."</li>
-        <li>"Overview shows the active project, review progress, package controls, and export readiness."</li>
-        <li>"The queue lets us triage detected changes quickly."</li>
-        <li>"The cockpit keeps image evidence, sheet metadata, editable scope text, and the decision together."</li>
-        <li>"Drawings and Latest Set prove we understand sheet versions, active/superseded state, and latest-sheet context."</li>
-        <li>"Export is the handoff: workbook, review packet, conformed preview, and Drive folder."</li>
-        <li>"Diagnostics are available, but separated from scope decisions so the review stays clean."</li>
+        <li>Projects keep each job's packages, counts, drawings, and exports separated.</li>
+        <li>Overview shows the active project, review progress, package controls, and export readiness.</li>
+        <li>Review Changes is the triage queue for detected changes.</li>
+        <li>Change Detail keeps image evidence, sheet metadata, editable scope text, and the decision together.</li>
+        <li>Drawings and Latest Set show active/superseded versions and latest-sheet context.</li>
+        <li>Export produces the workbook, review packet, conformed preview, and supporting files.</li>
+        <li>Diagnostics are separated from scope decisions so review work stays focused.</li>
       </ol>
     </section>
   </body>

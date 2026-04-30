@@ -6,6 +6,18 @@ Purpose: show the current MVP in business terms, prove that cloud detection now
 flows into the real review workbook, align on security/privacy policy before
 live data, and leave with clear next decisions.
 
+Meeting environment note for 2026-04-30:
+
+- We are accessing the already-running ScopeLedger app remotely from the home
+  machine. Treat that served app as the meeting source of truth.
+- The verified `217`-row CloudHammer workbook/review-packet run is available
+  to the served app. Direct `runs/...` paths below are host-machine paths.
+- Scope text extraction is no longer completely unwired. A first PDF
+  text-layer/OCR pass has been backfilled, but it is still review-assist
+  quality: most rows still need reviewer rewrite or interpretation.
+- The web app is now project/workspace based and is already being served for
+  the meeting.
+
 ## Audience And Tone
 
 Assume the audience cares about construction workflow, risk, and speed, not
@@ -33,10 +45,11 @@ Translate technical status into business status:
 
 - Current MVP: finds suspected revision-cloud areas and puts crop evidence into
   a workbook for review.
-- New demo surface: a dark-mode local review portal for inspecting changes and
-  exporting the workbook.
-- Not done yet: reading the actual scope text, parsing symbols/legends, and
-  producing final polished pricing rows.
+- New demo surface: a dark-mode local project review portal for importing
+  packages, populating a workspace, inspecting changes, and exporting the
+  workbook/review packet.
+- Not done yet: reliable scope understanding, symbols/legends/keynotes/detail
+  references, RFI/mod workflow, and final polished pricing rows.
 - Security posture: local-first, no live external API use unless ESA approves
   it.
 
@@ -46,7 +59,8 @@ Translate technical status into business status:
    through the real scan/export path and produce a workbook with embedded crop
    evidence.
 2. Set expectations honestly: cloud/crop detection is promising; scope text,
-   OCR/detail extraction, RFI handling, and production hardening are not done.
+   OCR/detail extraction, RFI handling, and production hardening are first-pass
+   or incomplete, not solved.
 3. Get ESA aligned on the security/privacy policy before any live sensitive
    project data uses an external API.
 4. Confirm the next milestone: a demo-grade Rev 1 / Rev 2 deliverable and a
@@ -56,14 +70,20 @@ Translate technical status into business status:
 
 Open these before the meeting:
 
-- Web review portal: `http://127.0.0.1:5000/`
+- Web review portal: the active remote app URL served from the home machine
 - Security policy: `SECURITY_PRIVACY_POLICY.md`
 - Roadmap: `ROADMAP.md`
 - Product rules: `PRODUCT_AND_DELIVERABLE.md`
-- Review workbook:
+- Web app walkthrough:
+  `docs/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
+- Review workbook, available through the app Export page and on the serving
+  host:
   `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog.xlsx`
-- Visual review packet:
+- Visual review packet, available through the app Export page and on the
+  serving host:
   `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog_review_packet.html`
+- Google Drive handoff folder:
+  `https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT`
 - Anchor workbook: `docs/anchors/mod_5_changelog.xlsx`
 
 Do not lead with:
@@ -79,9 +99,10 @@ Suggested opening:
 > revision packages. The current MVP finds suspected revision-cloud areas,
 > crops those areas, and puts the evidence into a workbook for review.
 >
-> This is still an MVP. It does not yet read all the scope for you or produce a
-> final pricing log. What it proves is that we can get the clouded drawing
-> evidence into a review workflow quickly and consistently.
+> This is still an MVP. A first scope-text pass exists, but most extracted text
+> still needs human review before it can become a pricing log. What it proves
+> is that we can get the clouded drawing evidence into a review workflow
+> quickly and consistently.
 >
 > Before using live sensitive project data with any external AI fallback, we
 > want ESA to review the security policy. The default approach is local-first.
@@ -92,16 +113,19 @@ Suggested opening:
 
 Open:
 
-`http://127.0.0.1:5000/`
+The active remote app URL served from the home machine.
 
 Show:
 
 - dark-mode project review dashboard
+- project/package import and Populate Workspace controls
+- populate status/progress
 - accepted changes count
 - current sheets count
 - review/export actions
 - "Review Changes" page
 - "Export Workbook" page
+- Google Drive folder link
 
 Say:
 
@@ -113,6 +137,8 @@ Say:
 
 Open:
 
+Open from the app Export page, or from the serving host path:
+
 `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog.xlsx`
 
 Show:
@@ -120,19 +146,25 @@ Show:
 - summary cover sheet with package counts and review guidance
 - embedded crop images in the workbook
 - crop evidence rows generated by the real export path
-- current placeholder scope text
+- first-pass scope text/review reasons, with many rows still requiring rewrite
 - clean workbook formatting for review
 
 Say:
 
-- The latest corrected run exported `217` crop rows into the real workbook.
+- The latest verified integration checkpoint exported `217` crop rows into the
+  real workbook.
 - `217` embedded crop images were verified in the workbook.
 - The workbook opens on a summary tab: `6` revision sets, `70` current sheets,
   `217` accepted changes, and `13` items still needing review.
 - `80` rows came from human split-review replacements.
 - `10` still-overmerged parents were intentionally excluded instead of
   polluting the deliverable.
-- The workbook is not final because scope text is not solved yet.
+- Scope extraction has a first pass, but it is not final: the active demo
+  distribution was `12` text-layer-near-cloud rows, `150` needs-reviewer-
+  rewrite rows, `35` index/title-noise rows, and `20` leader/callout-only
+  rows. Extraction methods were `196` PDF text-layer and `21` local Tesseract
+  OCR fallback.
+- The workbook is still a review artifact, not a final estimator deliverable.
 
 Translate if needed:
 
@@ -145,6 +177,8 @@ Translate if needed:
 ### 3. Visual Review Packet
 
 Open:
+
+Open from the app Export page, or from the serving host path:
 
 `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog_review_packet.html`
 
@@ -219,8 +253,8 @@ Say:
 
 - This anchor is the shape we are aiming toward.
 - The current generated workbook proves the crop/evidence pipeline.
-- Next work is making generated rows useful enough that reviewers edit/confirm
-  them instead of rebuilding them.
+- Next work is improving scope extraction so reviewers edit/confirm more rows
+  instead of rewriting them.
 
 ## What To Emphasize
 
@@ -230,7 +264,9 @@ Strong claims we can make:
 - We now have an end-to-end path into the real review workbook workflow.
 - The latest verified workbook contains `217` embedded crop images.
 - Human split-review feedback is already improving the export.
-- Generated run artifacts are local and ignored, not pushed to GitHub.
+- Future generated run artifacts should stay local or in the approved Drive
+  handoff path; do not overstate that every historical CloudHammer artifact is
+  absent from GitHub.
 - The security policy blocks live external API use until ESA approves it.
 
 Claims to avoid:
@@ -254,10 +290,13 @@ Working:
 - real workbook export with embedded crop images
 - dark-mode review portal
 - visual review packet
+- first-pass PDF text-layer/OCR enrichment for CloudHammer rows
+- project import/append flow and Populate Workspace status
+- Google Drive handoff link in the export surface
 
 Not done:
 
-- reliable scope text extraction
+- reliable scope text extraction beyond the first pass
 - detail-reference understanding for all cases
 - legend/keynote/symbol parsing
 - final false-positive/overmerge reduction
