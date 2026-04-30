@@ -115,6 +115,13 @@ class WorkspaceStore:
         self.save()
         return updated
 
+    def update_populate_status(self, **changes) -> dict[str, Any]:
+        status = dict(self.data.populate_status or {})
+        status.update(changes)
+        self.data.populate_status = status
+        self.save()
+        return status
+
     def update_verification(self, verification_id: str, **changes) -> VerificationRecord:
         updated: VerificationRecord | None = None
         new_records: list[VerificationRecord] = []

@@ -128,6 +128,7 @@ class WorkspaceData:
     verifications: list[VerificationRecord] = field(default_factory=list)
     exports: list[dict[str, Any]] = field(default_factory=list)
     scan_cache: dict[str, Any] = field(default_factory=dict)
+    populate_status: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -151,4 +152,5 @@ class WorkspaceData:
             verifications=load_many("verifications", VerificationRecord),
             exports=payload.get("exports", []),
             scan_cache=payload.get("scan_cache", {}),
+            populate_status=payload.get("populate_status", {}),
         )

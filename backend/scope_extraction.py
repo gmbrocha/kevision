@@ -44,6 +44,14 @@ INDEX_NOISE_TERMS = (
     "revision #",
 )
 
+CONTEXT_PAD_Y_MIN = 24.0
+CONTEXT_PAD_Y_MAX = 120.0
+CONTEXT_PAD_Y_FACTOR = 0.22
+CONTEXT_PAD_X_MIN = 72.0
+CONTEXT_PAD_X_MAX = 220.0
+CONTEXT_PAD_X_FACTOR = 0.85
+MAX_LOCAL_WORDS = 48
+
 
 @dataclass(frozen=True)
 class ScopeExtractionResult:
@@ -66,8 +74,8 @@ class ScopeExtractionResult:
 
 
 def extract_cloud_scope_text(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> ScopeExtractionResult:
-    context_rect, context_bbox = _expanded_context(page, sheet, bbox)
-    words = _words_in_rect(page, context_rect)
+    context_rect, context_bbox, cloud_rect = _expanded_context(page, sheet, bbox)
+    words = _words_in_rect(page, context_rect, cloud_rect=cloud_rect)
     text = _line_text(words)
     method = "pdf-text-layer"
     word_count = len(words)
@@ -103,30 +111,44 @@ def extract_cloud_scope_text(page: fitz.Page, sheet: SheetVersion, bbox: list[in
     )
 
 
-def _expanded_context(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> tuple[fitz.Rect, list[int]]:
+def _expanded_context(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> tuple[fitz.Rect, list[int], fitz.Rect]:
     x, y, width, height = [float(value) for value in bbox]
     sheet_width = float(sheet.width or page.rect.width)
     sheet_height = float(sheet.height or page.rect.height)
-    pad = max(90.0, min(max(width, height) * 0.45, 360.0))
-    left = max(0.0, x - pad)
-    top = max(0.0, y - pad)
-    right = min(sheet_width, x + width + pad)
-    bottom = min(sheet_height, y + height + pad)
+    pad_x = max(CONTEXT_PAD_X_MIN, min(max(width, height) * CONTEXT_PAD_X_FACTOR, CONTEXT_PAD_X_MAX))
+    pad_y = max(CONTEXT_PAD_Y_MIN, min(max(width, height) * CONTEXT_PAD_Y_FACTOR, CONTEXT_PAD_Y_MAX))
+    left = max(0.0, x - pad_x)
+    top = max(0.0, y - pad_y)
+    right = min(sheet_width, x + width + pad_x)
+    bottom = min(sheet_height, y + height + pad_y)
     scale_x = page.rect.width / sheet_width if sheet_width else 1.0
     scale_y = page.rect.height / sheet_height if sheet_height else 1.0
+    cloud_rect = fitz.Rect(x * scale_x, y * scale_y, (x + width) * scale_x, (y + height) * scale_y)
     return (
         fitz.Rect(left * scale_x, top * scale_y, right * scale_x, bottom * scale_y),
         [int(round(left)), int(round(top)), int(round(right - left)), int(round(bottom - top))],
+        cloud_rect,
     )
 
 
-def _words_in_rect(page: fitz.Page, rect: fitz.Rect) -> list[tuple]:
+def _words_in_rect(page: fitz.Page, rect: fitz.Rect, *, cloud_rect: fitz.Rect) -> list[tuple]:
     hits = []
     for word in page.get_text("words"):
         word_rect = fitz.Rect(word[:4])
-        if rect.intersects(word_rect):
+        center = ((word_rect.x0 + word_rect.x1) / 2.0, (word_rect.y0 + word_rect.y1) / 2.0)
+        if rect.contains(center):
             hits.append(word)
+    if len(hits) > MAX_LOCAL_WORDS:
+        hits = sorted(hits, key=lambda item: (_distance_to_rect_center(fitz.Rect(item[:4]), cloud_rect), item[1], item[0]))[:MAX_LOCAL_WORDS]
     return sorted(hits, key=lambda item: (int(item[5]), int(item[6]), item[1], item[0]))
+
+
+def _distance_to_rect_center(word_rect: fitz.Rect, cloud_rect: fitz.Rect) -> float:
+    word_center_x = (word_rect.x0 + word_rect.x1) / 2.0
+    word_center_y = (word_rect.y0 + word_rect.y1) / 2.0
+    cloud_center_x = (cloud_rect.x0 + cloud_rect.x1) / 2.0
+    cloud_center_y = (cloud_rect.y0 + cloud_rect.y1) / 2.0
+    return ((word_center_x - cloud_center_x) ** 2 + (word_center_y - cloud_center_y) ** 2) ** 0.5
 
 
 def _line_text(words: list[tuple]) -> str:
@@ -266,3 +288,4 @@ def enrich_workspace_scope_text(store: WorkspaceStore, *, force: bool = False) -
     store.data.change_items = updated_items
     store.save()
     return changed
+

@@ -65,6 +65,38 @@
           </form>
         </div>
         <div class="panel-body package-panel-body">
+          {% if populate_status %}
+            {% set populate_state = populate_status.get("state", "idle") %}
+            <div class="populate-status populate-status-{{ populate_state }}">
+              <div class="populate-status-main">
+                <div>
+                  <span class="form-label">Populate status</span>
+                  <div class="populate-status-title">{{ populate_status.get("message", "Workspace population has not run yet.") }}</div>
+                </div>
+                <span class="badge badge-{{ 'accepted' if populate_state == 'done' else 'rejected' if populate_state == 'failed' else 'pending' }}">
+                  <span class="badge-dot"></span>{{ populate_state|replace("_", " ")|title }}
+                </span>
+              </div>
+              {% if populate_state == "running" %}
+                <div class="progress-bar-track populate-progress">
+                  <div class="progress-bar-fill progress-bar-indeterminate"></div>
+                </div>
+              {% endif %}
+              <div class="populate-status-grid">
+                <span>Stage <strong>{{ populate_status.get("stage", "n/a")|replace("_", " ")|title }}</strong></span>
+                <span>Packages <strong>{{ populate_status.get("package_count", 0) }}</strong></span>
+                <span>Documents <strong>{{ populate_status.get("document_count", 0) }}</strong></span>
+                <span>Sheets <strong>{{ populate_status.get("sheet_count", 0) }}</strong></span>
+                <span>Clouds <strong>{{ populate_status.get("cloud_count", 0) }}</strong></span>
+                <span>Changes <strong>{{ populate_status.get("change_item_count", 0) }}</strong></span>
+                <span>Cache hits <strong>{{ populate_status.get("cache_hits", 0) }}</strong></span>
+              </div>
+              {% if populate_status.get("error") %}
+                <div class="populate-status-error">{{ populate_status.get("error") }}</div>
+              {% endif %}
+            </div>
+          {% endif %}
+
           <form class="package-card js-generate-form" method="post" action="{{ url_for('import_package') }}" enctype="multipart/form-data">
             <div class="package-card-head">
               <div>

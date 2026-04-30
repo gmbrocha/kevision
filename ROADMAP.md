@@ -140,6 +140,13 @@ Status as of 2026-04-30:
   12 `text-layer-near-cloud`, 150 `needs-reviewer-rewrite`, 35
   `index-or-title-noise`, and 20 `leader-or-callout-only`; extraction methods
   were 196 PDF text-layer and 21 local Tesseract OCR fallback
+- CloudHammer manifest hardening now filters explicit negative release/review
+  policy rows, validates and clips bounding boxes, tracks manifest row stats,
+  and records missing-crop metadata on generated cloud candidates
+- Populate Workspace now records a persisted status/progress record with
+  running/done/failed state, scan/extraction stage, package/document/sheet/
+  cloud/change counts, cache hits, and failure text; this is still a blocking
+  request, not a background job queue
 - simple OCR/text-layer extraction is expected to be incomplete; do not treat
   the first pass as solved scope understanding
 - keep a running tally of additions, limitations, and follow-up cases in this
@@ -165,13 +172,15 @@ Implementation sequence:
      `no-readable-text`, `leader-or-callout-only`, `needs-reviewer-rewrite`
    - expose a simple reviewer-facing reason, not raw numeric confidence
 3. Continue CloudHammer hardening after OCR first pass:
-   - improve overmerge/false-positive handling
-   - tighten release manifest policy and crop quality
+   - first pass complete: explicit negative policy filtering, bbox validation,
+     bbox clipping, missing-crop tracking, and manifest stats
+   - next: improve overmerge handling, crop-quality scoring, and false-positive
+     review loops
    - keep CloudHammer focused on changed-region detection, not workbook logic
 4. Add Populate Workspace progress:
-   - queued/running/done/failed state
-   - package/document/page counts where practical
-   - clear failure messages and retained logs for long scans
+   - first pass complete: running/done/failed state, scan/extraction stage,
+     package/document/sheet/cloud/change counts, cache hits, and failure text
+   - next: move long scans to a background job with live polling/log streaming
 
 Open tally for later scope extraction work:
 
@@ -182,6 +191,7 @@ Open tally for later scope extraction work:
 - associate source context with latest/superseded sheet state
 - identify text that belongs to a revision index versus the actual sheet
 - decide when nearby text is too broad/noisy to prefill scope text
+- map icon/legend symbols close to clouds to their legend meanings when text is sparse
 - eventually separate true scope items from dimensions, labels, sheet names,
   revision block text, and index boilerplate
 

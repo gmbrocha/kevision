@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shutil
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 import fitz
@@ -171,11 +172,14 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     store = ActiveProjectWorkspace(load_project_store)
 
-    def rescan_active_project() -> WorkspaceStore:
+    def rescan_active_project() -> tuple[WorkspaceStore, int]:
         project = active_project()
         current = load_project_store(project)
         scanner = RevisionScanner(Path(current.data.input_dir), Path(project.workspace_dir))
-        return scanner.scan()
+        return scanner.scan(), scanner.cache_hits
+
+    def utc_timestamp() -> str:
+        return datetime.now(timezone.utc).isoformat()
 
     def copy_package_source(source_path: Path, destination_dir: Path) -> None:
         destination_dir.mkdir(parents=True, exist_ok=True)
@@ -424,36 +428,36 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
     @app.post("/projects")
     def create_project():
         name = request.form.get("name", "").strip()
-        input_dir = request.form.get("input_dir", "").strip()
         workspace_dir = request.form.get("workspace_dir", "").strip()
-        package_label = request.form.get("package_label", "").strip()
-        source_text = request.form.get("source_path", "").strip()
         if not name:
             flash("Project name is required.", "warning")
             return redirect(url_for("projects"))
         try:
             project = registry.create_project(
                 name=name,
-                input_dir=Path(input_dir) if input_dir else None,
                 workspace_dir=Path(workspace_dir) if workspace_dir else None,
             )
-            staged_count = 0
-            input_path = Path(project.input_dir)
-            if has_uploaded_files("project_files"):
-                _, saved = stage_uploaded_package("project_files", input_path, package_label)
-                staged_count += len(saved)
-            elif source_text:
-                stage_manual_package(source_text, input_path, package_label)
-                staged_count += 1
         except Exception as exc:
             flash(f"Project creation failed: {exc}", "warning")
             return redirect(url_for("projects"))
         session["project_id"] = project.id
-        if staged_count:
-            flash(f"Created {project.name} and staged source files. Populate the workspace to generate drawings, changes, and diagnostics.", "success")
-        else:
-            flash(f"Created {project.name}. Add package files, then populate the workspace.", "success")
+        flash(f"Created {project.name}. Add package files, then populate the workspace.", "success")
         return redirect(url_for("dashboard"))
+
+    @app.get("/system/dialog/workspace-folder")
+    def workspace_folder_dialog():
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes("-topmost", True)
+            selected = filedialog.askdirectory(title="Choose ScopeLedger workspace folder")
+            root.destroy()
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+        return jsonify({"path": selected})
 
     @app.post("/projects/<project_id>/select")
     def select_project(project_id: str):
@@ -520,6 +524,7 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             pending_review_count=pending_review_count,
             first_pending=first_pending,
             output_files=build_output_files(),
+            populate_status=store.data.populate_status or {},
         )
 
     @app.post("/packages/import")
@@ -612,11 +617,59 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.post("/workspace/populate")
     def populate_workspace():
+        current = load_project_store()
+        current.update_populate_status(
+            state="running",
+            stage="scan",
+            message="Scanning staged packages and rendering drawing pages.",
+            started_at=utc_timestamp(),
+            finished_at="",
+            package_count=0,
+            document_count=0,
+            sheet_count=0,
+            cloud_count=0,
+            change_item_count=0,
+            cache_hits=0,
+            error="",
+        )
+        refreshed: WorkspaceStore | None = None
         try:
-            refreshed = rescan_active_project()
+            refreshed, cache_hits = rescan_active_project()
+            refreshed.update_populate_status(
+                state="running",
+                stage="scope_extraction",
+                message="Extracting scope text and review reasons from cloud regions.",
+                package_count=len(refreshed.data.revision_sets),
+                document_count=len(refreshed.data.documents),
+                sheet_count=len(refreshed.data.sheets),
+                cloud_count=len(refreshed.data.clouds),
+                change_item_count=len(refreshed.data.change_items),
+                cache_hits=cache_hits,
+            )
             enrich_workspace_scope_text(refreshed)
+            refreshed.update_populate_status(
+                state="done",
+                stage="complete",
+                message="Workspace is populated and ready for review.",
+                finished_at=utc_timestamp(),
+                package_count=len(refreshed.data.revision_sets),
+                document_count=len(refreshed.data.documents),
+                sheet_count=len(refreshed.data.sheets),
+                cloud_count=len(refreshed.data.clouds),
+                change_item_count=len(refreshed.data.change_items),
+                cache_hits=cache_hits,
+                error="",
+            )
             g.active_store = refreshed
         except Exception as exc:
+            failed_store = refreshed or current
+            failed_store.update_populate_status(
+                state="failed",
+                stage="failed",
+                message="Workspace population failed.",
+                finished_at=utc_timestamp(),
+                error=str(exc),
+            )
             flash(f"Workspace population failed: {exc}", "warning")
             return redirect(url_for("dashboard"))
         flash(

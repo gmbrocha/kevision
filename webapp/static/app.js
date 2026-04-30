@@ -121,6 +121,34 @@ function bindFilePickerSummaries() {
   });
 }
 
+function bindFolderDialogs() {
+  document.querySelectorAll(".js-folder-dialog").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const target = button.dataset.target ? document.querySelector(button.dataset.target) : null;
+      if (!target || !button.dataset.dialogUrl) return;
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = "Browsing...";
+      try {
+        const response = await fetch(button.dataset.dialogUrl, { headers: { Accept: "application/json" } });
+        const payload = await response.json();
+        if (!response.ok || payload.error) {
+          throw new Error(payload.error || "Folder dialog failed");
+        }
+        if (payload.path) {
+          target.value = payload.path;
+          target.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      } catch (error) {
+        window.alert(error.message || "Folder dialog failed");
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    });
+  });
+}
+
 function bindPanZoomViewers() {
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -271,5 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bindReviewShortcuts();
   bindGenerateForms();
   bindFilePickerSummaries();
+  bindFolderDialogs();
   bindPanZoomViewers();
 });

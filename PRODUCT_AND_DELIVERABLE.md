@@ -232,6 +232,13 @@ Status as of 2026-04-30:
   starting text for review, not pretend to fully understand scope
 - review confidence/reason fields are appropriate now because they make weak
   extraction explicit
+- CloudHammer manifest intake now has a first hardening pass: explicit
+  negative policy/review rows are skipped, bad boxes are rejected, boxes are
+  clipped to page bounds, manifest stats are tracked, and missing crop files
+  are preserved as candidate metadata rather than crashing the scan
+- Populate Workspace now writes a project-local status record with state,
+  stage, scan counts, cache hits, and failure text; future work should make
+  this a background job with live updates instead of a blocking request
 
 First-pass extraction should:
 
@@ -265,9 +272,12 @@ Running tally of extraction cases to handle later:
 - plan notes versus sheet title/index/revision-block text
 - text that crosses cloud boundaries
 - symbols or dimensions that matter even when OCR text is sparse
+- icon/label values that require mapped legend context near the cloud
 - repeated notes across sheets or details
 - superseded-sheet notes that may carry forward to the latest set
 - readable crop evidence with no trustworthy text extraction
+- overmerged or partial CloudHammer boxes that need crop-quality scoring
+- live progress/log streaming for long first-populate runs
 
 ## Crops / Detail View
 

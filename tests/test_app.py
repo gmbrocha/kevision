@@ -106,6 +106,70 @@ def test_manifest_cloudhammer_client_returns_scaled_detections(tmp_path: Path):
     assert detections[0].extraction_method == "cloudhammer_manifest"
 
 
+def test_manifest_cloudhammer_client_filters_release_and_bbox_noise(tmp_path: Path):
+    pdf_path = tmp_path / "revision.pdf"
+    pdf_path.write_bytes(b"%PDF")
+    rows = [
+        {
+            "candidate_id": "valid",
+            "pdf_path": str(pdf_path),
+            "page_number": 1,
+            "page_width": 100,
+            "page_height": 50,
+            "bbox_page_xyxy": [90, 40, 120, 80],
+            "whole_cloud_confidence": 0.88,
+            "policy_bucket": "auto_deliverable_candidate",
+        },
+        {
+            "candidate_id": "rejected",
+            "pdf_path": str(pdf_path),
+            "page_number": 1,
+            "page_width": 100,
+            "page_height": 50,
+            "bbox_page_xywh": [10, 10, 20, 20],
+            "policy_bucket": "false_positive",
+        },
+        {
+            "candidate_id": "invalid",
+            "pdf_path": str(pdf_path),
+            "page_number": 1,
+            "page_width": 100,
+            "page_height": 50,
+            "bbox_page_xywh": [10, 10, -5, 20],
+        },
+        {
+            "candidate_id": "missing-page",
+            "pdf_path": str(pdf_path),
+            "bbox_page_xywh": [10, 10, 20, 20],
+        },
+    ]
+    manifest = tmp_path / "manifest.jsonl"
+    manifest.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf=str(pdf_path),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        render_path=str(tmp_path / "page.png"),
+        width=200,
+        height=100,
+    )
+
+    client = ManifestCloudInferenceClient(manifest)
+    detections = client.detect(page=None, sheet=sheet)  # type: ignore[arg-type]
+
+    assert [item.metadata["cloudhammer_candidate_id"] for item in detections] == ["valid"]
+    assert detections[0].bbox == [180, 80, 20, 20]
+    assert client.stats["total_rows"] == 4
+    assert client.stats["indexed_rows"] == 1
+    assert client.stats["skipped_policy"] == 1
+    assert client.stats["skipped_invalid_bbox"] == 1
+    assert client.stats["skipped_missing_pdf_page"] == 1
+
+
 def test_approve_cloudhammer_detections_only_marks_manifest_visual_items(tmp_path: Path):
     store = WorkspaceStore(tmp_path / "workspace").create(tmp_path)
     store.data.change_items = [
@@ -239,6 +303,32 @@ def test_scope_extraction_reads_pdf_text_near_cloud():
     assert result.reason == "text-layer-near-cloud"
     assert result.signal > 0.7
     assert "PROVIDE NEW GRAB BAR BLOCKING" in result.text
+
+
+def test_scope_extraction_keeps_nearby_text_local_to_cloud():
+    document = fitz.open()
+    page = document.new_page(width=300, height=220)
+    page.insert_text((82, 95), "PROVIDE NEW GRAB BAR BLOCKING", fontsize=10)
+    page.insert_text((10, 185), "REMOVE EXISTING FLOOR FINISH THROUGHOUT CORRIDOR AND PATCH WALLS", fontsize=10)
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        width=300,
+        height=220,
+    )
+
+    result = extract_cloud_scope_text(page, sheet, [70, 70, 95, 55])
+
+    document.close()
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in result.text
+    assert "REMOVE EXISTING FLOOR FINISH" not in result.text
+    assert result.context_bbox[1] > 40
+    assert result.context_bbox[3] < 130
 
 
 def test_scope_extraction_flags_cloud_without_readable_text():
@@ -735,9 +825,12 @@ def test_web_routes_render_without_ai(workspace_copy):
     projects = client.get("/projects")
     assert projects.status_code == 200
     assert b"Project archive" in projects.data
-    assert b"Choose PDF(s)" in projects.data
-    assert b"Choose folder" in projects.data
     assert b"Workspace folder" in projects.data
+    assert b"Browse folder" in projects.data
+    assert b"Project name" in projects.data
+    assert b"Initial package" not in projects.data
+    assert b"Manual source path" not in projects.data
+    assert b"Input folder" not in projects.data
     assert client.get("/overview").status_code == 200
     assert client.get("/sheets").status_code == 200
     queue = client.get("/changes")
@@ -752,6 +845,18 @@ def test_web_routes_render_without_ai(workspace_copy):
 
 
 def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
+    store = WorkspaceStore(workspace_copy).load()
+    store.update_populate_status(
+        state="done",
+        stage="complete",
+        message="Workspace is populated and ready for review.",
+        package_count=2,
+        document_count=2,
+        sheet_count=len(store.data.sheets),
+        cloud_count=len(store.data.clouds),
+        change_item_count=len(store.data.change_items),
+        cache_hits=2,
+    )
     app = create_app(workspace_copy)
     client = app.test_client()
     response = client.get("/overview")
@@ -769,6 +874,9 @@ def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
     assert b'name="package_files"' in body
     assert b'name="append_files"' in body
     assert b"Populate Workspace" in body
+    assert b"Populate status" in body
+    assert b"Workspace is populated and ready for review." in body
+    assert b"Cache hits" in body
 
 
 def test_dashboard_and_export_link_generated_artifacts(workspace_copy):
