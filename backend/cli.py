@@ -33,7 +33,7 @@ FRIENDLY_FILE_LABELS = [
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="kevision", description="Review revision drawing sets.")
+    parser = argparse.ArgumentParser(prog="scopeledger", description="Review revision drawing sets.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     scan_parser = subparsers.add_parser("scan", help="Scan revision PDFs into a workspace.")

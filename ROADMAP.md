@@ -1,13 +1,13 @@
-# KEVISION Roadmap
+# ScopeLedger Roadmap
 
 Status: current planning roadmap. Product rules live in
-`PRODUCT_AND_DELIVERABLE.md`; architecture and workflow live in `KEVISION.md`;
+`PRODUCT_AND_DELIVERABLE.md`; architecture and workflow live in `SCOPELEDGER.md`;
 CloudHammer details live in `CLOUDHAMMER.md`; security policy lives in
 `SECURITY_PRIVACY_POLICY.md`.
 
 ## North Star
 
-KEVISION should turn blueprint revision packages into a legible Excel
+ScopeLedger should turn blueprint revision packages into a legible Excel
 deliverable that captures all relevant clouded changes, latest-sheet context,
 review flags, and crop evidence clearly enough for Kevin's team to use in
 pricing and build coordination.
@@ -129,6 +129,22 @@ Goal:
 
 - replace placeholder CloudHammer scope text with reviewable scope information.
 
+Status as of 2026-04-30:
+
+- next active implementation focus after project/workflow UI work
+- first pass should be deliberately modest: extract text around cloud crops,
+  populate reviewer-facing scope candidates, and record confidence/reason
+  fields
+- first pass has been wired for PDF text-layer extraction and backfilled onto
+  the demo workspace; active demo distribution was 217 CloudHammer clouds:
+  12 `text-layer-near-cloud`, 150 `needs-reviewer-rewrite`, 35
+  `index-or-title-noise`, and 20 `leader-or-callout-only`; extraction methods
+  were 196 PDF text-layer and 21 local Tesseract OCR fallback
+- simple OCR/text-layer extraction is expected to be incomplete; do not treat
+  the first pass as solved scope understanding
+- keep a running tally of additions, limitations, and follow-up cases in this
+  milestone and in `PRODUCT_AND_DELIVERABLE.md`
+
 Key work:
 
 - read text inside and near accepted cloud regions
@@ -136,6 +152,38 @@ Key work:
 - handle multiple drawings/details on one sheet
 - preserve uncertainty with `Needs Review` and `Review Reason` fields
 - avoid guessing contractor, cost, or scope when the evidence is unclear
+
+Implementation sequence:
+
+1. Add cloud-region detail text extraction:
+   - expanded source-PDF crop around each detected cloud
+   - PDF text-layer word extraction inside/near the crop when available
+   - OCR fallback only where local tooling is available and safe
+   - populate `raw_text`, default `reviewer_text`, and provenance metadata
+2. Add scope text confidence/reason fields:
+   - examples: `text-layer-near-cloud`, `ocr-near-cloud`,
+     `no-readable-text`, `leader-or-callout-only`, `needs-reviewer-rewrite`
+   - expose a simple reviewer-facing reason, not raw numeric confidence
+3. Continue CloudHammer hardening after OCR first pass:
+   - improve overmerge/false-positive handling
+   - tighten release manifest policy and crop quality
+   - keep CloudHammer focused on changed-region detection, not workbook logic
+4. Add Populate Workspace progress:
+   - queued/running/done/failed state
+   - package/document/page counts where practical
+   - clear failure messages and retained logs for long scans
+
+Open tally for later scope extraction work:
+
+- extract detail references when visible near the cloud
+- distinguish cloud-only plan changes from detail-callout clouds
+- detect leader-only arrows and preserve location even without readable scope
+- support multiple drawings/details on one sheet
+- associate source context with latest/superseded sheet state
+- identify text that belongs to a revision index versus the actual sheet
+- decide when nearby text is too broad/noisy to prefill scope text
+- eventually separate true scope items from dimensions, labels, sheet names,
+  revision block text, and index boilerplate
 
 Exit criteria:
 

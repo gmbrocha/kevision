@@ -1,49 +1,96 @@
 {% extends "base.html" %}
-{% block title %}Sheets{% endblock %}
-{% block page_heading %}Sheet Versions{% endblock %}
-{% block page_lead %}Review active and superseded sheets across all scanned revision packages, with revision notes and issue dates preserved for comparison.{% endblock %}
+{% block title %}Drawings{% endblock %}
 {% block content %}
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Index</p>
-        <h2>Sheet Versions</h2>
-      </div>
-      <span class="pill">{{ sheets|length }} visible sheets</span>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Drawings</h1>
+      <p class="page-subtitle">{{ active_sheet_count }} active sheets{% if superseded_sheet_count %} - {{ superseded_sheet_count }} superseded{% endif %}</p>
     </div>
-    <form class="toolbar toolbar-grid" method="get">
-      <label>
-        <span class="label-text">Status</span>
-        <select name="status" onchange="this.form.submit()">
-          {% for value in ["all", "active", "superseded"] %}
-            <option value="{{ value }}" {% if filter_status == value %}selected{% endif %}>{{ value }}</option>
+    <div class="page-actions">
+      <a class="btn btn-sm {{ 'btn-secondary' if filter_status == 'all' else 'btn-ghost' }}" href="{{ url_for('sheets', status='all', q=search_query, include_index='1' if include_index_matches else '0') }}">Show superseded</a>
+      <a class="btn btn-sm {{ 'btn-secondary' if filter_status == 'active' else 'btn-ghost' }}" href="{{ url_for('sheets', status='active', q=search_query, include_index='1' if include_index_matches else '0') }}">Active only</a>
+    </div>
+  </header>
+
+  <div class="page-scroll">
+    <div class="page-content">
+      <form class="filter-bar" method="get">
+        <input type="hidden" name="status" value="{{ filter_status }}">
+        <div class="filter-input-wrap">
+          <span class="filter-input-icon">?</span>
+          <input class="filter-input" type="search" name="q" value="{{ search_query }}" placeholder="Sheet number or title...">
+        </div>
+        <div class="filter-toggle-group">
+          {% for value, label in [("all", "All"), ("active", "Active"), ("superseded", "Superseded")] %}
+            <a class="filter-toggle {% if filter_status == value %}active{% endif %}" href="{{ url_for('sheets', status=value, q=search_query, include_index='1' if include_index_matches else '0') }}">{{ label }}</a>
           {% endfor %}
-        </select>
-      </label>
-    </form>
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Sheet</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Issue Date</th>
-            <th>Revision Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for sheet in sheets %}
+          <a class="filter-toggle {% if include_index_matches %}active{% endif %}" href="{{ url_for('sheets', status=filter_status, q=search_query, include_index='0' if include_index_matches else '1') }}">
+            {{ "Hide" if include_index_matches else "Show" }} index matches <span class="toggle-count">{{ index_match_count }}</span>
+          </a>
+        </div>
+      </form>
+
+      {% if index_match_count and not include_index_matches %}
+        <section class="callout callout-info">
+          <span>{{ index_match_count }} sheet-index matches are hidden. These are pages where a sheet number appears inside the drawing index, not necessarily the drawing page itself.</span>
+        </section>
+      {% endif %}
+
+      <section class="data-table-wrap">
+        <table class="data-table drawings-table">
+          <colgroup>
+            <col class="drawings-col-sheet">
+            <col class="drawings-col-title">
+            <col class="drawings-col-revision">
+            <col class="drawings-col-date">
+            <col class="drawings-col-discipline">
+            <col class="drawings-col-changes">
+            <col class="drawings-col-status">
+            <col class="drawings-col-action">
+          </colgroup>
+          <thead>
             <tr>
-              <td><a href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">{{ sheet.sheet_id }}</a></td>
-              <td>{{ sheet.sheet_title }}</td>
-              <td><span class="status {{ sheet.status }}">{{ sheet.status }}</span></td>
-              <td>{{ sheet.issue_date or "n/a" }}</td>
-              <td>{{ "; ".join(sheet.revision_entries) if sheet.revision_entries else "n/a" }}</td>
+              <th>Sheet</th>
+              <th>Title</th>
+              <th>Revision</th>
+              <th>Previous</th>
+              <th>Discipline</th>
+              <th class="col-right">Changes</th>
+              <th>Status</th>
+              <th></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for sheet in sheets %}
+              <tr class="row-link" style="{% if sheet.status == 'superseded' %}opacity: 0.55;{% endif %}" onclick="window.location.href='{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}'">
+                <td class="cell-mono">{{ sheet.sheet_id }}</td>
+                <td class="sheet-title-cell" title="{{ sheet.sheet_title }}">
+                  <span class="sheet-title-text">{{ sheet.sheet_title|compact_sheet_title }}</span>
+                  {% if sheet|sheet_index_like %}
+                    <span class="sheet-title-note">Index-page match</span>
+                  {% elif sheet.sheet_title and sheet.sheet_title|length > 120 %}
+                    <span class="sheet-title-note">OCR title trimmed</span>
+                  {% endif %}
+                </td>
+                <td class="cell-mono" style="color: var(--accent-text);">{{ sheet.revision_entries[0] if sheet.revision_entries else current_package_label }}</td>
+                <td class="cell-mono cell-dim">{{ sheet.issue_date or "n/a" }}</td>
+                <td class="cell-secondary">{{ sheet.sheet_id|discipline }}</td>
+                <td class="col-right cell-mono">
+                  {% if changes_by_sheet.get(sheet.id) %}
+                    <span style="color: var(--accent-text);">{{ changes_by_sheet.get(sheet.id) }}</span>
+                  {% else %}
+                    <span class="cell-dim">-</span>
+                  {% endif %}
+                </td>
+                <td><span class="badge badge-{{ 'active' if sheet.status == 'active' else 'superseded' }}">{{ sheet.status }}</span></td>
+                <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}" onclick="event.stopPropagation();">View</a></td>
+              </tr>
+            {% else %}
+              <tr><td colspan="8" class="data-table-empty">No drawings match the current filters.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
     </div>
-  </section>
+  </div>
 {% endblock %}

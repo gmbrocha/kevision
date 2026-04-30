@@ -1,93 +1,98 @@
 {% extends "base.html" %}
 {% block title %}Review Changes{% endblock %}
-{% block page_heading %}Review Changes{% endblock %}
-{% block page_lead %}Confirm the drawing changes that should appear in the workbook. Accept good items, reject noise, and leave notes when something needs follow-up.{% endblock %}
 {% block content %}
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Review Controls</p>
-        <h2>Change list</h2>
-      </div>
-      <span class="pill">{{ items|length }} visible items</span>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Review Changes</h1>
+      <p class="page-subtitle">{{ pending_count }} pending · {{ items|length }} visible</p>
     </div>
+    <div class="page-actions">
+      {% if first_pending %}
+        <a class="btn btn-primary btn-lg" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending') }}">Start reviewing</a>
+      {% endif %}
+    </div>
+  </header>
 
-    <form class="toolbar toolbar-grid" method="get">
-      <label>
-        <span class="label-text">Decision</span>
-        <select name="status" onchange="this.form.submit()">
-          {% for value, label in [("pending", "To Review"), ("approved", "Accepted"), ("rejected", "Rejected"), ("all", "All")] %}
-            <option value="{{ value }}" {% if filter_status == value %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label>
-        <span class="label-text">Search</span>
-        <input type="search" name="q" value="{{ search_query }}" placeholder="drawing, note, room, detail">
-      </label>
-      <label class="checkbox-row">
-        <input type="checkbox" name="attention" value="1" {% if attention_only %}checked{% endif %}>
-        <span>Needs check only</span>
-      </label>
-      <div class="toolbar-actions">
-        <button type="submit">Apply Filters</button>
-      </div>
-    </form>
-
-    <form method="post" action="{{ url_for('bulk_review') }}" class="bulk-form">
-      <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0') }}">
-      <div class="toolbar toolbar-grid">
-        <label>
-          <span class="label-text">Apply to selected</span>
-          <select name="status">
-            <option value="approved">accept selected</option>
-            <option value="rejected">reject selected</option>
-            <option value="pending">send back to review</option>
-          </select>
-        </label>
-        <div class="toolbar-actions">
-          <button type="button" class="secondary js-toggle-checkboxes" data-target=".js-queue-checkbox">Toggle Selection</button>
-          <button type="submit">Apply Decision</button>
+  <div class="page-scroll">
+    <div class="page-content">
+      <form class="filter-bar" method="get">
+        <div class="filter-input-wrap">
+          <span class="filter-input-icon">⌕</span>
+          <input class="filter-input" type="search" name="q" value="{{ search_query }}" placeholder="Sheet, scope text...">
         </div>
-      </div>
+        <div class="filter-toggle-group">
+          {% for value, label, count in [
+            ("all", "All", counts.all),
+            ("pending", "Pending", counts.pending),
+            ("approved", "Accepted", counts.approved),
+            ("rejected", "Rejected", counts.rejected)
+          ] %}
+            <a class="filter-toggle {% if filter_status == value and not attention_only %}active{% endif %}" href="{{ url_for('changes', status=value, q=search_query) }}">
+              {{ label }} <span class="toggle-count">{{ count }}</span>
+            </a>
+          {% endfor %}
+          <a class="filter-toggle {% if attention_only %}active{% endif %}" href="{{ url_for('changes', status='all', q=search_query, attention='1') }}">
+            Needs check <span class="toggle-count">{{ counts.needs_check }}</span>
+          </a>
+        </div>
+      </form>
 
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th><input type="checkbox" class="js-master-checkbox" data-target=".js-queue-checkbox" aria-label="Select all"></th>
-              <th>Sheet</th>
-              <th>Reference</th>
-              <th>Decision</th>
-              <th>Check</th>
-              <th>Text</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in items %}
+      {% if attention_count %}
+        <section class="callout callout-check">
+          <strong>{{ attention_count }} pending change{{ "s" if attention_count != 1 else "" }} flagged for manual check.</strong>
+          <span>These rows need a closer look before they are accepted or rejected.</span>
+        </section>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('bulk_review') }}" class="panel">
+        <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0') }}">
+        <div class="panel-header">
+          <span class="panel-title">Change list</span>
+          <div class="page-actions">
+            <button type="button" class="btn btn-ghost btn-sm js-toggle-checkboxes" data-target=".js-queue-checkbox">Toggle selection</button>
+            <button type="submit" class="btn btn-secondary btn-sm" name="status" value="approved">Accept selected</button>
+            <button type="submit" class="btn btn-danger btn-sm" name="status" value="rejected">Reject selected</button>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td><input type="checkbox" class="js-queue-checkbox" name="change_ids" value="{{ item.id }}"></td>
-                <td>{{ item.sheet_id }}</td>
-                <td><a href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0') }}">{{ item.detail_ref or "Cloud area" }}</a></td>
-                <td>
-                  <span class="status {{ item.status }}">{{ item.status }}</span>
-                  {% if needs_attention(item) %}
-                    <span class="status attention">check</span>
-                  {% endif %}
-                </td>
-                <td>{% if needs_attention(item) %}<span class="status attention">needs check</span>{% else %}<span class="status ok">standard</span>{% endif %}</td>
-                <td>{{ item.reviewer_text or item.raw_text }}</td>
-                <td>{% if item.provenance.source == "visual-region" %}Drawing crop{% else %}Package note{% endif %}</td>
+                <th><input type="checkbox" class="js-master-checkbox" data-target=".js-queue-checkbox" aria-label="Select all"></th>
+                <th>Sheet</th>
+                <th>Cloud</th>
+                <th>Scope of change</th>
+                <th>Discipline</th>
+                <th>Status</th>
+                <th></th>
               </tr>
-            {% else %}
-              <tr>
-                <td colspan="7">No changes match the current filters.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </form>
-  </section>
+            </thead>
+            <tbody>
+              {% for item in items %}
+                {% set show_attention = item.status == 'pending' and needs_attention(item) %}
+                <tr class="{% if first_pending and item.id == first_pending.id %}row-next-up{% endif %} {% if show_attention %}row-needs-check{% endif %}">
+                  <td><input type="checkbox" class="js-queue-checkbox" name="change_ids" value="{{ item.id }}"></td>
+                  <td class="cell-mono">
+                    {% if first_pending and item.id == first_pending.id %}<span class="next-dot"></span><span class="cell-secondary">Next</span>{% endif %}
+                    {{ item.sheet_id }}
+                  </td>
+                  <td class="cell-mono" style="color: var(--accent-text);">{{ item.detail_ref or "Cloud" }}</td>
+                  <td>{{ item.reviewer_text or item.raw_text }}</td>
+                  <td class="cell-secondary">{{ item.sheet_id|discipline }}</td>
+                  <td>
+                    <span class="badge badge-{{ item.status|badge_class }}"><span class="badge-dot"></span>{{ item.status|status_label }}</span>
+                    {% if show_attention %}<span class="badge badge-check"><span class="badge-dot"></span>Needs check</span>{% endif %}
+                  </td>
+                  <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0') }}">Review →</a></td>
+                </tr>
+              {% else %}
+                <tr><td colspan="7">No changes match the current filters.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+    </div>
+  </div>
 {% endblock %}

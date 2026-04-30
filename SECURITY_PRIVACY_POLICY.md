@@ -2,7 +2,7 @@
 
 Status: draft policy for ESA review before live sensitive project use.
 
-This policy defines how KEVISION handles project data and when, if ever,
+This policy defines how ScopeLedger handles project data and when, if ever,
 external AI APIs may be used. It is intentionally conservative because live
 revision packages, RFIs, drawing sheets, title blocks, stamps, room names, and
 project metadata can contain sensitive owner, facility, contractor, or bid
@@ -10,7 +10,7 @@ information.
 
 ## Policy Summary
 
-KEVISION is local-first by default.
+ScopeLedger is local-first by default.
 
 - Source PDFs stay local.
 - Text layers stay local.
@@ -87,7 +87,7 @@ Disallowed inputs:
 
 ## Sanitization Requirements
 
-Before any approved API fallback call, KEVISION must create a sanitized image
+Before any approved API fallback call, ScopeLedger must create a sanitized image
 artifact locally.
 
 Minimum sanitization requirements:

@@ -1,207 +1,193 @@
 {% extends "base.html" %}
-{% block title %}KEVISION Project Review{% endblock %}
-{% block page_heading %}Project Change Review{% endblock %}
-{% block page_lead %}Review the changed drawing areas, confirm what matters, and send a clean workbook forward without digging through the full PDF set.{% endblock %}
+{% block title %}ScopeLedger Overview{% endblock %}
 {% block content %}
-  <section class="command-band">
-    <article class="command-band__primary">
-      <p class="eyebrow">Current Package</p>
-      <h2>{{ pricing_summary.revision_set_count }} revision set{{ "s" if pricing_summary.revision_set_count != 1 else "" }} analyzed</h2>
-      <p>{{ pricing_summary.active_sheet_count }} current drawing sheets with {{ pricing_summary.superseded_sheet_count }} superseded sheets retained for comparison.</p>
-    </article>
-    <div class="command-band__actions">
-      <a class="button-like button-like--primary" href="{{ url_for('changes', status='approved') }}">Review Accepted Changes</a>
-      <form method="post" action="{{ url_for('review_packet_run') }}">
-        <button type="submit" class="button-like">Open Review Packet</button>
-      </form>
-      <a class="button-like" href="{{ url_for('export_view') }}">Export Workbook</a>
-      <a class="button-like button-like--subtle" href="{{ drive_review_folder_url }}" target="_blank" rel="noopener">Open Drive Folder</a>
+  <header class="overview-hero">
+    <div class="overview-hero-left">
+      <h1 class="overview-project-title">{{ active_project.name }}</h1>
+      <p class="overview-project-subtitle">Turn drawing revisions into accountable scope records.</p>
+      <div class="overview-pkg-chip">
+        <span class="nav-pkg-dot"></span>
+        <span>Active package:</span>
+        <span class="pkg-name">{{ current_package_label }}</span>
+      </div>
     </div>
-  </section>
+    {% if first_pending %}
+      <a class="btn btn-primary btn-xl" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending') }}">Review next - {{ pending_count }} pending</a>
+    {% else %}
+      <a class="btn btn-primary btn-xl" href="{{ url_for('export_view') }}">Export workbook</a>
+    {% endif %}
+  </header>
 
-  <section class="workflow-steps">
-    <article class="workflow-step workflow-step--done">
-      <span class="workflow-step__number">1</span>
-      <div>
-        <h3>Drawings Analyzed</h3>
-        <p>Revision sets have been scanned and current sheets identified.</p>
-      </div>
-    </article>
-    <article class="workflow-step {% if pending_review_count == 0 %}workflow-step--done{% endif %}">
-      <span class="workflow-step__number">2</span>
-      <div>
-        <h3>Review Changes</h3>
-        <p>{{ pending_review_count }} item{{ "s" if pending_review_count != 1 else "" }} still waiting for a decision.</p>
-      </div>
-    </article>
-    <article class="workflow-step {% if output_files.workbook.exists() %}workflow-step--done{% endif %}">
-      <span class="workflow-step__number">3</span>
-      <div>
-        <h3>Workbook Ready</h3>
-        <p>{% if output_files.workbook.exists() %}The Excel workbook has been generated.{% else %}Export when the review state is ready.{% endif %}</p>
-      </div>
-    </article>
-  </section>
-
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Review Summary</p>
-        <h2>What is ready for review?</h2>
-      </div>
-      <a class="pill" href="{{ url_for('export_view') }}">Export Workbook</a>
-    </div>
-    <section class="cards">
-      <a class="card card--link" href="{{ url_for('export_view') }}">
-        <p class="eyebrow">Workbook Rows</p>
-        <p class="metric">{{ approved_count }}</p>
-        <p class="muted">Accepted changes that will be available in the review workbook.</p>
-      </a>
-      <a class="card card--link" href="{{ url_for('changes', status='pending') }}">
-        <p class="eyebrow">Still To Review</p>
-        <p class="metric">{{ pending_review_count }}</p>
-        <p class="muted">Items waiting for accept, reject, or follow-up notes.</p>
-      </a>
-      <a class="card card--link" href="{{ url_for('conformed') }}">
-        <p class="eyebrow">Current Sheets</p>
-        <p class="metric">{{ pricing_summary.active_sheet_count }}</p>
-        <p class="muted">Latest versions identified across the drawing packages.</p>
-      </a>
-      <a class="card card--link {% if pricing_summary.attention_pending_count %}card--warn{% endif %}" href="{{ url_for('changes', status='pending', attention='1') }}">
-        <p class="eyebrow">Needs Check</p>
-        <p class="metric">{{ pricing_summary.attention_pending_count }}</p>
-        <p class="muted">{% if pricing_summary.attention_pending_count %}These should be reviewed before a final handoff.{% else %}Nothing is currently flagged for extra review.{% endif %}</p>
-      </a>
-    </section>
-  </section>
-
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Drawing Packages</p>
-        <h2>Revision sets in this review</h2>
-      </div>
-      <a class="pill" href="{{ url_for('sheets') }}">Open Drawings</a>
-    </div>
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Revision Set</th>
-            <th>Sheets</th>
-            <th>Current</th>
-            <th>Superseded</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in revision_rows %}
-            <tr>
-              <td>{{ row.revision_set.label }}</td>
-              <td>{{ row.sheet_count }}</td>
-              <td>{{ row.active_count }}</td>
-              <td>{{ row.superseded_count }}</td>
-              <td>{{ row.narrative_count }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="split">
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Recent Items</p>
-          <h2>Changes in the workbook</h2>
+  <div class="page-scroll">
+    <div class="page-content">
+      <section class="stat-row">
+        <div class="stat-block">
+          <span class="stat-value {{ 'pending' if pending_count else 'accepted' }}">{{ pending_count }}</span>
+          <span class="stat-label">Pending review</span>
         </div>
-        <a class="pill" href="{{ url_for('changes', status='approved') }}">View Changes</a>
-      </div>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Sheet</th>
-              <th>Detail</th>
-              <th>Status</th>
-              <th>Text</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in recent_changes %}
-              <tr>
-                <td><a href="{{ url_for('change_detail', change_id=item.id, queue='pending') }}">{{ item.sheet_id }}</a></td>
-                <td>{{ item.detail_ref or "n/a" }}</td>
-                <td>
-                  <span class="status {{ item.status }}">{{ item.status }}</span>
-                  {% if needs_attention(item) %}
-                    <span class="status attention">needs check</span>
-                  {% endif %}
-                </td>
-                <td>{{ item.reviewer_text or item.raw_text }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </article>
-
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Follow Up</p>
-          <h2>Needs a closer look</h2>
+        <div class="stat-block">
+          <span class="stat-value accepted">{{ approved_count }}</span>
+          <span class="stat-label">Accepted</span>
         </div>
-        <a class="pill" href="{{ url_for('changes', status='pending', attention='1') }}">Review Flagged Items</a>
-      </div>
-      <ul class="flat-list">
-        {% for item in attention_items %}
-          <li class="list-card">
-            <div class="list-card__header">
-              <strong><a href="{{ url_for('change_detail', change_id=item.id, queue='pending', attention='1') }}">{{ item.sheet_id }} {{ item.detail_ref or "cloud area" }}</a></strong>
-              <span class="status attention">needs check</span>
+        <div class="stat-block">
+          <span class="stat-value rejected">{{ rejected_count }}</span>
+          <span class="stat-label">Rejected</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-value {{ 'check' if attention_count else '' }}">{{ attention_count }}</span>
+          <span class="stat-label">Needs check</span>
+        </div>
+        <div class="stat-block" style="flex: 2; justify-content: center; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span class="stat-label">Review progress</span>
+            <span class="stat-value" style="font-size: var(--text-xl);">{{ review_progress }}%</span>
+          </div>
+          <div class="progress-bar-track" style="height: 6px;">
+            <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
+          </div>
+          <div class="progress-label">{{ reviewed_count }} of {{ total_change_count }} changes reviewed</div>
+        </div>
+      </section>
+
+      {% if attention_count %}
+        <section class="callout callout-check">
+          <strong>{{ attention_count }} change{{ "s" if attention_count != 1 else "" }} flagged for manual check</strong>
+          <span>Review scope text before accepting.</span>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all', attention='1') }}">View in queue</a>
+        </section>
+      {% endif %}
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Project Files and Packages</span>
+          <form class="js-generate-form" method="post" action="{{ url_for('populate_workspace') }}">
+            <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating...">Populate Workspace</button>
+          </form>
+        </div>
+        <div class="panel-body package-panel-body">
+          <form class="package-card js-generate-form" method="post" action="{{ url_for('import_package') }}" enctype="multipart/form-data">
+            <div class="package-card-head">
+              <div>
+                <span class="panel-title">Import new package</span>
+                <p class="form-help">Choose PDFs or a folder from the computer using this browser. Manual path is for server-local imports. After staging files, populate the workspace.</p>
+              </div>
+              <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading...">Import package</button>
             </div>
-            <div class="muted">{{ item.raw_text }}</div>
-          </li>
-        {% else %}
-          <li class="list-card">No items are currently flagged for extra review.</li>
-        {% endfor %}
-      </ul>
-    </article>
-  </section>
+            <div class="package-form-grid">
+              <label>
+                <span class="form-label">Optional package name</span>
+                <input class="form-input" name="package_label" placeholder="Package name">
+              </label>
+              <div class="file-picker">
+                <span class="form-label">File dialog</span>
+                <input id="package-files-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple data-summary-target="#package-file-summary">
+                <label class="btn btn-secondary" for="package-files-input">Choose PDF(s)</label>
+                <input id="package-folder-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple webkitdirectory data-summary-target="#package-file-summary">
+                <label class="btn btn-ghost" for="package-folder-input">Choose folder</label>
+                <span class="file-picker-summary" id="package-file-summary">No files selected</span>
+              </div>
+              <label>
+                <span class="form-label">Manual server path</span>
+                <input class="form-input" name="source_path" placeholder="Optional folder or PDF path on server">
+              </label>
+            </div>
+          </form>
 
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">File Health</p>
-        <h2>PDF warnings</h2>
-      </div>
-      <a class="pill" href="{{ url_for('diagnostics') }}">Open Diagnostics</a>
+          {% if revision_rows %}
+            <form class="package-card js-generate-form" method="post" action="{{ url_for('append_package_file') }}" enctype="multipart/form-data">
+              <div class="package-card-head">
+              <div>
+                <span class="panel-title">Modify package</span>
+                <p class="form-help">Append PDF files to an existing revision package. After staging files, populate the workspace to refresh generated review data.</p>
+              </div>
+                <button class="btn btn-secondary js-generate-button" type="submit" data-loading-text="Uploading...">Append PDF</button>
+              </div>
+              <div class="package-form-grid">
+                <label>
+                  <span class="form-label">Target</span>
+                  <select class="form-select" name="revision_set_id" required>
+                    {% for row in revision_rows %}
+                      <option value="{{ row.revision_set.id }}">{{ row.revision_set.label }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <div class="file-picker">
+                  <span class="form-label">File dialog</span>
+                  <input id="append-files-input" class="js-file-input" type="file" name="append_files" accept="application/pdf,.pdf" multiple data-summary-target="#append-file-summary">
+                  <label class="btn btn-secondary" for="append-files-input">Choose PDF(s)</label>
+                  <span class="file-picker-summary" id="append-file-summary">No files selected</span>
+                </div>
+                <label>
+                  <span class="form-label">Manual server path</span>
+                  <input class="form-input" name="source_path" placeholder="Optional PDF path on server">
+                </label>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Revision packages</span>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('sheets') }}">All drawings</a>
+        </div>
+        <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Date</th>
+                <th>Disciplines</th>
+                <th class="col-right">Sheets</th>
+                <th class="col-right">Changes</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in revision_rows %}
+                <tr>
+                  <td class="cell-mono">
+                    {% if row.revision_set.label == current_package_label %}<span class="nav-pkg-dot"></span>{% endif %}
+                    {{ row.revision_set.label }}
+                  </td>
+                  <td class="cell-secondary">{{ row.revision_set.set_date or "n/a" }}</td>
+                  <td class="cell-secondary">{{ row.discipline }}</td>
+                  <td class="col-right cell-mono">{{ row.sheet_count }}</td>
+                  <td class="col-right cell-mono">{{ row.change_count }}</td>
+                  <td>
+                    <span class="badge badge-{{ 'active' if row.revision_set.label == current_package_label else 'superseded' }}">
+                      <span class="badge-dot"></span>{{ "Active" if row.revision_set.label == current_package_label else "Indexed" }}
+                    </span>
+                  </td>
+                  <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all') }}">Review queue</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Export readiness</span>
+          <a class="btn btn-secondary btn-sm" href="{{ url_for('export_view') }}">Export page</a>
+        </div>
+        <div class="panel-body">
+          <div class="export-status-bar" style="border: 0; padding: 0; background: transparent;">
+            <div class="export-readiness" style="flex: 1;">
+              <div class="export-readiness-label">Review completion</div>
+              <div class="progress-bar-track" style="margin-top: 6px;">
+                <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
+              </div>
+              <div class="progress-label" style="margin-top: 4px;">
+                {% if pending_count %}{{ pending_count }} changes still pending - workbook will export with current decisions{% else %}All changes reviewed - ready to generate workbook{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>PDF</th>
-            <th>Severity</th>
-            <th>Issues</th>
-            <th>Warnings</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for document in noisy_documents %}
-            <tr>
-              <td>{{ document.source_pdf|pdf_label }}</td>
-              <td><span class="status {{ document.max_severity }}">{{ document.max_severity }}</span></td>
-              <td>{{ document.issue_count }}</td>
-              <td>{{ document.warning_count }}</td>
-            </tr>
-          {% else %}
-            <tr><td colspan="4">No preflight warnings detected.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+  </div>
 {% endblock %}

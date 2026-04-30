@@ -1,8 +1,10 @@
-# KEVISION
+# ScopeLedger
+
+Turn drawing revisions into accountable scope records.
 
 Start here:
 
-- `KEVISION.md` - repo structure, setup, active workflow, architecture boundaries
+- `SCOPELEDGER.md` - repo structure, setup, active workflow, architecture boundaries
 - `PRODUCT_AND_DELIVERABLE.md` - Kevin-facing product decisions, workbook/export rules, benchmark, open questions, backlog
 - `CLOUDHAMMER.md` - revision-cloud model pipeline, labeling, prelabeling, training, inference
 - `SECURITY_PRIVACY_POLICY.md` - ESA-facing security/privacy policy for sensitive project data and external API fallback

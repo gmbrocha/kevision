@@ -1,59 +1,68 @@
 {% extends "base.html" %}
-{% block title %}Conformed Set{% endblock %}
-{% block page_heading %}Conformed Sheet Set{% endblock %}
-{% block page_lead %}One card per drawing sheet showing which version is the latest. Use this to confirm we picked the right "latest" before pricing.{% endblock %}
+{% block title %}Latest Set{% endblock %}
 {% block content %}
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Verification</p>
-        <h2>Latest Versions Across All Revision Sets</h2>
-      </div>
-      <span class="pill">{{ groups|length }} sheet{{ "s" if groups|length != 1 else "" }} shown · {{ revised_count }} of {{ sheet_id_count }} revised</span>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Latest Set</h1>
+      <p class="page-subtitle">{{ groups|length }} selected latest drawings - {{ revised_count }} with prior versions</p>
     </div>
-    <form class="toolbar toolbar-grid" method="get">
-      <label>
-        <span class="label-text">Show</span>
-        <select name="show" onchange="this.form.submit()">
-          <option value="revised" {% if show_filter == "revised" %}selected{% endif %}>Only sheets that were revised</option>
-          <option value="all" {% if show_filter == "all" %}selected{% endif %}>All sheets</option>
-        </select>
-      </label>
-    </form>
-
-    {% if groups %}
-      <div class="conformed-grid">
-        {% for group in groups %}
-          <article class="conformed-card">
-            <div class="conformed-card__header">
-              <a class="conformed-card__sheet-id" href="{{ url_for('sheet_detail', sheet_version_id=group.latest.id) }}">{{ group.sheet_id }}</a>
-              <span class="status active">latest · Rev {{ group.latest_revision_set.set_number }}</span>
-            </div>
-            <p class="conformed-card__title">{{ group.latest.sheet_title }}</p>
-            {% if group.latest.render_path %}
-              <a class="conformed-card__thumb" href="{{ url_for('sheet_detail', sheet_version_id=group.latest.id) }}">
-                <img src="{{ group.latest.render_path|asset_path }}" alt="{{ group.sheet_id }} preview" loading="lazy">
-              </a>
-            {% endif %}
-            <div class="conformed-card__meta">
-              <div><strong>From:</strong> {{ group.latest_revision_set.label }}</div>
-              <div><strong>Issue date:</strong> {{ group.latest.issue_date or "n/a" }}</div>
-              <div><strong>Source:</strong> {{ group.latest.source_pdf|pdf_label }} · page {{ group.latest.page_number }}</div>
-            </div>
-            {% if group.superseded %}
-              <div class="conformed-card__superseded">
-                {% for prior in group.superseded %}
-                  <a class="conformed-chip" href="{{ url_for('sheet_detail', sheet_version_id=prior.sheet.id) }}" title="{{ prior.revision_set.label }} · page {{ prior.sheet.page_number }}">
-                    superseded · Rev {{ prior.revision_set.set_number }}{% if prior.sheet.issue_date %} · {{ prior.sheet.issue_date }}{% endif %}
-                  </a>
-                {% endfor %}
-              </div>
-            {% endif %}
-          </article>
-        {% endfor %}
+    <form class="page-actions" method="get">
+      <input type="hidden" name="show" value="{{ show_filter }}">
+      <div class="filter-input-wrap" style="max-width: 220px;">
+        <span class="filter-input-icon">?</span>
+        <input class="filter-input" type="search" name="q" value="{{ search_query }}" placeholder="Sheet number...">
       </div>
-    {% else %}
-      <p class="muted">No sheets match the current filter.</p>
-    {% endif %}
-  </section>
+      <a class="btn btn-sm {{ 'btn-secondary' if show_filter == 'revised' else 'btn-ghost' }}" href="{{ url_for('conformed', show='revised', q=search_query) }}">Revised only</a>
+      <a class="btn btn-sm {{ 'btn-secondary' if show_filter == 'all' else 'btn-ghost' }}" href="{{ url_for('conformed', show='all', q=search_query) }}">All sheets</a>
+    </form>
+  </header>
+
+  <div class="page-scroll">
+    <div class="page-content">
+      <section class="callout callout-info">
+        <span><strong>What this is:</strong> one selected latest drawing per sheet number. The thumbnail is the page ScopeLedger will treat as current for review/export context. Older versions stay available as superseded history.</span>
+      </section>
+
+      {% if index_page_count %}
+        <section class="callout callout-check">
+          <span>{{ index_page_count }} sheet-index page{{ "s" if index_page_count != 1 else "" }} detected and deprioritized so index thumbnails do not masquerade as drawing sheets.</span>
+        </section>
+      {% endif %}
+
+      <section class="conformed-grid">
+        {% for group in groups %}
+          <a class="conformed-card {% if group.superseded %}revised{% endif %}" href="{{ url_for('sheet_detail', sheet_version_id=group.latest.id) }}">
+            <div class="conformed-thumb">
+              <div class="conformed-thumb-placeholder"></div>
+              {% if group.latest.render_path %}
+                <img src="{{ group.latest.render_path|asset_path }}" alt="{{ group.sheet_id }} preview" loading="lazy">
+              {% endif %}
+              <div class="conformed-revised-flag">{{ "Revised" if group.superseded else "Latest" }}</div>
+            </div>
+            <div class="conformed-card-info">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);">
+                <div class="conformed-sheet-id">{{ group.sheet_id }}</div>
+                <span class="badge badge-active">Selected latest</span>
+              </div>
+              <div class="conformed-sheet-title">{{ group.latest.sheet_title|compact_sheet_title }}</div>
+              <div class="conformed-sheet-chain">
+                <span style="color: var(--accent-text); font-weight: 500;">Rev {{ group.latest_revision_set.set_number }}</span>
+                {% if group.superseded %}
+                  <span class="arrow">&lt;-</span>
+                  <span>{{ group.superseded|length }} prior</span>
+                {% else %}
+                  <span>No prior version</span>
+                {% endif %}
+              </div>
+              {% if group.latest|sheet_index_like %}
+                <div class="sheet-title-note">Index-like page - verify manually</div>
+              {% endif %}
+            </div>
+          </a>
+        {% else %}
+          <p class="diag-ok">No sheets match the current filter.</p>
+        {% endfor %}
+      </section>
+    </div>
+  </div>
 {% endblock %}

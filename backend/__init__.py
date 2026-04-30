@@ -1,1 +1,1 @@
-"""KEVISION backend package."""
+"""ScopeLedger backend package."""

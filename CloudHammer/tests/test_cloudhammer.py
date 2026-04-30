@@ -279,7 +279,7 @@ def _prediction_row(
         "parsed_response": {"boxes": parsed_boxes or []},
         "manifest_row": {
             "candidate_source": candidate_source,
-            "pdf_path": f"F:\\Desktop\\m\\projects\\kevision\\revision_sets\\{revision}\\drawing.pdf",
+            "pdf_path": str(Path("revision_sets") / revision / "drawing.pdf"),
         },
     }
 

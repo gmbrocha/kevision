@@ -132,7 +132,7 @@ class Exporter:
                 reason = str(row["relevance_reason"])
                 filtered_by_reason[reason] = filtered_by_reason.get(reason, 0) + 1
         return {
-            "output_dir": str(self.store.output_dir),
+            "output_dir": self.store.display_path(self.store.output_dir),
             "approved_count": len(approved),
             "pending_count": len([item for item in change_items if item.status == "pending"]),
             "rejected_count": len([item for item in change_items if item.status == "rejected"]),
@@ -229,7 +229,7 @@ class Exporter:
             "needs_attention": change_item_needs_attention(item),
             "source_kind": str(item.provenance.get("source", "")),
             "extraction_signal": item.provenance.get("extraction_signal"),
-            "source_pdf": sheet.source_pdf,
+            "source_pdf": self.store.display_path(sheet.source_pdf),
             "page_number": sheet.page_number,
             "sheet_version_id": sheet.id,
             "sheet_version_status": sheet.status,
@@ -364,7 +364,7 @@ class Exporter:
                         "sheet_id": sheet.sheet_id,
                         "sheet_version_id": sheet.id,
                         "status": sheet.status,
-                        "source_pdf": sheet.source_pdf,
+                        "source_pdf": self.store.display_path(sheet.source_pdf),
                         "page_number": sheet.page_number,
                         "issue_date": sheet.issue_date or "",
                     }
@@ -387,15 +387,15 @@ class Exporter:
                     "revision_set_label": revision_set.label,
                     "issue_date": sheet.issue_date or "",
                     "sheet_version_status": sheet.status,
-                    "source_pdf": sheet.source_pdf,
+                    "source_pdf": self.store.display_path(sheet.source_pdf),
                     "page_number": sheet.page_number,
                     "latest_sheet_version_id": latest_sheet.id,
                     "latest_revision_set_number": latest_revision_set.set_number,
                     "latest_revision_set_label": latest_revision_set.label,
-                    "latest_source_pdf": latest_sheet.source_pdf,
+                    "latest_source_pdf": self.store.display_path(latest_sheet.source_pdf),
                     "latest_page_number": latest_sheet.page_number,
                     "latest_for_pricing": latest_sheet.id == sheet.id,
-                    "render_path": sheet.render_path,
+                    "render_path": self.store.display_path(sheet.render_path),
                 }
             )
         return sorted(
@@ -471,7 +471,7 @@ class Exporter:
 
     def _append_rasterized_sheet(self, output: fitz.Document, sheet: SheetVersion) -> None:
         page = output.new_page(width=sheet.width or 1224, height=sheet.height or 792)
-        page.insert_image(page.rect, filename=sheet.render_path)
+        page.insert_image(page.rect, filename=str(self.store.resolve_path(sheet.render_path)))
         if sheet.status == "superseded":
             banner = fitz.Rect(72, 72, page.rect.width - 72, 180)
             page.draw_rect(banner, color=(1, 0, 0), fill=(1, 1, 1), fill_opacity=0.65, overlay=True)
@@ -503,7 +503,7 @@ class Exporter:
             for issue in self.store.data.preflight_issues:
                 writer.writerow(
                     {
-                        "source_pdf": issue.source_pdf,
+                        "source_pdf": self.store.display_path(issue.source_pdf),
                         "page_number": issue.page_number or "",
                         "operation": issue.operation,
                         "severity": issue.severity,
@@ -519,7 +519,7 @@ class Exporter:
         payload = {
             "documents": [
                 {
-                    "source_pdf": document.source_pdf,
+                    "source_pdf": self.store.display_path(document.source_pdf),
                     "page_count": document.page_count,
                     "warning_count": document.warning_count,
                     "issue_count": document.issue_count,
@@ -531,7 +531,7 @@ class Exporter:
             ],
             "issues": [
                 {
-                    "source_pdf": issue.source_pdf,
+                    "source_pdf": self.store.display_path(issue.source_pdf),
                     "page_number": issue.page_number,
                     "operation": issue.operation,
                     "severity": issue.severity,

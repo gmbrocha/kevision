@@ -1,83 +1,121 @@
 {% extends "base.html" %}
 {% block title %}Export Workbook{% endblock %}
-{% block page_heading %}Export Workbook{% endblock %}
-{% block page_lead %}Generate the review workbook and supporting files, then open the Drive folder where review copies are kept for Google Sheets access.{% endblock %}
 {% block content %}
-  <section class="split">
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Workbook</p>
-          <h2>Generate review workbook</h2>
-        </div>
-      </div>
-      <p>Accepted changes are written into the workbook with crop evidence. Current and superseded sheets remain available for comparison.</p>
-      {% if attention_pending_count %}
-        <div class="callout attention-banner">
-          <strong>Some items still need review.</strong> {{ attention_pending_count }} item(s) are flagged for a closer look.
-          Review them first, or create an interim workbook if the meeting needs it.
-        </div>
-      {% endif %}
-      <form method="post" action="{{ url_for('export_run') }}" class="stack">
-        {% if attention_pending_count %}
-          <label class="checkbox-row">
-            <input type="checkbox" name="force_attention" value="1">
-            <span>Create workbook with flagged items still pending</span>
-          </label>
-        {% endif %}
-        <button type="submit">Create Workbook</button>
-      </form>
-    </article>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Export Workbook</h1>
+      <p class="page-subtitle">{{ current_package_label }}</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-secondary btn-sm" href="{{ drive_review_folder_url }}" target="_blank" rel="noopener">Open Google Drive Folder</a>
+    </div>
+  </header>
 
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Review Packet</p>
-          <h2>Open quick visual review</h2>
-        </div>
-      </div>
-      <p>The review packet shows each workbook crop beside a marked source drawing context, so it is easier to verify rows without opening the full PDFs.</p>
-      <div class="button-row">
-        <form method="post" action="{{ url_for('review_packet_run') }}">
-          <button type="submit">Open Review Packet</button>
-        </form>
-        <a class="pill" href="{{ drive_review_folder_url }}" target="_blank" rel="noopener">Open Google Drive Folder</a>
-      </div>
-    </article>
-  </section>
+  <div class="page-scroll">
+    <div class="page-content">
+      <div class="export-layout">
+        <section class="panel">
+          <div class="panel-header"><span class="panel-title">Review status</span></div>
+          <div class="panel-body" style="display: flex; flex-direction: column; gap: var(--sp-4);">
+            <div class="stat-row" style="border: 0; gap: var(--sp-4);">
+              <div style="flex: 1;">
+                <span class="stat-value accepted" style="font-size: var(--text-2xl);">{{ approved_count }}</span>
+                <span class="stat-label">Accepted</span>
+              </div>
+              <div style="flex: 1;">
+                <span class="stat-value rejected" style="font-size: var(--text-2xl);">{{ rejected_count }}</span>
+                <span class="stat-label">Rejected</span>
+              </div>
+              <div style="flex: 1;">
+                <span class="stat-value {{ 'pending' if pending_count else '' }}" style="font-size: var(--text-2xl);">{{ pending_count }}</span>
+                <span class="stat-label">Pending</span>
+              </div>
+            </div>
+            <div>
+              <div class="export-readiness-label">Review completion</div>
+              <div class="progress-bar-track" style="margin-top: 6px;">
+                <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
+              </div>
+              <div class="progress-label" style="margin-top: 4px;">
+                {% if pending_count %}{{ pending_count }} changes still pending - they will export with current status{% else %}All changes reviewed{% endif %}
+              </div>
+            </div>
+            {% if attention_pending_count %}
+              <div class="callout callout-check">
+                <strong>{{ attention_pending_count }} pending item{{ "s" if attention_pending_count != 1 else "" }} need a closer look.</strong>
+                <span>Review them first, or generate an interim workbook.</span>
+              </div>
+            {% endif %}
+          </div>
+        </section>
 
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">History</p>
-        <h2>Recent exports</h2>
+        <section class="panel">
+          <div class="panel-header"><span class="panel-title">Generate</span></div>
+          <div class="panel-body" style="display: flex; flex-direction: column; gap: var(--sp-4);">
+            {% for file in [
+              ("revision_changelog.xlsx", "Excel workbook - contractor pricing deliverable", output_files.workbook.exists(), "Open Workbook"),
+              ("revision_changelog_review_packet.html", "Review packet - crops and source context", output_files.review_packet.exists(), "Open Review Packet"),
+              ("conformed_preview.pdf", "Conformed preview - latest sheets first", output_files.preview_pdf.exists(), "Open Conformed Preview")
+            ] %}
+              <div style="display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--surface-raised); border: 1px solid var(--rule-hairline); border-radius: var(--radius-md); opacity: {{ '1' if file[2] else '0.5' }};">
+                <span style="color: {{ 'var(--accent-text)' if file[2] else 'var(--text-tertiary)' }};">⇩</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div class="cell-mono" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file[0] }}</div>
+                  <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 2px;">{{ file[1] }}</div>
+                </div>
+                {% if file[2] %}
+                  <a class="btn btn-secondary btn-sm" href="{{ url_for('output_asset', asset_path=file[0]) }}" {% if file[0].endswith('.html') %}target="_blank" rel="noopener"{% endif %}>{{ file[3] }}</a>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            <form method="post" action="{{ url_for('export_run') }}" class="js-generate-form">
+              {% if attention_pending_count %}
+                <label class="callout callout-check" style="margin-bottom: var(--sp-3);">
+                  <input type="checkbox" name="force_attention" value="1">
+                  <span>Generate with flagged items still pending</span>
+                </label>
+              {% endif %}
+              <button class="btn btn-primary btn-xl js-generate-button" type="submit" style="width: 100%; justify-content: center;">
+                {% if output_files.workbook.exists() %}Re-generate workbook{% else %}Generate workbook{% endif %}
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('review_packet_run') }}">
+              <button class="btn btn-secondary btn-lg" type="submit" style="width: 100%; justify-content: center;">Refresh Review Packet</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><span class="panel-title">Export history</span></div>
+          <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Generated</th>
+                  <th class="col-right">Accepted</th>
+                  <th class="col-right">Pending</th>
+                  <th class="col-right">Needs check</th>
+                  <th>Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entry in export_history %}
+                  <tr>
+                    <td class="cell-mono">{{ entry.created_at }}</td>
+                    <td class="col-right cell-mono">{{ entry.approved_count }}</td>
+                    <td class="col-right cell-mono">{{ entry.pending_count }}</td>
+                    <td class="col-right cell-mono">{{ entry.attention_pending_count if entry.attention_pending_count is defined else 0 }}</td>
+                    <td>{% if entry.forced_attention %}Interim{% else %}Standard{% endif %}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5">No exports have been generated yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
-    <ul class="flat-list">
-      {% for entry in export_history %}
-        <li class="list-card">
-          <div class="list-card__header">
-            <strong>{{ entry.created_at }}</strong>
-            <span class="pill">accepted {{ entry.approved_count }}</span>
-          </div>
-          <div class="muted">
-            pending {{ entry.pending_count }}
-            {% if entry.attention_pending_count is defined %}
-              - needs check {{ entry.attention_pending_count }}
-            {% endif %}
-            {% if entry.forced_attention %}
-              - interim
-            {% endif %}
-          </div>
-          <div class="verification-card">
-            {% for key, value in entry.outputs.items() %}
-              <div><strong>{{ key }}:</strong> {{ value }}</div>
-            {% endfor %}
-          </div>
-        </li>
-      {% else %}
-        <li class="list-card">No exports have been generated yet.</li>
-      {% endfor %}
-    </ul>
-  </section>
+  </div>
 {% endblock %}

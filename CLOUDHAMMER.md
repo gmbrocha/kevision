@@ -3,7 +3,7 @@
 Status: current source of truth for CloudHammer pipeline, labeling, prelabeling,
 training, inference, and integration boundaries.
 
-CloudHammer is the computer-vision child project inside KEVISION. Its job is
+CloudHammer is the computer-vision child project inside ScopeLedger. Its job is
 narrow: detect scalloped revision-cloud motifs on real blueprint pages and emit
 clean artifacts that the main product can consume later.
 

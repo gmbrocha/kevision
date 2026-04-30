@@ -1,143 +1,154 @@
 {% extends "base.html" %}
 {% block title %}{{ item.sheet_id }} {{ item.detail_ref or "" }}{% endblock %}
-{% block page_heading %}{{ item.sheet_id }} {{ item.detail_ref or "Drawing Change" }}{% endblock %}
-{% block page_lead %}Compare the crop to the source drawing, confirm whether it belongs in the workbook, and add clear notes for follow-up when needed.{% endblock %}
 {% block content %}
-  <section class="panel queue-header" data-prev-url="{% if navigation.previous_change_id %}{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}" data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}">
-    <div>
-      <p class="eyebrow">Change Review</p>
-      <h2>{{ item.sheet_id }} - {{ item.detail_ref or "cloud area" }}</h2>
-      <p class="muted">
-        <span class="status {{ item.status }}">{{ item.status }}</span>
-        {% if item_needs_attention %}<span class="status attention">needs check</span>{% endif %}
-        - drawing <a href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">{{ sheet.sheet_id }}</a>
-        {% if navigation.index %}
-          - item {{ navigation.index }} of {{ navigation.total }}
-        {% endif %}
-      </p>
+  <header class="cockpit-header"
+          data-prev-url="{% if navigation.previous_change_id %}{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}"
+          data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}">
+    <a class="cockpit-back" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Review Changes</a>
+
+    <div style="display: flex; align-items: center; gap: var(--sp-4);">
+      <span class="cockpit-id">
+        {{ item.sheet_id }}
+        <span class="cloud-label">{{ item.detail_ref or "Cloud" }}</span>
+        <span style="color: var(--text-tertiary); margin-left: var(--sp-2); font-size: var(--text-sm);">{{ sheet_revision_set.label if sheet_revision_set else "Revision" }}</span>
+      </span>
+      <span class="badge badge-{{ item.status|badge_class }}"><span class="badge-dot"></span>{{ item.status|status_label }}</span>
+      {% if item_needs_attention %}<span class="badge badge-check"><span class="badge-dot"></span>Needs check</span>{% endif %}
     </div>
-    <div class="queue-nav">
-      <a class="pill" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Back to Changes</a>
+
+    <nav class="cockpit-nav">
       {% if navigation.previous_change_id %}
-        <a class="pill" href="{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Previous</a>
+        <a class="cockpit-nav-btn" href="{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}" title="Previous">[</a>
+      {% else %}
+        <button class="cockpit-nav-btn" type="button" disabled>[</button>
       {% endif %}
+      <span class="cockpit-nav-pos">{% if navigation.index %}{{ navigation.index }} / {{ navigation.total }}{% else %}-{% endif %}</span>
       {% if navigation.next_change_id %}
-        <a class="pill" href="{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Next</a>
+        <a class="cockpit-nav-btn" href="{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}" title="Next">]</a>
+      {% else %}
+        <button class="cockpit-nav-btn" type="button" disabled>]</button>
       {% endif %}
-    </div>
-  </section>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('changes', status='pending') }}">{{ pending_count }} pending</a>
+    </nav>
+  </header>
 
-  {% if item_needs_attention %}
-    <section class="callout attention-banner">
-      <strong>Needs check.</strong> Review the crop and surrounding drawing context before accepting this item.
-    </section>
-  {% endif %}
+  <form method="post" action="{{ url_for('review_change', change_id=item.id) }}" class="js-review-form cockpit-layout">
+    <input type="hidden" name="redirect_to" value="{{ url_for('change_detail', change_id=item.id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">
+    <input type="hidden" name="queue_status" value="{{ queue_status }}">
+    <input type="hidden" name="search_query" value="{{ search_query }}">
+    <input type="hidden" name="attention_only" value="{{ '1' if attention_only else '0' }}">
+    <input type="hidden" name="next_change_id" value="{{ navigation.next_change_id or '' }}">
+    <input type="hidden" name="advance" value="">
+    <select name="status" style="display: none;">
+      {% for value in ["pending", "approved", "rejected"] %}
+        <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
 
-  <section class="split">
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Decision</p>
-          <h2>Keep this change?</h2>
+    <section class="cockpit-image-pane">
+      <div class="cockpit-image-stage js-panzoom-pane">
+        <div class="js-panzoom-target" style="position: relative;">
+          <div class="cockpit-image-label">
+            <span>{{ item.sheet_id }}</span>
+            <span style="color: var(--rule-hairline);">/</span>
+            <span class="cloud-id">{{ item.detail_ref or "Cloud" }}</span>
+          </div>
+          <div class="cockpit-image-wrap">
+            {% if cloud and cloud.image_path %}
+              <img src="{{ cloud|cloud_viewer_image }}" alt="{{ item.sheet_id }} crop">
+            {% elif sheet.render_path %}
+              <img src="{{ sheet|sheet_viewer_image }}" alt="{{ item.sheet_id }} sheet">
+            {% endif %}
+          </div>
         </div>
-        {% if item.provenance.extraction_signal is defined %}
-          <span class="signal-badge {% if item_needs_attention %}signal-badge--low{% endif %}">review signal {{ "%.2f"|format(item.provenance.extraction_signal) }}</span>
-        {% endif %}
       </div>
-      <form method="post" action="{{ url_for('review_change', change_id=item.id) }}" class="review-form js-review-form">
-        <input type="hidden" name="redirect_to" value="{{ url_for('change_detail', change_id=item.id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">
-        <input type="hidden" name="queue_status" value="{{ queue_status }}">
-        <input type="hidden" name="search_query" value="{{ search_query }}">
-        <input type="hidden" name="attention_only" value="{{ '1' if attention_only else '0' }}">
-        <input type="hidden" name="next_change_id" value="{{ navigation.next_change_id or '' }}">
-        <input type="hidden" name="advance" value="">
-        <label>
-          <span class="label-text">Decision</span>
-          <select name="status">
-            {% for value, label in [("pending", "To Review"), ("approved", "Accepted"), ("rejected", "Rejected")] %}
-              <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label>
-          <span class="label-text">Workbook Text</span>
-          <textarea name="reviewer_text" rows="8">{{ item.reviewer_text or item.raw_text }}</textarea>
-        </label>
-        <label>
-          <span class="label-text">Notes</span>
-          <textarea name="reviewer_notes" rows="4">{{ item.reviewer_notes }}</textarea>
-        </label>
-        <div class="button-row">
-          <button type="submit">Save</button>
-          {% if navigation.next_change_id %}
-            <button type="submit" onclick="this.form.elements.advance.value='next';">Save + Next</button>
-            <button type="submit" name="status_override" value="approved" formnovalidate onclick="this.form.elements.advance.value='next';">Accept + Next</button>
-            <button type="submit" name="status_override" value="rejected" formnovalidate onclick="this.form.elements.advance.value='next';">Reject + Next</button>
-          {% else %}
-            <button type="submit" name="status_override" value="approved">Accept</button>
-            <button type="submit" name="status_override" value="rejected">Reject</button>
+
+      <div class="sheet-context-strip">
+        <span class="stat-label">Sheet context</span>
+        <span>{{ sheet.sheet_title }}</span>
+        <span class="cell-mono cell-dim">{{ item.sheet_id|discipline }}</span>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">Full sheet</a>
+      </div>
+    </section>
+
+    <section class="cockpit-form-pane">
+      <div class="cockpit-form-scroll">
+        <div class="cockpit-meta">
+          <div class="meta-pair">
+            <span class="meta-key">Sheet</span>
+            <span class="meta-val mono">{{ item.sheet_id }}</span>
+          </div>
+          <div class="meta-pair">
+            <span class="meta-key">Cloud</span>
+            <span class="meta-val mono">{{ item.detail_ref or "Cloud" }}</span>
+          </div>
+          <div class="meta-pair">
+            <span class="meta-key">Revision</span>
+            <span class="meta-val">{{ sheet_revision_set.label if sheet_revision_set else "n/a" }}</span>
+          </div>
+          <div class="meta-pair">
+            <span class="meta-key">Discipline</span>
+            <span class="meta-val">{{ item.sheet_id|discipline }}</span>
+          </div>
+          <div class="meta-pair span-2">
+            <span class="meta-key">Sheet title</span>
+            <span class="meta-val">{{ sheet.sheet_title }}</span>
+          </div>
+          <div class="meta-pair span-2">
+            <span class="meta-key">Detected text</span>
+            <span class="meta-val">{{ item.raw_text }}</span>
+          </div>
+          {% if item.provenance.get("scope_text_reason") %}
+            <div class="meta-pair span-2">
+              <span class="meta-key">Extraction reason</span>
+              <span class="meta-val">{{ item.provenance.get("scope_text_reason") }}</span>
+            </div>
           {% endif %}
         </div>
-      </form>
-      <p class="muted">Shortcuts: <code>a</code> accept + next, <code>r</code> reject + next, <code>s</code> save, <code>[</code>/<code>]</code> move between items.</p>
-    </article>
 
-    <article class="panel">
-      <div class="section-heading">
+        <div class="cockpit-divider"></div>
+
         <div>
-          <p class="eyebrow">Evidence</p>
-          <h2>Drawing crop</h2>
+          <label class="cockpit-scope-label" for="reviewer_text">Scope of change</label>
+          <textarea id="reviewer_text" name="reviewer_text" class="scope-textarea" rows="5">{{ item.reviewer_text or item.raw_text }}</textarea>
         </div>
-        <span class="pill">{% if item.provenance.source == "visual-region" %}drawing crop{% else %}package note{% endif %}</span>
-      </div>
-      <div class="stack">
-        <div><strong>Detected note:</strong> {{ item.raw_text }}</div>
-        {% if item.provenance.extraction_method %}
-          <div><strong>Method:</strong> Drawing change detection</div>
-        {% endif %}
-        {% if cloud %}
-          <img class="crop-image" src="{{ cloud.image_path|asset_path }}" alt="Review crop">
-          <div><strong>Nearby text:</strong> {{ cloud.nearby_text or "n/a" }}</div>
-        {% else %}
-          <p>No crop was associated with this item.</p>
-        {% endif %}
-        <details>
-          <summary>Open full drawing page</summary>
-          <img class="full-image" src="{{ sheet.render_path|asset_path }}" alt="Full page">
-        </details>
-      </div>
-    </article>
-  </section>
 
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Notes</p>
-        <h2>Review guidance</h2>
+        <div>
+          <label class="cockpit-scope-label" for="reviewer_notes">Reviewer notes</label>
+          <textarea id="reviewer_notes" name="reviewer_notes" class="notes-textarea" rows="3" placeholder="Optional field conditions, cross-references, RFI numbers...">{{ item.reviewer_notes }}</textarea>
+        </div>
+
+        {% if cloud and cloud.nearby_text %}
+          <div class="callout callout-info">
+            <span>{{ cloud.nearby_text }}</span>
+          </div>
+        {% endif %}
+
+        <div style="display: flex; gap: var(--sp-2);">
+          <button class="btn btn-secondary btn-sm" type="submit">Save</button>
+          {% if navigation.next_change_id %}
+            <button class="btn btn-secondary btn-sm" type="submit" onclick="this.form.elements.advance.value='next';">Save + Next</button>
+          {% endif %}
+        </div>
       </div>
-      <span class="pill">local review</span>
-    </div>
-    <div class="stack">
-      <p>Accept the item when the crop shows a real revised area that belongs in the workbook. Reject obvious noise. Leave short notes for anything the project team should confirm later.</p>
-      {% if verifications %}
-        <details>
-          <summary>Historical verification records</summary>
-          <ul class="flat-list">
-            {% for verification in verifications %}
-              <li class="list-card">
-                <div class="list-card__header">
-                  <strong>{{ verification.created_at }}</strong>
-                  <span class="status {{ verification.disposition }}">{{ verification.response_payload.verdict or "n/a" }}</span>
-                </div>
-                <div class="verification-card">
-                  <div><strong>Reasoning:</strong> {{ verification.response_payload.reasoning or "n/a" }}</div>
-                  <div><strong>Suggestion:</strong> {{ verification.response_payload.corrected_text or "n/a" }}</div>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        </details>
-      {% endif %}
-    </div>
-  </section>
+
+      <div class="cockpit-actions">
+        <button class="btn-accept-full" type="submit" name="status_override" value="approved" onclick="this.form.elements.advance.value='next';">
+          Accept + Next <span class="kbd">A</span>
+        </button>
+        <button class="btn-reject-full" type="submit" name="status_override" value="rejected" onclick="this.form.elements.advance.value='next';">
+          Reject + Next <span class="kbd">R</span>
+        </button>
+      </div>
+    </section>
+  </form>
+
+  <footer class="cockpit-footer">
+    <span class="kbd-hint"><span class="kbd">A</span>Accept + next</span>
+    <span class="kbd-hint"><span class="kbd">R</span>Reject + next</span>
+    <span class="kbd-hint"><span class="kbd">S</span>Save</span>
+    <span class="kbd-hint"><span class="kbd">[</span><span class="kbd">]</span>Navigate</span>
+    <span style="flex: 1;"></span>
+    <span class="cell-mono cell-dim">{{ pending_count }} pending in queue</span>
+  </footer>
 {% endblock %}

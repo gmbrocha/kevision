@@ -1,8 +1,10 @@
-# KEVISION Meeting One-Pager - 2026-04-29
+# ScopeLedger Meeting One-Pager - 2026-04-29
+
+Turn drawing revisions into accountable scope records.
 
 ## Plain-English Pitch
 
-KEVISION reduces the time and risk involved in reviewing construction revision
+ScopeLedger reduces the time and risk involved in reviewing construction revision
 packages.
 
 The current MVP finds suspected revision clouds on drawing sheets, crops the
@@ -30,6 +32,8 @@ Latest proof point:
 - `217` corrected CloudHammer crop rows exported through the real backend:
   `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog.xlsx`
 - `217` embedded crop images verified in the workbook.
+- first workbook tab is now a summary cover sheet with package counts and
+  review guidance.
 - `80` human split-review replacements included.
 - `10` still-overmerged candidates intentionally excluded from this release.
 
@@ -52,7 +56,7 @@ Manual revision review is slow and risky because someone has to:
 - collect crop evidence
 - organize the results into a usable workbook
 
-KEVISION's first business value is reducing the search-and-crop burden while
+ScopeLedger's first business value is reducing the search-and-crop burden while
 keeping a human in control.
 
 ## Demo Artifacts

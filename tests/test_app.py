@@ -4,14 +4,17 @@ import json
 from collections import Counter
 from pathlib import Path
 
+import fitz
 import pytest
 
 from backend.cli import approve_cloudhammer_detections
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
+from backend.deliverables.review_packet import build_review_packet
 from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
 from backend.review import change_item_needs_attention
 from backend.revision_state.tracker import RevisionScanner
+from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
 from backend.workspace import WorkspaceStore
 from webapp.app import create_app
 
@@ -135,6 +138,68 @@ def test_approve_cloudhammer_detections_only_marks_manifest_visual_items(tmp_pat
     assert store.data.change_items[1].status == "pending"
 
 
+def test_workspace_persists_portable_relative_paths(tmp_path: Path):
+    workspace_dir = tmp_path / "workspace"
+    input_dir = workspace_dir / "input"
+    input_dir.mkdir(parents=True)
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    project_pdf = Path.cwd() / "revision_sets" / "Revision #1 - Drawing Changes" / "Revision #1 - Drawing Changes.pdf"
+    render_path = store.page_path("sheet-1")
+    render_path.write_bytes(b"png")
+    crop_path = store.crop_path("crop-1")
+    crop_path.write_bytes(b"png")
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1 - Drawing Changes",
+            source_dir=str(project_pdf.parent),
+            set_number=1,
+            set_date=None,
+            pdf_paths=[str(project_pdf)],
+        )
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-1",
+            revision_set_id="rev-1",
+            source_pdf=str(project_pdf),
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Plan",
+            issue_date=None,
+            render_path=str(render_path),
+        )
+    ]
+    store.data.clouds = [
+        CloudCandidate(
+            id="cloud-1",
+            sheet_version_id="sheet-1",
+            bbox=[0, 0, 10, 10],
+            image_path=str(crop_path),
+            page_image_path=str(render_path),
+            confidence=0.9,
+            extraction_method="test",
+            nearby_text="",
+            detail_ref=None,
+        )
+    ]
+
+    store.save()
+
+    raw = store.data_path.read_text(encoding="utf-8")
+    assert str(tmp_path) not in raw
+    assert str(Path.cwd()) not in raw
+    assert "revision_sets/" in raw
+    assert "assets/pages/sheet-1.png" in raw
+    assert "input" in raw
+
+    loaded = WorkspaceStore(workspace_dir).load()
+    assert Path(loaded.data.input_dir).resolve() == input_dir.resolve()
+    assert Path(loaded.data.sheets[0].source_pdf).resolve() == project_pdf.resolve()
+    assert Path(loaded.data.sheets[0].render_path).resolve() == render_path.resolve()
+    assert Path(loaded.data.clouds[0].image_path).resolve() == crop_path.resolve()
+
+
 def test_visual_region_signal_score_handles_cloudhammer_placeholder():
     scanner = RevisionScanner.__new__(RevisionScanner)
     sheet = SheetVersion(
@@ -150,6 +215,113 @@ def test_visual_region_signal_score_handles_cloudhammer_placeholder():
     score = scanner._signal_score("CloudHammer detected revision cloud. OCR/scope extraction is not wired yet.", sheet)
 
     assert score > 0.5
+
+
+def test_scope_extraction_reads_pdf_text_near_cloud():
+    document = fitz.open()
+    page = document.new_page(width=300, height=200)
+    page.insert_text((82, 95), "PROVIDE NEW GRAB BAR BLOCKING", fontsize=10)
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        width=300,
+        height=200,
+    )
+
+    result = extract_cloud_scope_text(page, sheet, [70, 70, 95, 55])
+
+    document.close()
+    assert result.reason == "text-layer-near-cloud"
+    assert result.signal > 0.7
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in result.text
+
+
+def test_scope_extraction_flags_cloud_without_readable_text():
+    document = fitz.open()
+    page = document.new_page(width=300, height=200)
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        width=300,
+        height=200,
+    )
+
+    result = extract_cloud_scope_text(page, sheet, [70, 70, 95, 55])
+
+    document.close()
+    assert result.reason == "no-readable-text"
+    assert result.signal < 0.3
+    assert "No readable scope text" in result.text
+
+
+def test_enrich_workspace_scope_text_updates_existing_cloud_items(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    pdf_path = input_dir / "Revision #1" / "drawing.pdf"
+    pdf_path.parent.mkdir()
+    document = fitz.open()
+    page = document.new_page(width=300, height=200)
+    page.insert_text((82, 95), "PROVIDE NEW GRAB BAR BLOCKING", fontsize=10)
+    document.save(pdf_path)
+    document.close()
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf=str(pdf_path),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        width=300,
+        height=200,
+    )
+    cloud = CloudCandidate(
+        id="cloud-1",
+        sheet_version_id=sheet.id,
+        bbox=[70, 70, 95, 55],
+        image_path="crop.png",
+        page_image_path="page.png",
+        confidence=0.91,
+        extraction_method="cloudhammer_manifest",
+        nearby_text="Cloud Only - CloudHammer detected revision cloud.",
+        detail_ref=None,
+        metadata={"cloudhammer_candidate_id": "cand-1"},
+    )
+    item = ChangeItem(
+        id="change-1",
+        sheet_version_id=sheet.id,
+        cloud_candidate_id=cloud.id,
+        sheet_id=sheet.sheet_id,
+        detail_ref=None,
+        raw_text=cloud.nearby_text,
+        normalized_text=cloud.nearby_text.lower(),
+        reviewer_text=cloud.nearby_text,
+        provenance={"source": "visual-region", "extraction_method": "cloudhammer_manifest"},
+    )
+    store.data.sheets = [sheet]
+    store.data.clouds = [cloud]
+    store.data.change_items = [item]
+    store.save()
+
+    changed = enrich_workspace_scope_text(store)
+
+    assert changed == 1
+    assert store.data.clouds[0].scope_reason == "text-layer-near-cloud"
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in store.data.change_items[0].raw_text
+    assert store.data.change_items[0].reviewer_text == store.data.change_items[0].raw_text
+    assert store.data.change_items[0].provenance["cloudhammer_candidate_id"] == "cand-1"
 
 
 def test_cloudhammer_manifest_clouds_get_visual_items_even_with_narratives():
@@ -203,6 +375,38 @@ def test_cloudhammer_manifest_clouds_get_visual_items_even_with_narratives():
     assert len(items) == 3
     assert Counter(item.provenance["source"] for item in items) == {"narrative": 1, "visual-region": 2}
     assert {item.cloud_candidate_id for item in items if item.provenance["source"] == "visual-region"} == {"cloud-1", "cloud-2"}
+
+
+def test_review_state_restores_by_cloud_id_when_extracted_text_changes():
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    scanner.previous_change_items = [
+        ChangeItem(
+            id="old",
+            sheet_version_id="sheet-1",
+            cloud_candidate_id="cloud-1",
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text="CloudHammer detected revision cloud",
+            normalized_text="cloudhammer detected revision cloud",
+            status="approved",
+            reviewer_text="Preserved reviewer edit",
+        )
+    ]
+    new_item = ChangeItem(
+        id="new",
+        sheet_version_id="sheet-1",
+        cloud_candidate_id="cloud-1",
+        sheet_id="AE101",
+        detail_ref=None,
+        raw_text="Cloud Only - PROVIDE NEW GRAB BAR BLOCKING",
+        normalized_text="cloud only - provide new grab bar blocking",
+    )
+
+    restored = scanner._restore_review_state([new_item])[0]
+
+    assert restored.status == "approved"
+    assert restored.reviewer_text == "Preserved reviewer edit"
+    assert restored.raw_text == new_item.raw_text
 
 
 def test_export_only_approved_items_when_forced(workspace_copy):
@@ -261,6 +465,11 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
     assert xlsx_path.suffix == ".xlsx"
 
     wb = load_workbook(xlsx_path)
+    assert wb.sheetnames[:2] == ["Summary", "Sheet1"]
+    summary_ws = wb["Summary"]
+    assert summary_ws["A1"].value == "ScopeLedger Revision Review"
+    assert summary_ws["B8"].value == "Revision Sets"
+    assert summary_ws["B9"].value == len(store.data.revision_sets)
     ws = wb["Sheet1"]
 
     headers = [ws.cell(row=1, column=i).value for i in range(1, len(COLUMNS) + 1)]
@@ -362,7 +571,10 @@ def test_revision_changelog_stacks_multiple_items_in_same_cloud(tmp_path: Path):
 
     output_path = write_revision_changelog(store, tmp_path / "revision_changelog.xlsx")
 
-    ws = load_workbook(output_path)["Sheet1"]
+    wb = load_workbook(output_path)
+    assert wb.sheetnames[:2] == ["Summary", "Sheet1"]
+    assert wb["Summary"]["B9"].value == 1
+    ws = wb["Sheet1"]
     populated_drawings = [
         ws.cell(row=row, column=2).value
         for row in range(2, ws.max_row + 1)
@@ -519,14 +731,21 @@ def test_web_routes_render_without_ai(workspace_copy):
     app = create_app(workspace_copy)
     client = app.test_client()
 
-    assert client.get("/").status_code == 200
+    assert client.get("/").status_code == 302
+    projects = client.get("/projects")
+    assert projects.status_code == 200
+    assert b"Project archive" in projects.data
+    assert b"Choose PDF(s)" in projects.data
+    assert b"Choose folder" in projects.data
+    assert b"Workspace folder" in projects.data
+    assert client.get("/overview").status_code == 200
     assert client.get("/sheets").status_code == 200
     queue = client.get("/changes")
     assert queue.status_code == 200
-    assert b"Apply to selected" in queue.data
+    assert b"Accept selected" in queue.data
     diagnostics = client.get("/diagnostics")
     assert diagnostics.status_code == 200
-    assert b"Preflight Summary" in diagnostics.data
+    assert b"Ingested PDF files" in diagnostics.data
     settings = client.get("/settings")
     assert settings.status_code == 200
     assert b"archived" in settings.data
@@ -535,14 +754,53 @@ def test_web_routes_render_without_ai(workspace_copy):
 def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
     app = create_app(workspace_copy)
     client = app.test_client()
-    response = client.get("/")
+    response = client.get("/overview")
     assert response.status_code == 200
     body = response.data
-    assert b"Review Summary" in body
-    assert b"Workbook Rows" in body
-    assert b"Still To Review" in body
-    assert b"Current Sheets" in body
-    assert b"Needs Check" in body
+    assert b"Revision packages" in body
+    assert b"Export readiness" in body
+    assert b"Pending review" in body
+    assert b"Accepted" in body
+    assert b"Needs check" in body
+    assert b"Project Files and Packages" in body
+    assert b"Choose PDF(s)" in body
+    assert b"Choose folder" in body
+    assert b"Manual server path" in body
+    assert b'name="package_files"' in body
+    assert b'name="append_files"' in body
+    assert b"Populate Workspace" in body
+
+
+def test_dashboard_and_export_link_generated_artifacts(workspace_copy):
+    store = WorkspaceStore(workspace_copy).load()
+    Exporter(store).export(force_attention=True)
+    packet = build_review_packet(store)
+
+    app = create_app(workspace_copy)
+    client = app.test_client()
+
+    dashboard = client.get("/overview")
+    assert dashboard.status_code == 200
+    assert b"Open Workbook" not in dashboard.data
+    assert b"Open Review Packet" not in dashboard.data
+
+    export = client.get("/export")
+    assert export.status_code == 200
+    assert b"Open Workbook" in export.data
+    assert b'href="/outputs/revision_changelog.xlsx"' in export.data
+    assert b"Re-generate workbook" in export.data
+    assert b"Open Review Packet" in export.data
+    assert b'href="/outputs/revision_changelog_review_packet.html"' in export.data
+    assert b"Refresh Review Packet" in export.data
+    assert b"Open Google Drive Folder" in export.data
+
+    workbook_response = client.get("/outputs/revision_changelog.xlsx")
+    assert workbook_response.status_code == 200
+    assert workbook_response.data[:2] == b"PK"
+
+    packet_response = client.get(f"/outputs/{packet.html_path.name}")
+    assert packet_response.status_code == 200
+    assert b"ScopeLedger Review Packet" in packet_response.data
 
 
 def test_conformed_page_lists_revised_sheets_by_default(workspace_copy):
@@ -552,10 +810,9 @@ def test_conformed_page_lists_revised_sheets_by_default(workspace_copy):
     response = client.get("/conformed")
     assert response.status_code == 200
     body = response.data
-    assert b"Conformed Sheet Set" in body
-    assert b"Only sheets that were revised" in body
-    assert b"latest" in body
-    assert b"superseded" in body
+    assert b"Latest Set" in body
+    assert b"Revised only" in body
+    assert b"Revised" in body
 
     response_all = client.get("/conformed?show=all")
     assert response_all.status_code == 200
@@ -565,9 +822,9 @@ def test_conformed_page_lists_revised_sheets_by_default(workspace_copy):
 def test_navbar_includes_conformed_link(workspace_copy):
     app = create_app(workspace_copy)
     client = app.test_client()
-    response = client.get("/")
+    response = client.get("/projects")
     assert b'href="/conformed"' in response.data
-    assert b">Latest Set</a>" in response.data
+    assert b"Latest Set" in response.data
 
 
 def test_bulk_review_and_next_navigation(workspace_copy):

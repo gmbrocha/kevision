@@ -15,6 +15,7 @@ from __future__ import annotations
 import io
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -70,7 +71,7 @@ class RevisionChangelogRow:
 
 def write_revision_changelog(store: WorkspaceStore, output_path: Path) -> Path:
     rows = _build_rows(store)
-    _write_workbook(rows, output_path)
+    _write_workbook(store, rows, output_path)
     return output_path
 
 
@@ -187,12 +188,15 @@ def _pick_crop_path(items: list[ChangeItem], clouds_by_id: dict[str, object]) ->
     return None
 
 
-def _write_workbook(rows: list[RevisionChangelogRow], output_path: Path) -> None:
+def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], output_path: Path) -> None:
     wb = Workbook()
-    wb.properties.creator = "KEVISION"
+    wb.properties.creator = "ScopeLedger"
     wb.properties.title = "Revision Changelog"
-    ws = wb.active
-    ws.title = "Sheet1"
+    summary_ws = wb.active
+    summary_ws.title = "Summary"
+    _write_summary_sheet(summary_ws, store, rows)
+
+    ws = wb.create_sheet("Sheet1")
     ws.sheet_view.showGridLines = False
     ws.freeze_panes = "A2"
     ws.sheet_properties.tabColor = ACCENT_COLOR
@@ -276,6 +280,148 @@ def _write_workbook(rows: list[RevisionChangelogRow], output_path: Path) -> None
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(output_path)
+
+
+def _write_summary_sheet(ws, store: WorkspaceStore, rows: list[RevisionChangelogRow]) -> None:
+    ws.sheet_view.showGridLines = False
+    ws.sheet_properties.tabColor = HEADER_FILL
+    for column, width in {
+        "A": 4,
+        "B": 24,
+        "C": 18,
+        "D": 24,
+        "E": 18,
+        "F": 38,
+        "G": 22,
+    }.items():
+        ws.column_dimensions[column].width = width
+
+    title_fill = PatternFill("solid", fgColor=HEADER_FILL)
+    accent_fill = PatternFill("solid", fgColor=ACCENT_COLOR)
+    panel_fill = PatternFill("solid", fgColor="F8FAFC")
+    white_fill = PatternFill("solid", fgColor="FFFFFF")
+    thin = Side(border_style="thin", color=BORDER_COLOR)
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    title_font = Font(bold=True, color=HEADER_TEXT, size=20)
+    subtitle_font = Font(color="D1D5DB", size=11)
+    heading_font = Font(bold=True, color="111827", size=13)
+    label_font = Font(bold=True, color="475569", size=10)
+    metric_font = Font(bold=True, color="111827", size=24)
+    body_font = Font(color="334155", size=11)
+    note_font = Font(color="475569", size=10)
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left = Alignment(horizontal="left", vertical="top", wrap_text=True)
+
+    ws.merge_cells("A1:G3")
+    title = ws["A1"]
+    title.value = "ScopeLedger Revision Review"
+    title.fill = title_fill
+    title.font = title_font
+    title.alignment = Alignment(horizontal="left", vertical="center")
+    for row in range(1, 4):
+        ws.row_dimensions[row].height = 24
+        for col in range(1, 8):
+            ws.cell(row=row, column=col).fill = title_fill
+
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    ws.merge_cells("A4:G4")
+    subtitle = ws["A4"]
+    subtitle.value = f"Generated {generated_at} | Local review workbook"
+    subtitle.fill = title_fill
+    subtitle.font = subtitle_font
+    subtitle.alignment = Alignment(horizontal="left", vertical="center")
+
+    approved = [item for item in store.data.change_items if item.status == "approved"]
+    pending = [item for item in store.data.change_items if item.status == "pending"]
+    rejected = [item for item in store.data.change_items if item.status == "rejected"]
+    active_sheets = [sheet for sheet in store.data.sheets if sheet.status == "active"]
+    superseded_sheets = [sheet for sheet in store.data.sheets if sheet.status == "superseded"]
+    crop_rows = [row for row in rows if row.crop_path]
+    cloud_rows = [
+        item
+        for item in approved
+        if item.provenance.get("source") == "visual-region"
+        and item.provenance.get("extraction_method") == "cloudhammer_manifest"
+    ]
+
+    ws.merge_cells("A6:G6")
+    section = ws["A6"]
+    section.value = "Package Summary"
+    section.font = heading_font
+    section.alignment = left
+
+    cards = [
+        ("Revision Sets", len(store.data.revision_sets)),
+        ("Current Sheets", len(active_sheets)),
+        ("Superseded Sheets", len(superseded_sheets)),
+        ("Accepted Changes", len(approved)),
+        ("Workbook Rows", len(rows)),
+        ("Crop Images", len(crop_rows)),
+        ("Needs Review", len(pending)),
+        ("Rejected", len(rejected)),
+    ]
+    card_positions = [("B", "C", 8), ("D", "E", 8), ("F", "G", 8), ("B", "C", 12), ("D", "E", 12), ("F", "G", 12), ("B", "C", 16), ("D", "E", 16)]
+    for (label, value), (start_col, end_col, row) in zip(cards, card_positions):
+        ws.merge_cells(f"{start_col}{row}:{end_col}{row}")
+        ws.merge_cells(f"{start_col}{row + 1}:{end_col}{row + 2}")
+        label_cell = ws[f"{start_col}{row}"]
+        value_cell = ws[f"{start_col}{row + 1}"]
+        label_cell.value = label
+        label_cell.fill = panel_fill
+        label_cell.font = label_font
+        label_cell.alignment = center
+        value_cell.value = value
+        value_cell.fill = white_fill
+        value_cell.font = metric_font
+        value_cell.alignment = center
+        for r in range(row, row + 3):
+            for c in range(ws[start_col + str(r)].column, ws[end_col + str(r)].column + 1):
+                cell = ws.cell(row=r, column=c)
+                cell.border = border
+                if cell.fill.fill_type is None:
+                    cell.fill = white_fill
+
+    ws.merge_cells("A20:G20")
+    workflow_heading = ws["A20"]
+    workflow_heading.value = "How to Use This Workbook"
+    workflow_heading.font = heading_font
+    workflow_heading.alignment = left
+
+    guidance = [
+        "Start on Sheet1 for the detailed change list and embedded crop evidence.",
+        "Use the crop image as the source of truth while scope text extraction is still being built.",
+        "Contractor, cost, and quote fields are intentionally left blank for downstream review.",
+        "Source PDFs and sensitive project data remain local unless a separate security approval allows otherwise.",
+    ]
+    for offset, text in enumerate(guidance, start=21):
+        ws.merge_cells(start_row=offset, start_column=2, end_row=offset, end_column=7)
+        ws.cell(row=offset, column=1, value=offset - 20).fill = accent_fill
+        ws.cell(row=offset, column=1).font = Font(bold=True, color=HEADER_TEXT)
+        ws.cell(row=offset, column=1).alignment = center
+        cell = ws.cell(row=offset, column=2, value=text)
+        cell.font = body_font
+        cell.alignment = left
+
+    ws.merge_cells("A27:G29")
+    note = ws["A27"]
+    note.value = (
+        "Current MVP status: cloud/crop evidence is available for review. "
+        "Legend parsing, keynote interpretation, detail-reference extraction, "
+        "and polished scope descriptions are planned next steps."
+    )
+    note.fill = panel_fill
+    note.font = note_font
+    note.alignment = left
+    for row in range(27, 30):
+        for col in range(1, 8):
+            ws.cell(row=row, column=col).fill = panel_fill
+            ws.cell(row=row, column=col).border = border
+
+    ws.merge_cells("A31:G31")
+    footer = ws["A31"]
+    footer.value = f"Cloud-backed accepted rows: {len(cloud_rows)}"
+    footer.font = Font(bold=True, color=ACCENT_COLOR)
+    footer.alignment = left
 
 
 def _format_scope_text(lines: list[str]) -> str:

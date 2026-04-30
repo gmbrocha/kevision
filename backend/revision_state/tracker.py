@@ -8,11 +8,13 @@ import fitz
 
 from ..cloudhammer_client.inference import CloudInferenceClient, NullCloudInferenceClient
 from ..diagnostics import capture_preflight_issues, configure_mupdf, summarize_documents
+from ..scope_extraction import extract_cloud_scope_text
 from ..workspace import WorkspaceStore
 from ..utils import DATE_PATTERN, choose_best_sheet_id, clean_display_text, normalize_text, parse_detail_ref, parse_mmddyyyy, stable_id
 from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, RevisionSet, SheetVersion, SourceDocument
 
 REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*#(?P<number>\d+)", re.IGNORECASE)
+SCOPE_EXTRACTION_CACHE_VERSION = 1
 class RevisionScanner:
     def __init__(
         self,
@@ -237,6 +239,12 @@ class RevisionScanner:
     def _cache_entry_usable(self, cache_entry: dict[str, object] | None, fingerprint: str) -> bool:
         if not cache_entry or cache_entry.get("fingerprint") != fingerprint:
             return False
+        if (
+            cache_entry.get("clouds")
+            and cache_entry.get("scope_extraction_version") != SCOPE_EXTRACTION_CACHE_VERSION
+            and not isinstance(self.cloud_inference_client, NullCloudInferenceClient)
+        ):
+            return False
         for sheet in cache_entry.get("sheets", []):
             render_path = sheet.get("render_path", "")
             if render_path and not (self.store.page_dir / Path(render_path).name).exists():
@@ -285,6 +293,7 @@ class RevisionScanner:
     ) -> dict[str, object]:
         return {
             "fingerprint": fingerprint,
+            "scope_extraction_version": SCOPE_EXTRACTION_CACHE_VERSION,
             "document": asdict(document),
             "preflight_issues": [asdict(issue) for issue in preflight_issues],
             "narratives": [asdict(entry) for entry in narratives],
@@ -296,9 +305,14 @@ class RevisionScanner:
     def _restore_review_state(self, items: list[ChangeItem]) -> list[ChangeItem]:
         previous_by_id = {item.id: item for item in self.previous_change_items}
         previous_by_key = {(item.sheet_id, item.detail_ref, item.normalized_text): item for item in self.previous_change_items}
+        previous_by_cloud = {item.cloud_candidate_id: item for item in self.previous_change_items if item.cloud_candidate_id}
         restored: list[ChangeItem] = []
         for item in items:
-            previous = previous_by_id.get(item.id) or previous_by_key.get((item.sheet_id, item.detail_ref, item.normalized_text))
+            previous = (
+                previous_by_id.get(item.id)
+                or previous_by_key.get((item.sheet_id, item.detail_ref, item.normalized_text))
+                or previous_by_cloud.get(item.cloud_candidate_id or "")
+            )
             if previous:
                 restored.append(
                     replace(
@@ -493,6 +507,7 @@ class RevisionScanner:
         candidates: list[CloudCandidate] = []
         for index, detection in enumerate(detections):
             cloud_id = stable_id(sheet.id, index, *detection.bbox)
+            scope_result = extract_cloud_scope_text(page, sheet, [int(value) for value in detection.bbox])
             candidates.append(
                 CloudCandidate(
                     id=cloud_id,
@@ -502,8 +517,13 @@ class RevisionScanner:
                     page_image_path=detection.page_image_path or sheet.render_path,
                     confidence=round(float(detection.confidence), 3),
                     extraction_method=detection.extraction_method,
-                    nearby_text=detection.nearby_text,
-                    detail_ref=detection.detail_ref,
+                    nearby_text=scope_result.text or detection.nearby_text,
+                    detail_ref=detection.detail_ref or scope_result.detail_ref,
+                    scope_text=scope_result.text,
+                    scope_reason=scope_result.reason,
+                    scope_signal=round(scope_result.signal, 3),
+                    scope_method=scope_result.method,
+                    metadata=dict(detection.metadata),
                 )
             )
         return candidates
@@ -602,7 +622,12 @@ class RevisionScanner:
                         "source": "visual-region",
                         "cloud_candidate_id": cloud.id,
                         "extraction_method": cloud.extraction_method,
-                        "extraction_signal": round(self._signal_score(raw_text, sheet), 3),
+                        "extraction_signal": round(cloud.scope_signal or self._signal_score(raw_text, sheet), 3),
+                        "scope_text_reason": cloud.scope_reason,
+                        "scope_text_method": cloud.scope_method,
+                        "scope_text_signal": cloud.scope_signal,
+                        "cloud_confidence": cloud.confidence,
+                        **cloud.metadata,
                     },
                 )
                 unique[dedupe_key] = item

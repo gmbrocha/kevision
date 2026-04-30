@@ -1,76 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8">
-    <title>{% block title %}KEVISION{% endblock %}</title>
+    <title>{% block title %}ScopeLedger{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
     <script defer src="{{ url_for('static', filename='app.js') }}"></script>
   </head>
-  <body class="page-app">
-    <header class="navbar">
-      <div class="navbar__container">
-        <a id="navbar__logo" href="{{ url_for('dashboard') }}">
-          <span class="navbar__logo-primary">KEVISION</span>
-          <span class="navbar__logo-divider"></span>
-          <span class="navbar__logo-secondary">Change Review</span>
+  <body>
+    <div class="app-shell">
+      <nav class="nav">
+        <a class="nav-brand" href="{{ url_for('projects') }}" aria-label="ScopeLedger projects">
+          <img class="nav-brand-logo" src="{{ url_for('static', filename='media/scopeLedger_logo.png') }}" alt="ScopeLedger">
         </a>
-        <nav>
-          <ul class="navbar__menu">
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('dashboard') }}">Project</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('changes') }}">Review Changes</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('sheets') }}">Drawings</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('conformed') }}">Latest Set</a></li>
-            <li class="navbar__item"><a class="navbar__links" href="{{ url_for('diagnostics') }}">PDF Health</a></li>
-            <li class="navbar__item"><a class="navbar__links navbar__links--primary" href="{{ url_for('export_view') }}">Export Workbook</a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
 
-    <main class="page-shell">
-      <section class="hero-panel page-hero">
-        <div class="page-hero__content">
-          <p class="eyebrow">Drawing Change Review</p>
-          <h1>{% block page_heading %}Project Review{% endblock %}</h1>
-          <p class="page-lead">{% block page_lead %}Find changed drawing areas, review the evidence, and produce a workbook for downstream pricing and coordination.{% endblock %}</p>
+        <section class="nav-project">
+          <div class="nav-project-label">Active Project</div>
+          <div class="nav-project-name">{{ active_project.name }}</div>
+          <div class="nav-project-pkg">
+            <span class="nav-pkg-dot"></span>
+            <span class="nav-pkg-label">{{ current_package_label }}</span>
+          </div>
+        </section>
+
+        <div class="nav-links">
+          <a class="nav-link {% if request.endpoint in ['projects', 'create_project', 'select_project', 'archive_project', 'restore_project'] %}active{% endif %}" href="{{ url_for('projects') }}">
+            <span class="nav-link-icon">P</span>
+            <span class="nav-link-label">Projects</span>
+          </a>
+          <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+            <span class="nav-link-icon">O</span>
+            <span class="nav-link-label">Overview</span>
+          </a>
+          <a class="nav-link {% if request.endpoint in ['changes', 'change_detail', 'bulk_review', 'review_change'] %}active{% endif %}" href="{{ url_for('changes') }}">
+            <span class="nav-link-icon">R</span>
+            <span class="nav-link-label">Review Changes</span>
+            {% if pending_count %}<span class="nav-badge">{{ pending_count }}</span>{% endif %}
+          </a>
+          <a class="nav-link {% if request.endpoint in ['sheets', 'sheet_detail'] %}active{% endif %}" href="{{ url_for('sheets') }}">
+            <span class="nav-link-icon">D</span>
+            <span class="nav-link-label">Drawings</span>
+          </a>
+          <a class="nav-link {% if request.endpoint == 'conformed' %}active{% endif %}" href="{{ url_for('conformed') }}">
+            <span class="nav-link-icon">L</span>
+            <span class="nav-link-label">Latest Set</span>
+          </a>
+          <a class="nav-link {% if request.endpoint == 'export_view' %}active{% endif %}" href="{{ url_for('export_view') }}">
+            <span class="nav-link-icon">E</span>
+            <span class="nav-link-label">Export Workbook</span>
+          </a>
         </div>
-      </section>
 
-      <section class="summary-strip">
-        <article class="summary-strip__item">
-          <span class="summary-strip__value">{{ pending_count }}</span>
-          <h3>To Review</h3>
-          <p>Changes still waiting for a decision.</p>
-        </article>
-        <article class="summary-strip__item">
-          <span class="summary-strip__value">{{ approved_count }}</span>
-          <h3>Accepted</h3>
-          <p>Changes ready for the workbook.</p>
-        </article>
-        <article class="summary-strip__item">
-          <span class="summary-strip__value">{{ attention_count }}</span>
-          <h3>Needs Check</h3>
-          <p>Items that should get a human look.</p>
-        </article>
-        <article class="summary-strip__item">
-          <span class="summary-strip__value">{{ diagnostic_summary.affected_document_count }}</span>
-          <h3>PDF Warnings</h3>
-          <p>Files with import warnings.</p>
-        </article>
-      </section>
+        <div class="nav-bottom">
+          <a class="nav-link {% if request.endpoint == 'diagnostics' %}active{% endif %}" href="{{ url_for('diagnostics') }}">
+            <span class="nav-link-icon">!</span>
+            <span class="nav-link-label">Diagnostics</span>
+          </a>
+        </div>
+      </nav>
 
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <section class="flash-stack">
-            {% for category, message in messages %}
-              <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-          </section>
-        {% endif %}
-      {% endwith %}
+      {% block body %}
+        <main class="page-area">
+          {% block content %}{% endblock %}
+        </main>
+      {% endblock %}
+    </div>
 
-      {% block content %}{% endblock %}
-    </main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ 'success' if category == 'success' else 'warning' }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
   </body>
 </html>

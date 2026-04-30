@@ -1,15 +1,15 @@
-# KEVISION
+# ScopeLedger
 
 Status: current source of truth for repository structure, setup, and active
 workflow.
 
-KEVISION is the product repo for turning blueprint revision packages into a
-reviewable deliverable for downstream pricing/build coordination.
+ScopeLedger turns blueprint revision packages into reviewable, accountable
+scope records for downstream pricing/build coordination.
 
 ## Active Project Shape
 
 ```text
-kevision/
+scopeledger/
   backend/       product orchestration, workspace state, scanners, exports
   webapp/        local Flask review UI backed by backend workspaces
   CloudHammer/   computer-vision model pipeline for revision-cloud detection
@@ -177,7 +177,7 @@ CloudHammer knowing about Excel, Flask routes, or workspace persistence.
 
 The maintained docs are:
 
-- `KEVISION.md`: repo architecture, setup, and workflow
+- `SCOPELEDGER.md`: repo architecture, setup, and workflow
 - `PRODUCT_AND_DELIVERABLE.md`: stakeholder decisions, workbook rules, benchmark, open questions, backlog
 - `CLOUDHAMMER.md`: CV pipeline, labeling, prelabeling, training, inference, output contract
 - `SECURITY_PRIVACY_POLICY.md`: sensitive-project data policy and external API approval gate

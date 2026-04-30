@@ -1,116 +1,126 @@
 {% extends "base.html" %}
 {% block title %}Diagnostics{% endblock %}
-{% block page_heading %}Preflight Diagnostics{% endblock %}
-{% block page_lead %}Surface malformed-PDF conditions early, keep them attached to the workspace, and avoid silent export failures later in the process.{% endblock %}
 {% block content %}
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Preflight Summary</p>
-        <h2>Preflight Summary</h2>
-      </div>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Diagnostics</h1>
+      <p class="page-subtitle">PDF health and ingestion status - operational signals, not review decisions</p>
     </div>
-    <div class="cards">
-      <article class="card">
-        <h3>Documents</h3>
-        <p class="metric">{{ diagnostic_summary.document_count }}</p>
-      </article>
-      <article class="card">
-        <h3>Affected</h3>
-        <p class="metric">{{ diagnostic_summary.affected_document_count }}</p>
-      </article>
-      <article class="card">
-        <h3>Warnings</h3>
-        <p class="metric">{{ diagnostic_summary.warning_count }}</p>
-      </article>
-      <article class="card">
-        <h3>High Severity</h3>
-        <p class="metric">{{ diagnostic_summary.severity_counts.high }}</p>
-      </article>
-    </div>
-  </section>
+    {% if diagnostic_summary.warning_count == 0 and diagnostic_summary.affected_document_count == 0 %}
+      <span class="badge badge-accepted"><span class="badge-dot"></span>All files healthy</span>
+    {% endif %}
+  </header>
 
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Documents</p>
-        <h2>Document Summary</h2>
-      </div>
-    </div>
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>PDF</th>
-            <th>Pages</th>
-            <th>Severity</th>
-            <th>Issues</th>
-            <th>Warnings</th>
-            <th>Repaired</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for document in documents %}
-            <tr>
-              <td>{{ document.source_pdf|pdf_label }}</td>
-              <td>{{ document.page_count }}</td>
-              <td><span class="status {{ document.max_severity }}">{{ document.max_severity }}</span></td>
-              <td>{{ document.issue_count }}</td>
-              <td>{{ document.warning_count }}</td>
-              <td>{{ "yes" if document.is_repaired else "no" }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <div class="page-scroll">
+    <div class="page-content">
+      {% if diagnostic_summary.warning_count or diagnostic_summary.affected_document_count %}
+        <section class="callout callout-check">
+          <strong>{{ diagnostic_summary.affected_document_count }} PDF{{ "s" if diagnostic_summary.affected_document_count != 1 else "" }} produced parser warnings.</strong>
+          <span>These are not per-row fixes. The practical fix is to replace/re-export the source PDF, then rescan the project.</span>
+        </section>
+      {% endif %}
 
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Issue Log</p>
-        <h2>Issue Log</h2>
-      </div>
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Ingestion summary</span>
+        </div>
+        <div class="panel-body">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4);">
+            <div>
+              <div class="stat-value" style="font-size: var(--text-xl);">{{ diagnostic_summary.document_count }}</div>
+              <div class="stat-label">Total PDFs</div>
+            </div>
+            <div>
+              <div class="stat-value" style="font-size: var(--text-xl);">{{ documents|sum(attribute='page_count') }}</div>
+              <div class="stat-label">Total pages</div>
+            </div>
+            <div>
+              <div class="stat-value {{ 'check' if diagnostic_summary.warning_count else '' }}" style="font-size: var(--text-xl);">{{ diagnostic_summary.warning_count }}</div>
+              <div class="stat-label">Warnings</div>
+            </div>
+            <div>
+              <div class="stat-value {{ 'check' if diagnostic_summary.severity_counts.high else '' }}" style="font-size: var(--text-xl);">{{ diagnostic_summary.severity_counts.high }}</div>
+              <div class="stat-label">High severity</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Ingested PDF files</span>
+        </div>
+        <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+          <table class="data-table diag-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th class="col-right">Pages</th>
+                <th class="col-right">Warnings</th>
+                <th class="col-right">Issues</th>
+                <th>Condition</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for document in documents %}
+                <tr>
+                  <td class="cell-mono">{{ document.source_pdf|pdf_label }}</td>
+                  <td class="col-right cell-mono">{{ document.page_count }}</td>
+                  <td class="col-right cell-mono">{{ document.warning_count }}</td>
+                  <td class="col-right cell-mono">{{ document.issue_count }}</td>
+                  <td>
+                    {% if document.issue_count or document.warning_count %}
+                      <span class="badge badge-check">{{ document.max_severity }}</span>
+                    {% else %}
+                      <span class="diag-ok">Healthy</span>
+                    {% endif %}
+                  </td>
+                  <td class="cell-secondary">
+                    {% if document.issue_count or document.warning_count %}
+                      Replace/re-export source PDF if extraction looks wrong.
+                    {% else %}
+                      No action.
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="6" class="data-table-empty">No PDFs have been scanned.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Issue summary</span>
+        </div>
+        <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+          <table class="data-table diag-table">
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Code</th>
+                <th class="col-right">Count</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in issue_summary %}
+                <tr>
+                  <td><span class="badge badge-{{ 'check' if item.severity in ['high', 'medium'] else 'neutral' }}">{{ item.severity }}</span></td>
+                  <td class="cell-mono">{{ item.code }}</td>
+                  <td class="col-right cell-mono">{{ item.count }}</td>
+                  <td>{{ item.message }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="4" class="data-table-empty">No parser issues were reported.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
-    <form class="toolbar toolbar-grid" method="get">
-      <label>
-        <span class="label-text">Severity</span>
-        <select name="severity" onchange="this.form.submit()">
-          {% for value in ["all", "high", "medium", "low"] %}
-            <option value="{{ value }}" {% if filter_severity == value %}selected{% endif %}>{{ value }}</option>
-          {% endfor %}
-        </select>
-      </label>
-    </form>
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>PDF</th>
-            <th>Page</th>
-            <th>Operation</th>
-            <th>Severity</th>
-            <th>Code</th>
-            <th>Count</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for issue in issues %}
-            <tr>
-              <td>{{ issue.source_pdf|pdf_label }}</td>
-              <td>{{ issue.page_number or "doc" }}</td>
-              <td>{{ issue.operation }}</td>
-              <td><span class="status {{ issue.severity }}">{{ issue.severity }}</span></td>
-              <td>{{ issue.code }}</td>
-              <td>{{ issue.count }}</td>
-              <td>{{ issue.message }}</td>
-            </tr>
-          {% else %}
-            <tr><td colspan="7">No issues matched the current filter.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+  </div>
 {% endblock %}

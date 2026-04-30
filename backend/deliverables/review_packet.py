@@ -58,7 +58,7 @@ def build_review_packet(store: WorkspaceStore, output_path: Path | None = None) 
         asset_count += int(crop_asset is not None) + int(context_asset is not None)
 
         revision_set = revision_sets_by_id.get(sheet.revision_set_id)
-        metadata = _parse_cloudhammer_metadata(item.raw_text)
+        metadata = _cloudhammer_metadata(item)
         cards.append(
             _render_card(
                 index=index,
@@ -163,12 +163,30 @@ def _parse_cloudhammer_metadata(text: str) -> dict[str, str]:
     return metadata
 
 
+def _cloudhammer_metadata(item: ChangeItem) -> dict[str, str]:
+    metadata = _parse_cloudhammer_metadata(item.raw_text)
+    provenance = item.provenance or {}
+    mapping = {
+        "candidate": "cloudhammer_candidate_id",
+        "policy": "policy_bucket",
+        "review": "review_status",
+        "confidence": "cloud_confidence",
+    }
+    for display_key, provenance_key in mapping.items():
+        if display_key in metadata:
+            continue
+        value = provenance.get(provenance_key)
+        if value not in (None, ""):
+            metadata[display_key] = str(value)
+    return metadata
+
+
 def _render_page(cards: list[str], *, item_count: int) -> str:
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>KEVISION Review Packet</title>
+<title>ScopeLedger Review Packet</title>
 <style>
   body {{
     margin: 0;
@@ -265,7 +283,7 @@ def _render_page(cards: list[str], *, item_count: int) -> str:
 </head>
 <body>
 <header>
-  <h1>KEVISION Review Packet</h1>
+  <h1>ScopeLedger Review Packet</h1>
   <div class="subhead">{item_count} CloudHammer rows. Each item shows the exported crop and a marked source-page context crop.</div>
 </header>
 <main>

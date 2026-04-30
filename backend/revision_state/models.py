@@ -80,6 +80,11 @@ class CloudCandidate:
     extraction_method: str
     nearby_text: str
     detail_ref: str | None
+    scope_text: str = ""
+    scope_reason: str = ""
+    scope_signal: float = 0.0
+    scope_method: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

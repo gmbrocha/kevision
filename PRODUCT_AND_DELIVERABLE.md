@@ -1,11 +1,11 @@
 # Product And Deliverable
 
-Status: current source of truth for KEVISION product behavior, stakeholder
+Status: current source of truth for ScopeLedger product behavior, stakeholder
 decisions, workbook/export shape, benchmark plan, open questions, and backlog.
 
 ## Product Goal
 
-KEVISION should help Kevin's team turn blueprint revision packages into a
+ScopeLedger should help Kevin's team turn blueprint revision packages into a
 reviewable Excel workbook that captures all relevant change information
 clearly enough for downstream pricing/build coordination.
 
@@ -214,6 +214,60 @@ with bullets stacked in `Scope Included`, matching Kevin's Mod 5 workbook.
 
 Kevin confirmed on 2026-04-28 that multiple items in one cloud can remain one
 row if the row lists the items included in that specific cloud.
+
+## Scope Extraction Tracker
+
+Status as of 2026-04-30:
+
+- current CloudHammer-backed rows still often use placeholder text instead of
+  useful scope descriptions
+- the next implementation slice is OCR/detail extraction from cloud context
+  crops
+- first PDF text-layer pass is wired and was backfilled onto the active demo
+  workspace: 217 CloudHammer clouds produced 12 `text-layer-near-cloud`, 150
+  `needs-reviewer-rewrite`, 35 `index-or-title-noise`, and 20
+  `leader-or-callout-only`; extraction methods were 196 PDF text-layer and 21
+  local Tesseract OCR fallback
+- simple OCR is expected to be only partially effective; it should improve the
+  starting text for review, not pretend to fully understand scope
+- review confidence/reason fields are appropriate now because they make weak
+  extraction explicit
+
+First-pass extraction should:
+
+- expand each cloud bbox into a larger source-PDF context crop
+- read PDF text-layer words inside and near that expanded region
+- use local OCR fallback only where available and safe
+- prefill `Scope Included` / reviewer text with the best candidate text when
+  the evidence is usable
+- leave placeholder or reviewer-warning text when no readable scope is found
+- record provenance for how the text was produced
+
+Reviewer-facing confidence/reason examples:
+
+- `text-layer-near-cloud`: PDF text was found near the cloud region
+- `ocr-near-cloud`: OCR found plausible text near the cloud region
+- `no-readable-text`: no usable text was found in the expanded region
+- `leader-or-callout-only`: the cloud appears to point elsewhere instead of
+  containing complete scope
+- `needs-reviewer-rewrite`: extracted text is too noisy or broad to use
+  directly
+- `index-or-title-noise`: extracted text appears to be sheet index/title/block
+  noise rather than scope
+
+Running tally of extraction cases to handle later:
+
+- detail references visible inside or just outside a cloud
+- leader-only clouds pointing to details elsewhere
+- detail-callout clouds where the actual scope lives on another sheet/detail
+- clouds around multiple independent scope items
+- multiple drawings/details on one sheet
+- plan notes versus sheet title/index/revision-block text
+- text that crosses cloud boundaries
+- symbols or dimensions that matter even when OCR text is sparse
+- repeated notes across sheets or details
+- superseded-sheet notes that may carry forward to the latest set
+- readable crop evidence with no trustworthy text extraction
 
 ## Crops / Detail View
 
