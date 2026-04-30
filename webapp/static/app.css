@@ -697,6 +697,10 @@ input, textarea, select { font-family: inherit; }
   border-bottom: 0;
 }
 
+.package-card.project-create-card {
+  padding-bottom: var(--sp-5);
+}
+
 .package-card-head {
   display: flex;
   align-items: flex-start;
