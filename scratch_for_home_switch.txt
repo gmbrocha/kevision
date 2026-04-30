@@ -1,0 +1,27 @@
+Project:
+- Add Project container, add padding below name/workspace creation.
+- "No archived projects" needs to be centered
+- Remove any of the green highlight overlay notifications from the header area
+
+
+Overview:
+- Modify package needs a way to remove selected PDFs for append, same with import new package
+
+Drawings:
+- 12 sheet-index matches are hidden. These are pages where a sheet number appears inside the drawing index, not necessarily the drawing page itself. These likely shouldn't make it past the cropping stage. The index will *only* be used to gather broad information like "which sheets have revisions for this set" and "what's the name of that revision - broadly"
+
+Export:
+- Remove the Google Drive connection, unneeded, not sure why this is there currently.
+
+
+Revision_changelog:
+- Still has no OCR/Scope extraction wiring as the web app does. Needs implement quickly.
+
+**Google Sheets is *not* to be used as a shared review fallback
+
+
+
+
+Quick compare to previous set on the output - add it to review packet and workbook
+
+Sheets Name - add it to review packet
