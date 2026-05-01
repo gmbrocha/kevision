@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Iterable
 
 SHEET_ID_PATTERN = re.compile(
-    r"\b(?:GI|AD|AE|IN|PL|EL|EP|MP|MH|ME|E|M|S|SF|CS|RFP)\d{3}(?:\.\d+)?\b"
+    r"\b(?:GI|AD|AE|IN|PL|P|EL|EP|MP|MH|ME|E|M|S|SF|CS|RFP)\d{3}(?:\.\d+)?\b"
 )
 DATE_PATTERN = re.compile(r"\b\d{2}/\d{2}/\d{4}\b")
 DETAIL_REF_PATTERN = re.compile(
-    r"\b(?P<detail>\d{1,3})\s*/?\s*(?P<sheet>(?:GI|AD|AE|IN|PL|EL|EP|MP|MH|ME|E|M|S|SF|CS)\d{3}(?:\.\d+)?)\b"
+    r"\b(?P<detail>\d{1,3})\s*/?\s*(?P<sheet>(?:GI|AD|AE|IN|PL|P|EL|EP|MP|MH|ME|E|M|S|SF|CS)\d{3}(?:\.\d+)?)\b"
 )
 
 
@@ -72,9 +72,33 @@ def ensure_dir(path: Path) -> Path:
     return path
 
 
-def choose_best_sheet_id(text: str) -> str | None:
+def choose_best_sheet_id(
+    text: str,
+    *,
+    preferred_prefixes: tuple[str, ...] = (),
+    prefer_repeated: bool = False,
+) -> str | None:
     hits = SHEET_ID_PATTERN.findall(text or "")
-    return hits[-1] if hits else None
+    if preferred_prefixes:
+        preferred = tuple(prefix.upper() for prefix in preferred_prefixes)
+        preferred_hits = [
+            hit
+            for hit in hits
+            if any(hit.upper().startswith(prefix) for prefix in preferred)
+        ]
+        if preferred_hits:
+            hits = preferred_hits
+    if not hits:
+        return None
+    if not prefer_repeated:
+        return hits[-1]
+    counts = {hit: hits.count(hit) for hit in set(hits)}
+    top_count = max(counts.values())
+    top_hits = {hit for hit, count in counts.items() if count == top_count}
+    for hit in reversed(hits):
+        if hit in top_hits:
+            return hit
+    return hits[-1]
 
 
 def choose_dates(text: str) -> list[str]:

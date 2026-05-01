@@ -15,6 +15,17 @@ from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, 
 
 REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*#(?P<number>\d+)", re.IGNORECASE)
 SCOPE_EXTRACTION_CACHE_VERSION = 1
+
+
+def _preferred_sheet_prefixes(pdf_path: Path | None) -> tuple[str, ...]:
+    if not pdf_path:
+        return ()
+    name = pdf_path.name.lower()
+    if "plumbing" in name:
+        return ("PL", "P", "MP")
+    return ()
+
+
 class RevisionScanner:
     def __init__(
         self,
@@ -176,7 +187,7 @@ class RevisionScanner:
                         narrative_by_sheet.setdefault(entry.sheet_id, []).append(entry)
                     continue
 
-                metadata = self._extract_sheet_metadata(page, text)
+                metadata = self._extract_sheet_metadata(page, text, pdf_path)
                 if not metadata["sheet_id"]:
                     continue
 
@@ -393,14 +404,19 @@ class RevisionScanner:
             )
         return entries
 
-    def _extract_sheet_metadata(self, page: fitz.Page, text: str) -> dict[str, object]:
+    def _extract_sheet_metadata(self, page: fitz.Page, text: str, pdf_path: Path | None = None) -> dict[str, object]:
         title_block_words = [
             word[4]
             for word in page.get_text("words")
             if word[0] >= page.rect.width * 0.64 and word[1] >= page.rect.height * 0.72
         ]
         title_block_text = " ".join(title_block_words)
-        sheet_id = choose_best_sheet_id(title_block_text) or choose_best_sheet_id(text)
+        preferred_prefixes = _preferred_sheet_prefixes(pdf_path)
+        sheet_id = choose_best_sheet_id(title_block_text) or choose_best_sheet_id(
+            text,
+            preferred_prefixes=preferred_prefixes,
+            prefer_repeated=bool(preferred_prefixes),
+        )
 
         issue_date = None
         issue_match = re.search(r"Issue Date[:\s]+(?P<date>\d{2}/\d{2}/\d{4})", text)

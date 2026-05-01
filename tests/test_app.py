@@ -15,8 +15,9 @@ from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeE
 from backend.review import change_item_needs_attention
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
+from backend.utils import choose_best_sheet_id, parse_detail_ref
 from backend.workspace import WorkspaceStore
-from webapp.app import create_app
+from webapp.app import create_app, discipline_for_sheet
 
 
 def test_regression_fixture_metrics(workspace_copy):
@@ -168,6 +169,34 @@ def test_manifest_cloudhammer_client_filters_release_and_bbox_noise(tmp_path: Pa
     assert client.stats["skipped_policy"] == 1
     assert client.stats["skipped_invalid_bbox"] == 1
     assert client.stats["skipped_missing_pdf_page"] == 1
+
+
+def test_sheet_id_parser_prefers_repeated_plumbing_sheet_over_late_arch_reference():
+    text = (
+        "Drawing Number PL302 Existing 1st Floor Med Gas PL302 "
+        "Refer to PL601 for symbols. Refer to drawing AE102 for phasing."
+    )
+
+    assert choose_best_sheet_id(text, preferred_prefixes=("PL", "P", "MP"), prefer_repeated=True) == "PL302"
+
+
+def test_sheet_id_parser_supports_plain_plumbing_prefix():
+    assert choose_best_sheet_id("Drawing Number P101 P101 Refer to AE102", preferred_prefixes=("PL", "P", "MP"), prefer_repeated=True) == "P101"
+    assert parse_detail_ref("See 4/P101 for plumbing scope") == "4/P101"
+    assert discipline_for_sheet("P101") == "Plumbing"
+
+
+def test_plumbing_pdf_metadata_does_not_choose_late_arch_reference():
+    pdf_path = Path.cwd() / "revision_sets" / "Revision #4 - Dental Air" / "260219 - VA Biloxi Rev 4_Plumbing 1.pdf"
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    document = fitz.open(pdf_path)
+    try:
+        page = document[0]
+        metadata = scanner._extract_sheet_metadata(page, page.get_text("text"), pdf_path)
+    finally:
+        document.close()
+
+    assert metadata["sheet_id"] == "PL302"
 
 
 def test_approve_cloudhammer_detections_only_marks_manifest_visual_items(tmp_path: Path):

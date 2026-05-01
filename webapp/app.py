@@ -72,6 +72,7 @@ def discipline_for_sheet(sheet_id: str) -> str:
         "A": "Architectural",
         "IN": "Interior",
         "PL": "Plumbing",
+        "P": "Plumbing",
         "MP": "Mechanical / Plumbing",
         "MH": "Mechanical",
         "ME": "Mechanical",
