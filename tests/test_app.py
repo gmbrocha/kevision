@@ -42,6 +42,21 @@ def test_regression_fixture_metrics(workspace_copy):
     assert actual == expected
 
 
+def test_attention_helper_tolerates_malformed_extraction_signal():
+    item = ChangeItem(
+        id="change-1",
+        sheet_version_id="sheet-1",
+        cloud_candidate_id="cloud-1",
+        sheet_id="AE101",
+        detail_ref="Detail 1",
+        raw_text="Scope",
+        normalized_text="scope",
+        provenance={"source": "visual-region", "extraction_signal": "not-a-number"},
+    )
+
+    assert not change_item_needs_attention(item)
+
+
 def test_scan_generates_supersedence_and_ae113(workspace_copy):
     store = WorkspaceStore(workspace_copy).load()
     assert len(store.data.revision_sets) == 2
@@ -526,6 +541,10 @@ def test_export_refreshes_ocr_scope_text_before_workbook(tmp_path: Path):
     assert "PROVIDE NEW GRAB BAR BLOCKING" in approved[0]["text"]
     wb = load_workbook(outputs["revision_changelog_xlsx"])
     assert "PROVIDE NEW GRAB BAR BLOCKING" in wb["Sheet1"].cell(row=2, column=5).value
+    assert "Review Flags" in wb.sheetnames
+    flags = wb["Review Flags"]
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in flags.cell(row=2, column=15).value
+    assert flags.cell(row=2, column=12).value == "text-layer-near-cloud"
 
 
 def test_cloudhammer_manifest_clouds_get_visual_items_even_with_narratives():
@@ -670,6 +689,7 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
 
     wb = load_workbook(xlsx_path)
     assert wb.sheetnames[:2] == ["Summary", "Sheet1"]
+    assert "Review Flags" in wb.sheetnames
     summary_ws = wb["Summary"]
     assert summary_ws["A1"].value == "ScopeLedger Revision Review"
     assert summary_ws["B8"].value == "Revision Sets"
@@ -703,6 +723,10 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
 
     assert ws.merged_cells.ranges, "Scope and Detail View columns should be merged within each block"
     assert not ws._images, "No embedded crop images are expected while CloudHammer inference is disconnected"
+    review_ws = wb["Review Flags"]
+    review_headers = [review_ws.cell(row=1, column=i).value for i in range(1, 16)]
+    assert review_headers[:4] == ["Change ID", "Status", "Needs Review", "Review Reason"]
+    assert review_ws.freeze_panes == "A2"
 
 
 def test_crop_comparison_uses_previous_sheet_area(tmp_path: Path):
@@ -1037,6 +1061,88 @@ def test_web_routes_render_without_ai(workspace_copy):
     settings = client.get("/settings")
     assert settings.status_code == 200
     assert b"archived" in settings.data
+
+
+def test_change_detail_uses_previous_current_comparison_asset(tmp_path: Path):
+    def write_color_pdf(path: Path, fill: tuple[float, float, float]) -> None:
+        document = fitz.open()
+        page = document.new_page(width=300, height=200)
+        page.draw_rect(page.rect, color=fill, fill=fill)
+        document.save(path)
+        document.close()
+
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    previous_pdf = input_dir / "previous.pdf"
+    current_pdf = input_dir / "current.pdf"
+    write_color_pdf(previous_pdf, (1, 0, 0))
+    write_color_pdf(current_pdf, (0, 0, 1))
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.revision_sets = [
+        RevisionSet(id="rev-1", label="Revision #1", source_dir=str(input_dir), set_number=1, set_date="04/01/2026"),
+        RevisionSet(id="rev-2", label="Revision #2", source_dir=str(input_dir), set_number=2, set_date="04/15/2026"),
+    ]
+    previous_sheet = SheetVersion(
+        id="sheet-prev",
+        revision_set_id="rev-1",
+        source_pdf=str(previous_pdf),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date="04/01/2026",
+        width=300,
+        height=200,
+        status="superseded",
+    )
+    current_sheet = SheetVersion(
+        id="sheet-current",
+        revision_set_id="rev-2",
+        source_pdf=str(current_pdf),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date="04/15/2026",
+        width=300,
+        height=200,
+        status="active",
+    )
+    cloud = CloudCandidate(
+        id="cloud-1",
+        sheet_version_id=current_sheet.id,
+        bbox=[80, 60, 80, 60],
+        image_path="",
+        page_image_path="",
+        confidence=0.9,
+        extraction_method="cloudhammer_manifest",
+        nearby_text="Cloud Only",
+        detail_ref=None,
+    )
+    store.data.sheets = [previous_sheet, current_sheet]
+    store.data.clouds = [cloud]
+    store.data.change_items = [
+        ChangeItem(
+            id="change-1",
+            sheet_version_id=current_sheet.id,
+            cloud_candidate_id=cloud.id,
+            sheet_id=current_sheet.sheet_id,
+            detail_ref=None,
+            raw_text="Cloud Only",
+            normalized_text="cloud only",
+            provenance={"source": "visual-region", "extraction_method": "cloudhammer_manifest"},
+        )
+    ]
+    store.save()
+
+    app = create_app(workspace_dir)
+    client = app.test_client()
+    response = client.get("/changes/change-1")
+    assert response.status_code == 200
+    assert b"/workspace-assets/cloud-comparisons/cloud-1.png" in response.data
+
+    image_response = client.get("/workspace-assets/cloud-comparisons/cloud-1.png")
+    assert image_response.status_code == 200
+    assert image_response.data[:8] == b"\x89PNG\r\n\x1a\n"
 
 
 def test_dashboard_shows_pricing_readiness_panel(workspace_copy):

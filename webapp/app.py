@@ -10,6 +10,7 @@ import fitz
 from flask import Flask, abort, flash, g, has_request_context, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
 from backend.diagnostics import build_diagnostic_summary, configure_mupdf, format_pdf_label
+from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.projects import ProjectRecord, ProjectRegistry
@@ -321,6 +322,11 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         high_res_dir.mkdir(parents=True, exist_ok=True)
         return high_res_dir / f"{cloud.id}_viewer_v2.png"
 
+    def cloud_comparison_path(cloud) -> Path:
+        comparison_dir = store.assets_dir / "comparisons"
+        comparison_dir.mkdir(parents=True, exist_ok=True)
+        return comparison_dir / f"{cloud.id}_comparison.png"
+
     def ensure_high_res_sheet(sheet) -> Path:
         output_path = high_res_sheet_path(sheet)
         source_pdf = store.resolve_path(sheet.source_pdf)
@@ -366,6 +372,28 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             document.close()
         return output_path
 
+    def ensure_cloud_comparison(cloud) -> Path:
+        sheet = store.get_sheet(cloud.sheet_version_id)
+        output_path = cloud_comparison_path(cloud)
+        source_paths = [store.resolve_path(sheet.source_pdf)]
+        revision_sets_by_id = {revision_set.id: revision_set for revision_set in store.data.revision_sets}
+        previous_sheet = find_previous_sheet_version(sheet, store.data.sheets, revision_sets_by_id)
+        if previous_sheet:
+            source_paths.append(store.resolve_path(previous_sheet.source_pdf))
+        source_mtime = max((path.stat().st_mtime for path in source_paths if path.exists()), default=0)
+        if output_path.exists() and output_path.stat().st_mtime >= source_mtime:
+            return output_path
+        generated = build_cloud_comparison_image(
+            store,
+            cloud=cloud,
+            current_sheet=sheet,
+            previous_sheet=previous_sheet,
+            output_path=output_path,
+        )
+        if generated:
+            return generated
+        return ensure_high_res_cloud(cloud)
+
     @app.template_filter("sheet_viewer_image")
     def sheet_viewer_image_filter(sheet) -> str:
         return url_for("sheet_viewer_asset", sheet_version_id=sheet.id)
@@ -373,6 +401,10 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
     @app.template_filter("cloud_viewer_image")
     def cloud_viewer_image_filter(cloud) -> str:
         return url_for("cloud_viewer_asset", cloud_id=cloud.id)
+
+    @app.template_filter("cloud_comparison_image")
+    def cloud_comparison_image_filter(cloud) -> str:
+        return url_for("cloud_comparison_asset", cloud_id=cloud.id)
 
     @app.template_filter("asset_path")
     def asset_path_filter(path: str) -> str:
@@ -1002,6 +1034,15 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         except KeyError:
             abort(404)
         return send_from_directory(high_res_cloud_path(cloud).parent.resolve(), ensure_high_res_cloud(cloud).name)
+
+    @app.route("/workspace-assets/cloud-comparisons/<cloud_id>.png")
+    def cloud_comparison_asset(cloud_id: str):
+        try:
+            cloud = store.get_cloud(cloud_id)
+        except KeyError:
+            abort(404)
+        comparison_path = ensure_cloud_comparison(cloud)
+        return send_from_directory(comparison_path.parent.resolve(), comparison_path.name)
 
     @app.route("/project-assets/<path:asset_path>")
     def project_asset(asset_path: str):

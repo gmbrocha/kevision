@@ -146,7 +146,7 @@ Implementation:
 
 Observed workbook shape:
 
-- one sheet named `Sheet1`
+- primary sheet named `Sheet1`, plus a `Review Flags` support sheet
 - 10 columns
 - content rows plus many intentional spacer rows
 - embedded PNG crop evidence in the `Detail View` column
@@ -166,6 +166,11 @@ Columns:
 | H | `Responsible Contractor` | downstream pricing field, emit blank |
 | I | `Cost?` | downstream pricing field, emit blank |
 | J | `Qoute Received?` | downstream pricing field, emit blank; preserve typo |
+
+`Review Flags` is a secondary reviewer/audit tab, not a replacement for
+Kevin's main workbook layout. It lists non-rejected change items with status,
+`Needs Review`, reviewer-facing reason, drawing/detail/revision context, source
+PDF/page, extraction method/reason/signal, reviewer notes, and scope text.
 
 ## Correlation And Rows
 
@@ -219,18 +224,20 @@ row if the row lists the items included in that specific cloud.
 
 Status as of 2026-04-30:
 
-- current CloudHammer-backed rows still often use placeholder text instead of
-  useful scope descriptions
-- the next implementation slice is OCR/detail extraction from cloud context
-  crops
-- first PDF text-layer pass is wired and was backfilled onto the active demo
-  workspace: 217 CloudHammer clouds produced 12 `text-layer-near-cloud`, 150
-  `needs-reviewer-rewrite`, 35 `index-or-title-noise`, and 20
-  `leader-or-callout-only`; extraction methods were 196 PDF text-layer and 21
-  local Tesseract OCR fallback
+- CloudHammer-backed rows now run through first-pass PDF text-layer/OCR
+  extraction during scan/populate/export, but many extracted rows still need
+  reviewer cleanup
+- workbook export refreshes stale CloudHammer rows before writing output so old
+  placeholder text is replaced when local extraction can produce a better
+  candidate
+- the first pass was backfilled onto the active demo workspace: 217 CloudHammer
+  clouds produced 12 `text-layer-near-cloud`, 150 `needs-reviewer-rewrite`, 35
+  `index-or-title-noise`, and 20 `leader-or-callout-only`; extraction methods
+  were 196 PDF text-layer and 21 local Tesseract OCR fallback
 - simple OCR is expected to be only partially effective; it should improve the
   starting text for review, not pretend to fully understand scope
-- review confidence/reason fields are appropriate now because they make weak
+- review confidence/reason fields are now exposed in workspace metadata, web
+  review metadata, and the workbook `Review Flags` tab because they make weak
   extraction explicit
 - CloudHammer manifest intake now has a first hardening pass: explicit
   negative policy/review rows are skipped, bad boxes are rejected, boxes are
@@ -240,7 +247,7 @@ Status as of 2026-04-30:
   stage, scan counts, cache hits, and failure text; future work should make
   this a background job with live updates instead of a blocking request
 
-First-pass extraction should:
+Current first-pass extraction does:
 
 - expand each cloud bbox into a larger source-PDF context crop
 - read PDF text-layer words inside and near that expanded region
@@ -283,6 +290,10 @@ Running tally of extraction cases to handle later:
 
 `Detail View` should point at a crop image generated from the drawing and
 preserved through export.
+
+When prior sheet history exists, the workbook, browser review packet, and web
+change-review cockpit show the previous sheet's same-area crop next to the
+current crop so reviewers can compare revision changes in context.
 
 Crop size rule: whatever is legible.
 

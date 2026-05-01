@@ -24,6 +24,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from PIL import Image as PILImage
 
+from ..review import change_item_needs_attention
 from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..utils import clean_display_text
 from ..workspace import WorkspaceStore
@@ -304,6 +305,9 @@ def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], out
     ws.page_setup.fitToHeight = 0
     ws.sheet_properties.pageSetUpPr.fitToPage = True
 
+    review_ws = wb.create_sheet("Review Flags")
+    _write_review_flags_sheet(review_ws, store, revision_sets_by_id, sheets_by_id)
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(output_path)
 
@@ -456,6 +460,115 @@ def _format_scope_text(lines: list[str]) -> str:
     if len(lines) == 1:
         return lines[0]
     return "\n".join(f"{i}) {line}" for i, line in enumerate(lines, 1))
+
+
+def _write_review_flags_sheet(
+    ws,
+    store: WorkspaceStore,
+    revision_sets_by_id: dict[str, RevisionSet],
+    sheets_by_id: dict[str, SheetVersion],
+) -> None:
+    ws.sheet_view.showGridLines = False
+    ws.freeze_panes = "A2"
+    ws.sheet_properties.tabColor = "F59E0B"
+    headers = [
+        ("Change ID", 18),
+        ("Status", 12),
+        ("Needs Review", 14),
+        ("Review Reason", 34),
+        ("Drawing #", 14),
+        ("Detail #", 18),
+        ("Revision #", 24),
+        ("Source PDF", 42),
+        ("Page", 8),
+        ("Source Kind", 16),
+        ("Extraction Method", 18),
+        ("Extraction Reason", 22),
+        ("Extraction Signal", 16),
+        ("Reviewer Notes", 34),
+        ("Scope Text", 72),
+    ]
+    header_fill = PatternFill("solid", fgColor=HEADER_FILL)
+    header_font = Font(bold=True, color=HEADER_TEXT)
+    thin = Side(border_style="thin", color=BORDER_COLOR)
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    header_alignment = Alignment(wrap_text=True, vertical="center", horizontal="center")
+    wrap = Alignment(wrap_text=True, vertical="top")
+
+    for column, (header, width) in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=column, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alignment
+        cell.border = border
+        ws.column_dimensions[get_column_letter(column)].width = width
+    ws.row_dimensions[1].height = 32
+
+    rows = [
+        item
+        for item in store.data.change_items
+        if item.status != "rejected"
+    ]
+    rows.sort(key=lambda item: (item.status != "pending", item.sheet_id, item.detail_ref or "", item.id))
+    for row_index, item in enumerate(rows, 2):
+        sheet = sheets_by_id.get(item.sheet_version_id)
+        revision_set = revision_sets_by_id.get(sheet.revision_set_id) if sheet else None
+        needs_review = item.status == "pending" and change_item_needs_attention(item)
+        values = [
+            item.id,
+            item.status,
+            "Yes" if needs_review else "No",
+            _review_reason(item),
+            _format_drawing(item.sheet_id),
+            _format_detail(item.detail_ref),
+            _format_revision(revision_set),
+            store.display_path(sheet.source_pdf) if sheet else "",
+            sheet.page_number if sheet else "",
+            item.provenance.get("source", ""),
+            item.provenance.get("extraction_method", ""),
+            item.provenance.get("scope_text_reason", ""),
+            item.provenance.get("extraction_signal", ""),
+            clean_display_text(item.reviewer_notes),
+            clean_display_text(item.reviewer_text or item.raw_text),
+        ]
+        for column, value in enumerate(values, 1):
+            cell = ws.cell(row=row_index, column=column, value=value)
+            cell.alignment = wrap
+            cell.border = border
+            if column == 3 and value == "Yes":
+                cell.font = Font(bold=True, color="92400E")
+                cell.fill = PatternFill("solid", fgColor="FEF3C7")
+        ws.row_dimensions[row_index].height = 34
+
+    last_column = get_column_letter(len(headers))
+    ws.auto_filter.ref = f"A1:{last_column}{max(ws.max_row, 1)}"
+
+
+def _review_reason(item: ChangeItem) -> str:
+    provenance = item.provenance or {}
+    reasons: list[str] = []
+    scope_reason = str(provenance.get("scope_text_reason") or "")
+    scope_labels = {
+        "text-layer-near-cloud": "PDF text found near cloud",
+        "ocr-near-cloud": "OCR text found near cloud - verify",
+        "no-readable-text": "No readable scope text near cloud",
+        "leader-or-callout-only": "Leader/detail callout only",
+        "needs-reviewer-rewrite": "Nearby text needs reviewer rewrite",
+        "index-or-title-noise": "Nearby text appears to be index/title-block noise",
+    }
+    if scope_reason:
+        reasons.append(scope_labels.get(scope_reason, scope_reason))
+    if provenance.get("source") == "visual-region" and not item.detail_ref:
+        reasons.append("No detail reference captured")
+    try:
+        signal = float(provenance.get("extraction_signal", 1.0))
+    except (TypeError, ValueError):
+        signal = 1.0
+    if signal < 0.48:
+        reasons.append("Low extraction signal")
+    if not reasons and provenance.get("source") == "narrative":
+        reasons.append("Narrative-derived item")
+    return "; ".join(dict.fromkeys(reasons))
 
 
 def _detail_view_image_path(

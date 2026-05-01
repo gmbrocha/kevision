@@ -54,8 +54,8 @@
             <span class="cloud-id">{{ item.detail_ref or "Cloud" }}</span>
           </div>
           <div class="cockpit-image-wrap">
-            {% if cloud and cloud.image_path %}
-              <img src="{{ cloud|cloud_viewer_image }}" alt="{{ item.sheet_id }} crop">
+            {% if cloud %}
+              <img src="{{ cloud|cloud_comparison_image }}" alt="{{ item.sheet_id }} previous and current crop comparison">
             {% elif sheet.render_path %}
               <img src="{{ sheet|sheet_viewer_image }}" alt="{{ item.sheet_id }} sheet">
             {% endif %}

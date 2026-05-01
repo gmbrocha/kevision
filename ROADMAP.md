@@ -29,7 +29,11 @@ Working:
 - Tightened crop artifacts can be generated for deliverable experiments.
 - The real backend scanner can consume a CloudHammer manifest.
 - The real backend exporter can produce a workbook with embedded CloudHammer
-  crop images.
+  crop images and previous/current same-area comparisons.
+- CloudHammer-backed rows run through first-pass PDF text-layer/OCR scope
+  extraction during scan/populate/export, with extraction reason metadata.
+- The workbook includes a secondary `Review Flags` sheet so review reasons and
+  uncertain rows are visible without changing Kevin's main `Sheet1` layout.
 
 Latest verified integration checkpoint:
 
@@ -45,8 +49,8 @@ Latest verified integration checkpoint:
 
 Known gaps:
 
-- scope text is still placeholder text
-- OCR/detail extraction is not wired into CloudHammer-backed rows
+- scope text is still first-pass and often needs reviewer rewrite
+- detail-callout resolution and true scope understanding are not solved
 - overmerge and false-positive reduction still need more iteration
 - RFI/modification workflow is discovery only
 - live sensitive project API use is blocked pending ESA policy approval
@@ -131,15 +135,22 @@ Goal:
 
 Status as of 2026-04-30:
 
-- next active implementation focus after project/workflow UI work
-- first pass should be deliberately modest: extract text around cloud crops,
-  populate reviewer-facing scope candidates, and record confidence/reason
-  fields
 - first pass has been wired for PDF text-layer extraction and backfilled onto
   the demo workspace; active demo distribution was 217 CloudHammer clouds:
   12 `text-layer-near-cloud`, 150 `needs-reviewer-rewrite`, 35
   `index-or-title-noise`, and 20 `leader-or-callout-only`; extraction methods
   were 196 PDF text-layer and 21 local Tesseract OCR fallback
+- workbook export refreshes stale CloudHammer rows before writing outputs, so
+  the deliverable does not keep old placeholder text when extraction can produce
+  a better candidate
+- previous/current same-area crop comparisons are wired into the workbook,
+  browser review packet, and web change-review cockpit
+- the workbook now includes a `Review Flags` tab with status, `Needs Review`,
+  review reason, extraction method/reason, source PDF/page, notes, and scope
+  text
+- plumbing sheet attribution was hardened for plumbing PDFs so late architectural
+  references such as `AE102` do not override repeated plumbing title-block
+  sheet IDs such as `PL302`
 - CloudHammer manifest hardening now filters explicit negative release/review
   policy rows, validates and clips bounding boxes, tracks manifest row stats,
   and records missing-crop metadata on generated cloud candidates
@@ -167,10 +178,13 @@ Implementation sequence:
    - PDF text-layer word extraction inside/near the crop when available
    - OCR fallback only where local tooling is available and safe
    - populate `raw_text`, default `reviewer_text`, and provenance metadata
+   - status: first pass complete, with export-time refresh for stale rows
 2. Add scope text confidence/reason fields:
    - examples: `text-layer-near-cloud`, `ocr-near-cloud`,
      `no-readable-text`, `leader-or-callout-only`, `needs-reviewer-rewrite`
    - expose a simple reviewer-facing reason, not raw numeric confidence
+   - status: complete in workspace provenance, web review metadata, and
+     workbook `Review Flags`
 3. Continue CloudHammer hardening after OCR first pass:
    - first pass complete: explicit negative policy filtering, bbox validation,
      bbox clipping, missing-crop tracking, and manifest stats
@@ -191,6 +205,8 @@ Open tally for later scope extraction work:
 - associate source context with latest/superseded sheet state
 - identify text that belongs to a revision index versus the actual sheet
 - decide when nearby text is too broad/noisy to prefill scope text
+- strengthen discipline/source attribution beyond the plumbing-specific
+  fallback now in place
 - map icon/legend symbols close to clouds to their legend meanings when text is sparse
 - eventually separate true scope items from dimensions, labels, sheet names,
   revision block text, and index boilerplate
@@ -255,13 +271,16 @@ Exit criteria:
 ## Near-Term Next Actions
 
 1. Review `SECURITY_PRIVACY_POLICY.md` with ESA before any live-data API use.
-2. Continue CloudHammer candidate/split feedback loops on the strongest queues.
-3. Generate the next release manifest after split/crop tuning.
-4. Run the real backend scan/export using that manifest.
-5. Put any generated review workbook in Google Drive `/kevin_usage/` for
+2. Run the updated workbook/review-packet/web cockpit against Kevin's reviewed
+   sample and capture feedback on comparison crops, review reasons, and
+   discipline attribution.
+3. Continue CloudHammer candidate/split feedback loops on the strongest queues.
+4. Generate the next release manifest after split/crop tuning.
+5. Run the real backend scan/export using that manifest.
+6. Put any generated review workbook in Google Drive `/kevin_usage/` for
    Google Sheets review.
-6. Compare the resulting workbook against the Rev 1 / Rev 2 benchmark criteria.
-7. Start collecting RFI/mod examples for discovery, without external API use.
+7. Compare the resulting workbook against the Rev 1 / Rev 2 benchmark criteria.
+8. Start collecting RFI/mod examples for discovery, without external API use.
 
 ## Open Decisions
 
