@@ -12,6 +12,7 @@ from ..diagnostics import configure_mupdf
 from .revision_changelog_excel import write_revision_changelog
 from ..revision_state.models import ChangeItem, SheetVersion
 from ..review import change_item_needs_attention
+from ..scope_extraction import enrich_workspace_scope_text
 from ..utils import clean_display_text, parse_mmddyyyy
 from ..workspace import WorkspaceStore
 
@@ -64,8 +65,10 @@ class Exporter:
         configure_mupdf()
         self.store = store
         self.last_summary: dict[str, object] = {}
+        self.last_scope_enrichment_count = 0
 
     def export(self, force_attention: bool = False) -> dict[str, str]:
+        self.last_scope_enrichment_count = enrich_workspace_scope_text(self.store)
         pending_attention = [
             item for item in self.store.data.change_items if item.status == "pending" and change_item_needs_attention(item)
         ]
@@ -145,6 +148,7 @@ class Exporter:
             "active_sheet_count": len([sheet for sheet in sheets if sheet.status == "active"]),
             "superseded_sheet_count": len([sheet for sheet in sheets if sheet.status == "superseded"]),
             "revision_set_count": len(self.store.data.revision_sets),
+            "scope_enrichment_count": self.last_scope_enrichment_count,
         }
 
     def _write_approved_csv(self, approved: list[ChangeItem]) -> Path:

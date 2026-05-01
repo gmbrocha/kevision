@@ -414,6 +414,91 @@ def test_enrich_workspace_scope_text_updates_existing_cloud_items(tmp_path: Path
     assert store.data.change_items[0].provenance["cloudhammer_candidate_id"] == "cand-1"
 
 
+def test_export_refreshes_ocr_scope_text_before_workbook(tmp_path: Path):
+    from openpyxl import load_workbook
+    from PIL import Image
+
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1 - Drawing Changes" / "drawing.pdf"
+    pdf_path.parent.mkdir(parents=True)
+    document = fitz.open()
+    page = document.new_page(width=300, height=200)
+    page.insert_text((82, 95), "PROVIDE NEW GRAB BAR BLOCKING", fontsize=10)
+    document.save(pdf_path)
+    document.close()
+
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    render_path = store.page_path("sheet-1")
+    crop_path = store.crop_path("cloud-1")
+    Image.new("RGB", (300, 200), "white").save(render_path)
+    Image.new("RGB", (120, 80), "white").save(crop_path)
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1 - Drawing Changes",
+            source_dir=str(pdf_path.parent),
+            set_number=1,
+            set_date="04/28/2026",
+            pdf_paths=[str(pdf_path)],
+        )
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-1",
+            revision_set_id="rev-1",
+            source_pdf=str(pdf_path),
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Preview",
+            issue_date="04/28/2026",
+            render_path=str(render_path),
+            width=300,
+            height=200,
+            status="active",
+        )
+    ]
+    placeholder = "Cloud Only - CloudHammer detected revision cloud. OCR/scope extraction is not wired yet."
+    store.data.clouds = [
+        CloudCandidate(
+            id="cloud-1",
+            sheet_version_id="sheet-1",
+            bbox=[70, 70, 95, 55],
+            image_path=str(crop_path),
+            page_image_path=str(render_path),
+            confidence=0.91,
+            extraction_method="cloudhammer_manifest",
+            nearby_text=placeholder,
+            detail_ref=None,
+        )
+    ]
+    store.data.change_items = [
+        ChangeItem(
+            id="change-1",
+            sheet_version_id="sheet-1",
+            cloud_candidate_id="cloud-1",
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text=placeholder,
+            normalized_text=placeholder.lower(),
+            provenance={"source": "visual-region", "extraction_method": "cloudhammer_manifest"},
+            status="approved",
+            reviewer_text=placeholder,
+        )
+    ]
+    store.save()
+
+    exporter = Exporter(store)
+    outputs = exporter.export(force_attention=True)
+
+    assert exporter.last_scope_enrichment_count >= 1
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in store.data.change_items[0].raw_text
+    approved = json.loads((store.output_dir / "approved_changes.json").read_text(encoding="utf-8"))
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in approved[0]["text"]
+    wb = load_workbook(outputs["revision_changelog_xlsx"])
+    assert "PROVIDE NEW GRAB BAR BLOCKING" in wb["Sheet1"].cell(row=2, column=5).value
+
+
 def test_cloudhammer_manifest_clouds_get_visual_items_even_with_narratives():
     scanner = RevisionScanner.__new__(RevisionScanner)
     narrative = NarrativeEntry(

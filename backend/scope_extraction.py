@@ -222,37 +222,38 @@ def enrich_workspace_scope_text(store: WorkspaceStore, *, force: bool = False) -
     updated_clouds: list[CloudCandidate] = []
     clouds_by_id: dict[str, CloudCandidate] = {}
     document_cache: dict[str, fitz.Document] = {}
-    changed = 0
+    changed_clouds = 0
+    changed_items = 0
     try:
         for cloud in store.data.clouds:
             sheet = sheets_by_id.get(cloud.sheet_version_id)
-            if not sheet or (cloud.scope_reason and not force):
+            if not sheet:
                 updated_clouds.append(cloud)
                 clouds_by_id[cloud.id] = cloud
                 continue
-            source_pdf = str(store.resolve_path(sheet.source_pdf))
-            if source_pdf not in document_cache:
-                document_cache[source_pdf] = fitz.open(source_pdf)
-            page = document_cache[source_pdf][sheet.page_number - 1]
-            result = extract_cloud_scope_text(page, sheet, cloud.bbox)
-            updated = replace(
-                cloud,
-                nearby_text=result.text or cloud.nearby_text,
-                detail_ref=cloud.detail_ref or result.detail_ref,
-                scope_text=result.text,
-                scope_reason=result.reason,
-                scope_signal=round(result.signal, 3),
-                scope_method=result.method,
-            )
+            updated = cloud
+            if force or not cloud.scope_reason:
+                source_pdf = str(store.resolve_path(sheet.source_pdf))
+                if source_pdf not in document_cache:
+                    document_cache[source_pdf] = fitz.open(source_pdf)
+                page = document_cache[source_pdf][sheet.page_number - 1]
+                result = extract_cloud_scope_text(page, sheet, cloud.bbox)
+                updated = replace(
+                    cloud,
+                    nearby_text=result.text or cloud.nearby_text,
+                    detail_ref=cloud.detail_ref or result.detail_ref,
+                    scope_text=result.text,
+                    scope_reason=result.reason,
+                    scope_signal=round(result.signal, 3),
+                    scope_method=result.method,
+                )
+                if updated != cloud:
+                    changed_clouds += 1
             updated_clouds.append(updated)
             clouds_by_id[updated.id] = updated
-            changed += 1
     finally:
         for document in document_cache.values():
             document.close()
-
-    if not changed:
-        return 0
 
     updated_items = []
     for item in store.data.change_items:
@@ -265,27 +266,31 @@ def enrich_workspace_scope_text(store: WorkspaceStore, *, force: bool = False) -
         reviewer_text = item.reviewer_text
         if reviewer_text and normalize_text(reviewer_text) == normalize_text(previous_raw):
             reviewer_text = raw_text
-        updated_items.append(
-            replace(
-                item,
-                detail_ref=item.detail_ref or cloud.detail_ref,
-                raw_text=raw_text,
-                normalized_text=normalize_text(raw_text),
-                reviewer_text=reviewer_text,
-                provenance={
-                    **item.provenance,
-                    "scope_text_reason": cloud.scope_reason,
-                    "scope_text_method": cloud.scope_method,
-                    "scope_text_signal": cloud.scope_signal,
-                    "extraction_signal": cloud.scope_signal or item.provenance.get("extraction_signal"),
-                    "cloud_confidence": cloud.confidence,
-                    **cloud.metadata,
-                },
-            )
+        updated_item = replace(
+            item,
+            detail_ref=item.detail_ref or cloud.detail_ref,
+            raw_text=raw_text,
+            normalized_text=normalize_text(raw_text),
+            reviewer_text=reviewer_text,
+            provenance={
+                **item.provenance,
+                "scope_text_reason": cloud.scope_reason,
+                "scope_text_method": cloud.scope_method,
+                "scope_text_signal": cloud.scope_signal,
+                "extraction_signal": cloud.scope_signal or item.provenance.get("extraction_signal"),
+                "cloud_confidence": cloud.confidence,
+                **cloud.metadata,
+            },
         )
+        if updated_item != item:
+            changed_items += 1
+        updated_items.append(updated_item)
+
+    if not changed_clouds and not changed_items:
+        return 0
 
     store.data.clouds = updated_clouds
     store.data.change_items = updated_items
     store.save()
-    return changed
+    return changed_clouds or changed_items
 
