@@ -24,9 +24,10 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from PIL import Image as PILImage
 
-from ..revision_state.models import ChangeItem, RevisionSet, SheetVersion
+from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..utils import clean_display_text
 from ..workspace import WorkspaceStore
+from .crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 
 
 COLUMNS: list[tuple[str, float]] = [
@@ -66,6 +67,8 @@ class RevisionChangelogRow:
     detail: str
     scope_lines: list[str]
     crop_path: str | None
+    cloud_id: str | None
+    sheet_version_id: str | None
     item_ids: list[str]
 
 
@@ -94,7 +97,8 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
         canonical_sheet = items[0]
         sheet = sheets_by_id.get(canonical_sheet.sheet_version_id)
         revision_set = revision_sets_by_id.get(sheet.revision_set_id) if sheet else None
-        crop_path = _pick_crop_path(items, clouds_by_id)
+        cloud = _pick_cloud(items, clouds_by_id)
+        crop_path = _crop_path(cloud)
         detail_ref = group_ref if group_kind == "detail" else None
         revision_row = RevisionChangelogRow(
             correlation=_format_correlation(sheet_id, seq),
@@ -103,6 +107,8 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
             detail=_format_detail(detail_ref),
             scope_lines=_collect_scope_lines(items),
             crop_path=crop_path,
+            cloud_id=cloud.id if cloud else None,
+            sheet_version_id=sheet.id if sheet else None,
             item_ids=[item.id for item in items],
         )
         grouped_rows.append((sheet_id, seq, revision_row))
@@ -174,21 +180,32 @@ def _collect_scope_lines(items: list[ChangeItem]) -> list[str]:
     return lines
 
 
-def _pick_crop_path(items: list[ChangeItem], clouds_by_id: dict[str, object]) -> str | None:
+def _pick_cloud(items: list[ChangeItem], clouds_by_id: dict[str, CloudCandidate]) -> CloudCandidate | None:
     for item in items:
         cloud_id = item.cloud_candidate_id
         if not cloud_id:
             continue
         cloud = clouds_by_id.get(cloud_id)
-        if cloud is None:
-            continue
-        path = getattr(cloud, "image_path", "")
-        if path and Path(path).exists():
-            return path
+        if cloud is not None:
+            return cloud
+    return None
+
+
+def _crop_path(cloud: CloudCandidate | None) -> str | None:
+    if cloud is None:
+        return None
+    path = cloud.image_path
+    if path and Path(path).exists():
+        return path
     return None
 
 
 def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], output_path: Path) -> None:
+    revision_sets_by_id = {rs.id: rs for rs in store.data.revision_sets}
+    sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
+    clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
+    comparison_dir = output_path.parent / f"{output_path.stem}_comparison_images"
+
     wb = Workbook()
     wb.properties.creator = "ScopeLedger"
     wb.properties.title = "Revision Changelog"
@@ -262,11 +279,20 @@ def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], out
                 end_row=block_bottom, end_column=DETAIL_VIEW_COL,
             )
 
-        if revision_row.crop_path:
+        image_path = _detail_view_image_path(
+            store,
+            revision_row,
+            sheets_by_id=sheets_by_id,
+            clouds_by_id=clouds_by_id,
+            revision_sets_by_id=revision_sets_by_id,
+            comparison_dir=comparison_dir,
+            row_index=row_index,
+        )
+        if image_path:
             try:
-                _embed_image(ws, revision_row.crop_path, anchor_row=block_top, anchor_col=DETAIL_VIEW_COL)
+                _embed_image(ws, image_path, anchor_row=block_top, anchor_col=DETAIL_VIEW_COL)
             except Exception:
-                ws.cell(row=block_top, column=DETAIL_VIEW_COL, value=f"[crop: {Path(revision_row.crop_path).name}]")
+                ws.cell(row=block_top, column=DETAIL_VIEW_COL, value=f"[crop: {Path(image_path).name}]")
 
         cursor = block_bottom + 1
 
@@ -336,7 +362,7 @@ def _write_summary_sheet(ws, store: WorkspaceStore, rows: list[RevisionChangelog
     rejected = [item for item in store.data.change_items if item.status == "rejected"]
     active_sheets = [sheet for sheet in store.data.sheets if sheet.status == "active"]
     superseded_sheets = [sheet for sheet in store.data.sheets if sheet.status == "superseded"]
-    crop_rows = [row for row in rows if row.crop_path]
+    crop_rows = [row for row in rows if row.crop_path or row.cloud_id]
     cloud_rows = [
         item
         for item in approved
@@ -430,6 +456,35 @@ def _format_scope_text(lines: list[str]) -> str:
     if len(lines) == 1:
         return lines[0]
     return "\n".join(f"{i}) {line}" for i, line in enumerate(lines, 1))
+
+
+def _detail_view_image_path(
+    store: WorkspaceStore,
+    revision_row: RevisionChangelogRow,
+    *,
+    sheets_by_id: dict[str, SheetVersion],
+    clouds_by_id: dict[str, CloudCandidate],
+    revision_sets_by_id: dict[str, RevisionSet],
+    comparison_dir: Path,
+    row_index: int,
+) -> str | None:
+    cloud = clouds_by_id.get(revision_row.cloud_id or "")
+    sheet = sheets_by_id.get(revision_row.sheet_version_id or "")
+    if cloud is None or sheet is None:
+        return revision_row.crop_path
+
+    previous_sheet = find_previous_sheet_version(sheet, list(sheets_by_id.values()), revision_sets_by_id)
+    comparison_path = comparison_dir / f"{row_index + 1:04d}_{cloud.id}.png"
+    generated = build_cloud_comparison_image(
+        store,
+        cloud=cloud,
+        current_sheet=sheet,
+        previous_sheet=previous_sheet,
+        output_path=comparison_path,
+    )
+    if generated:
+        return str(generated)
+    return revision_row.crop_path
 
 
 def _embed_image(ws, image_path: str, *, anchor_row: int, anchor_col: int) -> None:

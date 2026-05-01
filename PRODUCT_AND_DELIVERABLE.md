@@ -149,7 +149,7 @@ Observed workbook shape:
 - one sheet named `Sheet1`
 - 10 columns
 - content rows plus many intentional spacer rows
-- embedded PNG crops in the `Detail View` column
+- embedded PNG crop evidence in the `Detail View` column
 - merged cells in `Scope Included` for stacked numbered sub-items
 
 Columns:
@@ -161,7 +161,7 @@ Columns:
 | C | `Revision # ` | package label plus date |
 | D | `Detail #` | `N/A - Cloud Only`, `Cloud Only`, or `Detail <n>` |
 | E | `Scope Included ` | single scope line or stacked numbered sub-items |
-| F | `Detail View ` | embedded crop image |
+| F | `Detail View ` | embedded crop image; when prior sheet history exists, previous/current same-area comparison |
 | G | no header | Kevin's ad-hoc manual notes; do not reproduce automatically |
 | H | `Responsible Contractor` | downstream pricing field, emit blank |
 | I | `Cost?` | downstream pricing field, emit blank |

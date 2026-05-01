@@ -54,7 +54,7 @@
           <div class="panel-body" style="display: flex; flex-direction: column; gap: var(--sp-4);">
             {% for file in [
               ("revision_changelog.xlsx", "Excel workbook - contractor pricing deliverable", output_files.workbook.exists(), "Open Workbook"),
-              ("revision_changelog_review_packet.html", "Review packet - crops and source context", output_files.review_packet.exists(), "Open Review Packet"),
+              ("revision_changelog_review_packet.html", "Review packet - crops, comparisons, and source context", output_files.review_packet.exists(), "Open Review Packet"),
               ("conformed_preview.pdf", "Conformed preview - latest sheets first", output_files.preview_pdf.exists(), "Open Conformed Preview")
             ] %}
               <div style="display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--surface-raised); border: 1px solid var(--rule-hairline); border-radius: var(--radius-md); opacity: {{ '1' if file[2] else '0.5' }};">

@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw
 
 from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..workspace import WorkspaceStore
+from .crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 
 
 @dataclass(frozen=True)
@@ -54,8 +55,9 @@ def build_review_packet(store: WorkspaceStore, output_path: Path | None = None) 
             continue
 
         crop_asset = _copy_crop_asset(cloud, asset_dir, index)
+        comparison_asset = _write_comparison_asset(store, cloud, sheet, sheets_by_id, revision_sets_by_id, asset_dir, index)
         context_asset = _write_context_asset(cloud, sheet, asset_dir, index)
-        asset_count += int(crop_asset is not None) + int(context_asset is not None)
+        asset_count += int(crop_asset is not None) + int(comparison_asset is not None) + int(context_asset is not None)
 
         revision_set = revision_sets_by_id.get(sheet.revision_set_id)
         metadata = _cloudhammer_metadata(item)
@@ -67,6 +69,7 @@ def build_review_packet(store: WorkspaceStore, output_path: Path | None = None) 
                 sheet=sheet,
                 revision_set=revision_set,
                 crop_asset=crop_asset,
+                comparison_asset=comparison_asset,
                 context_asset=context_asset,
                 metadata=metadata,
                 output_path=output_path,
@@ -102,6 +105,26 @@ def _copy_crop_asset(cloud: CloudCandidate, asset_dir: Path, index: int) -> Path
     destination = asset_dir / f"{index:04d}_{cloud.id}_crop{source.suffix.lower() or '.png'}"
     shutil.copyfile(source, destination)
     return destination
+
+
+def _write_comparison_asset(
+    store: WorkspaceStore,
+    cloud: CloudCandidate,
+    sheet: SheetVersion,
+    sheets_by_id: dict[str, SheetVersion],
+    revision_sets_by_id: dict[str, RevisionSet],
+    asset_dir: Path,
+    index: int,
+) -> Path | None:
+    previous_sheet = find_previous_sheet_version(sheet, list(sheets_by_id.values()), revision_sets_by_id)
+    destination = asset_dir / f"{index:04d}_{cloud.id}_comparison.png"
+    return build_cloud_comparison_image(
+        store,
+        cloud=cloud,
+        current_sheet=sheet,
+        previous_sheet=previous_sheet,
+        output_path=destination,
+    )
 
 
 def _write_context_asset(cloud: CloudCandidate, sheet: SheetVersion, asset_dir: Path, index: int) -> Path | None:
@@ -243,7 +266,7 @@ def _render_page(cards: list[str], *, item_count: int) -> str:
   }}
   .images {{
     display: grid;
-    grid-template-columns: minmax(220px, 0.85fr) minmax(360px, 1.5fr);
+    grid-template-columns: minmax(220px, 0.8fr) minmax(360px, 1.35fr) minmax(360px, 1.35fr);
     gap: 12px;
     align-items: start;
     padding: 12px;
@@ -284,7 +307,7 @@ def _render_page(cards: list[str], *, item_count: int) -> str:
 <body>
 <header>
   <h1>ScopeLedger Review Packet</h1>
-  <div class="subhead">{item_count} CloudHammer rows. Each item shows the exported crop and a marked source-page context crop.</div>
+  <div class="subhead">{item_count} CloudHammer rows. Each item shows the exported crop, previous/current comparison, and marked source-page context crop.</div>
 </header>
 <main>
 {''.join(cards)}
@@ -302,12 +325,14 @@ def _render_card(
     sheet: SheetVersion,
     revision_set: RevisionSet | None,
     crop_asset: Path | None,
+    comparison_asset: Path | None,
     context_asset: Path | None,
     metadata: dict[str, str],
     output_path: Path,
 ) -> str:
     revision_label = revision_set.label if revision_set else sheet.revision_set_id
     crop_img = _image_tag(crop_asset, output_path, "Exported crop")
+    comparison_img = _image_tag(comparison_asset, output_path, "Previous and current comparison")
     context_img = _image_tag(context_asset, output_path, "Source-page context")
     candidate = metadata.get("candidate", cloud.id)
     policy = metadata.get("policy", "")
@@ -332,6 +357,10 @@ def _render_card(
     <figure>
       <figcaption>Workbook Crop</figcaption>
       {crop_img}
+    </figure>
+    <figure>
+      <figcaption>Previous / Current</figcaption>
+      {comparison_img}
     </figure>
     <figure>
       <figcaption>Source Context</figcaption>

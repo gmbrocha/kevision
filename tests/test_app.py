@@ -676,6 +676,87 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
     assert not ws._images, "No embedded crop images are expected while CloudHammer inference is disconnected"
 
 
+def test_crop_comparison_uses_previous_sheet_area(tmp_path: Path):
+    from PIL import Image, ImageStat
+
+    from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
+
+    def write_color_pdf(path: Path, fill: tuple[float, float, float]) -> None:
+        document = fitz.open()
+        page = document.new_page(width=300, height=200)
+        page.draw_rect(page.rect, color=fill, fill=fill)
+        document.save(path)
+        document.close()
+
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    previous_pdf = input_dir / "previous.pdf"
+    current_pdf = input_dir / "current.pdf"
+    write_color_pdf(previous_pdf, (1, 0, 0))
+    write_color_pdf(current_pdf, (0, 0, 1))
+
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    previous_sheet = SheetVersion(
+        id="sheet-prev",
+        revision_set_id="rev-1",
+        source_pdf=str(previous_pdf),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date="04/01/2026",
+        width=300,
+        height=200,
+    )
+    current_sheet = SheetVersion(
+        id="sheet-current",
+        revision_set_id="rev-2",
+        source_pdf=str(current_pdf),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date="04/15/2026",
+        width=300,
+        height=200,
+    )
+    store.data.revision_sets = [
+        RevisionSet(id="rev-1", label="Revision #1", source_dir=str(input_dir), set_number=1, set_date="04/01/2026"),
+        RevisionSet(id="rev-2", label="Revision #2", source_dir=str(input_dir), set_number=2, set_date="04/15/2026"),
+    ]
+    store.data.sheets = [previous_sheet, current_sheet]
+    cloud = CloudCandidate(
+        id="cloud-1",
+        sheet_version_id=current_sheet.id,
+        bbox=[80, 60, 80, 60],
+        image_path="",
+        page_image_path="",
+        confidence=0.9,
+        extraction_method="cloudhammer_manifest",
+        nearby_text="",
+        detail_ref=None,
+    )
+
+    previous = find_previous_sheet_version(
+        current_sheet,
+        store.data.sheets,
+        {revision_set.id: revision_set for revision_set in store.data.revision_sets},
+    )
+    output = build_cloud_comparison_image(
+        store,
+        cloud=cloud,
+        current_sheet=current_sheet,
+        previous_sheet=previous,
+        output_path=tmp_path / "comparison.png",
+    )
+
+    assert output and output.exists()
+    with Image.open(output) as image:
+        left_mean = ImageStat.Stat(image.crop((20, 60, image.width // 2 - 20, image.height - 20))).mean
+        right_mean = ImageStat.Stat(image.crop((image.width // 2 + 20, 60, image.width - 20, image.height - 20))).mean
+    assert left_mean[0] > left_mean[2], "previous panel should use the red previous PDF"
+    assert right_mean[2] > right_mean[0], "current panel should use the blue current PDF"
+
+
 def test_revision_changelog_stacks_multiple_items_in_same_cloud(tmp_path: Path):
     """Kevin confirmed same-cloud scope items can share one row if listed."""
     from openpyxl import load_workbook
