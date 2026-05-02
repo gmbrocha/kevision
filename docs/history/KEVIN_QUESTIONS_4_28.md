@@ -1,3 +1,7 @@
+Status: historical stakeholder Q&A. Current product rules live in
+`../../PRODUCT_AND_DELIVERY.md`; current sequencing lives in
+`../../ROADMAP.md`.
+
 1. For the Excel deliverable, is a slightly loose but legible crop acceptable, or does each crop need to be tightly framed around only the clouded area?
 - Michael answer (kevin not needed): we will strive to get as good of a crop as possible. We will continue until we hit diminishing returns with this. Not going to even ask Kevin.
 

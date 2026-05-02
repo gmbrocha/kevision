@@ -1,292 +1,54 @@
 # ScopeLedger Roadmap
 
-Status: current planning roadmap. Product rules live in
-`PRODUCT_AND_DELIVERABLE.md`; architecture and workflow live in `SCOPELEDGER.md`;
-CloudHammer details live in `CLOUDHAMMER.md`; security policy lives in
-`SECURITY_PRIVACY_POLICY.md`.
+Status: canonical application roadmap as of 2026-05-02.
 
-## North Star
+Detailed application docs live in `docs/`. Cloud detection details live in
+`CloudHammer_v2/`.
 
-ScopeLedger should turn blueprint revision packages into a legible Excel
-deliverable that captures all relevant clouded changes, latest-sheet context,
-review flags, and crop evidence clearly enough for Kevin's team to use in
-pricing and build coordination.
+## Active Pivot
 
-Near-term success is a demo-grade end-to-end deliverable that Kevin can inspect
-against his current manual workflow. Production success requires stronger
-CloudHammer reliability, scope extraction, workflow integration, and ESA
-security approval before live sensitive project use.
+The active blocker is the CloudHammer v2 eval pivot: establish a frozen
+full-page evaluation ruler before more detector training or synthetic data
+generation.
 
-## Current Baseline
+Priority:
 
-Working:
+1. Build touched-page registry and freeze guards.
+2. Freeze `page_disjoint_real` from eligible full pages.
+3. Generate GPT-provisional full-page labels.
+4. Produce overlays/contact sheets for audit.
+5. Evaluate `model_only_tiled` and `pipeline_full` against the same labels.
+6. Implement synthetic diagnostics only after the real eval baseline exists.
 
-- CloudHammer can generate whole-cloud candidate manifests from real revision
-  sets.
-- Reviewed candidate feedback and split-review feedback exist.
-- Candidate release manifests can route accepted, auto-deliverable,
-  split-risk, review, and quarantined candidates.
-- Tightened crop artifacts can be generated for deliverable experiments.
-- The real backend scanner can consume a CloudHammer manifest.
-- The real backend exporter can produce a workbook with embedded CloudHammer
-  crop images and previous/current same-area comparisons.
-- CloudHammer-backed rows run through first-pass PDF text-layer/OCR scope
-  extraction during scan/populate/export, with extraction reason metadata.
-- The workbook includes a secondary `Review Flags` sheet so review reasons and
-  uncertain rows are visible without changing Kevin's main `Sheet1` layout.
+## Product Sequence
 
-Latest verified integration checkpoint:
+1. **Demo-grade workbook path:** already proven as a rough end-to-end flow from
+   CloudHammer candidates into backend/export workbook output.
+2. **First-pass text/OCR extraction:** exists as review scaffolding, but not as
+   solved scope understanding.
+3. **CloudHammer_v2 eval/reliability pivot:** current work; build trustworthy
+   full-page eval and clarify model-vs-pipeline behavior.
+4. **CloudHammer_v2 training improvement:** resume only after the frozen real
+   eval baseline exists.
+5. **Detail extraction:** improve itemized/detail extraction from accepted
+   cloud regions after detection/crop trust improves.
+6. **Client workflow integration:** align output with Kevin's pricing/review
+   workflow and modification/RFI context.
+7. **Production hardening:** repeatable runs, artifact hygiene, deployment
+   notes, and project-specific security gates.
 
-- input: split-review-corrected low-fill tuned CloudHammer release manifest
-- output workspace:
-  `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246`
-- corrected manifest rows: `217`
-- approved CloudHammer change items: `217`
-- embedded workbook crop images: `217`
-- human split-review replacements included: `80`
-- Google Drive review handoff folder:
-  `https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT`
+## Near-Term Exit Criteria
 
-Known gaps:
+- Frozen real eval pages are protected by guards.
+- Full-page ground truth labels exist with label status recorded.
+- `model_only_tiled` and `pipeline_full` are reported separately.
+- Synthetic diagnostics remain deferred until real eval baseline exists.
+- Root docs and `CloudHammer_v2` docs stay separated by responsibility.
 
-- scope text is still first-pass and often needs reviewer rewrite
-- detail-callout resolution and true scope understanding are not solved
-- overmerge and false-positive reduction still need more iteration
-- RFI/modification workflow is discovery only
-- live sensitive project API use is blocked pending ESA policy approval
+## Current Non-Goals
 
-## Milestone 0: ESA Security And Privacy Review
-
-Goal:
-
-- establish the policy gate before any live sensitive project data uses an
-  external API.
-
-Exit criteria:
-
-- `SECURITY_PRIVACY_POLICY.md` reviewed with ESA
-- ESA decision recorded for whether OpenAI API fallback is allowed
-- if allowed, approved scope is limited to sanitized low-confidence cloud-shape
-  confirmation unless ESA approves more
-- implementation requirements are clear for sanitizer, dry-run report,
-  configuration gate, and audit log
-
-Non-goals:
-
-- no live RFI/modification document API use under this milestone
-- no external OCR/scope extraction approval assumed
-- no production API fallback until the gate is implemented
-
-## Milestone 1: CloudHammer Reliability Foundation
-
-Goal:
-
-- make CloudHammer reliable enough that candidate release manifests are
-  high-trust inputs to the backend deliverable pipeline.
-
-Key work:
-
-- freeze repeatable eval sets across revision sets, not just the sets used for
-  training labels
-- continue reviewing high-impact candidate queues and split-risk queues
-- reduce overmerges, false positives, and missed large-cloud fragments
-- refine crop tightening so deliverable images are legible without excessive
-  page context
-- keep API prelabels and any future API fallback advisory only, never training
-  truth without human review
-- define confidence/policy gates for release manifests
-
-Exit criteria:
-
-- held-out revision-set eval reports recall and false-positive rate
-- split-risk policy is reliable enough to avoid obvious bad merges
-- release manifest generation is reproducible from documented commands
-- accepted candidate crops are visually reviewable in Excel
-
-## Milestone 2: Demo-Grade End-To-End Deliverable
-
-Goal:
-
-- produce a Kevin-visible workbook that proves the core workflow end to end.
-
-Key work:
-
-- run the Rev 1 / Rev 2 benchmark from `PRODUCT_AND_DELIVERABLE.md`
-- generate an Excel workbook close enough to `docs/anchors/mod_5_changelog.xlsx`
-  for Kevin to inspect
-- preserve all cloud crop evidence and latest-sheet context
-- flag uncertain rows instead of silently dropping them
-- separate meaningful review candidates from random false positives
-
-Exit criteria:
-
-- workbook includes the CloudHammer crop rows expected from the release
-  manifest
-- latest and superseded sheets are identified accurately enough for review
-- missed-cloud, false-positive, and unclear-row counts are recorded
-- Kevin can compare the tool-assisted output against the manual workflow
-- roadmap is updated with Kevin's demo feedback
-
-## Milestone 3: Scope, OCR, And Detail Extraction
-
-Goal:
-
-- replace placeholder CloudHammer scope text with reviewable scope information.
-
-Status as of 2026-04-30:
-
-- first pass has been wired for PDF text-layer extraction and backfilled onto
-  the demo workspace; active demo distribution was 217 CloudHammer clouds:
-  12 `text-layer-near-cloud`, 150 `needs-reviewer-rewrite`, 35
-  `index-or-title-noise`, and 20 `leader-or-callout-only`; extraction methods
-  were 196 PDF text-layer and 21 local Tesseract OCR fallback
-- workbook export refreshes stale CloudHammer rows before writing outputs, so
-  the deliverable does not keep old placeholder text when extraction can produce
-  a better candidate
-- previous/current same-area crop comparisons are wired into the workbook,
-  browser review packet, and web change-review cockpit
-- the workbook now includes a `Review Flags` tab with status, `Needs Review`,
-  review reason, extraction method/reason, source PDF/page, notes, and scope
-  text
-- plumbing sheet attribution was hardened for plumbing PDFs so late architectural
-  references such as `AE102` do not override repeated plumbing title-block
-  sheet IDs such as `PL302`
-- CloudHammer manifest hardening now filters explicit negative release/review
-  policy rows, validates and clips bounding boxes, tracks manifest row stats,
-  and records missing-crop metadata on generated cloud candidates
-- Populate Workspace now records a persisted status/progress record with
-  running/done/failed state, scan/extraction stage, package/document/sheet/
-  cloud/change counts, cache hits, and failure text; this is still a blocking
-  request, not a background job queue
-- simple OCR/text-layer extraction is expected to be incomplete; do not treat
-  the first pass as solved scope understanding
-- keep a running tally of additions, limitations, and follow-up cases in this
-  milestone and in `PRODUCT_AND_DELIVERABLE.md`
-
-Key work:
-
-- read text inside and near accepted cloud regions
-- identify detail references, leader-only clouds, and detail-callout clouds
-- handle multiple drawings/details on one sheet
-- preserve uncertainty with `Needs Review` and `Review Reason` fields
-- avoid guessing contractor, cost, or scope when the evidence is unclear
-
-Implementation sequence:
-
-1. Add cloud-region detail text extraction:
-   - expanded source-PDF crop around each detected cloud
-   - PDF text-layer word extraction inside/near the crop when available
-   - OCR fallback only where local tooling is available and safe
-   - populate `raw_text`, default `reviewer_text`, and provenance metadata
-   - status: first pass complete, with export-time refresh for stale rows
-2. Add scope text confidence/reason fields:
-   - examples: `text-layer-near-cloud`, `ocr-near-cloud`,
-     `no-readable-text`, `leader-or-callout-only`, `needs-reviewer-rewrite`
-   - expose a simple reviewer-facing reason, not raw numeric confidence
-   - status: complete in workspace provenance, web review metadata, and
-     workbook `Review Flags`
-3. Continue CloudHammer hardening after OCR first pass:
-   - first pass complete: explicit negative policy filtering, bbox validation,
-     bbox clipping, missing-crop tracking, and manifest stats
-   - next: improve overmerge handling, crop-quality scoring, and false-positive
-     review loops
-   - keep CloudHammer focused on changed-region detection, not workbook logic
-4. Add Populate Workspace progress:
-   - first pass complete: running/done/failed state, scan/extraction stage,
-     package/document/sheet/cloud/change counts, cache hits, and failure text
-   - next: move long scans to a background job with live polling/log streaming
-
-Open tally for later scope extraction work:
-
-- extract detail references when visible near the cloud
-- distinguish cloud-only plan changes from detail-callout clouds
-- detect leader-only arrows and preserve location even without readable scope
-- support multiple drawings/details on one sheet
-- associate source context with latest/superseded sheet state
-- identify text that belongs to a revision index versus the actual sheet
-- decide when nearby text is too broad/noisy to prefill scope text
-- strengthen discipline/source attribution beyond the plumbing-specific
-  fallback now in place
-- map icon/legend symbols close to clouds to their legend meanings when text is sparse
-- eventually separate true scope items from dimensions, labels, sheet names,
-  revision block text, and index boilerplate
-
-Exit criteria:
-
-- CloudHammer-backed rows contain useful `Scope Included` text or an explicit
-  review reason
-- detail references are populated when visible or inferable
-- leader-only/detail-callout cases produce location-preserving rows
-- review burden shifts from rewriting rows to confirming rows
-
-## Milestone 4: Kevin Workflow Integration
-
-Goal:
-
-- connect the drawing-change workbook to the broader modification workflow
-  without overbuilding before the demo is validated.
-
-Key work:
-
-- collect representative RFI PDFs, Government letters, shared-file examples,
-  and modification trackers
-- define how revision sets map to higher-level mods
-- decide how carry-forward notes from superseded sheets should be surfaced
-- decide where no-drawing-change RFIs belong
-- implement duplicate standalone/package sheet behavior: keep both candidate
-  sources visible when they differ or might differ, and let the reviewer compare
-  them
-
-Exit criteria:
-
-- mod/RFI source-of-truth documents are cataloged
-- minimum data model for mod grouping is documented
-- no-change RFI handling is explicitly in or out of the workbook
-- Kevin's preferred review order is known
-
-## Milestone 5: Production Hardening
-
-Goal:
-
-- make the workflow repeatable, inspectable, and safe enough for real project
-  use after security approval.
-
-Key work:
-
-- stable commands for scan, CloudHammer inference, release manifest creation,
-  review, and export
-- clear artifact locations and backup policy for large local files
-- reviewer ergonomics for high-volume candidate review
-- performance checks on large packages
-- explicit audit trail for external API fallback if ESA approves it
-- deployment notes for local-only and approved-live modes
-
-Exit criteria:
-
-- a clean operator can run the documented workflow
-- large generated artifacts remain local and ignored
-- security gates prevent accidental external disclosure
-- outputs are reproducible enough for project records
-
-## Near-Term Next Actions
-
-1. Review `SECURITY_PRIVACY_POLICY.md` with ESA before any live-data API use.
-2. Run the updated workbook/review-packet/web cockpit against Kevin's reviewed
-   sample and capture feedback on comparison crops, review reasons, and
-   discipline attribution.
-3. Continue CloudHammer candidate/split feedback loops on the strongest queues.
-4. Generate the next release manifest after split/crop tuning.
-5. Run the real backend scan/export using that manifest.
-6. Put any generated review workbook in Google Drive `/kevin_usage/` for
-   Google Sheets review.
-7. Compare the resulting workbook against the Rev 1 / Rev 2 benchmark criteria.
-8. Start collecting RFI/mod examples for discovery, without external API use.
-
-## Open Decisions
-
-- ESA: whether any external API use is allowed for live data.
-- ESA: whether Zero Data Retention or Modified Abuse Monitoring is required.
-- Kevin: exact workbook header fields after he sees a first real example.
-- Kevin: preferred review order by sheet, trade, revision set, or mod.
-- Kevin/ESA: whether no-drawing-change RFIs belong in the same workbook or a
-  separate artifact.
+- Do not reorganize source code or data while creating the eval pivot.
+- Do not move existing datasets, model runs, or legacy `CloudHammer/` assets.
+- Do not blend synthetic diagnostic scores with real eval scores.
+- Do not treat future-project GPT approval as implied by the current project
+  exception.

@@ -157,6 +157,16 @@ Export outputs include:
    are reliable enough.
 5. Export the Kevin-facing workbook and supporting machine-readable files.
 
+Current sequencing reality:
+
+- A rough demo-grade CloudHammer-to-backend workbook path has already been
+  proven.
+- First-pass local text-layer/OCR extraction has already replaced pure
+  placeholder scope text in many CloudHammer-backed rows.
+- The active blocker is now CloudHammer v2 reliability: fewer false positives,
+  better held-out eval behavior, and more reliable single-cloud crops.
+- After that, return to deeper itemized/detail extraction from accepted crops.
+
 ## CloudHammer Integration Boundary
 
 The active scanner treats cloud detection as an integration boundary. The old
@@ -173,17 +183,21 @@ CloudHammer v1 should eventually hand backend:
 Backend should convert those into product cloud/change-region models without
 CloudHammer knowing about Excel, Flask routes, or workspace persistence.
 
-## Durable Product Docs
+## Maintained Docs
 
 The maintained docs are:
 
 - `SCOPELEDGER.md`: repo architecture, setup, and workflow
-- `PRODUCT_AND_DELIVERABLE.md`: stakeholder decisions, workbook rules, benchmark, open questions, backlog
-- `CLOUDHAMMER.md`: CV pipeline, labeling, prelabeling, training, inference, output contract
-- `SECURITY_PRIVACY_POLICY.md`: sensitive-project data policy and external API approval gate
-- `ROADMAP.md`: milestone roadmap and near-term sequencing
+- `ROADMAP.md`: active sequencing and guardrails
+- `CLOUDHAMMER.md`: CV pipeline, labeling, prelabeling, training, inference,
+  output contract, current checkpoint
+- `PRODUCT_AND_DELIVERABLE.md`: stakeholder decisions, workbook rules,
+  benchmark, open questions, future detail/scope work
+- `docs/SECURITY_PRIVACY_POLICY.md`: sensitive-project data policy and external API approval gate
 
 Older handoffs, epoch plans, and historical notes belong under `archive/`.
+Dated notes under `docs/meetings/` and `docs/history/` are reference records,
+not active implementation guidance.
 
 ## Tests
 
@@ -200,3 +214,9 @@ python -m pytest -q
   `webapp.*`.
 - Do not treat `archive/` files as current implementation guidance unless a
   current doc explicitly points there for historical context.
+- Do not let product pipeline or OCR/detail work displace the active
+  CloudHammer v2 model target: reliable single-cloud revision-area crops with
+  false positives driven down through reviewed training/eval feedback.
+- Review only if it creates training/eval artifacts or validates the cropper
+  after the detector. Otherwise, stop and convert the lesson into a label,
+  hard negative, eval failure, or documented cropper rule before continuing.

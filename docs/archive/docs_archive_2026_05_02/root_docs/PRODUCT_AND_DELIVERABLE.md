@@ -37,8 +37,8 @@ Reasons:
 - Kevin's team is comfortable in Excel.
 - He does not yet need or want a custom viewer as the mandatory review surface.
 - Excel can carry review flags, notes, and blanks for downstream pricing.
-- Review copies should also be placed in Google Drive under `/kevin_usage/`
-  so they can be opened in Google Sheets when local Excel is unavailable.
+- Review copies may be placed in Google Drive under `/kevin_usage/` for file
+  handoff, but Google Sheets is not the shared review fallback.
 
 Implementation policy:
 
@@ -46,8 +46,8 @@ Implementation policy:
   needs to be surfaced.
 - Do not show numeric confidence as the primary review signal.
 - Keep numeric confidence internally for thresholds and debugging.
-- For future review exports, upload/copy review workbooks to Google Drive
-  folder `kevin_usage`:
+- For future handoff exports, upload/copy review workbooks to Google Drive
+  folder `kevin_usage` as files, not as the canonical review surface:
   `https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT`.
 
 ## Recall And Noise Policy
@@ -137,6 +137,16 @@ Canonical anchor file:
 
 - `docs/anchors/mod_5_changelog.xlsx`
 
+Demo status:
+
+- A rough demo-grade end-to-end workbook path has already been proven with a
+  CloudHammer release manifest feeding the real backend scan/export flow.
+- That milestone proved crop rows, embedded crop evidence, latest-sheet
+  context, review flags, and Excel output shape can work together.
+- It did not prove production detector quality or solved scope extraction.
+  Current CloudHammer v2 work is about making the candidate crops trustworthy
+  enough that the workbook is mostly review/edit instead of cleanup.
+
 Implementation:
 
 - workbook exporter: `backend/deliverables/revision_changelog_excel.py`
@@ -221,6 +231,24 @@ Kevin confirmed on 2026-04-28 that multiple items in one cloud can remain one
 row if the row lists the items included in that specific cloud.
 
 ## Scope Extraction Tracker
+
+Current sequencing note:
+
+Scope/detail extraction has two phases in the current project history:
+
+- **3a, done enough for demo context:** first-pass local PDF text-layer/OCR
+  extraction replaced pure placeholder CloudHammer scope text for many rows
+  and made weak extraction explicit through reviewer-facing reasons.
+- **3b, not done:** reliable itemized/detail extraction still has to read the
+  actual scope/details inside and immediately around accepted clouds.
+
+Part 3b remains the next major product goal after the active CloudHammer v2
+reliability pass. Do not let detail extraction pull focus away from reducing
+false positives and improving single-cloud crop reliability.
+
+Until then, review work should continue only when it creates training/eval
+artifacts or validates the post-detector cropper. Product/detail pipeline work
+should not compete with the current model reliability push.
 
 Status as of 2026-04-30:
 

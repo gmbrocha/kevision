@@ -2,8 +2,8 @@
 
 Status: historical ESA/Kevin meeting prep snapshot. Current sequencing lives in
 `../../ROADMAP.md`; current security policy lives in
-`../SECURITY_POLICY.md`; current CloudHammer state lives in
-`../../CloudHammer_v2/docs/CURRENT_STATE.md`.
+`../SECURITY_PRIVACY_POLICY.md`; current CloudHammer state lives in
+`../../CLOUDHAMMER.md`.
 
 Turn drawing revisions into accountable scope records.
 
@@ -57,7 +57,7 @@ Latest proof point:
 
 1. It does not very-confidently read or summarize the scope text inside every cloud;
   the first scope pass mostly creates review reasons and rewrite starting
-  points. Implementation just hasn't really been worked on for this; it's not difficult but it will require est. 
+  points. Implementation just hasn't really been worked on for this; it's not difficult but it will require est.
   1 week to write.
 2. It does not yet very-confidently parse legends, keynotes, detail references, or
   symbol meaning into final polished workbook descriptions. This is the same implementation as the point above, and both will
@@ -89,8 +89,8 @@ keeping a human in control.
 - Visual review packet, available through the app Export page and on the
   serving host:
   `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog_review_packet.html`
-- Web app walkthrough: `docs/references/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
-- Security policy: `docs/SECURITY_POLICY.md`
+- Web app walkthrough: `docs/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
+- Security policy: `SECURITY_PRIVACY_POLICY.md`
 - Roadmap: `ROADMAP.md`
 
 ## Security Position

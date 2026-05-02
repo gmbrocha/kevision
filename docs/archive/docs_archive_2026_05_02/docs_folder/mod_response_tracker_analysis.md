@@ -2,7 +2,7 @@
 
 Source file:
 
-- `../references/Biloxi RFP and Undefinitized Mod response tracker.xlsx`
+- `Biloxi RFP and Undefinitized Mod response tracker.xlsx`
 
 Received / inspected:
 

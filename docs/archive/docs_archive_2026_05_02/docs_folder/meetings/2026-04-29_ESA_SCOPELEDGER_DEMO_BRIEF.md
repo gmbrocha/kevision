@@ -2,8 +2,8 @@
 
 Status: historical ESA demo prep snapshot. Current sequencing lives in
 `../../ROADMAP.md`; current security policy lives in
-`../SECURITY_POLICY.md`; current CloudHammer state lives in
-`../../CloudHammer_v2/docs/CURRENT_STATE.md`.
+`../SECURITY_PRIVACY_POLICY.md`; current CloudHammer state lives in
+`../../CLOUDHAMMER.md`.
 
 Turn drawing revisions into accountable scope records.
 
@@ -76,11 +76,11 @@ Translate technical status into business status:
 Open these before the meeting:
 
 - Web review portal: the active remote app URL served from the home machine
-- Security policy: `docs/SECURITY_POLICY.md`
+- Security policy: `SECURITY_PRIVACY_POLICY.md`
 - Roadmap: `ROADMAP.md`
-- Product rules: `PRODUCT_AND_DELIVERY.md`
+- Product rules: `PRODUCT_AND_DELIVERABLE.md`
 - Web app walkthrough:
-  `docs/references/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
+  `docs/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
 - Review workbook, available through the app Export page and on the serving
   host:
   `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog.xlsx`
