@@ -48,14 +48,15 @@ SCHEMA = "cloudhammer.whole_cloud_candidate_review.v1"
 DEFAULT_MANIFEST = (
     ROOT
     / "runs"
-    / "whole_cloud_candidates_broad_deduped_lowconf_context_20260428"
-    / "whole_cloud_candidates_manifest.jsonl"
+    / "whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428"
+    / "release_v1"
+    / "review_queue.jsonl"
 )
 DEFAULT_REVIEW_LOG = (
     ROOT
     / "data"
     / "whole_cloud_candidate_reviews"
-    / "whole_cloud_candidates_broad_deduped_lowconf_context_20260428.review.jsonl"
+    / "whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.release_v1.review.jsonl"
 )
 
 STATUS_LABELS = {
@@ -76,6 +77,24 @@ STATUS_KEYS = {
     Qt.Key_U: "uncertain",
 }
 
+FALSE_POSITIVE_REASONS = {
+    "repeating_section_scallop": {
+        "label": "Texture FP",
+        "tags": ["hard_negative", "repeating_section_scallop", "insulation_edge_texture"],
+        "description": "Repeated scallop/insulation-like section texture, not a revision cloud.",
+    },
+    "text_glyph_arcs": {
+        "label": "Text FP",
+        "tags": ["hard_negative", "text_glyph_arcs"],
+        "description": "Text or glyph arcs mistaken for cloud motif fragments.",
+    },
+    "circular_symbol_fixture": {
+        "label": "Symbol FP",
+        "tags": ["hard_negative", "circular_symbol_fixture", "symbol_geometry"],
+        "description": "Circular symbol, fixture, or annotation geometry mistaken for cloud motif fragments.",
+    },
+}
+
 
 @dataclass(frozen=True)
 class Candidate:
@@ -88,7 +107,7 @@ class Candidate:
 
     @property
     def crop_path(self) -> Path:
-        return Path(str(self.row["crop_image_path"]))
+        return resolve_cloudhammer_path(str(self.row["crop_image_path"]))
 
     @property
     def confidence(self) -> float:
@@ -146,9 +165,14 @@ def load_latest_reviews(review_log: Path) -> dict[str, dict[str, Any]]:
     return latest
 
 
-def review_record(candidate: Candidate, status: str, manifest_path: Path) -> dict[str, Any]:
+def review_record(
+    candidate: Candidate,
+    status: str,
+    manifest_path: Path,
+    false_positive_reason: str | None = None,
+) -> dict[str, Any]:
     row = candidate.row
-    return {
+    record = {
         "schema": SCHEMA,
         "reviewed_at": datetime.now(timezone.utc).isoformat(),
         "reviewer": os.environ.get("USERNAME") or os.environ.get("USER") or "unknown",
@@ -167,6 +191,13 @@ def review_record(candidate: Candidate, status: str, manifest_path: Path) -> dic
         "bbox_page_xyxy": row.get("bbox_page_xyxy"),
         "crop_box_page_xyxy": row.get("crop_box_page_xyxy"),
     }
+    if false_positive_reason:
+        reason = FALSE_POSITIVE_REASONS[false_positive_reason]
+        record["false_positive_reason"] = false_positive_reason
+        record["false_positive_reason_label"] = reason["label"]
+        record["review_tags"] = reason["tags"]
+        record["review_note"] = reason["description"]
+    return record
 
 
 def append_review(review_log: Path, record: dict[str, Any]) -> None:
@@ -188,6 +219,19 @@ def compact_middle(value: str, max_chars: int = 54) -> str:
         return value
     keep = max(8, (max_chars - 3) // 2)
     return f"{value[:keep]}...{value[-keep:]}"
+
+
+def resolve_cloudhammer_path(path_text: str) -> Path:
+    path = Path(path_text)
+    if path.exists():
+        return path.resolve()
+    parts = path.parts
+    for index, part in enumerate(parts):
+        if part.lower() == "cloudhammer":
+            relocated = ROOT.joinpath(*parts[index + 1 :])
+            if relocated.exists():
+                return relocated.resolve()
+    return path
 
 
 class CandidateView(QGraphicsView):
@@ -334,6 +378,9 @@ class ReviewerWindow(QMainWindow):
         actions = [
             ("Accept", "A", lambda: self.mark("accept")),
             ("False +", "F", lambda: self.mark("false_positive")),
+            ("Texture FP", "T", lambda: self.mark_false_positive_reason("repeating_section_scallop")),
+            ("Text FP", "Ctrl+T", lambda: self.mark_false_positive_reason("text_glyph_arcs")),
+            ("Symbol FP", "S", lambda: self.mark_false_positive_reason("circular_symbol_fixture")),
             ("Partial", "P", lambda: self.mark("partial")),
             ("Overmerged", "O", lambda: self.mark("overmerged")),
             ("Duplicate", "D", lambda: self.mark("duplicate")),
@@ -395,6 +442,21 @@ class ReviewerWindow(QMainWindow):
         layout.addLayout(button_row_top)
         layout.addLayout(button_row_bottom)
 
+        reason_row = QHBoxLayout()
+        texture_fp_button = QPushButton("Texture FP")
+        texture_fp_button.setToolTip("T: false positive, repeated scallop/insulation-like section texture")
+        texture_fp_button.clicked.connect(lambda checked=False: self.mark_false_positive_reason("repeating_section_scallop"))
+        text_fp_button = QPushButton("Text FP")
+        text_fp_button.setToolTip("Ctrl+T: false positive, text/glyph arcs")
+        text_fp_button.clicked.connect(lambda checked=False: self.mark_false_positive_reason("text_glyph_arcs"))
+        symbol_fp_button = QPushButton("Symbol FP")
+        symbol_fp_button.setToolTip("S: false positive, circular symbol/fixture geometry")
+        symbol_fp_button.clicked.connect(lambda checked=False: self.mark_false_positive_reason("circular_symbol_fixture"))
+        reason_row.addWidget(texture_fp_button)
+        reason_row.addWidget(text_fp_button)
+        reason_row.addWidget(symbol_fp_button)
+        layout.addLayout(reason_row)
+
         nav_row = QHBoxLayout()
         prev_button = QPushButton("Prev")
         prev_button.clicked.connect(self.previous_candidate)
@@ -437,6 +499,21 @@ class ReviewerWindow(QMainWindow):
         row = candidate.row
         crop_name = candidate.crop_path.name
         review_name = self.review_log.name
+        marker_bucket = row.get("marker_anchor_bucket")
+        marker_lines = []
+        if marker_bucket is not None:
+            nearest_bbox = row.get("nearest_matching_marker_bbox_distance")
+            nearest_center = row.get("nearest_matching_marker_center_distance")
+            nearest_bbox_text = "-" if nearest_bbox is None else f"{float(nearest_bbox):.0f}px"
+            nearest_center_text = "-" if nearest_center is None else f"{float(nearest_center):.0f}px"
+            marker_lines = [
+                "",
+                "Markers:",
+                f"Anchor: {marker_bucket}",
+                f"Target digit: {row.get('target_digit') or '?'}",
+                f"Page/crop matching: {row.get('matching_page_marker_count')} / {row.get('matching_markers_in_crop')}",
+                f"Nearest bbox/center: {nearest_bbox_text} / {nearest_center_text}",
+            ]
         lines = [
             f"Index: {self.index + 1} / {total}",
             f"Reviewed: {reviewed} / {total}",
@@ -451,8 +528,12 @@ class ReviewerWindow(QMainWindow):
             "",
             f"Crop: {compact_middle(crop_name, 42)}",
             f"Log: {compact_middle(review_name, 42)}",
+            *marker_lines,
             "",
             "Wheel zooms. Drag pans. 0 fits.",
+            "T marks repeated scallop/insulation texture as a tagged false positive.",
+            "Ctrl+T marks text/glyph arcs as a tagged false positive.",
+            "S marks circular symbol/fixture geometry as a tagged false positive.",
         ]
         self.info.setToolTip(f"{candidate.candidate_id}\n\n{candidate.crop_path}\n\n{self.review_log}")
         self.info.setText("\n".join(lines))
@@ -483,6 +564,20 @@ class ReviewerWindow(QMainWindow):
         logging.info("Reviewed candidate %s as %s", candidate.candidate_id, status)
         self.next_unreviewed()
 
+    def mark_false_positive_reason(self, false_positive_reason: str) -> None:
+        if false_positive_reason not in FALSE_POSITIVE_REASONS:
+            return
+        candidate = self.current()
+        record = review_record(candidate, "false_positive", self.manifest_path, false_positive_reason=false_positive_reason)
+        append_review(self.review_log, record)
+        self.latest_reviews[candidate.candidate_id] = record
+        logging.info(
+            "Reviewed candidate %s as false_positive reason=%s",
+            candidate.candidate_id,
+            false_positive_reason,
+        )
+        self.next_unreviewed()
+
     def next_candidate(self) -> None:
         if not self.candidates:
             return
@@ -509,8 +604,17 @@ class ReviewerWindow(QMainWindow):
 
     def keyPressEvent(self, event) -> None:  # type: ignore[override]
         key = event.key()
+        if event.modifiers() & Qt.ControlModifier and key == Qt.Key_T:
+            self.mark_false_positive_reason("text_glyph_arcs")
+            return
         if key in STATUS_KEYS:
             self.mark(STATUS_KEYS[key])
+            return
+        if key == Qt.Key_S:
+            self.mark_false_positive_reason("circular_symbol_fixture")
+            return
+        if key == Qt.Key_T:
+            self.mark_false_positive_reason("repeating_section_scallop")
             return
         if key in {Qt.Key_Right, Qt.Key_Space}:
             self.next_candidate()
