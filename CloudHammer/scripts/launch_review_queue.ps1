@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("overmerge_rescue", "split_release", "candidate_review", "low_priority", "marker_fp")]
+    [ValidateSet("overmerge_rescue", "split_release", "candidate_review", "low_priority", "marker_fp", "marker_retained")]
     [string] $Queue = "overmerge_rescue"
 )
 
@@ -45,6 +45,12 @@ switch ($Queue) {
         $Tool = Join-Path $CloudHammerRoot "utilities\whole_cloud_candidate_reviewer.py"
         $Manifest = Join-Path $RunRoot "marker_anchor_analysis_v1\marker_false_positive_review_queue.jsonl"
         $ReviewLog = Join-Path $DataRoot "whole_cloud_candidate_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.marker_fp.review.jsonl"
+        $ToolArgs = @($Tool, "--manifest", $Manifest, "--review-log", $ReviewLog, "--order", "confidence_asc")
+    }
+    "marker_retained" {
+        $Tool = Join-Path $CloudHammerRoot "utilities\whole_cloud_candidate_reviewer.py"
+        $Manifest = Join-Path $RunRoot "marker_anchor_retained_review_v1\review_queue.jsonl"
+        $ReviewLog = Join-Path $DataRoot "whole_cloud_candidate_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.marker_retained.review.jsonl"
         $ToolArgs = @($Tool, "--manifest", $Manifest, "--review-log", $ReviewLog, "--order", "confidence_asc")
     }
 }
