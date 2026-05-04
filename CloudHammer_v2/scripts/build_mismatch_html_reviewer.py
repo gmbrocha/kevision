@@ -20,6 +20,14 @@ DEFAULT_PACKET_DIR = (
 
 APPROVED_ERROR_BUCKETS = [
     "",
+    "actual_false_positive",
+    "duplicate_prediction_on_real_cloud",
+    "localization_matching_issue",
+    "truth_box_needs_recheck",
+    "truth_box_too_tight",
+    "truth_box_too_loose",
+    "prediction_fragment_on_real_cloud",
+    "not_actionable_matching_artifact",
     "marker_neighborhood_no_cloud_regions",
     "historical_or_nonmatching_revision_marker_context",
     "isolated_arcs_and_scallop_fragments",
@@ -41,7 +49,13 @@ APPROVED_ERROR_BUCKETS = [
     "other",
 ]
 
-REVIEW_STATUSES = ["unreviewed", "bucketed", "needs_second_look", "truth_needs_recheck", "not_actionable"]
+REVIEW_STATUSES = [
+    "unreviewed",
+    "resolved",
+    "truth_followup",
+    "tooling_or_matching_artifact",
+    "not_actionable",
+]
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -89,6 +103,27 @@ def truth_box_from_row(row: dict[str, Any]) -> list[float] | None:
     return None
 
 
+def context_box(item: dict[str, Any]) -> list[float] | None:
+    box = item.get("box_xyxy")
+    if isinstance(box, list) and len(box) == 4:
+        return [float(value) for value in box]
+    return None
+
+
+def short_id(value: Any) -> str:
+    text = "" if value is None else str(value)
+    return text.replace("truth_", "T").replace("pred_", "P")
+
+
+def fmt_float(value: Any, digits: int = 2) -> str:
+    if value in (None, ""):
+        return ""
+    try:
+        return f"{float(value):.{digits}f}"
+    except (TypeError, ValueError):
+        return str(value)
+
+
 def union_box(boxes: list[list[float]]) -> list[float]:
     return [
         min(box[0] for box in boxes),
@@ -129,8 +164,22 @@ def translate_box(box: list[float], crop_box: tuple[int, int, int, int]) -> tupl
     )
 
 
+def box_intersects_crop(box: list[float], crop_box: tuple[int, int, int, int]) -> bool:
+    x1, y1, x2, y2 = crop_box
+    return not (box[2] < x1 or box[0] > x2 or box[3] < y1 or box[1] > y2)
+
+
+def find_context_item(items: list[dict[str, Any]], id_field: str, item_id: Any) -> dict[str, Any] | None:
+    if item_id in (None, ""):
+        return None
+    for item in items:
+        if str(item.get(id_field) or "") == str(item_id):
+            return item
+    return None
+
+
 def draw_label(draw: ImageDraw.ImageDraw, text: str, x: int, y: int, color: str) -> None:
-    text_width = max(70, len(text) * 8)
+    text_width = max(70, len(text) * 7 + 8)
     draw.rectangle((x, max(0, y - 18), x + text_width, max(16, y)), fill="white")
     draw.text((x + 3, max(1, y - 16)), text, fill=color)
 
@@ -140,17 +189,116 @@ def draw_box(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], color: s
     draw_label(draw, text, box[0] + 4, box[1], color)
 
 
-def row_colors(row: dict[str, Any]) -> tuple[str | None, str | None, str, str]:
+def truth_color(truth: dict[str, Any]) -> str:
+    return "lime" if truth.get("matched_prediction_id") else "orange"
+
+
+def prediction_color(prediction: dict[str, Any]) -> str:
+    match_iou = prediction.get("match_iou_25")
+    if match_iou in (None, ""):
+        return "red"
+    return "dodgerblue" if float(match_iou) >= 0.50 else "purple"
+
+
+def focus_boxes_for_row(row: dict[str, Any]) -> list[list[float]]:
+    page_truth_boxes = row.get("page_truth_boxes") if isinstance(row.get("page_truth_boxes"), list) else []
+    page_predictions = row.get("page_predictions") if isinstance(row.get("page_predictions"), list) else []
+    if not page_truth_boxes and truth_box_from_row(row) is not None:
+        page_truth_boxes = [
+            {
+                "truth_id": row.get("truth_id") or "truth",
+                "box_xyxy": truth_box_from_row(row),
+                "matched_prediction_id": None if row.get("mismatch_type") == "false_negative" else row.get("prediction_id"),
+            }
+        ]
+    if not page_predictions and box_from_row(row) is not None:
+        page_predictions = [
+            {
+                "prediction_id": row.get("prediction_id") or "prediction",
+                "box_xyxy": box_from_row(row),
+                "confidence": row.get("confidence"),
+                "matched_truth_id": row.get("truth_id") if row.get("mismatch_type") == "localization_low_iou" else None,
+                "match_iou_25": row.get("best_iou") if row.get("mismatch_type") == "localization_low_iou" else None,
+                "nearest_truth_id": row.get("truth_id"),
+                "nearest_truth_iou": row.get("best_iou"),
+            }
+        ]
+    boxes = [box for box in (box_from_row(row), truth_box_from_row(row)) if box is not None]
+    for item, id_field, row_field in (
+        (page_truth_boxes, "truth_id", "nearest_truth_id"),
+        (page_predictions, "prediction_id", "nearest_prediction_id"),
+        (page_predictions, "prediction_id", "matched_elsewhere_prediction_id"),
+    ):
+        context = find_context_item(item, id_field, row.get(row_field)) if isinstance(item, list) else None
+        if context is not None:
+            box = context_box(context)
+            if box is not None:
+                boxes.append(box)
+    return boxes
+
+
+def draw_context_boxes(
+    draw: ImageDraw.ImageDraw,
+    row: dict[str, Any],
+    crop_box: tuple[int, int, int, int],
+    mode: str,
+) -> None:
+    page_truth_boxes = row.get("page_truth_boxes") if isinstance(row.get("page_truth_boxes"), list) else []
+    page_predictions = row.get("page_predictions") if isinstance(row.get("page_predictions"), list) else []
+    current_truth_id = str(row.get("truth_id") or "")
+    current_prediction_id = str(row.get("prediction_id") or "")
     mismatch_type = str(row.get("mismatch_type") or "")
-    best_iou = float(row.get("best_iou") or 0.0)
-    if mismatch_type == "false_negative":
-        return "orange", None, "missed truth", ""
-    if mismatch_type == "localization_low_iou":
-        pred_color = "purple" if best_iou >= 0.25 else "red"
-        return "lime", pred_color, "matched truth", "low-IoU prediction"
-    if mismatch_type == "false_positive":
-        return "lime" if best_iou >= 0.25 else None, "red", "nearest truth", "false positive"
-    return "lime", "red", "truth", "prediction"
+    base_width = 5 if mode == "local" else 4
+
+    for truth in page_truth_boxes:
+        box = context_box(truth)
+        if box is None or not box_intersects_crop(box, crop_box):
+            continue
+        is_current = current_truth_id and str(truth.get("truth_id") or "") == current_truth_id
+        label = short_id(truth.get("truth_id"))
+        matched_prediction_id = truth.get("matched_prediction_id")
+        if matched_prediction_id:
+            label += f"->{short_id(matched_prediction_id)}"
+        else:
+            label += " FN"
+        if is_current and mismatch_type == "false_negative":
+            label = "CURRENT " + label
+        draw_box(
+            draw,
+            translate_box(box, crop_box),
+            truth_color(truth),
+            base_width + (3 if is_current else 0),
+            label,
+        )
+
+    for prediction in page_predictions:
+        box = context_box(prediction)
+        if box is None or not box_intersects_crop(box, crop_box):
+            continue
+        is_current = current_prediction_id and str(prediction.get("prediction_id") or "") == current_prediction_id
+        label = short_id(prediction.get("prediction_id"))
+        confidence = fmt_float(prediction.get("confidence"))
+        if confidence:
+            label += f" {confidence}"
+        matched_truth_id = prediction.get("matched_truth_id")
+        if matched_truth_id:
+            label += f"->{short_id(matched_truth_id)}"
+            if prediction.get("match_iou_25") not in (None, ""):
+                label += f" IoU {fmt_float(prediction.get('match_iou_25'))}"
+        else:
+            label += " FP"
+            if prediction.get("nearest_truth_id"):
+                label += f" near {short_id(prediction.get('nearest_truth_id'))}"
+                label += f" {fmt_float(prediction.get('nearest_truth_iou'))}"
+        if is_current:
+            label = "CURRENT " + label
+        draw_box(
+            draw,
+            translate_box(box, crop_box),
+            prediction_color(prediction),
+            base_width + (3 if is_current else 0),
+            label,
+        )
 
 
 def make_review_crop(
@@ -163,9 +311,7 @@ def make_review_crop(
     max_side: int,
 ) -> dict[str, Any]:
     render_path = Path(str(row["render_path"]))
-    issue_box = box_from_row(row)
-    truth_box = truth_box_from_row(row)
-    boxes = [box for box in (issue_box, truth_box) if box is not None]
+    boxes = focus_boxes_for_row(row)
     if not boxes:
         raise ValueError(f"row has no drawable boxes: {row.get('review_item_id')}")
     focus_box = union_box(boxes)
@@ -174,19 +320,7 @@ def make_review_crop(
         crop_box = padded_crop_box(focus_box, image.size, padding=padding, min_side=min_side, max_side=max_side)
         crop = image.crop(crop_box)
     draw = ImageDraw.Draw(crop)
-    truth_color, pred_color, truth_label, pred_label = row_colors(row)
-    line_width = 5 if mode == "local" else 4
-    if truth_box is not None and truth_color:
-        draw_box(draw, translate_box(truth_box, crop_box), truth_color, line_width, truth_label)
-    if issue_box is not None and pred_color:
-        pred_text = pred_label
-        confidence = row.get("confidence")
-        best_iou = row.get("best_iou")
-        if confidence not in (None, ""):
-            pred_text += f" conf {float(confidence):.2f}"
-        if best_iou not in (None, ""):
-            pred_text += f" IoU {float(best_iou):.2f}"
-        draw_box(draw, translate_box(issue_box, crop_box), pred_color, line_width, pred_text)
+    draw_context_boxes(draw, row, crop_box, mode)
     title = f"{row.get('eval_mode')} | {row.get('mismatch_type')} | {row.get('source_page_key')}"
     draw.rectangle((0, 0, min(crop.width, len(title) * 8 + 20), 26), fill="white")
     draw.text((8, 7), title, fill="black")
@@ -219,7 +353,7 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
     button, select, textarea, input {{ font: inherit; }}
     button {{ border: 1px solid #888; background: white; padding: 6px 10px; cursor: pointer; }}
     button.primary {{ background: #2457d6; color: white; border-color: #2457d6; }}
-    main {{ display: grid; grid-template-columns: minmax(360px, 1fr) 380px; gap: 12px; padding: 12px; }}
+    main {{ display: grid; grid-template-columns: minmax(360px, 1fr) 430px; gap: 12px; padding: 12px; }}
     .viewer {{ background: white; border: 1px solid #d0d0ca; padding: 10px; min-width: 0; }}
     .panel {{ background: white; border: 1px solid #d0d0ca; padding: 12px; }}
     .meta {{ display: grid; grid-template-columns: 120px 1fr; gap: 4px 8px; font-size: 13px; margin-bottom: 10px; }}
@@ -235,6 +369,11 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
     .swatch {{ width: 12px; height: 12px; border: 1px solid #333; vertical-align: -2px; }}
     .statusline {{ margin-left: auto; font-size: 13px; color: #ddd; }}
     .small {{ font-size: 12px; color: #555; }}
+    .workflow {{ background: #eef3ff; border: 1px solid #b8c8ef; padding: 8px; margin: 8px 0; font-size: 13px; }}
+    .explain {{ background: #fffbea; border: 1px solid #d6c46a; padding: 8px; margin: 8px 0 10px; font-size: 13px; }}
+    .explain h2 {{ font-size: 15px; margin: 0 0 6px; }}
+    .explain p {{ margin: 5px 0; }}
+    .flag {{ display: inline-block; border: 1px solid #aaa; padding: 2px 5px; margin: 2px 3px 2px 0; background: #f8f8f8; }}
     .rowlist {{ max-height: 180px; overflow: auto; border: 1px solid #ddd; margin-top: 8px; }}
     .rowlist button {{ display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #eee; }}
     .rowlist button.current {{ background: #fff2b3; }}
@@ -264,18 +403,24 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
         <span><span class="swatch" style="background:dodgerblue"></span> IoU >= 0.50</span>
         <span><span class="swatch" style="background:purple"></span> 0.25 <= IoU < 0.50</span>
       </div>
+      <div class="workflow">
+        A mismatch row is a scoring/matching row, not a cloud/not-cloud doubt prompt. If a displayed cloud is visually real, bucket the scoring cause: duplicate, localization, truth follow-up, or model error.
+      </div>
+      <div class="explain" id="why"></div>
       <div class="meta" id="meta"></div>
       <label for="bucket">human_error_bucket</label>
       <select id="bucket"></select>
       <label for="reviewStatus">human_review_status</label>
       <select id="reviewStatus"></select>
+      <p class="small" id="statusHelp"></p>
       <label for="notes">human_notes</label>
       <textarea id="notes"></textarea>
       <div style="display:flex; gap:8px; margin-top:10px;">
         <button id="save" class="primary">Save Row</button>
         <button id="exportCsv">Export Reviewed CSV</button>
+        <button id="applyReviewLog">Apply Review Log Values</button>
       </div>
-      <p class="small">This page stores edits in browser localStorage and exports a CSV. It does not modify truth labels, eval manifests, predictions, or training data.</p>
+      <p class="small">This page stores edits in browser localStorage and exports a CSV. Apply Review Log Values copies nonblank embedded review-log bucket/status/notes into browser state. It does not modify truth labels, eval manifests, predictions, model files, datasets, or training data.</p>
       <div class="rowlist" id="rowlist"></div>
     </aside>
   </main>
@@ -290,8 +435,76 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
 
     function byId(id) {{ return document.getElementById(id); }}
     function current() {{ return ITEMS[index]; }}
-    function valueFor(item, field) {{ return (state[item.review_item_id] && state[item.review_item_id][field]) ?? item[field] ?? ''; }}
+    function normalizeStatus(status) {{
+      const value = status || 'unreviewed';
+      if (value === 'bucketed') return 'resolved';
+      if (value === 'truth_needs_recheck') return 'truth_followup';
+      if (value === 'needs_second_look') return 'tooling_or_matching_artifact';
+      return value;
+    }}
+    function valueFor(item, field) {{
+      const value = (state[item.review_item_id] && state[item.review_item_id][field]) ?? item[field] ?? '';
+      return field === 'human_review_status' ? normalizeStatus(value) : value;
+    }}
     function saveState() {{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }}
+    function escapeHtml(value) {{
+      return String(value ?? '').replace(/[&<>"']/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));
+    }}
+    function formatValue(value) {{
+      if (Array.isArray(value)) return value.map(n => Number(n).toFixed(1)).join(', ');
+      if (value === true) return 'yes';
+      if (value === false) return 'no';
+      return value ?? '';
+    }}
+    function formatIou(value) {{
+      if (value === null || value === undefined || value === '') return '';
+      return Number(value).toFixed(3);
+    }}
+    function statusDescription(status) {{
+      const descriptions = {{
+        unreviewed: 'Row has not been reviewed yet.',
+        resolved: 'Human reviewed the row and assigned the correct error bucket.',
+        truth_followup: 'Frozen truth likely needs a separate correction/recheck pass; this does not edit truth.',
+        tooling_or_matching_artifact: 'Mismatch appears driven by IoU matching, duplicates, crop/reviewer context, or scoring behavior.',
+        not_actionable: 'Bad crop, missing context, corrupted display, or irrelevant artifact prevents useful error analysis.'
+      }};
+      return descriptions[status] || '';
+    }}
+    function rowExplanation(item) {{
+      let scoringMeaning = '';
+      if (item.mismatch_type === 'false_positive') {{
+        scoringMeaning = 'This prediction was not assigned a greedy scoring match at IoU 0.25. That does not automatically mean the visible geometry is not a cloud.';
+      }} else if (item.mismatch_type === 'false_negative') {{
+        scoringMeaning = 'This truth box did not receive a greedy prediction match at IoU 0.25.';
+      }} else if (item.mismatch_type === 'localization_low_iou') {{
+        scoringMeaning = 'This prediction matched truth at IoU 0.25, but is below the IoU 0.50 localization review threshold.';
+      }} else {{
+        scoringMeaning = 'This row came from the mismatch review manifest.';
+      }}
+      const flags = [];
+      if (item.matched_elsewhere === true || item.matched_elsewhere === 'True' || item.matched_elsewhere === 'true') flags.push('matched_elsewhere');
+      if (item.possible_duplicate_prediction === true || item.possible_duplicate_prediction === 'True' || item.possible_duplicate_prediction === 'true') flags.push('possible_duplicate_prediction');
+      if (item.mismatch_type === 'localization_low_iou') flags.push('localization_review');
+      const flagHtml = flags.length ? flags.map(flag => `<span class="flag">${{escapeHtml(flag)}}</span>`).join('') : '<span class="flag">no artifact flag</span>';
+      const rows = [
+        ['mismatch type', item.mismatch_type],
+        ['eval mode', item.eval_mode],
+        ['IoU scoring threshold', '0.25'],
+        ['localization review threshold', '0.50'],
+        ['nearest truth', item.nearest_truth_id ? `${{item.nearest_truth_id}} @ IoU ${{formatIou(item.nearest_truth_iou)}}` : 'none'],
+        ['nearest prediction', item.nearest_prediction_id ? `${{item.nearest_prediction_id}} @ IoU ${{formatIou(item.nearest_prediction_iou)}}` : 'none'],
+        ['matched elsewhere', formatValue(item.matched_elsewhere)],
+        ['matched-elsewhere prediction', item.matched_elsewhere_prediction_id ?? ''],
+        ['matched-elsewhere truth', item.matched_elsewhere_truth_id ?? ''],
+      ];
+      return `
+        <h2>Why This Row Is A Mismatch</h2>
+        <p>${{escapeHtml(scoringMeaning)}}</p>
+        <p>${{escapeHtml(item.mismatch_reason_raw || '')}}</p>
+        <p>${{flagHtml}}</p>
+        <div class="meta">${{rows.map(([k, v]) => `<div>${{escapeHtml(k)}}</div><div>${{escapeHtml(v)}}</div>`).join('')}}</div>
+      `;
+    }}
     function optionList(el, values) {{
       el.innerHTML = '';
       values.forEach(v => {{
@@ -310,19 +523,27 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
       byId('bucket').value = valueFor(item, 'human_error_bucket');
       byId('reviewStatus').value = valueFor(item, 'human_review_status') || 'unreviewed';
       byId('notes').value = valueFor(item, 'human_notes');
+      byId('statusHelp').textContent = statusDescription(byId('reviewStatus').value);
+      byId('why').innerHTML = rowExplanation(item);
       const meta = [
         ['page', item.source_page_key],
         ['mode', item.eval_mode],
         ['type', item.mismatch_type],
         ['confidence', item.confidence ?? ''],
         ['best_iou', item.best_iou ?? ''],
+        ['nearest_truth_id', item.nearest_truth_id ?? ''],
+        ['nearest_truth_iou', item.nearest_truth_iou ?? ''],
+        ['nearest_prediction_id', item.nearest_prediction_id ?? ''],
+        ['nearest_prediction_iou', item.nearest_prediction_iou ?? ''],
+        ['matched_elsewhere', item.matched_elsewhere ?? ''],
+        ['possible_duplicate_prediction', item.possible_duplicate_prediction ?? ''],
         ['truth_id', item.truth_id ?? ''],
         ['prediction_id', item.prediction_id ?? ''],
         ['review_item_id', item.review_item_id],
         ['bbox_xyxy', item.bbox_xyxy],
         ['truth_bbox_xyxy', item.truth_bbox_xyxy],
       ];
-      byId('meta').innerHTML = meta.map(([k, v]) => `<div>${{k}}</div><div>${{Array.isArray(v) ? v.map(n => Number(n).toFixed(1)).join(', ') : v}}</div>`).join('');
+      byId('meta').innerHTML = meta.map(([k, v]) => `<div>${{escapeHtml(k)}}</div><div>${{escapeHtml(formatValue(v))}}</div>`).join('');
       byId('savedState').textContent = `${{Object.keys(state).length}} saved rows in browser`;
       renderRowList();
     }}
@@ -360,7 +581,7 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
     }}
     function exportCsv() {{
       saveCurrent();
-      const fields = ['review_item_id','source_page_key','eval_mode','mismatch_type','truth_id','prediction_id','confidence','iou_25','best_iou','human_error_bucket','human_review_status','human_notes','overlay_path','crop_path'];
+      const fields = ['review_item_id','source_page_key','eval_mode','mismatch_type','truth_id','prediction_id','confidence','iou_25','best_iou','nearest_truth_iou','nearest_truth_id','nearest_prediction_id','nearest_prediction_iou','matched_elsewhere','matched_elsewhere_prediction_id','matched_elsewhere_truth_id','possible_duplicate_prediction','mismatch_reason_raw','human_error_bucket','human_review_status','human_notes','overlay_path','crop_path'];
       const lines = [fields.join(',')];
       ITEMS.forEach(item => {{
         const saved = state[item.review_item_id] || {{}};
@@ -373,6 +594,25 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
       a.download = 'mismatch_review_log.reviewed.csv';
       a.click();
       URL.revokeObjectURL(a.href);
+    }}
+    function applyReviewLogValues() {{
+      saveCurrent();
+      let applied = 0;
+      ITEMS.forEach(item => {{
+        const bucket = item.human_error_bucket || '';
+        const status = normalizeStatus(item.human_review_status || '');
+        const notes = item.human_notes || '';
+        if (!bucket && (!status || status === 'unreviewed') && !notes) return;
+        state[item.review_item_id] = {{
+          human_error_bucket: bucket,
+          human_review_status: status || 'resolved',
+          human_notes: notes,
+        }};
+        applied++;
+      }});
+      saveState();
+      render();
+      alert(`Applied embedded review-log values for ${{applied}} rows.`);
     }}
     function renderRowList() {{
       const list = byId('rowlist');
@@ -393,6 +633,8 @@ def html_document(items_json: str, buckets_json: str, statuses_json: str) -> str
     byId('nextOpen').onclick = nextOpen;
     byId('save').onclick = saveCurrent;
     byId('exportCsv').onclick = exportCsv;
+    byId('applyReviewLog').onclick = applyReviewLogValues;
+    byId('reviewStatus').onchange = () => {{ byId('statusHelp').textContent = statusDescription(byId('reviewStatus').value); }};
     byId('localTab').onclick = () => {{ cropMode = 'local'; render(); }};
     byId('wideTab').onclick = () => {{ cropMode = 'wide'; render(); }};
     window.addEventListener('keydown', e => {{

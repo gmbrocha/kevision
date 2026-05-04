@@ -1,0 +1,61 @@
+{
+  "by_bucket_category": {
+    "matching_or_scoring_artifact": 50,
+    "true_model_error_or_visual_family": 27
+  },
+  "by_human_error_bucket": {
+    "crossing_line_x_patterns": 4,
+    "duplicate_prediction_on_real_cloud": 12,
+    "localization_too_loose": 8,
+    "localization_too_tight": 4,
+    "overmerged_grouping": 5,
+    "prediction_fragment_on_real_cloud": 36,
+    "split_fragment": 6,
+    "truth_box_needs_recheck": 2
+  },
+  "by_mismatch_type_and_bucket_category": {
+    "false_negative": {
+      "true_model_error_or_visual_family": 9
+    },
+    "false_positive": {
+      "matching_or_scoring_artifact": 50,
+      "true_model_error_or_visual_family": 5
+    },
+    "localization_low_iou": {
+      "true_model_error_or_visual_family": 13
+    }
+  },
+  "by_mode_and_bucket": {
+    "model_only_tiled": {
+      "crossing_line_x_patterns": 2,
+      "duplicate_prediction_on_real_cloud": 11,
+      "localization_too_loose": 1,
+      "localization_too_tight": 4,
+      "prediction_fragment_on_real_cloud": 33,
+      "split_fragment": 3,
+      "truth_box_needs_recheck": 1
+    },
+    "pipeline_full": {
+      "crossing_line_x_patterns": 2,
+      "duplicate_prediction_on_real_cloud": 1,
+      "localization_too_loose": 7,
+      "overmerged_grouping": 5,
+      "prediction_fragment_on_real_cloud": 3,
+      "split_fragment": 3,
+      "truth_box_needs_recheck": 1
+    }
+  },
+  "by_status": {
+    "resolved": 75,
+    "truth_followup": 2
+  },
+  "deprecated_status_rows": [],
+  "invalid_rows": [],
+  "json_summary": "CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.reviewed_summary.json",
+  "markdown_summary": "CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.reviewed_summary.md",
+  "review_log": "CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.reviewed.csv",
+  "reviewed_rows": 77,
+  "rows": 77,
+  "schema": "cloudhammer_v2.mismatch_review_summary.v1",
+  "unreviewed_rows": 0
+}

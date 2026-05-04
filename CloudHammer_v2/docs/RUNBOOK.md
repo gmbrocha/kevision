@@ -100,9 +100,11 @@ Rerun pipeline-full scoring against human-audited truth:
 .\.venv\Scripts\python.exe CloudHammer_v2\scripts\evaluate_fullpage_detections.py --eval-manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.human_audited.jsonl --detections-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\whole_cloud_candidates\detections_whole --output-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\eval_human_audited --run-name pipeline_full_page_disjoint_real_human_audited_20260503 --prediction-source pipeline_full_grouped_whole_cloud_candidates
 ```
 
-Build the read-only mismatch review packet from existing human truth and
-existing model/pipeline predictions. This is safe/read-only with respect to
-truth labels, eval manifests, training data, mining, and tuning:
+Build the mismatch review packet from existing human truth and existing
+model/pipeline predictions. This writes only error-analysis artifacts and the
+blank/template mismatch review log; it must not edit truth labels, eval
+manifests, predictions, model files, datasets, training data, mining inputs, or
+tuning inputs:
 
 ```powershell
 .\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_mismatch_review_packet.py
@@ -114,8 +116,11 @@ Expected artifacts:
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/contact_sheets/mismatch_truth_vs_predictions_contact_sheet.jpg`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_manifest.jsonl`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_manifest.csv`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.csv`
 
-Build the static HTML reviewer with crisp PNG local/wide crops:
+Build the static HTML reviewer with crisp PNG local/wide crops. The reviewer
+shows all nearby truth/prediction boxes, matched-elsewhere/duplicate flags, and
+the raw scoring reason for the row:
 
 ```powershell
 .\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_mismatch_html_reviewer.py
@@ -129,19 +134,51 @@ Expected artifacts:
 
 The reviewer stores browser-local edits and exports
 `mismatch_review_log.reviewed.csv`. It must not be used to edit truth labels,
-eval manifests, prediction files, or training data.
+eval manifests, prediction files, model files, datasets, or training data.
 
-Initialize an editable human review log and summarize current bucket status:
+Use these review statuses:
+
+- `unreviewed`
+- `resolved`
+- `truth_followup`
+- `tooling_or_matching_artifact`
+- `not_actionable`
+
+Generate auto-suggested review metadata for a row range when the mismatch
+family is visually/mechanically repetitive. This writes a separate suggested
+CSV and Markdown report; it does not overwrite the blank/template review log:
 
 ```powershell
-.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py --init-review-log
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\suggest_mismatch_review.py --start-row 44 --end-row 77
 ```
 
-After humans fill `human_error_bucket`, `human_review_status`, and
-`human_notes` in the review log, rerun:
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.autosuggest_rows44_77.csv`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_autosuggest_rows44_77.md`
+
+Build an auto-suggest reviewer from that CSV:
 
 ```powershell
-.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_mismatch_html_reviewer.py --review-log CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_review_log.autosuggest_rows44_77.csv --output-html CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_reviewer.autosuggest_rows44_77.html
+```
+
+Open it from the local server and click `Apply Review Log Values` only after
+checking that the suggestions are suitable. The button copies nonblank embedded
+review-log values into browser localStorage; it does not modify eval/prediction
+artifacts.
+
+Summarize the blank/template review log:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py --review-log CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_review_log.csv
+```
+
+After exporting `mismatch_review_log.reviewed.csv` from the browser reviewer,
+summarize the reviewed metadata directly:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py --review-log CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_review_log.reviewed.csv
 ```
 
 Expected artifacts:
@@ -149,6 +186,8 @@ Expected artifacts:
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.csv`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_summary.json`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_summary.md`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed_summary.json`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed_summary.md`
 
 Run model-only tiled inference using the latest continuity checkpoint:
 

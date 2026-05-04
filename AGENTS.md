@@ -68,6 +68,7 @@ Do not blend eval subset scores. Report separately for:
 
 - `page_disjoint_real`
 - `gold_source_family_clean_real`
+- `style_balance_diagnostic_real_touched`
 - `synthetic_diagnostic`
 
 Synthetic diagnostics are not proof of real-world performance.
@@ -254,7 +255,15 @@ Canonical eval subset names:
 
 - `page_disjoint_real`
 - `gold_source_family_clean_real`
+- `style_balance_diagnostic_real_touched`
 - `synthetic_diagnostic`
+
+Canonical candidate pool names:
+
+- `full_page_review_candidates_from_touched`
+- `mining_safe_hard_negative_candidates`
+- `synthetic_background_candidates`
+- `future_training_expansion_candidates`
 
 Canonical eval modes:
 

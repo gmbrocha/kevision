@@ -22,6 +22,32 @@ linework false positives, and source-family-specific distractors, but it must
 not be used for promotion claims because its pages were already touched by known
 training or eval manifests.
 
+## Candidate Pools
+
+Candidate pools are not eval subsets and must not be reported as promotion
+metrics. They are review or data-selection queues that may feed later human
+review, training expansion, hard-negative mining, or synthetic planning only
+after the applicable guards are satisfied.
+
+Current canonical candidate pool names:
+
+- `full_page_review_candidates_from_touched`: touched pages or regions that may
+  deserve direct full-page human review because prior crop-level review does not
+  prove full-page truth.
+- `mining_safe_hard_negative_candidates`: candidate no-cloud regions for future
+  hard-negative mining. Frozen eval pages are excluded, and mixed pages require
+  region-level exclusion of real cloud-containing areas.
+- `synthetic_background_candidates`: candidate no-cloud pages or regions for
+  later synthetic background use. This pool must exclude frozen eval pages and
+  does not authorize synthetic generation by itself.
+- `future_training_expansion_candidates`: candidate reviewed rows, pages, or
+  regions for later training expansion, gated by label status, validation split,
+  eval-freeze, and source/provenance policy.
+
+Generating candidate pools should be report-first or dry-run-first where
+practical. Promotion into training, mining, eval truth, or synthetic generation
+requires a separate explicit decision.
+
 ## Full-Page Truth
 
 Full-page labels are the source of truth. Inference may tile/crop internally,

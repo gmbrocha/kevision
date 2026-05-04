@@ -1,11 +1,16 @@
 {
+  "by_bucket_category": {},
   "by_human_error_bucket": {},
+  "by_mismatch_type_and_bucket_category": {},
   "by_mode_and_bucket": {},
   "by_status": {
     "unreviewed": 77
   },
+  "deprecated_status_rows": [],
   "invalid_rows": [],
-  "review_log": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.csv",
+  "json_summary": "CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_summary.json",
+  "markdown_summary": "CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_summary.md",
+  "review_log": "CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.csv",
   "reviewed_rows": 0,
   "rows": 77,
   "schema": "cloudhammer_v2.mismatch_review_summary.v1",

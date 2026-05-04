@@ -17,6 +17,14 @@ V2_ROOT = PROJECT_ROOT / "CloudHammer_v2"
 LEGACY_ROOT = PROJECT_ROOT / "CloudHammer"
 
 APPROVED_ERROR_BUCKETS = [
+    "actual_false_positive",
+    "duplicate_prediction_on_real_cloud",
+    "localization_matching_issue",
+    "truth_box_needs_recheck",
+    "truth_box_too_tight",
+    "truth_box_too_loose",
+    "prediction_fragment_on_real_cloud",
+    "not_actionable_matching_artifact",
     "marker_neighborhood_no_cloud_regions",
     "historical_or_nonmatching_revision_marker_context",
     "isolated_arcs_and_scallop_fragments",
@@ -38,9 +46,50 @@ APPROVED_ERROR_BUCKETS = [
     "other",
 ]
 
+REVIEW_STATUSES = [
+    "unreviewed",
+    "resolved",
+    "truth_followup",
+    "tooling_or_matching_artifact",
+    "not_actionable",
+]
+
+CSV_FIELDNAMES = [
+    "review_item_id",
+    "source_page_key",
+    "eval_mode",
+    "mismatch_type",
+    "truth_id",
+    "prediction_id",
+    "confidence",
+    "iou_25",
+    "best_iou",
+    "nearest_truth_iou",
+    "nearest_truth_id",
+    "nearest_prediction_id",
+    "nearest_prediction_iou",
+    "matched_elsewhere",
+    "matched_elsewhere_prediction_id",
+    "matched_elsewhere_truth_id",
+    "possible_duplicate_prediction",
+    "mismatch_reason_raw",
+    "human_error_bucket",
+    "human_review_status",
+    "human_notes",
+    "overlay_path",
+    "crop_path",
+]
+
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def read_csv_by_id(path: Path) -> dict[str, dict[str, str]]:
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return {row["review_item_id"]: row for row in csv.DictReader(handle)}
 
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -219,6 +268,114 @@ def best_prediction_for_label(
     return best_index, best_iou
 
 
+def rounded_iou(value: float | None) -> float | None:
+    if value is None:
+        return None
+    return round(float(value), 6)
+
+
+def build_truth_context(
+    labels: list[dict[str, Any]],
+    predictions: list[dict[str, Any]],
+    label_to_pred_25: dict[int, int],
+    all_ious: dict[tuple[int, int], float],
+) -> list[dict[str, Any]]:
+    truth_boxes: list[dict[str, Any]] = []
+    for label_index, label in enumerate(labels):
+        pred_index = label_to_pred_25.get(label_index)
+        match_iou = None if pred_index is None else all_ious.get((label_index, pred_index), 0.0)
+        truth_boxes.append(
+            {
+                "truth_id": label["truth_id"],
+                "box_xyxy": label["box_xyxy"],
+                "matched_prediction_id": None if pred_index is None else predictions[pred_index]["prediction_id"],
+                "match_iou_25": rounded_iou(match_iou),
+            }
+        )
+    return truth_boxes
+
+
+def build_prediction_context(
+    labels: list[dict[str, Any]],
+    predictions: list[dict[str, Any]],
+    pred_to_label_25: dict[int, int],
+    all_ious: dict[tuple[int, int], float],
+) -> list[dict[str, Any]]:
+    prediction_boxes: list[dict[str, Any]] = []
+    for pred_index, pred in enumerate(predictions):
+        matched_label_index = pred_to_label_25.get(pred_index)
+        match_iou = None if matched_label_index is None else all_ious.get((matched_label_index, pred_index), 0.0)
+        nearest_label_index, nearest_iou = best_label_for_prediction(pred_index, labels, all_ious)
+        prediction_boxes.append(
+            {
+                "prediction_id": pred["prediction_id"],
+                "box_xyxy": pred["box_xyxy"],
+                "confidence": round(pred["confidence"], 6),
+                "source_mode": pred.get("source_mode"),
+                "member_count": pred.get("member_count"),
+                "size_bucket": pred.get("size_bucket"),
+                "confidence_tier": pred.get("confidence_tier"),
+                "matched_truth_id": None if matched_label_index is None else labels[matched_label_index]["truth_id"],
+                "match_iou_25": rounded_iou(match_iou),
+                "nearest_truth_id": None if nearest_label_index is None else labels[nearest_label_index]["truth_id"],
+                "nearest_truth_iou": rounded_iou(nearest_iou),
+            }
+        )
+    return prediction_boxes
+
+
+def describe_prediction_mismatch(
+    mismatch_type: str,
+    pred: dict[str, Any],
+    truth: dict[str, Any] | None,
+    best_iou: float,
+    match_iou: float,
+    localization_iou: float,
+    matched_elsewhere_prediction_id: str | None,
+) -> str:
+    pred_id = pred["prediction_id"]
+    truth_id = None if truth is None else truth["truth_id"]
+    if mismatch_type == "localization_low_iou":
+        return (
+            f"{pred_id} was matched to {truth_id} at IoU {best_iou:.3f}, so it counts as a TP at "
+            f"IoU {match_iou:.2f}. It is queued because localization is below IoU {localization_iou:.2f}."
+        )
+    if matched_elsewhere_prediction_id:
+        return (
+            f"{pred_id} was not assigned the IoU {match_iou:.2f} scoring match. Its nearest truth is "
+            f"{truth_id} at IoU {best_iou:.3f}, but that truth was already matched to "
+            f"{matched_elsewhere_prediction_id}. This may be a duplicate/fragment scoring artifact."
+        )
+    if truth_id:
+        return (
+            f"{pred_id} was not assigned a scoring match because its nearest truth is {truth_id} at "
+            f"IoU {best_iou:.3f}, below the IoU {match_iou:.2f} threshold."
+        )
+    return f"{pred_id} was not assigned a scoring match and no truth box overlaps it on this page."
+
+
+def describe_truth_mismatch(
+    label: dict[str, Any],
+    best_pred: dict[str, Any] | None,
+    best_iou: float,
+    match_iou: float,
+    matched_elsewhere_truth_id: str | None,
+) -> str:
+    truth_id = label["truth_id"]
+    if best_pred is None:
+        return f"{truth_id} did not receive an IoU {match_iou:.2f} scoring match; there are no predictions on this page."
+    pred_id = best_pred["prediction_id"]
+    if matched_elsewhere_truth_id:
+        return (
+            f"{truth_id} did not receive an IoU {match_iou:.2f} scoring match. The nearest prediction is "
+            f"{pred_id} at IoU {best_iou:.3f}, but that prediction was matched to {matched_elsewhere_truth_id}."
+        )
+    return (
+        f"{truth_id} did not receive an IoU {match_iou:.2f} scoring match. The nearest prediction is "
+        f"{pred_id} at IoU {best_iou:.3f}."
+    )
+
+
 def load_predictions_for_row(row: dict[str, Any], pages_by_key: dict[str, dict[str, Any]]) -> tuple[list[dict[str, Any]], str | None]:
     detection_page = None
     for key in eval_row_match_keys(row):
@@ -341,23 +498,8 @@ def make_contact_sheet(
     sheet.save(output_path, quality=92)
 
 
-def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
-    fieldnames = [
-        "review_item_id",
-        "source_page_key",
-        "eval_mode",
-        "mismatch_type",
-        "truth_id",
-        "prediction_id",
-        "confidence",
-        "iou_25",
-        "best_iou",
-        "human_error_bucket",
-        "human_review_status",
-        "human_notes",
-        "overlay_path",
-        "crop_path",
-    ]
+def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str] | None = None) -> None:
+    fieldnames = fieldnames or CSV_FIELDNAMES
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
@@ -367,20 +509,42 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
 
 def write_instructions(path: Path, summary: dict[str, Any]) -> None:
     bucket_lines = "\n".join(f"- `{bucket}`" for bucket in APPROVED_ERROR_BUCKETS)
+    status_lines = "\n".join(f"- `{status}`" for status in REVIEW_STATUSES)
     text = f"""# Mismatch Review Packet
 
-Status: read-only error-analysis packet for already-reviewed `page_disjoint_real` pages.
+Status: error-analysis packet for already-reviewed `page_disjoint_real` pages.
 
-This is not a truth-labeling pass. Do not open LabelImg for this packet, do not
-modify truth labels, do not modify eval manifests, and do not write training
-data from these frozen eval pages.
+This is not a truth-labeling pass. Do not open LabelImg for this packet. Do not
+modify truth labels, eval manifests, prediction files, model files, datasets, or
+training data. The mismatch review log is intentionally editable for
+error-analysis metadata only.
 
 ## What To Review
 
+- HTML reviewer: `{summary['reviewer_html']}`
+- Crisp PNG review crops: `{summary['reviewer_crops_dir']}`
 - Contact sheet: `{summary['contact_sheet']}`
 - Mismatch JSONL: `{summary['mismatch_manifest_jsonl']}`
 - Mismatch CSV: `{summary['mismatch_manifest_csv']}`
+- Blank/template review log: `{summary['review_log_csv']}`
 - Individual overlays: `{summary['overlays_dir']}`
+
+The HTML reviewer is the primary review surface. The contact sheet is retained
+only as a quick overview and should not be the main review tool.
+
+## Human Review Rule
+
+The human cloud/not-cloud judgment is authoritative when the displayed context
+is adequate. If the display does not make the case understandable, mark the row
+as `tooling_or_matching_artifact` or `not_actionable`; do not treat that as
+human uncertainty.
+
+`truth_followup` creates a separate frozen-truth correction/recheck task. It
+does not change truth automatically.
+
+`tooling_or_matching_artifact` means the row may reflect IoU matching, duplicate
+predictions, crop context, overlay/scoring behavior, or reviewer display limits
+rather than a meaningful model error.
 
 Overlay colors:
 
@@ -390,20 +554,49 @@ Overlay colors:
 - Blue: prediction matched with IoU at least 0.50
 - Purple: prediction matched at IoU 0.25 but below IoU 0.50
 
+## HTML Reviewer Workflow
+
+Open `mismatch_reviewer.html` through a local server from the repo root:
+
+```powershell
+python -m http.server 8766 --bind 127.0.0.1
+```
+
+Then browse to:
+
+```text
+http://127.0.0.1:8766/CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_reviewer.html
+```
+
+Use the browser UI to fill review metadata and click `Export Reviewed CSV`.
+Save the export as `mismatch_review_log.reviewed.csv` in this packet directory,
+then run:
+
+```powershell
+.\\.venv\\Scripts\\python.exe CloudHammer_v2\\scripts\\summarize_mismatch_review.py --review-log CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.reviewed.csv
+```
+
 ## Review Fields
 
-Fill these fields in a copy of the CSV or in a separate review log:
+Editable fields:
 
 - `human_error_bucket`
 - `human_review_status`
 - `human_notes`
 
-Recommended `human_review_status` values:
+Read-only explanation/scoring fields include:
 
-- `bucketed`
-- `needs_second_look`
-- `truth_needs_recheck`
-- `not_actionable`
+- `nearest_truth_iou`
+- `nearest_truth_id`
+- `nearest_prediction_id`
+- `nearest_prediction_iou`
+- `matched_elsewhere`
+- `possible_duplicate_prediction`
+- `mismatch_reason_raw`
+
+## Review Status Values
+
+{status_lines}
 
 ## Approved Error Buckets
 
@@ -461,6 +654,8 @@ def main() -> int:
 
     output_dir = args.output_dir
     overlays_dir = output_dir / "overlays"
+    review_log_csv = output_dir / "mismatch_review_log.csv"
+    existing_review_rows = read_csv_by_id(review_log_csv)
     mismatch_rows: list[dict[str, Any]] = []
     overlay_pairs: dict[str, dict[str, Any]] = {}
 
@@ -489,6 +684,8 @@ def main() -> int:
                 args.max_overlay_dim,
             )
             overlay_pairs[source_page_key][f"{'model' if eval_mode == 'model_only_tiled' else 'pipeline'}_overlay"] = overlay_path
+            page_truth_boxes = build_truth_context(labels, predictions, label_to_pred_25, all_ious)
+            page_prediction_boxes = build_prediction_context(labels, predictions, pred_to_label_25, all_ious)
 
             for pred_index, pred in enumerate(predictions):
                 if pred_index in pred_to_label_25:
@@ -503,6 +700,22 @@ def main() -> int:
                     label_index, best_iou = best_label_for_prediction(pred_index, labels, all_ious)
                     truth = labels[label_index] if label_index is not None else None
                     mismatch_type = "false_positive"
+                matched_elsewhere_prediction_id = None
+                matched_elsewhere_prediction_iou = None
+                if label_index is not None:
+                    matched_pred_index = label_to_pred_25.get(label_index)
+                    if matched_pred_index is not None and matched_pred_index != pred_index:
+                        matched_elsewhere_prediction_id = predictions[matched_pred_index]["prediction_id"]
+                        matched_elsewhere_prediction_iou = all_ious.get((label_index, matched_pred_index), 0.0)
+                matched_elsewhere = matched_elsewhere_prediction_id is not None
+                possible_duplicate_prediction = bool(
+                    mismatch_type == "false_positive" and matched_elsewhere and best_iou > 0.0
+                )
+                nearest_truth_id = None if truth is None else truth["truth_id"]
+                nearest_prediction_id = matched_elsewhere_prediction_id or pred["prediction_id"]
+                nearest_prediction_iou = (
+                    matched_elsewhere_prediction_iou if matched_elsewhere_prediction_iou is not None else best_iou
+                )
                 mismatch_rows.append(
                     {
                         "schema": "cloudhammer_v2.mismatch_review_item.v1",
@@ -517,8 +730,27 @@ def main() -> int:
                         "confidence": round(pred["confidence"], 6),
                         "iou_25": round(best_iou, 6),
                         "best_iou": round(best_iou, 6),
+                        "nearest_truth_iou": round(best_iou, 6),
+                        "nearest_truth_id": nearest_truth_id,
+                        "nearest_prediction_id": nearest_prediction_id,
+                        "nearest_prediction_iou": round(nearest_prediction_iou, 6),
+                        "matched_elsewhere": matched_elsewhere,
+                        "matched_elsewhere_prediction_id": matched_elsewhere_prediction_id,
+                        "matched_elsewhere_truth_id": None,
+                        "possible_duplicate_prediction": possible_duplicate_prediction,
+                        "mismatch_reason_raw": describe_prediction_mismatch(
+                            mismatch_type,
+                            pred,
+                            truth,
+                            best_iou,
+                            args.match_iou,
+                            args.localization_iou,
+                            matched_elsewhere_prediction_id,
+                        ),
                         "bbox_xyxy": pred["box_xyxy"],
                         "truth_bbox_xyxy": None if truth is None else truth["box_xyxy"],
+                        "page_truth_boxes": page_truth_boxes,
+                        "page_predictions": page_prediction_boxes,
                         "crop_path": pred.get("crop_path"),
                         "prediction_source_mode": pred.get("source_mode"),
                         "member_count": pred.get("member_count"),
@@ -538,6 +770,12 @@ def main() -> int:
                     continue
                 pred_index, best_iou = best_prediction_for_label(label_index, predictions, all_ious)
                 best_pred = predictions[pred_index] if pred_index is not None else None
+                matched_elsewhere_truth_id = None
+                if pred_index is not None:
+                    matched_label_index = pred_to_label_25.get(pred_index)
+                    if matched_label_index is not None and matched_label_index != label_index:
+                        matched_elsewhere_truth_id = labels[matched_label_index]["truth_id"]
+                matched_elsewhere = matched_elsewhere_truth_id is not None
                 mismatch_rows.append(
                     {
                         "schema": "cloudhammer_v2.mismatch_review_item.v1",
@@ -552,8 +790,25 @@ def main() -> int:
                         "confidence": None if best_pred is None else round(best_pred["confidence"], 6),
                         "iou_25": round(best_iou, 6),
                         "best_iou": round(best_iou, 6),
+                        "nearest_truth_iou": round(best_iou, 6),
+                        "nearest_truth_id": label["truth_id"],
+                        "nearest_prediction_id": None if best_pred is None else best_pred["prediction_id"],
+                        "nearest_prediction_iou": round(best_iou, 6),
+                        "matched_elsewhere": matched_elsewhere,
+                        "matched_elsewhere_prediction_id": None,
+                        "matched_elsewhere_truth_id": matched_elsewhere_truth_id,
+                        "possible_duplicate_prediction": False,
+                        "mismatch_reason_raw": describe_truth_mismatch(
+                            label,
+                            best_pred,
+                            best_iou,
+                            args.match_iou,
+                            matched_elsewhere_truth_id,
+                        ),
                         "bbox_xyxy": label["box_xyxy"],
                         "truth_bbox_xyxy": label["box_xyxy"],
+                        "page_truth_boxes": page_truth_boxes,
+                        "page_predictions": page_prediction_boxes,
                         "crop_path": None if best_pred is None else best_pred.get("crop_path"),
                         "prediction_source_mode": None if best_pred is None else best_pred.get("source_mode"),
                         "member_count": None if best_pred is None else best_pred.get("member_count"),
@@ -589,6 +844,17 @@ def main() -> int:
     manifest_csv = output_dir / "mismatch_manifest.csv"
     write_jsonl(manifest_jsonl, mismatch_rows)
     write_csv(manifest_csv, mismatch_rows)
+    review_rows: list[dict[str, Any]] = []
+    for row in mismatch_rows:
+        saved = existing_review_rows.get(str(row["review_item_id"]), {})
+        review_row = {**row}
+        review_row["human_error_bucket"] = saved.get("human_error_bucket", row.get("human_error_bucket", ""))
+        review_row["human_review_status"] = saved.get(
+            "human_review_status", row.get("human_review_status", "unreviewed")
+        )
+        review_row["human_notes"] = saved.get("human_notes", row.get("human_notes", ""))
+        review_rows.append(review_row)
+    write_csv(review_log_csv, review_rows)
 
     summary = {
         "schema": "cloudhammer_v2.mismatch_review_packet_summary.v1",
@@ -599,6 +865,9 @@ def main() -> int:
         "pipeline_detections_dir": str(args.pipeline_detections_dir),
         "mismatch_manifest_jsonl": str(manifest_jsonl),
         "mismatch_manifest_csv": str(manifest_csv),
+        "review_log_csv": str(review_log_csv),
+        "reviewer_html": str(output_dir / "mismatch_reviewer.html"),
+        "reviewer_crops_dir": str(output_dir / "reviewer_crops"),
         "contact_sheet": str(contact_sheet),
         "overlays_dir": str(overlays_dir),
         "pages": len(eval_rows),
@@ -607,6 +876,7 @@ def main() -> int:
         "by_mode": dict(Counter(str(row["eval_mode"]) for row in mismatch_rows)),
         "by_mismatch_type": dict(Counter(str(row["mismatch_type"]) for row in mismatch_rows)),
         "approved_error_buckets": APPROVED_ERROR_BUCKETS,
+        "review_statuses": REVIEW_STATUSES,
     }
     write_json(output_dir / "mismatch_packet_summary.json", summary)
     write_instructions(output_dir / "README.md", summary)

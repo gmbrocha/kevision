@@ -10,8 +10,11 @@ been copied wholesale into CloudHammer_v2; adapted helpers and audited legacy
 execution are logged in `CloudHammer_v2/IMPORT_LOG.md`.
 
 The immediate objective was to establish the real full-page eval baseline before
-more training, synthetic generation, or pipeline tuning. A first provisional
-baseline now exists and needs human audit before it is used for steering.
+more training, synthetic generation, or pipeline tuning. That baseline now
+exists against human-audited `page_disjoint_real` truth, and the baseline
+mismatch review has been human-bucketed. Current work is postprocessing-first
+diagnostics and guarded candidate-pool definition before the next training
+decision.
 
 ## Eval Baseline Status
 
@@ -30,13 +33,31 @@ baseline now exists and needs human audit before it is used for steering.
   low-IoU localization cases, and `9` false negatives.
 - Editable mismatch review log:
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.csv`
-  currently has `77` unreviewed rows.
+  is the blank/template log and includes scoring/matching explanation fields
+  such as `nearest_truth_iou`, `matched_elsewhere`,
+  `possible_duplicate_prediction`, and `mismatch_reason_raw`.
+- Reviewed mismatch log:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed.csv`
+  has `77` reviewed rows, `0` unreviewed rows, and `0` invalid rows. Summary:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed_summary.md`.
 - Static mismatch reviewer:
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_reviewer.html`
-  with crisp PNG local and wide crops for each mismatch row.
-- Current blocker: baseline mismatch cases need human audit and error-family
-  bucketing before model selection, training decisions, threshold tuning, or
-  promotion claims.
+  with crisp PNG local and wide crops for each mismatch row. The reviewer now
+  shows nearby truth boxes and predictions, explicit IoU/matching context, and
+  exports `mismatch_review_log.reviewed.csv`.
+- Auto-suggested rows `44`-`77` draft:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.autosuggest_rows44_77.csv`
+  with a companion spot-review page at
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_reviewer.autosuggest_rows44_77.html`.
+- Human mismatch review signal: `50` rows are matching/scoring artifacts and
+  `27` are true model-error or visual-family rows. Dominant buckets are
+  `prediction_fragment_on_real_cloud` (`36`), duplicate prediction on real cloud
+  (`12`), localization loose/tight (`12` total), `split_fragment` (`6`), and
+  `overmerged_grouping` (`5`).
+- Current blocker: design the next postprocessing diagnostic on non-frozen data
+  before training, threshold tuning, or promotion claims. Two
+  `truth_followup` rows require a separate frozen-truth recheck task and do not
+  change truth automatically.
 
 ## Eval Subset Status
 
@@ -56,7 +77,27 @@ baseline now exists and needs human audit before it is used for steering.
 - `gold_source_family_clean_real`: planned if a tiny pristine source-family-clean
   set is available
 - `synthetic_diagnostic`: grammar/spec exists, implementation deferred until the
-  provisional real baseline is audited enough to be a trustworthy ruler
+  reviewed real baseline, postprocessing findings, and candidate pools are
+  trustworthy enough to steer diagnostics
+
+## Candidate Pool Status
+
+The following are candidate pools, not eval subsets. They must be generated with
+dry-run/report-first discipline where practical and must preserve frozen eval
+guards:
+
+- `full_page_review_candidates_from_touched`: touched pages or regions that may
+  need direct full-page human review because crop-level review does not equal
+  full-page truth.
+- `mining_safe_hard_negative_candidates`: candidate no-cloud regions for future
+  hard-negative mining, excluding frozen eval pages and any region containing a
+  real cloud.
+- `synthetic_background_candidates`: candidate no-cloud pages or regions for
+  later synthetic background use, excluding frozen eval pages and preserving
+  provenance. This does not authorize synthetic generation yet.
+- `future_training_expansion_candidates`: candidate rows or regions for later
+  reviewed training expansion, gated by eval-freeze, validation, and label-status
+  policy.
 
 ## Labeling Status
 
@@ -84,8 +125,9 @@ for direct human review rather than GPT-derived eval truth.
 Correction note: GPT-5.5 was first run against frozen full-page eval pages by
 mistake. Those outputs are marked do-not-score. The follow-up action was to run
 GPT-5.5 on the intended cropped supplement batch instead, which is now complete.
-The frozen full-page eval pages are now queued for direct human review, and the
-cropped provisional labels remain a separate later review task.
+The frozen full-page eval pages have since been human-reviewed and consolidated
+as eval truth; the cropped provisional labels remain a separate later review
+task.
 
 ## Model-vs-Pipeline Audit Status
 
@@ -103,15 +145,20 @@ The audit must separate:
 
 Audit conclusion: the latest symbol/text hard-negative checkpoint is a
 continuity checkpoint, not a promoted model. It was trained before the
-source-controlled split became the active standard. It now has a first
-GPT-provisional page-disjoint baseline, but still has not passed human-audited
-frozen full-page eval.
+source-controlled split became the active standard. It now has a human-audited
+page-disjoint baseline and reviewed mismatch buckets for steering, but it is
+still not promoted. The next practical work is postprocessing diagnostics before
+any training or promotion decision.
 
 ## Legacy Manifest Superset Audit Status
 
 Legacy manifest superset audit completed. The current touched registry is complete for training/review-stage contamination and should remain unchanged for now. Older manifests add weaker provenance only: delta marker detection, review-priority queue membership, and unreviewed candidate ROI generation. These may later become separate provenance fields without changing the binary `touched` guard.
 
-Model/pipeline architecture and candidate-selection audit work is complete enough for the next step. Remaining work is the actual baseline eval comparing `model_only_tiled` vs `pipeline_full` on `page_disjoint_real`.
+Model/pipeline architecture and candidate-selection audit work is complete enough
+for the next step. Human-audited baseline eval comparing `model_only_tiled` vs
+`pipeline_full` on `page_disjoint_real` is complete, and mismatch review is
+human-bucketed. Remaining work is postprocessing diagnostics, truth-followup
+triage, and candidate-pool generation for the next loop.
 
 ## Weak provenance signals vs. binary `touched`
 
@@ -133,17 +180,23 @@ No experiment code was imported.
 
 ## Immediate Next Steps
 
-1. Human-audit `model_only_tiled` and `pipeline_full` mismatch cases from:
-   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
-2. Bucket false positives and misses by error family.
-3. Human-review `style_balance_diagnostic_real_touched_20260503`.
-4. Human-review/correct the GPT-5.5 cropped supplement prelabels.
-5. Convert any audited full-page eval corrections into frozen eval truth, not
+1. Use the reviewed mismatch summary to design a postprocessing diagnostic on
+   non-frozen data for merge/suppress/split/localization behavior.
+2. Triage the two `truth_followup` rows as a separate frozen-truth recheck task;
+   do not edit truth automatically from mismatch metadata.
+3. Define and generate the candidate-pool manifests:
+   `full_page_review_candidates_from_touched`,
+   `mining_safe_hard_negative_candidates`,
+   `synthetic_background_candidates`, and
+   `future_training_expansion_candidates`.
+4. Human-review `style_balance_diagnostic_real_touched_20260503`.
+5. Human-review/correct the GPT-5.5 cropped supplement prelabels.
+6. Convert any audited full-page eval corrections into frozen eval truth, not
    training data.
-6. Decide the next training cycle only after the audited baseline mismatch
-   review is credible.
-7. Implement `synthetic_diagnostic` after the real baseline is audited enough to
-   serve as a trustworthy ruler.
+7. Decide the next training cycle only after postprocessing diagnostics and
+   candidate-pool review clarify what should become training signal.
+8. Implement `synthetic_diagnostic` only after the real baseline and candidate
+   pools are trustworthy enough to serve as a diagnostic ruler.
 
 ## Do Not Touch
 
@@ -151,6 +204,8 @@ No experiment code was imported.
 - Do not move existing data, model runs, or legacy outputs.
 - Do not train on, mine from, relabel, tune against, or synthesize backgrounds
   from frozen real eval pages once selected.
+- Do not tune postprocessing thresholds directly on frozen eval pages; use them
+  as a measurement ruler after non-frozen diagnostics.
 - Do not use marker/delta context as proof of a cloud.
 - Do not blend real and synthetic eval metrics.
 - Do not start synthetic generation before the real baseline has been audited

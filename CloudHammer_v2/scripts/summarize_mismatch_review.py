@@ -15,6 +15,14 @@ DEFAULT_PACKET_DIR = (
 )
 
 APPROVED_ERROR_BUCKETS = {
+    "actual_false_positive",
+    "duplicate_prediction_on_real_cloud",
+    "localization_matching_issue",
+    "truth_box_needs_recheck",
+    "truth_box_too_tight",
+    "truth_box_too_loose",
+    "prediction_fragment_on_real_cloud",
+    "not_actionable_matching_artifact",
     "marker_neighborhood_no_cloud_regions",
     "historical_or_nonmatching_revision_marker_context",
     "isolated_arcs_and_scallop_fragments",
@@ -36,7 +44,30 @@ APPROVED_ERROR_BUCKETS = {
     "other",
 }
 
-REVIEW_STATUSES = {"unreviewed", "bucketed", "needs_second_look", "truth_needs_recheck", "not_actionable"}
+REVIEW_STATUSES = {
+    "unreviewed",
+    "resolved",
+    "truth_followup",
+    "tooling_or_matching_artifact",
+    "not_actionable",
+}
+
+LEGACY_STATUS_MAP = {
+    "bucketed": "resolved",
+    "truth_needs_recheck": "truth_followup",
+    "needs_second_look": "tooling_or_matching_artifact",
+}
+
+MATCHING_ARTIFACT_BUCKETS = {
+    "duplicate_prediction_on_real_cloud",
+    "localization_matching_issue",
+    "truth_box_needs_recheck",
+    "truth_box_too_tight",
+    "truth_box_too_loose",
+    "prediction_fragment_on_real_cloud",
+    "not_actionable_matching_artifact",
+    "truth_needs_recheck",
+}
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -80,7 +111,13 @@ def markdown(summary: dict[str, Any]) -> str:
         for key, count in summary["by_human_error_bucket"].items():
             lines.append(f"- `{key}`: `{count}`")
     else:
-        lines.append("- No bucketed rows yet.")
+        lines.append("- No reviewed rows with buckets yet.")
+    lines.extend(["", "## By Bucket Category", ""])
+    if summary["by_bucket_category"]:
+        for key, count in summary["by_bucket_category"].items():
+            lines.append(f"- `{key}`: `{count}`")
+    else:
+        lines.append("- No reviewed rows with buckets yet.")
     lines.extend(["", "## By Mode And Bucket", ""])
     if summary["by_mode_and_bucket"]:
         for mode, buckets in summary["by_mode_and_bucket"].items():
@@ -89,7 +126,24 @@ def markdown(summary: dict[str, Any]) -> str:
                 lines.append(f"- `{bucket}`: `{count}`")
             lines.append("")
     else:
-        lines.append("- No bucketed rows yet.")
+        lines.append("- No reviewed rows with buckets yet.")
+        lines.append("")
+    lines.extend(["## By Mismatch Type And Bucket Category", ""])
+    if summary["by_mismatch_type_and_bucket_category"]:
+        for mismatch_type, buckets in summary["by_mismatch_type_and_bucket_category"].items():
+            lines.append(f"### `{mismatch_type}`")
+            for bucket, count in buckets.items():
+                lines.append(f"- `{bucket}`: `{count}`")
+            lines.append("")
+    else:
+        lines.append("- No reviewed rows with buckets yet.")
+        lines.append("")
+    if summary["deprecated_status_rows"]:
+        lines.extend(["## Deprecated Status Rows", ""])
+        for item in summary["deprecated_status_rows"]:
+            lines.append(
+                f"- `{item['review_item_id']}`: `{item['raw_status']}` mapped to `{item['mapped_status']}`"
+            )
         lines.append("")
     if summary["invalid_rows"]:
         lines.extend(["## Invalid Rows", ""])
@@ -103,7 +157,7 @@ def markdown(summary: dict[str, Any]) -> str:
         [
             "## Next Action",
             "",
-            "Use this summary only after the review log is human-bucketed. Do not use",
+            "Use this summary only after the review log has human error buckets. Do not use",
             "frozen eval-page crops as training data, hard negatives, threshold-tuning",
             "inputs, GPT relabel inputs, or synthetic backgrounds.",
         ]
@@ -114,14 +168,23 @@ def markdown(summary: dict[str, Any]) -> str:
 def summarize(rows: list[dict[str, str]], review_log: Path) -> dict[str, Any]:
     by_status: Counter[str] = Counter()
     by_bucket: Counter[str] = Counter()
+    by_bucket_category: Counter[str] = Counter()
     by_mode_and_bucket: dict[str, Counter[str]] = defaultdict(Counter)
+    by_mismatch_type_and_bucket_category: dict[str, Counter[str]] = defaultdict(Counter)
     invalid_rows: list[dict[str, str]] = []
+    deprecated_status_rows: list[dict[str, str]] = []
     reviewed_rows = 0
 
     for row in rows:
-        status = (row.get("human_review_status") or "unreviewed").strip()
+        raw_status = (row.get("human_review_status") or "unreviewed").strip()
+        status = LEGACY_STATUS_MAP.get(raw_status, raw_status)
         bucket = (row.get("human_error_bucket") or "").strip()
         mode = (row.get("eval_mode") or "unknown").strip()
+        mismatch_type = (row.get("mismatch_type") or "unknown").strip()
+        if raw_status != status:
+            deprecated_status_rows.append(
+                {**row, "raw_status": raw_status, "mapped_status": status}
+            )
         by_status[status] += 1
         if status not in REVIEW_STATUSES:
             invalid_rows.append({**row, "reason": "unknown human_review_status"})
@@ -132,8 +195,11 @@ def summarize(rows: list[dict[str, str]], review_log: Path) -> dict[str, Any]:
             elif bucket not in APPROVED_ERROR_BUCKETS:
                 invalid_rows.append({**row, "reason": "unknown human_error_bucket"})
             else:
+                category = "matching_or_scoring_artifact" if bucket in MATCHING_ARTIFACT_BUCKETS else "true_model_error_or_visual_family"
                 by_bucket[bucket] += 1
                 by_mode_and_bucket[mode][bucket] += 1
+                by_bucket_category[category] += 1
+                by_mismatch_type_and_bucket_category[mismatch_type][category] += 1
 
     return {
         "schema": "cloudhammer_v2.mismatch_review_summary.v1",
@@ -143,9 +209,22 @@ def summarize(rows: list[dict[str, str]], review_log: Path) -> dict[str, Any]:
         "unreviewed_rows": len(rows) - reviewed_rows,
         "by_status": compact_counter(by_status),
         "by_human_error_bucket": compact_counter(by_bucket),
+        "by_bucket_category": compact_counter(by_bucket_category),
         "by_mode_and_bucket": {
             mode: compact_counter(counter) for mode, counter in sorted(by_mode_and_bucket.items())
         },
+        "by_mismatch_type_and_bucket_category": {
+            mismatch_type: compact_counter(counter)
+            for mismatch_type, counter in sorted(by_mismatch_type_and_bucket_category.items())
+        },
+        "deprecated_status_rows": [
+            {
+                "review_item_id": row.get("review_item_id", ""),
+                "raw_status": row.get("raw_status", ""),
+                "mapped_status": row.get("mapped_status", ""),
+            }
+            for row in deprecated_status_rows
+        ],
         "invalid_rows": [
             {
                 "review_item_id": row.get("review_item_id", ""),
@@ -156,6 +235,25 @@ def summarize(rows: list[dict[str, str]], review_log: Path) -> dict[str, Any]:
             for row in invalid_rows
         ],
     }
+
+
+def console_summary(summary: dict[str, Any]) -> str:
+    lines = [
+        "Mismatch review summary",
+        f"- review_log: {summary['review_log']}",
+        f"- rows: {summary['rows']}",
+        f"- reviewed_rows: {summary['reviewed_rows']}",
+        f"- unreviewed_rows: {summary['unreviewed_rows']}",
+        f"- by_status: {summary['by_status']}",
+        f"- by_bucket_category: {summary['by_bucket_category']}",
+        f"- invalid_rows: {len(summary['invalid_rows'])}",
+        f"- deprecated_status_rows: {len(summary['deprecated_status_rows'])}",
+    ]
+    if summary.get("markdown_summary"):
+        lines.append(f"- markdown_summary: {summary['markdown_summary']}")
+    if summary.get("json_summary"):
+        lines.append(f"- json_summary: {summary['json_summary']}")
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -175,8 +273,8 @@ def main() -> int:
     parser.add_argument(
         "--summary-dir",
         type=Path,
-        default=DEFAULT_PACKET_DIR,
-        help="Directory for mismatch_review_summary.json/md.",
+        default=None,
+        help="Directory for summary JSON/Markdown. Defaults to the review log directory.",
     )
     parser.add_argument("--init-review-log", action="store_true")
     args = parser.parse_args()
@@ -190,9 +288,19 @@ def main() -> int:
 
     rows = read_csv(args.review_log)
     summary = summarize(rows, args.review_log)
-    write_json(args.summary_dir / "mismatch_review_summary.json", summary)
-    (args.summary_dir / "mismatch_review_summary.md").write_text(markdown(summary), encoding="utf-8")
-    print(json.dumps(summary, indent=2))
+    summary_dir = args.summary_dir or args.review_log.parent
+    summary_stem = (
+        "mismatch_review_summary"
+        if args.review_log.name == "mismatch_review_log.csv"
+        else f"{args.review_log.stem}_summary"
+    )
+    summary_json = summary_dir / f"{summary_stem}.json"
+    summary_md = summary_dir / f"{summary_stem}.md"
+    summary["json_summary"] = str(summary_json)
+    summary["markdown_summary"] = str(summary_md)
+    write_json(summary_json, summary)
+    summary_md.write_text(markdown(summary), encoding="utf-8")
+    print(console_summary(summary))
     return 0
 
 

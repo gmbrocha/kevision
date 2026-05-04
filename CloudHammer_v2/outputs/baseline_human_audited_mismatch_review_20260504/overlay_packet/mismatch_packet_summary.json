@@ -1,5 +1,13 @@
 {
   "approved_error_buckets": [
+    "actual_false_positive",
+    "duplicate_prediction_on_real_cloud",
+    "localization_matching_issue",
+    "truth_box_needs_recheck",
+    "truth_box_too_tight",
+    "truth_box_too_loose",
+    "prediction_fragment_on_real_cloud",
+    "not_actionable_matching_artifact",
     "marker_neighborhood_no_cloud_regions",
     "historical_or_nonmatching_revision_marker_context",
     "isolated_arcs_and_scallop_fragments",
@@ -41,5 +49,15 @@
   "pages": 17,
   "pages_with_mismatches": 16,
   "pipeline_detections_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\detections_whole",
+  "review_log_csv": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_review_log.csv",
+  "review_statuses": [
+    "unreviewed",
+    "resolved",
+    "truth_followup",
+    "tooling_or_matching_artifact",
+    "not_actionable"
+  ],
+  "reviewer_crops_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\reviewer_crops",
+  "reviewer_html": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_reviewer.html",
   "schema": "cloudhammer_v2.mismatch_review_packet_summary.v1"
 }

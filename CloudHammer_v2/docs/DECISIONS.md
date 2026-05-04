@@ -214,3 +214,71 @@ Consequences:
   backgrounds from frozen `page_disjoint_real` pages.
 - Next action is human mismatch audit and error-family bucketing before the
   next training decision.
+
+## 2026-05-04 - Mismatch Review Is Error Analysis, Not Human Uncertainty
+
+Decision: The mismatch reviewer treats human cloud/not-cloud judgment as
+authoritative when adequate context is shown, and separates model errors from
+IoU matching, duplicate-prediction, localization, truth-followup, and reviewer
+tooling artifacts.
+
+Reason: Some `false_positive` rows visibly overlap real cloud geometry because
+the scoring row was unmatched by greedy IoU assignment or because another
+prediction already claimed the truth box. The review surface must explain that
+workflow instead of implying the human is unsure.
+
+Consequences:
+
+- `mismatch_review_log.csv` is the blank/template metadata log.
+- Browser review exports `mismatch_review_log.reviewed.csv`.
+- Status values are `unreviewed`, `resolved`, `truth_followup`,
+  `tooling_or_matching_artifact`, and `not_actionable`.
+- `truth_followup` queues a separate frozen-truth recheck; it does not modify
+  truth automatically.
+- Reviewed mismatch metadata must not be converted directly into training
+  data, threshold tuning, hard-negative mining, or eval truth edits.
+
+## 2026-05-04 - Canonical Eval Sets And Candidate Pools
+
+Decision: Keep `synthetic_diagnostic` as the canonical synthetic eval-set name
+and define near-term candidate pools separately from eval subsets.
+
+Reason: The next loop needs queue/manifests for full-page review, hard-negative
+mining, synthetic background planning, and future training expansion, but those
+queues are not themselves eval sets and must not blur promotion metrics.
+
+Consequences:
+
+- Current eval subsets remain:
+  `page_disjoint_real`, `gold_source_family_clean_real`,
+  `style_balance_diagnostic_real_touched`, and `synthetic_diagnostic`.
+- Canonical candidate pools are:
+  `full_page_review_candidates_from_touched`,
+  `mining_safe_hard_negative_candidates`,
+  `synthetic_background_candidates`, and
+  `future_training_expansion_candidates`.
+- Candidate pools must preserve frozen eval guards and label/provenance status.
+- Candidate pool creation does not authorize training, hard-negative mining,
+  threshold tuning, synthetic generation, or eval truth edits without a separate
+  explicit task.
+
+## 2026-05-04 - Postprocessing-First After Mismatch Review
+
+Decision: After reviewing all `77` baseline mismatch rows, run a
+postprocessing-first diagnostic before starting the next training cycle.
+
+Reason: The reviewed mismatch summary is dominated by prediction fragments,
+duplicate predictions on real clouds, overmerges, split fragments, and
+localization issues. Only a smaller share is direct visual false-positive or
+missed-cloud signal. Training now would blur postprocessing failures with model
+perception failures.
+
+Consequences:
+
+- Use `mismatch_review_log.reviewed.csv` and its summary as error-analysis
+  metadata, not as training labels or tuning data.
+- Do merge/suppress/split/localization diagnostics on non-frozen data first.
+- Keep frozen `page_disjoint_real` pages for measurement after candidate
+  postprocessing changes, not for threshold tuning.
+- Queue the two `truth_followup` rows as a separate frozen-truth recheck task;
+  do not auto-edit truth from mismatch review metadata.

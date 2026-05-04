@@ -36,7 +36,8 @@ Status: operational queue as of 2026-05-02.
      `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_02.md`.
 9. Only after real baseline exists, implement `synthetic_diagnostic`.
    - Current status: grammar/spec exists; keep generation deferred until the
-     provisional real baseline has been human-audited enough to trust.
+     reviewed baseline mismatch summary, postprocessing diagnostics, and
+     candidate pools are trustworthy enough to steer diagnostics.
 
 ## Immediate Human Review
 
@@ -65,11 +66,20 @@ Status: operational queue as of 2026-05-02.
      `page_disjoint_real`.
 4. Audit `model_only_tiled` false positives/misses from:
    `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`.
+   - Current status: completed in
+     `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed.csv`.
 5. Audit `pipeline_full` grouped-candidate false positives/misses from the same
    overlay mismatch packet.
-6. Convert full-page corrections into frozen eval truth only.
-7. Use audited mismatches to plan the next training batch without mining frozen
-   eval pages.
+   - Current status: completed in the same reviewed mismatch log.
+6. Define/generate the near-term candidate pools as candidate pools, not eval
+   subsets:
+   `full_page_review_candidates_from_touched`,
+   `mining_safe_hard_negative_candidates`,
+   `synthetic_background_candidates`, and
+   `future_training_expansion_candidates`.
+7. Convert full-page corrections into frozen eval truth only.
+8. Use audited mismatches to plan a postprocessing-first diagnostic without
+   mining, tuning on, or training from frozen eval pages.
 
 ## Later
 
@@ -82,7 +92,10 @@ Status: operational queue as of 2026-05-02.
 
 ## Current Blockers
 
-- Baseline overlay mismatch packet needs human audit and error-family bucketing.
+- Baseline overlay mismatch review is complete; next blocker is translating the
+  reviewed buckets into a non-frozen postprocessing diagnostic.
+- Candidate pool manifests need to be defined and generated without changing
+  frozen eval truth, training data, mining inputs, or synthetic outputs.
 - The strict clean page-disjoint pool is exhausted inside current sets; any
   style-balanced supplement must be classified honestly as new-data holdout,
   future retrain-from-scratch holdout, or diagnostic touched-real slice.
@@ -90,5 +103,6 @@ Status: operational queue as of 2026-05-02.
   current baseline reuse executed legacy scripts in place and logged that
   boundary.
 - Latest legacy model is not promoted; it was trained before the
-  source-controlled split became the active standard and has only a
-  provisional page-disjoint baseline.
+  source-controlled split became the active standard and now needs
+  postprocessing diagnostics plus candidate-pool review before any promotion or
+  next training decision.

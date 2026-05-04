@@ -71,9 +71,9 @@ Root docs cleanup is substantially complete:
 ## CloudHammer_v2 Baseline Status
 
 The first CloudHammer_v2 `page_disjoint_real` baseline was completed on
-2026-05-02 using GPT-provisional full-page labels, but this is now treated only
-as provisional scaffolding. `page_disjoint_real` should be human-reviewed
-directly and should not rely on GPT full-page labels as eval truth.
+2026-05-02 using GPT-provisional full-page labels, but that run is now treated
+only as provisional scaffolding. The current steering baseline is the
+human-audited `page_disjoint_real` scoring completed on 2026-05-04.
 
 - Frozen pages: `17`
 - Human truth review queue:
@@ -107,11 +107,14 @@ directly and should not rely on GPT full-page labels as eval truth.
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`
 - Read-only overlay mismatch packet:
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
+- Reviewed mismatch log:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed.csv`
+  with `77` reviewed rows, `0` unreviewed rows, and `0` invalid rows.
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
-- Current blocker: baseline scoring must be rerun against the human-audited
-  manifest before using the baseline for model selection, training decisions,
-  threshold tuning, or promotion claims.
+- Current blocker: use the reviewed mismatch summary to design a
+  postprocessing-first diagnostic on non-frozen data before model selection,
+  training decisions, threshold tuning, or promotion claims.
 
 Correction note: GPT-5.5 full-page labels on `page_disjoint_real` were created
 by mistake and are marked do-not-score. GPT-5.5 was rerun on the intended
@@ -121,10 +124,18 @@ human review before training use.
 ## Immediate Next Steps
 
 - AGENTS.md and Cursor rules were manually verified against the current docs.
-- Human-audit baseline mismatch cases for `model_only_tiled` and
-  `pipeline_full`.
-- Bucket baseline misses and false positives by approved error family.
+- Use the completed baseline mismatch review to plan postprocessing diagnostics
+  for fragments, duplicate predictions, overmerges, split fragments, and
+  localization.
+- Triage the two `truth_followup` rows as a separate frozen-truth recheck task.
+- Define and generate the next candidate pools without treating them as eval
+  subsets:
+  `full_page_review_candidates_from_touched`,
+  `mining_safe_hard_negative_candidates`,
+  `synthetic_background_candidates`, and
+  `future_training_expansion_candidates`.
 - Human-review the diagnostic touched-real style-balance queue.
 - Human-review/correct the GPT-5.5 cropped supplement prelabels.
 - Preserve frozen `page_disjoint_real` pages as eval-only.
-- Decide the next CloudHammer training cycle after mismatch audit is credible.
+- Decide the next CloudHammer training cycle only after postprocessing
+  diagnostics and candidate-pool review clarify the remaining training signal.
