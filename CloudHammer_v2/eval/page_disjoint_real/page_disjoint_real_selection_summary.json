@@ -1,0 +1,37 @@
+{
+  "candidate_revision_counts": {
+    "Revision #1 - Drawing Changes": 7,
+    "Revision #2 - Mod 5 grab bar supports": 7,
+    "Revision #3 - EHRM Drawings": 2,
+    "Revision #5 - RFI 126 - Concrete Repairs": 1
+  },
+  "eligible_page_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\pages_standard_drawings_no_index_20260427.jsonl",
+  "eligible_standard_drawing_pages": 115,
+  "frozen_page_disjoint_real_pages": 17,
+  "frozen_revision_counts": {
+    "Revision #1 - Drawing Changes": 7,
+    "Revision #2 - Mod 5 grab bar supports": 7,
+    "Revision #3 - EHRM Drawings": 2,
+    "Revision #5 - RFI 126 - Concrete Repairs": 1
+  },
+  "generated_at": "2026-05-02",
+  "page_disjoint_candidate_pages": 17,
+  "page_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\pages.jsonl",
+  "registry_pages": 332,
+  "schema": "cloudhammer_v2.touched_page_registry.summary.v1",
+  "touch_role_counts": {
+    "continuity_training": 931,
+    "debug_eval": 14,
+    "quasi_holdout": 30,
+    "source_controlled_train_val": 502
+  },
+  "touched_eligible_pages": 98,
+  "touched_manifests": [
+    "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\reviewed_plus_marker_fp_hn_plus_eval_symbol_text_fp_hn_20260502.jsonl",
+    "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\source_controlled_small_corpus_20260502.jsonl",
+    "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\source_controlled_small_corpus_20260502.quasi_holdout.jsonl",
+    "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\fullpage_eval_sample_broad_deduped_20260428.jsonl"
+  ],
+  "touched_source_pages": 102,
+  "unknown_touch_rows": 0
+}

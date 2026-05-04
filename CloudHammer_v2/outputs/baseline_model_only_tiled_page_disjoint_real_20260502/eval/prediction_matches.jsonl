@@ -1,0 +1,2 @@
+{"iou": 0.363438, "label_index": 1, "prediction_confidence": 0.5755339860916138, "prediction_index": 4, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0025", "threshold": 0.25}
+{"iou": 0.405764, "label_index": 1, "prediction_confidence": 0.7477571964263916, "prediction_index": 7, "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188", "threshold": 0.25}

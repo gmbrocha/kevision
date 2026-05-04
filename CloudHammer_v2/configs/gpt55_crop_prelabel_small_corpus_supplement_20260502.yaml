@@ -1,0 +1,5 @@
+paths:
+  api_cloud_inputs: data/gpt55_crop_prelabels_small_corpus_supplement_20260502/api_inputs
+  api_cloud_predictions: data/gpt55_crop_prelabels_small_corpus_supplement_20260502/api_predictions
+  api_cloud_labels_unreviewed: data/gpt55_crop_prelabels_small_corpus_supplement_20260502/labels_gpt_provisional
+  api_cloud_review: data/gpt55_crop_prelabels_small_corpus_supplement_20260502/review_overlays

@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "F:\\Desktop\\m\\projects\\datasets",
+  "weights_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\weights",
+  "runs_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\runs",
+  "uuid": "5b8cabd47a8fdd38f95a3905cf68a31065277aeed9147c66ed9c451b6b02e441",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}

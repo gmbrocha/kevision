@@ -1,0 +1,146 @@
+{
+  "accepted_box_count": 4,
+  "accepted_boxes": [
+    {
+      "api_box_xyxy": [
+        1032,
+        634,
+        1126,
+        692
+      ],
+      "confidence": 0.86,
+      "visual_type": "thin",
+      "x1": 4334.4,
+      "x2": 4729.2,
+      "y1": 2662.622,
+      "y2": 2906.206
+    },
+    {
+      "api_box_xyxy": [
+        1703,
+        634,
+        1796,
+        692
+      ],
+      "confidence": 0.86,
+      "visual_type": "thin",
+      "x1": 7152.6,
+      "x2": 7543.2,
+      "y1": 2662.622,
+      "y2": 2906.206
+    },
+    {
+      "api_box_xyxy": [
+        2388,
+        1484,
+        2910,
+        1612
+      ],
+      "confidence": 0.91,
+      "visual_type": "large",
+      "x1": 10029.6,
+      "x2": 12222.0,
+      "y1": 6232.385,
+      "y2": 6769.949
+    },
+    {
+      "api_box_xyxy": [
+        2312,
+        1724,
+        2845,
+        1799
+      ],
+      "confidence": 0.89,
+      "visual_type": "large",
+      "x1": 9710.4,
+      "x2": 11949.0,
+      "y1": 7240.317,
+      "y2": 7555.296
+    }
+  ],
+  "api_image": {
+    "api_path": "CloudHammer_v2\\eval\\page_disjoint_real_gpt55\\api_inputs\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007.jpg",
+    "compressed_height": 2143,
+    "compressed_width": 3000,
+    "image_format": "jpeg",
+    "original_height": 9000,
+    "original_width": 12600,
+    "source_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007.png"
+  },
+  "detail": "high",
+  "label_path": "CloudHammer_v2\\eval\\page_disjoint_real_gpt55\\labels_gpt_provisional\\260303-VA_Biloxi_Rev_5_RFI-126_p0007.txt",
+  "label_status": "gpt_provisional",
+  "manifest_row": {
+    "eligible_for_page_disjoint_real": true,
+    "eligible_standard_drawing": true,
+    "eval_subset": "page_disjoint_real",
+    "freeze_guard_reasons": [],
+    "freeze_policy": "page_disjoint_real_v1",
+    "frozen_at": "2026-05-02",
+    "gpt_label_metadata_path": "",
+    "gpt_review_overlay_path": "",
+    "height_px": 9000,
+    "label_path": "",
+    "label_status": "unlabeled",
+    "page_index": 7,
+    "page_kind": "drawing",
+    "page_number": 8,
+    "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+    "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+    "render_exists": true,
+    "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007.png",
+    "revision_group": "Revision #5 - RFI 126 - Concrete Repairs",
+    "schema": "cloudhammer_v2.touched_page_registry.row.v1",
+    "sheet_id": "S140",
+    "sheet_title": "PHOTO A-9",
+    "source_id": "260303-VA_Biloxi_Rev_5_RFI-126",
+    "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007",
+    "touch_roles": {},
+    "touched": false,
+    "width_px": 12600
+  },
+  "min_confidence": 0.4,
+  "model": "gpt-5.5",
+  "parsed_response": {
+    "boxes": [
+      {
+        "confidence": 0.86,
+        "visual_type": "thin",
+        "x1": 1032,
+        "x2": 1126,
+        "y1": 634,
+        "y2": 692
+      },
+      {
+        "confidence": 0.86,
+        "visual_type": "thin",
+        "x1": 1703,
+        "x2": 1796,
+        "y1": 634,
+        "y2": 692
+      },
+      {
+        "confidence": 0.91,
+        "visual_type": "large",
+        "x1": 2388,
+        "x2": 2910,
+        "y1": 1484,
+        "y2": 1612
+      },
+      {
+        "confidence": 0.89,
+        "visual_type": "large",
+        "x1": 2312,
+        "x2": 2845,
+        "y1": 1724,
+        "y2": 1799
+      }
+    ],
+    "has_cloud": true
+  },
+  "raw_response_text": "{\"has_cloud\":true,\"boxes\":[{\"x1\":1032,\"y1\":634,\"x2\":1126,\"y2\":692,\"confidence\":0.86,\"visual_type\":\"thin\"},{\"x1\":1703,\"y1\":634,\"x2\":1796,\"y2\":692,\"confidence\":0.86,\"visual_type\":\"thin\"},{\"x1\":2388,\"y1\":1484,\"x2\":2910,\"y2\":1612,\"confidence\":0.91,\"visual_type\":\"large\"},{\"x1\":2312,\"y1\":1724,\"x2\":2845,\"y2\":1799,\"confidence\":0.89,\"visual_type\":\"large\"}]}",
+  "review_overlay_path": "CloudHammer_v2\\eval\\page_disjoint_real_gpt55\\overlays_gpt_provisional\\260303-VA_Biloxi_Rev_5_RFI-126_p0007.jpg",
+  "schema": "cloudhammer_v2.fullpage_gpt_label.v1",
+  "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007",
+  "status": "ok"
+}

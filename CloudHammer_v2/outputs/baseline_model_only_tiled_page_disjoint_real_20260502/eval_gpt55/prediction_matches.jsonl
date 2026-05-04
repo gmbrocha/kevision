@@ -1,0 +1,17 @@
+{"iou": 0.295529, "label_index": 1, "prediction_confidence": 0.8241974115371704, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0020", "threshold": 0.25}
+{"iou": 0.925984, "label_index": 1, "prediction_confidence": 0.8328577280044556, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0022", "threshold": 0.25}
+{"iou": 0.925984, "label_index": 1, "prediction_confidence": 0.8328577280044556, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0022", "threshold": 0.5}
+{"iou": 0.367609, "label_index": 1, "prediction_confidence": 0.5755339860916138, "prediction_index": 4, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0025", "threshold": 0.25}
+{"iou": 0.583966, "label_index": 1, "prediction_confidence": 0.7913134098052979, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0026", "threshold": 0.25}
+{"iou": 0.583966, "label_index": 1, "prediction_confidence": 0.7913134098052979, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0026", "threshold": 0.5}
+{"iou": 0.596115, "label_index": 1, "prediction_confidence": 0.515898585319519, "prediction_index": 2, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0027", "threshold": 0.25}
+{"iou": 0.596115, "label_index": 1, "prediction_confidence": 0.515898585319519, "prediction_index": 2, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0027", "threshold": 0.5}
+{"iou": 0.556774, "label_index": 2, "prediction_confidence": 0.6612991094589233, "prediction_index": 8, "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188", "threshold": 0.25}
+{"iou": 0.436942, "label_index": 1, "prediction_confidence": 0.7477571964263916, "prediction_index": 7, "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188", "threshold": 0.25}
+{"iou": 0.556774, "label_index": 2, "prediction_confidence": 0.6612991094589233, "prediction_index": 8, "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188", "threshold": 0.5}
+{"iou": 0.711074, "label_index": 1, "prediction_confidence": 0.9145504832267761, "prediction_index": 2, "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007", "threshold": 0.25}
+{"iou": 0.506864, "label_index": 2, "prediction_confidence": 0.9250746369361877, "prediction_index": 1, "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007", "threshold": 0.25}
+{"iou": 0.404999, "label_index": 3, "prediction_confidence": 0.7236024737358093, "prediction_index": 10, "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007", "threshold": 0.25}
+{"iou": 0.377868, "label_index": 4, "prediction_confidence": 0.7601432800292969, "prediction_index": 8, "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007", "threshold": 0.25}
+{"iou": 0.711074, "label_index": 1, "prediction_confidence": 0.9145504832267761, "prediction_index": 2, "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007", "threshold": 0.5}
+{"iou": 0.506864, "label_index": 2, "prediction_confidence": 0.9250746369361877, "prediction_index": 1, "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0007", "threshold": 0.5}

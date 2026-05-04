@@ -1,0 +1,521 @@
+{
+  "model": "whole_cloud_candidates_from:CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\260309 - Drawing Rev2- Steel Grab Bars.json",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1924.4211083984376,
+            1684.662197265625,
+            889.6300122070313,
+            707.6577832031251
+          ],
+          "confidence": 0.8695773899555206,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014_whole_001_medium.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              1374.4211083984376,
+              1134.662197265625,
+              1989.6300122070313,
+              1807.657783203125
+            ],
+            "fill_ratio": 0.5791431492304981,
+            "group_area": 629553.6023093968,
+            "member_area_sum": 364601.6558508687,
+            "member_boxes_page": [
+              [
+                1985.77490234375,
+                1746.0159912109375,
+                2368.0,
+                2330.9661865234375
+              ],
+              [
+                2177.6760864257812,
+                2176.234573364258,
+                2752.6973266601562,
+                2328.7032470703125
+              ],
+              [
+                2015.2086181640625,
+                2176.0,
+                2366.5843505859375,
+                2327.8211975097656
+              ]
+            ],
+            "member_confidences": [
+              0.83561110496521,
+              0.7171536684036255,
+              0.6695918440818787
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              1,
+              2,
+              3
+            ],
+            "model_confidence": 0.83561110496521,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8695773899555206
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 15,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1919.9228515625,
+            3318.061279296875,
+            305.778076171875,
+            295.77545166015625
+          ],
+          "confidence": 0.8682568179325739,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              1369.9228515625,
+              2768.061279296875,
+              1405.778076171875,
+              1395.7754516601562
+            ],
+            "fill_ratio": 0.9906570691736831,
+            "group_area": 90441.64858750999,
+            "member_area_sum": 89596.65852093883,
+            "member_boxes_page": [
+              [
+                1951.806640625,
+                3343.4362258911133,
+                2200.700927734375,
+                3588.8367309570312
+              ],
+              [
+                1944.9228515625,
+                3343.061279296875,
+                2197.7095947265625,
+                3455.875244140625
+              ]
+            ],
+            "member_confidences": [
+              0.8241974115371704,
+              0.7641222476959229
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              2
+            ],
+            "model_confidence": 0.8241974115371704,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8682568179325739
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 21,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1501.6676513671875,
+            3235.326525878906,
+            819.5395751953126,
+            545.4471679687504
+          ],
+          "confidence": 0.8593617006142935,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022_whole_001_medium.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              951.6676513671875,
+              2685.326525878906,
+              1919.5395751953126,
+              1645.4471679687504
+            ],
+            "fill_ratio": 0.9035446256466729,
+            "group_area": 447015.540328596,
+            "member_area_sum": 403898.4890444465,
+            "member_boxes_page": [
+              [
+                1563.8865966796875,
+                3311.9657592773438,
+                2257.53515625,
+                3708.1944885253906
+              ],
+              [
+                1558.1876220703125,
+                3321.6494140625,
+                2264.687255859375,
+                3456.0
+              ],
+              [
+                2176.2710571289062,
+                3291.8464965820312,
+                2255.215995788574,
+                3724.2537231445312
+              ]
+            ],
+            "member_confidences": [
+              0.8328577280044556,
+              0.6959910988807678,
+              0.6263346672058105
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              1,
+              2,
+              3
+            ],
+            "model_confidence": 0.8328577280044556,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8593617006142935
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 23,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            4244.511875,
+            3929.6199072265626,
+            1475.0512011718747,
+            1657.2351611328122
+          ],
+          "confidence": 0.8372076050313582,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_001_medium.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              3694.511875,
+              3379.6199072265626,
+              2575.0512011718747,
+              2757.235161132812
+            ],
+            "fill_ratio": 0.6526998593142452,
+            "group_area": 2444506.71505322,
+            "member_area_sum": 1595529.1890079645,
+            "member_boxes_page": [
+              [
+                5440.504684448242,
+                4043.9119873046875,
+                5586.538925170898,
+                4544.0
+              ],
+              [
+                5442.26496887207,
+                4354.826797485352,
+                5586.626266479492,
+                4864.7431640625
+              ],
+              [
+                4440.82763671875,
+                4352.0,
+                4542.97509765625,
+                4862.460021972656
+              ],
+              [
+                4358.803955078125,
+                4352.0,
+                5605.27099609375,
+                5472.56298828125
+              ]
+            ],
+            "member_confidences": [
+              0.8042711019515991,
+              0.7478832006454468,
+              0.5806489586830139,
+              0.5755339860916138
+            ],
+            "member_count": 4,
+            "member_indexes": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "model_confidence": 0.8042711019515991,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8372076050313582
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            4542.311020507813,
+            2025.8489233398439,
+            870.3913867187493,
+            215.02133056640628
+          ],
+          "confidence": 0.5479448375701904,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_002_medium.png",
+          "metadata": {
+            "confidence_tier": "low",
+            "crop_box_page": [
+              3992.311020507813,
+              1475.8489233398439,
+              1970.3913867187493,
+              1315.0213305664063
+            ],
+            "fill_ratio": 0.380745490103176,
+            "group_area": 187152.71408580497,
+            "member_area_sum": 71257.55184873939,
+            "member_boxes_page": [
+              [
+                4602.3380126953125,
+                2085.8759155273438,
+                5352.6754150390625,
+                2180.84326171875
+              ]
+            ],
+            "member_confidences": [
+              0.5356948375701904
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              5
+            ],
+            "model_confidence": 0.5356948375701904,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.5479448375701904
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 26,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3193.1240234375,
+            1521.3325500488281,
+            471.2427978515625,
+            1027.70166015625
+          ],
+          "confidence": 0.8404082893089929,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026_whole_001_medium.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              2643.1240234375,
+              971.3325500488281,
+              1571.2427978515625,
+              2127.70166015625
+            ],
+            "fill_ratio": 0.6416015792197685,
+            "group_area": 484297.0056887269,
+            "member_area_sum": 310725.72366129234,
+            "member_boxes_page": [
+              [
+                3264.0,
+                1592.2085266113281,
+                3593.4908447265625,
+                2366.165771484375
+              ],
+              [
+                3402.8118286132812,
+                2176.7738342285156,
+                3587.6717529296875,
+                2478.158233642578
+              ]
+            ],
+            "member_confidences": [
+              0.7913134098052979,
+              0.7577407360076904
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              2
+            ],
+            "model_confidence": 0.7913134098052979,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8404082893089929
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 27,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3737.4893359375,
+            1700.1950244140626,
+            314.83919921874985,
+            986.1900292968749
+          ],
+          "confidence": 0.7350465570645014,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027_whole_001_medium.png",
+          "metadata": {
+            "confidence_tier": "medium",
+            "crop_box_page": [
+              3187.4893359375,
+              1150.1950244140626,
+              1414.8391992187499,
+              2086.190029296875
+            ],
+            "fill_ratio": 0.5783858309285601,
+            "group_area": 310491.27910134353,
+            "member_area_sum": 179583.75645910203,
+            "member_boxes_page": [
+              [
+                3810.4688720703125,
+                2177.4990844726562,
+                3974.5369873046875,
+                2618.3719482421875
+              ],
+              [
+                3805.50244140625,
+                1768.2081298828125,
+                3984.3154296875,
+                2368.0
+              ]
+            ],
+            "member_confidences": [
+              0.7179656028747559,
+              0.515898585319519
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              2
+            ],
+            "model_confidence": 0.7179656028747559,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.7350465570645014
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 28,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            365.15218261718746,
+            110.98628906249999,
+            1110.9232958984376,
+            2843.0944384765626
+          ],
+          "confidence": 0.9128686909632365,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_001_large.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              0.0,
+              0.0,
+              2026.075478515625,
+              3504.0807275390625
+            ],
+            "fill_ratio": 0.3496445703711684,
+            "group_area": 3158459.8441429003,
+            "member_area_sum": 1104338.335239932,
+            "member_boxes_page": [
+              [
+                563.8424072265625,
+                307.061767578125,
+                1272.765625,
+                1275.7705078125
+              ],
+              [
+                561.2276611328125,
+                2177.01708984375,
+                1280.0,
+                2758.0052490234375
+              ]
+            ],
+            "member_confidences": [
+              0.8659346103668213,
+              0.8209893107414246
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              2,
+              3
+            ],
+            "model_confidence": 0.8659346103668213,
+            "size_bucket": "large",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.9128686909632365
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            3198.0877856445313,
+            2099.675798339844,
+            1112.9853784179686,
+            727.7904321289061
+          ],
+          "confidence": 0.927285605430603,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260309 - Drawing Rev2- Steel Grab Bars\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_002_medium.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              2648.0877856445313,
+              1549.6757983398438,
+              2212.9853784179686,
+              1827.790432128906
+            ],
+            "fill_ratio": 0.6802299291300324,
+            "group_area": 810020.1095119674,
+            "member_area_sum": 550999.9216872267,
+            "member_boxes_page": [
+              [
+                3274.8453979492188,
+                2176.4334106445312,
+                4234.3155517578125,
+                2750.7086181640625
+              ]
+            ],
+            "member_confidences": [
+              0.915035605430603
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ],
+            "model_confidence": 0.915035605430603,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.927285605430603
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 29,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

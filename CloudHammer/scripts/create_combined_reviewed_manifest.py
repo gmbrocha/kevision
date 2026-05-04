@@ -39,6 +39,12 @@ def has_review_marker(label_path: Path) -> bool:
     return label_path.with_suffix(".review.json").exists()
 
 
+def reviewed_newer_than_raw(label_path: Path, raw_label_path: Path, tolerance_seconds: float = 1.0) -> bool:
+    if not label_path.exists() or not raw_label_path.exists():
+        return False
+    return label_path.stat().st_mtime > raw_label_path.stat().st_mtime + tolerance_seconds
+
+
 def base_training_row(row: dict[str, Any], source_manifest: Path) -> dict[str, Any] | None:
     image_path = resolve_path(row.get("roi_image_path") or row.get("image_path") or "")
     label_path = resolve_path(row.get("label_path") or "")
@@ -62,7 +68,8 @@ def queue_training_row(row: dict[str, Any], queue_dir: Path, val_fraction: float
     label_path = resolve_path(row.get("local_label_path") or "")
     if not image_path.exists() or not label_path.exists():
         return None
-    if not has_review_marker(label_path):
+    raw_label_path = resolve_path(row.get("api_label_path") or "")
+    if not has_review_marker(label_path) and not reviewed_newer_than_raw(label_path, raw_label_path):
         return None
 
     try:
@@ -84,6 +91,10 @@ def queue_training_row(row: dict[str, Any], queue_dir: Path, val_fraction: float
         "training_source": "review_queue",
         "reason_for_selection": row.get("review_bucket", ""),
         "review_bucket": row.get("review_bucket", ""),
+        "accept_reason": row.get("accept_reason", ""),
+        "accept_reason_label": row.get("accept_reason_label", ""),
+        "review_tags": row.get("review_tags", ""),
+        "requires_precise_label": row.get("requires_precise_label", False),
         "candidate_source": row.get("candidate_source", ""),
         "revision": row.get("revision", ""),
         "pdf_path": pdf_path,
@@ -100,7 +111,8 @@ def queue_training_row(row: dict[str, Any], queue_dir: Path, val_fraction: float
 
 def reviewed_rows_from_queue_root(queue_root: Path, val_fraction: float) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for queue_dir in sorted(path for path in queue_root.iterdir() if path.is_dir()):
+    queue_dirs = [queue_root] if (queue_root / "manifest.jsonl").exists() else sorted(path for path in queue_root.iterdir() if path.is_dir())
+    for queue_dir in queue_dirs:
         manifest = queue_dir / "manifest.jsonl"
         if not manifest.exists():
             continue

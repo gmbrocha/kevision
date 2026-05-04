@@ -1,0 +1,34 @@
+{
+  "accepted_boxes": 51,
+  "box_count_distribution": {
+    "0": 101,
+    "1": 47,
+    "2": 2
+  },
+  "empty_label_files": 101,
+  "has_cloud_counts": {
+    "False": 101,
+    "True": 49
+  },
+  "label_files": 150,
+  "label_status": "gpt_provisional",
+  "labels_dir": "CloudHammer_v2\\data\\gpt55_crop_prelabels_small_corpus_supplement_20260502\\labels_gpt_provisional",
+  "model": "gpt-5.5",
+  "nonempty_label_files": 49,
+  "output_dir": "CloudHammer_v2\\data\\gpt55_crop_prelabels_small_corpus_supplement_20260502",
+  "predictions": "CloudHammer_v2\\data\\gpt55_crop_prelabels_small_corpus_supplement_20260502\\api_predictions\\predictions.jsonl",
+  "review_manifest": "CloudHammer_v2\\data\\gpt55_crop_prelabels_small_corpus_supplement_20260502\\review_manifest.gpt_provisional.jsonl",
+  "review_overlays": "CloudHammer_v2\\data\\gpt55_crop_prelabels_small_corpus_supplement_20260502\\review_overlays",
+  "rows": 150,
+  "schema": "cloudhammer_v2.gpt55_crop_prelabel_summary.v1",
+  "source_manifest": "CloudHammer/data/review_batches/small_corpus_expansion_supplement_20260502/prelabel_manifest.jsonl",
+  "status_counts": {
+    "ok": 150
+  },
+  "training_use": "Do not train until human reviewed/corrected.",
+  "visual_type_counts": {
+    "intersected": 8,
+    "partial": 41,
+    "thin": 2
+  }
+}

@@ -1,0 +1,62 @@
+2026-05-01 20:46:59,850 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=0
+2026-05-01 20:47:00,871 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001
+2026-05-01 20:52:37,384 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=0
+2026-05-01 20:52:37,870 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001
+2026-05-01 21:01:06,450 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001 as current_ok
+2026-05-01 21:01:06,584 INFO Loaded split candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-05-01 21:01:13,715 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001
+2026-05-01 21:06:28,820 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=1
+2026-05-01 21:06:29,247 INFO Loaded split candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-05-01 21:08:17,758 INFO Reviewed split candidate Revision_Set_7_37f6066a_p0003_whole_001 as manual_split
+2026-05-01 21:08:17,859 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001
+2026-05-01 21:08:19,393 INFO Loaded split candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-05-01 21:08:46,006 INFO Reviewed split candidate Revision_Set_7_37f6066a_p0003_whole_001 as manual_split
+2026-05-01 21:08:46,108 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001
+2026-05-01 21:08:51,213 INFO Loaded split candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-05-01 21:08:51,933 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001
+2026-05-01 21:15:28,617 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0016_whole_001 as manual_split
+2026-05-01 21:15:28,721 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001
+2026-05-01 21:18:35,148 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=2
+2026-05-01 21:18:35,510 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001
+2026-05-01 21:24:19,452 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0031_whole_001 as split_variant_5
+2026-05-01 21:24:19,528 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0028_whole_001
+2026-05-01 21:25:38,301 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0028_whole_001 as split_variant_5
+2026-05-01 21:25:38,373 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001
+2026-05-01 21:31:21,968 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001 as split_variant_6
+2026-05-01 21:31:22,021 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 21:44:14,959 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=5
+2026-05-01 21:44:15,287 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 21:48:10,188 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=5
+2026-05-01 21:48:10,507 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 21:50:21,679 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=5
+2026-05-01 21:50:21,959 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 22:54:15,542 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=5
+2026-05-01 22:54:15,840 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 23:38:46,004 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0007_whole_001
+2026-05-01 23:40:24,435 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 23:42:35,285 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=5
+2026-05-01 23:42:35,637 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 23:50:35,387 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=5
+2026-05-01 23:50:35,747 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001
+2026-05-01 23:56:36,582 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_001 as split_variant_6 with marker_orphan_merge_needed
+2026-05-01 23:56:36,692 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:01:57,724 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=6
+2026-05-02 00:01:58,107 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:15:26,005 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=6
+2026-05-02 00:15:26,417 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:25:57,340 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=6
+2026-05-02 00:25:57,662 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:36:16,180 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=6
+2026-05-02 00:36:16,608 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:40:04,806 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=6
+2026-05-02 00:40:05,127 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:44:54,198 INFO Starting split reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\split_review_analysis\still_overmerged_candidates.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_split_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.still_overmerged_rescue.review.jsonl candidates=10 reviewed=6
+2026-05-02 00:44:54,544 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002
+2026-05-02 00:46:02,294 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0018_whole_002 as split_variant_4 with marker_orphan_repair_needed
+2026-05-02 00:46:02,370 INFO Loaded split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_001
+2026-05-02 00:50:24,481 INFO Reviewed split candidate Revision_1_-_Drawing_Changes_6cbee960_p0024_whole_001 as manual_split
+2026-05-02 00:50:24,528 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017_whole_001
+2026-05-02 00:51:31,409 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0017_whole_001 as manual_split
+2026-05-02 00:51:31,458 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001
+2026-05-02 00:53:53,990 INFO Reviewed split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001 as manual_split
+2026-05-02 00:53:54,027 INFO Loaded split candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0018_whole_001

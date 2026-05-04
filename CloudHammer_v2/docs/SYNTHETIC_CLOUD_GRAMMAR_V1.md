@@ -128,6 +128,22 @@ Rules:
 - `large_region`
 - `notch_or_dent`
 - `mostly_empty_background`
+- `thick_dark_cloud_on_dense_dark_linework`
+- `thin_light_cloud_on_light_linework`
+- `no_cloud_dense_dark_linework_false_positive_trap`
+- `no_cloud_door_swing_arc_false_positive_trap`
+- `mixed_page_cloud_present_with_false_positive_regions`
+
+The source/style scenario families are for diagnostic coverage only. Keep them
+separate from real eval metrics, and do not blend their scores with real
+full-page eval.
+
+Future synthetic diagnostics should mimic specific source/style families where
+possible. Track source family, company/EOR, discipline, and drawing set
+separately when that metadata is known, but do not infer those fields from
+stroke thickness alone. Do not assume one universal cloud style across all
+disciplines, companies, EORs, or drawing sets. Stroke style remains diagnostic
+metadata, not a proven semantic rule and not a YOLO class split.
 
 ## Later Synthetic Training
 

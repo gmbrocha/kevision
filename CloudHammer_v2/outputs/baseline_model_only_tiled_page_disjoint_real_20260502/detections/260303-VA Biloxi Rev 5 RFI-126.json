@@ -1,0 +1,123 @@
+{
+  "model": "CloudHammer\\runs\\cloudhammer_roi-symbol-text-fp-hn-20260502\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            7171.1390380859375,
+            2621.3754272460938,
+            572.6259765625,
+            304.3624267578125
+          ],
+          "confidence": 0.9250746369361877,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4352.0,
+            2613.5580444335938,
+            343.623291015625,
+            282.954345703125
+          ],
+          "confidence": 0.9145504832267761,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11326.068176269531,
+            6203.555419921875,
+            884.1646118164062,
+            516.444580078125
+          ],
+          "confidence": 0.8823752999305725,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11329.535217285156,
+            7242.041076660156,
+            894.5913696289062,
+            225.7144775390625
+          ],
+          "confidence": 0.8745058178901672,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9677.8896484375,
+            7241.081115722656,
+            306.1103515625,
+            225.6280517578125
+          ],
+          "confidence": 0.8517323732376099,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11320.884216308594,
+            6529.845520019531,
+            882.3209838867188,
+            231.51876831054688
+          ],
+          "confidence": 0.8374751806259155,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7616.0,
+            2612.7064208984375,
+            126.61553192138672,
+            302.1356201171875
+          ],
+          "confidence": 0.764075756072998,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9815.02099609375,
+            7249.236083984375,
+            1238.734130859375,
+            215.08984375
+          ],
+          "confidence": 0.7601432800292969,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10020.76318359375,
+            6535.1053466796875,
+            1050.617431640625,
+            223.57391357421875
+          ],
+          "confidence": 0.7256891131401062,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            9987.488891601562,
+            6196.054443359375,
+            1077.7021484375,
+            520.5263671875
+          ],
+          "confidence": 0.7236024737358093,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\260303-VA_Biloxi_Rev_5_RFI-126_21a92377_p0007_cloud_010.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 8,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

@@ -95,6 +95,14 @@ FALSE_POSITIVE_REASONS = {
     },
 }
 
+ACCEPT_REASONS = {
+    "non_cloud_curve_contamination": {
+        "label": "Accept + Arc",
+        "tags": ["accept", "non_cloud_curve_contamination", "door_swing_or_plan_geometry_arc"],
+        "description": "Accepted crop contains the real cloud, but also includes nearby non-cloud curved geometry that must not become training-box truth.",
+    },
+}
+
 
 @dataclass(frozen=True)
 class Candidate:
@@ -170,6 +178,7 @@ def review_record(
     status: str,
     manifest_path: Path,
     false_positive_reason: str | None = None,
+    accept_reason: str | None = None,
 ) -> dict[str, Any]:
     row = candidate.row
     record = {
@@ -195,6 +204,12 @@ def review_record(
         reason = FALSE_POSITIVE_REASONS[false_positive_reason]
         record["false_positive_reason"] = false_positive_reason
         record["false_positive_reason_label"] = reason["label"]
+        record["review_tags"] = reason["tags"]
+        record["review_note"] = reason["description"]
+    if accept_reason:
+        reason = ACCEPT_REASONS[accept_reason]
+        record["accept_reason"] = accept_reason
+        record["accept_reason_label"] = reason["label"]
         record["review_tags"] = reason["tags"]
         record["review_note"] = reason["description"]
     return record
@@ -377,6 +392,7 @@ class ReviewerWindow(QMainWindow):
         self.addToolBar(toolbar)
         actions = [
             ("Accept", "A", lambda: self.mark("accept")),
+            ("Accept + Arc", "C", lambda: self.mark_accept_reason("non_cloud_curve_contamination")),
             ("False +", "F", lambda: self.mark("false_positive")),
             ("Texture FP", "T", lambda: self.mark_false_positive_reason("repeating_section_scallop")),
             ("Text FP", "Ctrl+T", lambda: self.mark_false_positive_reason("text_glyph_arcs")),
@@ -441,6 +457,13 @@ class ReviewerWindow(QMainWindow):
             button_row_bottom.addWidget(button)
         layout.addLayout(button_row_top)
         layout.addLayout(button_row_bottom)
+
+        accept_reason_row = QHBoxLayout()
+        accept_arc_button = QPushButton("Accept + Arc")
+        accept_arc_button.setToolTip("C: accept crop, but tag nearby door-swing/plan-geometry curve as non-cloud contamination")
+        accept_arc_button.clicked.connect(lambda checked=False: self.mark_accept_reason("non_cloud_curve_contamination"))
+        accept_reason_row.addWidget(accept_arc_button)
+        layout.addLayout(accept_reason_row)
 
         reason_row = QHBoxLayout()
         texture_fp_button = QPushButton("Texture FP")
@@ -578,6 +601,20 @@ class ReviewerWindow(QMainWindow):
         )
         self.next_unreviewed()
 
+    def mark_accept_reason(self, accept_reason: str) -> None:
+        if accept_reason not in ACCEPT_REASONS:
+            return
+        candidate = self.current()
+        record = review_record(candidate, "accept", self.manifest_path, accept_reason=accept_reason)
+        append_review(self.review_log, record)
+        self.latest_reviews[candidate.candidate_id] = record
+        logging.info(
+            "Reviewed candidate %s as accept reason=%s",
+            candidate.candidate_id,
+            accept_reason,
+        )
+        self.next_unreviewed()
+
     def next_candidate(self) -> None:
         if not self.candidates:
             return
@@ -606,6 +643,9 @@ class ReviewerWindow(QMainWindow):
         key = event.key()
         if event.modifiers() & Qt.ControlModifier and key == Qt.Key_T:
             self.mark_false_positive_reason("text_glyph_arcs")
+            return
+        if key == Qt.Key_C:
+            self.mark_accept_reason("non_cloud_curve_contamination")
             return
         if key in STATUS_KEYS:
             self.mark(STATUS_KEYS[key])

@@ -1,0 +1,102 @@
+{
+  "accepted_box_count": 2,
+  "accepted_boxes": [
+    {
+      "api_box_xyxy": [
+        1370,
+        525,
+        2050,
+        666
+      ],
+      "confidence": 0.96,
+      "visual_type": "thin",
+      "x1": 5754.0,
+      "x2": 8610.0,
+      "y1": 2204.853,
+      "y2": 2797.014
+    },
+    {
+      "api_box_xyxy": [
+        1398,
+        778,
+        1948,
+        990
+      ],
+      "confidence": 0.95,
+      "visual_type": "thin",
+      "x1": 5871.6,
+      "x2": 8181.6,
+      "y1": 3267.382,
+      "y2": 4157.723
+    }
+  ],
+  "api_image": {
+    "api_path": "CloudHammer_v2\\eval\\page_disjoint_real\\api_inputs\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.jpg",
+    "compressed_height": 2143,
+    "compressed_width": 3000,
+    "image_format": "jpeg",
+    "original_height": 9000,
+    "original_width": 12600,
+    "source_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.png"
+  },
+  "detail": "high",
+  "label_path": "CloudHammer_v2\\eval\\page_disjoint_real\\labels_gpt_provisional\\260313_-_VA_Biloxi_Rev_3_p0188.txt",
+  "label_status": "gpt_provisional",
+  "manifest_row": {
+    "eligible_for_page_disjoint_real": true,
+    "eligible_standard_drawing": true,
+    "eval_subset": "page_disjoint_real",
+    "freeze_guard_reasons": [],
+    "freeze_policy": "page_disjoint_real_v1",
+    "frozen_at": "2026-05-02",
+    "gpt_label_metadata_path": "",
+    "gpt_review_overlay_path": "",
+    "height_px": 9000,
+    "label_path": "",
+    "label_status": "unlabeled",
+    "page_index": 188,
+    "page_kind": "drawing",
+    "page_number": 189,
+    "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+    "pdf_stem": "260313 - VA Biloxi Rev 3",
+    "render_exists": true,
+    "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.png",
+    "revision_group": "Revision #3 - EHRM Drawings",
+    "schema": "cloudhammer_v2.touched_page_registry.row.v1",
+    "sheet_id": "E17",
+    "sheet_title": "HUBBELL",
+    "source_id": "260313_-_VA_Biloxi_Rev_3",
+    "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188",
+    "touch_roles": {},
+    "touched": false,
+    "width_px": 12600
+  },
+  "min_confidence": 0.4,
+  "model": "gpt-5.4",
+  "parsed_response": {
+    "boxes": [
+      {
+        "confidence": 0.96,
+        "visual_type": "thin",
+        "x1": 1370,
+        "x2": 2050,
+        "y1": 525,
+        "y2": 666
+      },
+      {
+        "confidence": 0.95,
+        "visual_type": "thin",
+        "x1": 1398,
+        "x2": 1948,
+        "y1": 778,
+        "y2": 990
+      }
+    ],
+    "has_cloud": true
+  },
+  "raw_response_text": "{\"has_cloud\":true,\"boxes\":[{\"x1\":1370,\"y1\":525,\"x2\":2050,\"y2\":666,\"confidence\":0.96,\"visual_type\":\"thin\"},{\"x1\":1398,\"y1\":778,\"x2\":1948,\"y2\":990,\"confidence\":0.95,\"visual_type\":\"thin\"}]}",
+  "review_overlay_path": "CloudHammer_v2\\eval\\page_disjoint_real\\overlays_gpt_provisional\\260313_-_VA_Biloxi_Rev_3_p0188.jpg",
+  "schema": "cloudhammer_v2.fullpage_gpt_label.v1",
+  "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188",
+  "status": "ok"
+}

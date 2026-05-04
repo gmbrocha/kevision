@@ -1,0 +1,80 @@
+{
+  "accepted_box_count": 1,
+  "accepted_boxes": [
+    {
+      "api_box_xyxy": [
+        805,
+        380,
+        857,
+        586
+      ],
+      "confidence": 0.87,
+      "visual_type": "bold",
+      "x1": 3381.0,
+      "x2": 3599.4,
+      "y1": 1595.894,
+      "y2": 2461.036
+    }
+  ],
+  "api_image": {
+    "api_path": "CloudHammer_v2\\eval\\page_disjoint_real_gpt55\\api_inputs\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026.jpg",
+    "compressed_height": 2143,
+    "compressed_width": 3000,
+    "image_format": "jpeg",
+    "original_height": 9000,
+    "original_width": 12600,
+    "source_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026.png"
+  },
+  "detail": "high",
+  "label_path": "CloudHammer_v2\\eval\\page_disjoint_real_gpt55\\labels_gpt_provisional\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_p0026.txt",
+  "label_status": "gpt_provisional",
+  "manifest_row": {
+    "eligible_for_page_disjoint_real": true,
+    "eligible_standard_drawing": true,
+    "eval_subset": "page_disjoint_real",
+    "freeze_guard_reasons": [],
+    "freeze_policy": "page_disjoint_real_v1",
+    "frozen_at": "2026-05-02",
+    "gpt_label_metadata_path": "",
+    "gpt_review_overlay_path": "",
+    "height_px": 9000,
+    "label_path": "",
+    "label_status": "unlabeled",
+    "page_index": 26,
+    "page_kind": "drawing",
+    "page_number": 27,
+    "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+    "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+    "render_exists": true,
+    "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026.png",
+    "revision_group": "Revision #2 - Mod 5 grab bar supports",
+    "schema": "cloudhammer_v2.touched_page_registry.row.v1",
+    "sheet_id": "P-418",
+    "sheet_title": "FD-C",
+    "source_id": "260309_-_Drawing_Rev2-_Steel_Grab_Bars",
+    "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0026",
+    "touch_roles": {},
+    "touched": false,
+    "width_px": 12600
+  },
+  "min_confidence": 0.4,
+  "model": "gpt-5.5",
+  "parsed_response": {
+    "boxes": [
+      {
+        "confidence": 0.87,
+        "visual_type": "bold",
+        "x1": 805,
+        "x2": 857,
+        "y1": 380,
+        "y2": 586
+      }
+    ],
+    "has_cloud": true
+  },
+  "raw_response_text": "{\"has_cloud\":true,\"boxes\":[{\"x1\":805,\"y1\":380,\"x2\":857,\"y2\":586,\"confidence\":0.87,\"visual_type\":\"bold\"}]}",
+  "review_overlay_path": "CloudHammer_v2\\eval\\page_disjoint_real_gpt55\\overlays_gpt_provisional\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_p0026.jpg",
+  "schema": "cloudhammer_v2.fullpage_gpt_label.v1",
+  "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0026",
+  "status": "ok"
+}

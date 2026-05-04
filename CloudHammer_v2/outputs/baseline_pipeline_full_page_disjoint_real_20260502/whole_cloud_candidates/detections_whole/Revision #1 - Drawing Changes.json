@@ -1,0 +1,713 @@
+{
+  "model": "whole_cloud_candidates_from:CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\Revision #1 - Drawing Changes.json",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            2438.3766943359374,
+            3617.8952185058592,
+            1162.8357836914065,
+            622.8289172363279
+          ],
+          "confidence": 0.8951148902134577,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0003_whole_001_medium.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              1888.3766943359374,
+              3067.8952185058592,
+              2262.835783691407,
+              1722.828917236328
+            ],
+            "fill_ratio": 0.6199251573525253,
+            "group_area": 724247.7520801756,
+            "member_area_sum": 448979.40167051554,
+            "member_boxes_page": [
+              [
+                3264.0,
+                3706.749267578125,
+                3521.0169067382812,
+                4160.528564453125
+              ],
+              [
+                2518.572265625,
+                3698.090789794922,
+                3442.90625,
+                4057.6474609375
+              ]
+            ],
+            "member_confidences": [
+              0.8416493535041809,
+              0.8310801386833191
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              2
+            ],
+            "model_confidence": 0.8416493535041809,
+            "size_bucket": "medium",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8951148902134577
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 4,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0003.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            10840.864013671875,
+            4993.461730957031,
+            227.103515625,
+            165.6817626953125
+          ],
+          "confidence": 0.8512401518821716,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              10290.864013671875,
+              4443.461730957031,
+              1327.103515625,
+              1265.6817626953125
+            ],
+            "fill_ratio": 0.5444945237509285,
+            "group_area": 37626.910783052444,
+            "member_area_sum": 20487.64686703682,
+            "member_boxes_page": [
+              [
+                10865.864013671875,
+                5018.461730957031,
+                11042.967529296875,
+                5134.143493652344
+              ]
+            ],
+            "member_confidences": [
+              0.8389901518821716
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ],
+            "model_confidence": 0.8389901518821716,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8512401518821716
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            10837.348388671875,
+            3235.514892578125,
+            208.85888671875,
+            151.060791015625
+          ],
+          "confidence": 0.8150502381324768,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_002_small.png",
+          "metadata": {
+            "confidence_tier": "medium",
+            "crop_box_page": [
+              10287.348388671875,
+              2685.514892578125,
+              1308.85888671875,
+              1251.060791015625
+            ],
+            "fill_ratio": 0.5088496669778013,
+            "group_area": 31550.38863837719,
+            "member_area_sum": 16054.40475165844,
+            "member_boxes_page": [
+              [
+                10862.348388671875,
+                3260.514892578125,
+                11021.207275390625,
+                3361.57568359375
+              ]
+            ],
+            "member_confidences": [
+              0.8028002381324768
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              2
+            ],
+            "model_confidence": 0.8028002381324768,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8150502381324768
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 33,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0032.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            10782.070190429688,
+            4978.9266357421875,
+            202.25881958007812,
+            147.810302734375
+          ],
+          "confidence": 0.827298273320643,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              10232.070190429688,
+              4428.9266357421875,
+              1302.2588195800781,
+              1247.810302734375
+            ],
+            "fill_ratio": 0.7395706426116374,
+            "group_area": 29895.93735282868,
+            "member_area_sum": 22110.157599508762,
+            "member_boxes_page": [
+              [
+                10807.070190429688,
+                5003.9266357421875,
+                10957.706665039062,
+                5101.7369384765625
+              ],
+              [
+                10880.0,
+                5006.4122314453125,
+                10959.329010009766,
+                5099.3966064453125
+              ]
+            ],
+            "member_confidences": [
+              0.797623336315155,
+              0.6618404388427734
+            ],
+            "member_count": 2,
+            "member_indexes": [
+              1,
+              3
+            ],
+            "model_confidence": 0.797623336315155,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.827298273320643
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            10742.968017578125,
+            3172.927490234375,
+            202.476318359375,
+            150.5517578125
+          ],
+          "confidence": 0.7757598099708557,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_002_small.png",
+          "metadata": {
+            "confidence_tier": "medium",
+            "crop_box_page": [
+              10192.968017578125,
+              2622.927490234375,
+              1302.476318359375,
+              1250.5517578125
+            ],
+            "fill_ratio": 0.5029583218049544,
+            "group_area": 30483.165644407272,
+            "member_area_sum": 15331.761835813522,
+            "member_boxes_page": [
+              [
+                10767.968017578125,
+                3197.927490234375,
+                10920.4443359375,
+                3298.479248046875
+              ]
+            ],
+            "member_confidences": [
+              0.7635098099708557
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              2
+            ],
+            "model_confidence": 0.7635098099708557,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.7757598099708557
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 34,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0033.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            10868.324340820312,
+            3233.8531494140625,
+            235.45053100585938,
+            170.3974609375
+          ],
+          "confidence": 0.8536626634597778,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              10318.324340820312,
+              2683.8531494140625,
+              1335.4505310058594,
+              1270.3974609375
+            ],
+            "fill_ratio": 0.5565223572678535,
+            "group_area": 40120.172659784555,
+            "member_area_sum": 22327.773062616587,
+            "member_boxes_page": [
+              [
+                10893.324340820312,
+                3258.8531494140625,
+                11078.774871826172,
+                3379.2506103515625
+              ]
+            ],
+            "member_confidences": [
+              0.8414126634597778
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ],
+            "model_confidence": 0.8414126634597778,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8536626634597778
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            11012.823822021484,
+            4741.107971191406,
+            213.85858154296875,
+            161.73773193359375
+          ],
+          "confidence": 0.8285869297981262,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_002_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              10462.823822021484,
+              4191.107971191406,
+              1313.8585815429688,
+              1261.7377319335938
+            ],
+            "fill_ratio": 0.5293354892048152,
+            "group_area": 34589.00193329528,
+            "member_area_sum": 18309.186259467155,
+            "member_boxes_page": [
+              [
+                11037.823822021484,
+                4766.107971191406,
+                11201.682403564453,
+                4877.845703125
+              ]
+            ],
+            "member_confidences": [
+              0.8163369297981262
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              2
+            ],
+            "model_confidence": 0.8163369297981262,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8285869297981262
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 35,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0034.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1695.33935546875,
+            6256.298095703125,
+            229.849853515625,
+            181.7998046875
+          ],
+          "confidence": 0.8226044116020202,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              1145.33935546875,
+              5706.298095703125,
+              1329.849853515625,
+              1281.7998046875
+            ],
+            "fill_ratio": 0.5672665972971718,
+            "group_area": 41786.65847659111,
+            "member_area_sum": 23704.17556643486,
+            "member_boxes_page": [
+              [
+                1720.33935546875,
+                6281.298095703125,
+                1900.189208984375,
+                6413.097900390625
+              ]
+            ],
+            "member_confidences": [
+              0.8103544116020203
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ],
+            "model_confidence": 0.8103544116020203,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8226044116020202
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            10963.713836669922,
+            5555.6368408203125,
+            219.13531494140625,
+            163.75579833984375
+          ],
+          "confidence": 0.7905374703407287,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_002_small.png",
+          "metadata": {
+            "confidence_tier": "medium",
+            "crop_box_page": [
+              10413.713836669922,
+              5005.6368408203125,
+              1319.1353149414062,
+              1263.7557983398438
+            ],
+            "fill_ratio": 0.5361653946363746,
+            "group_area": 35884.67844268307,
+            "member_area_sum": 19240.12277862057,
+            "member_boxes_page": [
+              [
+                10988.713836669922,
+                5580.6368408203125,
+                11157.849151611328,
+                5694.392639160156
+              ]
+            ],
+            "member_confidences": [
+              0.7782874703407288
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              2
+            ],
+            "model_confidence": 0.7782874703407288,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.7905374703407287
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            8736.087158203125,
+            1063.6413879394531,
+            184.912841796875,
+            326.36187744140625
+          ],
+          "confidence": 0.7266405162811279,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_003_small.png",
+          "metadata": {
+            "confidence_tier": "medium",
+            "crop_box_page": [
+              8186.087158203125,
+              513.6413879394531,
+              1284.912841796875,
+              1426.3618774414062
+            ],
+            "fill_ratio": 0.6178242190510603,
+            "group_area": 60348.50221185386,
+            "member_area_sum": 37284.7662499398,
+            "member_boxes_page": [
+              [
+                8761.087158203125,
+                1088.6413879394531,
+                8896.0,
+                1365.0032653808594
+              ]
+            ],
+            "member_confidences": [
+              0.7143905162811279
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              3
+            ],
+            "model_confidence": 0.7143905162811279,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.7266405162811279
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 37,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0036.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3626.5036010742188,
+            4152.4317626953125,
+            230.91448974609375,
+            170.7720947265625
+          ],
+          "confidence": 0.8496888217926025,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              3076.5036010742188,
+              3602.4317626953125,
+              1330.9144897460938,
+              1270.7720947265625
+            ],
+            "fill_ratio": 0.554079215755722,
+            "group_area": 39433.75111665577,
+            "member_area_sum": 21849.421893022954,
+            "member_boxes_page": [
+              [
+                3651.5036010742188,
+                4177.4317626953125,
+                3832.4180908203125,
+                4298.203857421875
+              ]
+            ],
+            "member_confidences": [
+              0.8374388217926025
+            ],
+            "member_count": 1,
+            "member_indexes": [
+              1
+            ],
+            "model_confidence": 0.8374388217926025,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.8496888217926025
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 38,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0037.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3814.0924682617188,
+            947.9883422851562,
+            7461.51908493042,
+            832.0838623046875
+          ],
+          "confidence": 0.9545718263599234,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_001_xlarge.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              2864.0924682617188,
+              0.0,
+              9361.51908493042,
+              2730.0722045898438
+            ],
+            "fill_ratio": 0.1515989177815862,
+            "group_area": 6208609.618849041,
+            "member_area_sum": 941218.499145861,
+            "member_boxes_page": [
+              [
+                9797.710327148438,
+                1303.5846710205078,
+                10911.305419921875,
+                1426.4354858398438
+              ],
+              [
+                8768.788818359375,
+                1303.0647735595703,
+                9984.0,
+                1426.3917846679688
+              ],
+              [
+                5446.7806396484375,
+                1306.4004516601562,
+                6701.164794921875,
+                1430.0722045898438
+              ],
+              [
+                4368.31640625,
+                1311.0430297851562,
+                5626.53466796875,
+                1425.8811645507812
+              ],
+              [
+                7624.46630859375,
+                1308.5740203857422,
+                8876.705810546875,
+                1429.0918579101562
+              ],
+              [
+                6574.5419921875,
+                1307.1173858642578,
+                7808.0,
+                1429.5740356445312
+              ],
+              [
+                4164.092468261719,
+                1297.9883422851562,
+                4543.201416015625,
+                1424.8290405273438
+              ],
+              [
+                10880.0,
+                1305.4435119628906,
+                10925.611553192139,
+                1412.2579040527344
+              ]
+            ],
+            "member_confidences": [
+              0.8832564353942871,
+              0.8262162804603577,
+              0.8050190210342407,
+              0.7947657108306885,
+              0.7942655086517334,
+              0.7585985064506531,
+              0.7003302574157715,
+              0.6692422032356262
+            ],
+            "member_count": 8,
+            "member_indexes": [
+              1,
+              3,
+              4,
+              6,
+              7,
+              12,
+              13,
+              14
+            ],
+            "model_confidence": 0.8832564353942871,
+            "size_bucket": "xlarge",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.9545718263599234
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            3830.662353515625,
+            3374.1842041015625,
+            6201.9808349609375,
+            893.91943359375
+          ],
+          "confidence": 0.9356341825163856,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\Revision #1 - Drawing Changes\\Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_002_xlarge.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              2880.662353515625,
+              2424.1842041015625,
+              8101.9808349609375,
+              2793.91943359375
+            ],
+            "fill_ratio": 0.2139873345451436,
+            "group_area": 5544071.195147574,
+            "member_area_sum": 1186361.017578138,
+            "member_boxes_page": [
+              [
+                8710.359680175781,
+                3724.5438537597656,
+                9682.643188476562,
+                3917.1793212890625
+              ],
+              [
+                5471.1571044921875,
+                3728.4573364257812,
+                6716.30810546875,
+                3913.1273803710938
+              ],
+              [
+                6560.2347412109375,
+                3725.0139770507812,
+                7796.5252685546875,
+                3914.3539428710938
+              ],
+              [
+                4180.662353515625,
+                3724.1842041015625,
+                4544.0,
+                3914.02685546875
+              ],
+              [
+                4389.529541015625,
+                3728.2579956054688,
+                5631.500244140625,
+                3912.9270629882812
+              ],
+              [
+                7654.209716796875,
+                3726.2816467285156,
+                8888.2333984375,
+                3918.1036376953125
+              ]
+            ],
+            "member_confidences": [
+              0.8609318137168884,
+              0.797440230846405,
+              0.7926522493362427,
+              0.7922706007957458,
+              0.7777561545372009,
+              0.7726179361343384
+            ],
+            "member_count": 6,
+            "member_indexes": [
+              2,
+              5,
+              8,
+              9,
+              10,
+              11
+            ],
+            "model_confidence": 0.8609318137168884,
+            "size_bucket": "xlarge",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.9356341825163856
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 42,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0041.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

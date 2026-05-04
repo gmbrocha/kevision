@@ -1,0 +1,12 @@
+{
+  "candidate_contains_75_count": 3,
+  "crop_contains_95_count": 3,
+  "iou_15_count": 3,
+  "iou_25_count": 2,
+  "manual_label_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\large_cloud_context_labels_20260428",
+  "manual_labels": 78,
+  "matched_labels": 3,
+  "median_candidate_containment": 0.0,
+  "median_crop_containment": 0.0,
+  "median_iou": 0.0
+}

@@ -1,0 +1,313 @@
+{
+  "manifest_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\whole_cloud_candidates_manifest.jsonl",
+  "manual_large_cloud_audit": {
+    "candidate_contains_75_count": 3,
+    "crop_contains_95_count": 3,
+    "iou_15_count": 3,
+    "iou_25_count": 2,
+    "manual_label_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\large_cloud_context_labels_20260428",
+    "manual_labels": 78,
+    "matched_labels": 3,
+    "median_candidate_containment": 0.0,
+    "median_crop_containment": 0.0,
+    "median_iou": 0.0
+  },
+  "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates",
+  "params": {
+    "crop_margin_ratio": 0.16,
+    "large_max_side": 5200.0,
+    "max_crop_margin": 950.0,
+    "medium_max_side": 2200.0,
+    "min_box_side": 20.0,
+    "min_candidate_confidence": 0.0,
+    "min_crop_margin": 550.0,
+    "small_max_side": 800.0
+  },
+  "results": [
+    {
+      "pages": [
+        {
+          "candidate_count": 3,
+          "confidence_tiers": {
+            "high": 3
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007_whole_clouds.png",
+          "page": 8,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf",
+          "pdf_stem": "260303-VA Biloxi Rev 5 RFI-126",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0007.png",
+          "size_buckets": {
+            "large": 1,
+            "small": 2
+          }
+        }
+      ],
+      "source_grouped_detection_json": "CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\260303-VA Biloxi Rev 5 RFI-126.json",
+      "whole_detection_json": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\detections_whole\\260303-VA Biloxi Rev 5 RFI-126.json"
+    },
+    {
+      "pages": [
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014_whole_clouds.png",
+          "page": 15,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0014.png",
+          "size_buckets": {
+            "medium": 1
+          }
+        },
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020_whole_clouds.png",
+          "page": 21,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0020.png",
+          "size_buckets": {
+            "small": 1
+          }
+        },
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022_whole_clouds.png",
+          "page": 23,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0022.png",
+          "size_buckets": {
+            "medium": 1
+          }
+        },
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 1,
+            "low": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025_whole_clouds.png",
+          "page": 26,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0025.png",
+          "size_buckets": {
+            "medium": 2
+          }
+        },
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026_whole_clouds.png",
+          "page": 27,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0026.png",
+          "size_buckets": {
+            "medium": 1
+          }
+        },
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "medium": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027_whole_clouds.png",
+          "page": 28,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0027.png",
+          "size_buckets": {
+            "medium": 1
+          }
+        },
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 2
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028_whole_clouds.png",
+          "page": 29,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #2 - Mod 5 grab bar supports\\260309 - Drawing Rev2- Steel Grab Bars.pdf",
+          "pdf_stem": "260309 - Drawing Rev2- Steel Grab Bars",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0028.png",
+          "size_buckets": {
+            "large": 1,
+            "medium": 1
+          }
+        }
+      ],
+      "source_grouped_detection_json": "CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\260309 - Drawing Rev2- Steel Grab Bars.json",
+      "whole_detection_json": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\detections_whole\\260309 - Drawing Rev2- Steel Grab Bars.json"
+    },
+    {
+      "pages": [
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 2
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_clouds.png",
+          "page": 189,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+          "pdf_stem": "260313 - VA Biloxi Rev 3",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.png",
+          "size_buckets": {
+            "large": 2
+          }
+        },
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0197_whole_clouds.png",
+          "page": 198,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+          "pdf_stem": "260313 - VA Biloxi Rev 3",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0197.png",
+          "size_buckets": {
+            "small": 1
+          }
+        }
+      ],
+      "source_grouped_detection_json": "CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\260313 - VA Biloxi Rev 3.json",
+      "whole_detection_json": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\detections_whole\\260313 - VA Biloxi Rev 3.json"
+    },
+    {
+      "pages": [
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0003_whole_clouds.png",
+          "page": 4,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0003.png",
+          "size_buckets": {
+            "medium": 1
+          }
+        },
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 1,
+            "medium": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0032_whole_clouds.png",
+          "page": 33,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0032.png",
+          "size_buckets": {
+            "small": 2
+          }
+        },
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 1,
+            "medium": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0033_whole_clouds.png",
+          "page": 34,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0033.png",
+          "size_buckets": {
+            "small": 2
+          }
+        },
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 2
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0034_whole_clouds.png",
+          "page": 35,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0034.png",
+          "size_buckets": {
+            "small": 2
+          }
+        },
+        {
+          "candidate_count": 3,
+          "confidence_tiers": {
+            "high": 1,
+            "medium": 2
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0036_whole_clouds.png",
+          "page": 37,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0036.png",
+          "size_buckets": {
+            "small": 3
+          }
+        },
+        {
+          "candidate_count": 1,
+          "confidence_tiers": {
+            "high": 1
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0037_whole_clouds.png",
+          "page": 38,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0037.png",
+          "size_buckets": {
+            "small": 1
+          }
+        },
+        {
+          "candidate_count": 2,
+          "confidence_tiers": {
+            "high": 2
+          },
+          "overlay_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\overlays\\Revision_1_-_Drawing_Changes_6cbee960_p0041_whole_clouds.png",
+          "page": 42,
+          "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+          "pdf_stem": "Revision #1 - Drawing Changes",
+          "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0041.png",
+          "size_buckets": {
+            "xlarge": 2
+          }
+        }
+      ],
+      "source_grouped_detection_json": "CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\Revision #1 - Drawing Changes.json",
+      "whole_detection_json": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\detections_whole\\Revision #1 - Drawing Changes.json"
+    }
+  ],
+  "schema": "cloudhammer.whole_cloud_candidate_export.v1",
+  "source_grouped_detections_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped",
+  "totals": {
+    "candidates": 28,
+    "confidence_tiers": {
+      "high": 22,
+      "low": 1,
+      "medium": 5
+    },
+    "pages": 17,
+    "size_buckets": {
+      "large": 4,
+      "medium": 8,
+      "small": 14,
+      "xlarge": 2
+    }
+  }
+}

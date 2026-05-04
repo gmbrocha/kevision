@@ -1,0 +1,38 @@
+{
+  "discipline_guess_counts": {
+    "architectural_or_likely_architectural": 1,
+    "electrical_or_likely_electrical": 2,
+    "plumbing_or_likely_plumbing": 12,
+    "structural_or_likely_structural": 2
+  },
+  "empty_truth_pages": 1,
+  "generated_at": "2026-05-03T22:16:11.281700+00:00",
+  "human_audited_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.human_audited.jsonl",
+  "labels_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real_human_review\\labels",
+  "max_boxes_on_page": 4,
+  "missing_labels": [],
+  "missing_review_markers": [],
+  "notes": [
+    "Manifest uses the actual LabelImg-saved raster-stem label paths.",
+    "style_discipline_bucket is intentionally unassigned until audited metadata is added.",
+    "discipline_guess_from_sheet_metadata is a rough sheet/title heuristic, not truth.",
+    "These labels are eval truth only and must not enter training or mining."
+  ],
+  "pages": 17,
+  "pages_with_cloud_boxes": 16,
+  "pages_with_review_markers": 17,
+  "review_queue_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real_human_review\\manifest.jsonl",
+  "review_results": {
+    "negative_no_cloud": 1,
+    "positive": 16
+  },
+  "revision_counts": {
+    "Revision #1 - Drawing Changes": 7,
+    "Revision #2 - Mod 5 grab bar supports": 7,
+    "Revision #3 - EHRM Drawings": 2,
+    "Revision #5 - RFI 126 - Concrete Repairs": 1
+  },
+  "schema": "cloudhammer_v2.page_disjoint_real_human_audited_summary.v1",
+  "source_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.jsonl",
+  "total_cloud_boxes": 26
+}

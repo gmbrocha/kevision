@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0034.png",
+  "label_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real_human_review\\labels\\Revision_1_-_Drawing_Changes_6cbee960_p0034.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-05-03T01:08:56.229337+00:00",
+  "shape_count": 2
+}

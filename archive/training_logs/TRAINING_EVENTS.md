@@ -1,5 +1,9 @@
 # Training Events
 
+Status: historical training log only. Current CloudHammer training state,
+active model checkpoint, and next model-facing commands live in
+`CLOUDHAMMER.md`.
+
 ## 2026-04-24 - First CloudHammer YOLO Training Run
 
 ### Goal

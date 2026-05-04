@@ -1,0 +1,21 @@
+{
+  "false_positive_reason": {
+    "circular_symbol_fixture": 1,
+    "generic_false_positive": 10,
+    "repeating_section_scallop": 13,
+    "text_glyph_arcs": 5
+  },
+  "input": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428\\hard_negatives_v1\\hard_negative_candidates.jsonl",
+  "label_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\cloud_labels_reviewed_marker_fp_hard_negatives",
+  "marker_anchor_bucket": {
+    "no_near_matching_marker": 29
+  },
+  "output": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\marker_fp_hard_negatives_20260502.jsonl",
+  "schema": "cloudhammer.marker_fp_hard_negative_training_manifest.v1",
+  "skipped_missing_images": 0,
+  "splits": {
+    "train": 17,
+    "val": 12
+  },
+  "total_rows": 29
+}

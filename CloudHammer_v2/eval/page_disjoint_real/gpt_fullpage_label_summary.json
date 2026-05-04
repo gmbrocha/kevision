@@ -1,0 +1,22 @@
+{
+  "accepted_boxes": 14,
+  "eval_subset": "page_disjoint_real",
+  "failed": 0,
+  "label_status": "gpt_provisional",
+  "manifest": "CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.jsonl",
+  "model": "gpt-5.4",
+  "overlay_contact_sheet": "CloudHammer_v2\\eval\\page_disjoint_real\\gpt_fullpage_overlay_contact_sheet.jpg",
+  "pages": 17,
+  "pages_with_boxes": 8,
+  "predictions": "CloudHammer_v2\\eval\\page_disjoint_real\\gpt_fullpage_predictions.jsonl",
+  "processed": 0,
+  "schema": "cloudhammer_v2.fullpage_gpt_label_summary.v1",
+  "skipped": 17,
+  "updated_manifest": "CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.gpt_provisional.jsonl",
+  "visual_type_counts": {
+    "bold": 5,
+    "faint": 1,
+    "intersected": 2,
+    "thin": 6
+  }
+}

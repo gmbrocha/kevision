@@ -1,0 +1,102 @@
+{
+  "accepted_box_count": 2,
+  "accepted_boxes": [
+    {
+      "api_box_xyxy": [
+        977,
+        307,
+        2623,
+        341
+      ],
+      "confidence": 0.98,
+      "visual_type": "thin",
+      "x1": 4103.4,
+      "x2": 11016.6,
+      "y1": 1289.314,
+      "y2": 1432.105
+    },
+    {
+      "api_box_xyxy": [
+        1288,
+        919,
+        2309,
+        956
+      ],
+      "confidence": 0.96,
+      "visual_type": "thin",
+      "x1": 5409.6,
+      "x2": 9697.8,
+      "y1": 3859.543,
+      "y2": 4014.932
+    }
+  ],
+  "api_image": {
+    "api_path": "CloudHammer_v2\\eval\\page_disjoint_real\\api_inputs\\Revision_1_-_Drawing_Changes_6cbee960_p0041.jpg",
+    "compressed_height": 2143,
+    "compressed_width": 3000,
+    "image_format": "jpeg",
+    "original_height": 9000,
+    "original_width": 12600,
+    "source_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0041.png"
+  },
+  "detail": "high",
+  "label_path": "CloudHammer_v2\\eval\\page_disjoint_real\\labels_gpt_provisional\\Revision_1_-_Drawing_Changes_p0041.txt",
+  "label_status": "gpt_provisional",
+  "manifest_row": {
+    "eligible_for_page_disjoint_real": true,
+    "eligible_standard_drawing": true,
+    "eval_subset": "page_disjoint_real",
+    "freeze_guard_reasons": [],
+    "freeze_policy": "page_disjoint_real_v1",
+    "frozen_at": "2026-05-02",
+    "gpt_label_metadata_path": "",
+    "gpt_review_overlay_path": "",
+    "height_px": 9000,
+    "label_path": "",
+    "label_status": "unlabeled",
+    "page_index": 41,
+    "page_kind": "drawing",
+    "page_number": 42,
+    "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+    "pdf_stem": "Revision #1 - Drawing Changes",
+    "render_exists": true,
+    "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0041.png",
+    "revision_group": "Revision #1 - Drawing Changes",
+    "schema": "cloudhammer_v2.touched_page_registry.row.v1",
+    "sheet_id": "PL105",
+    "sheet_title": "DRAWING SYMBOLS",
+    "source_id": "Revision_1_-_Drawing_Changes",
+    "source_page_key": "Revision_1_-_Drawing_Changes:p0041",
+    "touch_roles": {},
+    "touched": false,
+    "width_px": 12600
+  },
+  "min_confidence": 0.4,
+  "model": "gpt-5.4",
+  "parsed_response": {
+    "boxes": [
+      {
+        "confidence": 0.98,
+        "visual_type": "thin",
+        "x1": 977,
+        "x2": 2623,
+        "y1": 307,
+        "y2": 341
+      },
+      {
+        "confidence": 0.96,
+        "visual_type": "thin",
+        "x1": 1288,
+        "x2": 2309,
+        "y1": 919,
+        "y2": 956
+      }
+    ],
+    "has_cloud": true
+  },
+  "raw_response_text": "{\"has_cloud\":true,\"boxes\":[{\"x1\":977,\"y1\":307,\"x2\":2623,\"y2\":341,\"confidence\":0.98,\"visual_type\":\"thin\"},{\"x1\":1288,\"y1\":919,\"x2\":2309,\"y2\":956,\"confidence\":0.96,\"visual_type\":\"thin\"}]}",
+  "review_overlay_path": "CloudHammer_v2\\eval\\page_disjoint_real\\overlays_gpt_provisional\\Revision_1_-_Drawing_Changes_p0041.jpg",
+  "schema": "cloudhammer_v2.fullpage_gpt_label.v1",
+  "source_page_key": "Revision_1_-_Drawing_Changes:p0041",
+  "status": "ok"
+}

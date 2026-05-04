@@ -1,0 +1,10 @@
+{
+  "format": "LabelFileFormat.YOLO",
+  "image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.png",
+  "label_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real_human_review\\labels\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.txt",
+  "review_result": "positive",
+  "review_tool": "labelImg",
+  "reviewed": true,
+  "reviewed_at": "2026-05-03T22:09:14.960938+00:00",
+  "shape_count": 2
+}

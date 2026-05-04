@@ -1,0 +1,102 @@
+{
+  "accepted_box_count": 2,
+  "accepted_boxes": [
+    {
+      "api_box_xyxy": [
+        2626,
+        772,
+        2699,
+        823
+      ],
+      "confidence": 0.82,
+      "visual_type": "bold",
+      "x1": 11029.2,
+      "x2": 11335.8,
+      "y1": 3242.184,
+      "y2": 3456.37
+    },
+    {
+      "api_box_xyxy": [
+        2640,
+        1144,
+        2691,
+        1190
+      ],
+      "confidence": 0.78,
+      "visual_type": "bold",
+      "x1": 11088.0,
+      "x2": 11302.2,
+      "y1": 4804.48,
+      "y2": 4997.667
+    }
+  ],
+  "api_image": {
+    "api_path": "CloudHammer_v2\\eval\\page_disjoint_real\\api_inputs\\Revision_1_-_Drawing_Changes_6cbee960_p0034.jpg",
+    "compressed_height": 2143,
+    "compressed_width": 3000,
+    "image_format": "jpeg",
+    "original_height": 9000,
+    "original_width": 12600,
+    "source_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0034.png"
+  },
+  "detail": "high",
+  "label_path": "CloudHammer_v2\\eval\\page_disjoint_real\\labels_gpt_provisional\\Revision_1_-_Drawing_Changes_p0034.txt",
+  "label_status": "gpt_provisional",
+  "manifest_row": {
+    "eligible_for_page_disjoint_real": true,
+    "eligible_standard_drawing": true,
+    "eval_subset": "page_disjoint_real",
+    "freeze_guard_reasons": [],
+    "freeze_policy": "page_disjoint_real_v1",
+    "frozen_at": "2026-05-02",
+    "gpt_label_metadata_path": "",
+    "gpt_review_overlay_path": "",
+    "height_px": 9000,
+    "label_path": "",
+    "label_status": "unlabeled",
+    "page_index": 34,
+    "page_kind": "drawing",
+    "page_number": 35,
+    "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+    "pdf_stem": "Revision #1 - Drawing Changes",
+    "render_exists": true,
+    "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0034.png",
+    "revision_group": "Revision #1 - Drawing Changes",
+    "schema": "cloudhammer_v2.touched_page_registry.row.v1",
+    "sheet_id": "P-418",
+    "sheet_title": "EXISTING 4\" SS DN",
+    "source_id": "Revision_1_-_Drawing_Changes",
+    "source_page_key": "Revision_1_-_Drawing_Changes:p0034",
+    "touch_roles": {},
+    "touched": false,
+    "width_px": 12600
+  },
+  "min_confidence": 0.4,
+  "model": "gpt-5.4",
+  "parsed_response": {
+    "boxes": [
+      {
+        "confidence": 0.82,
+        "visual_type": "bold",
+        "x1": 2626,
+        "x2": 2699,
+        "y1": 772,
+        "y2": 823
+      },
+      {
+        "confidence": 0.78,
+        "visual_type": "bold",
+        "x1": 2640,
+        "x2": 2691,
+        "y1": 1144,
+        "y2": 1190
+      }
+    ],
+    "has_cloud": true
+  },
+  "raw_response_text": "{\"has_cloud\":true,\"boxes\":[{\"x1\":2626,\"y1\":772,\"x2\":2699,\"y2\":823,\"confidence\":0.82,\"visual_type\":\"bold\"},{\"x1\":2640,\"y1\":1144,\"x2\":2691,\"y2\":1190,\"confidence\":0.78,\"visual_type\":\"bold\"}]}",
+  "review_overlay_path": "CloudHammer_v2\\eval\\page_disjoint_real\\overlays_gpt_provisional\\Revision_1_-_Drawing_Changes_p0034.jpg",
+  "schema": "cloudhammer_v2.fullpage_gpt_label.v1",
+  "source_page_key": "Revision_1_-_Drawing_Changes:p0034",
+  "status": "ok"
+}

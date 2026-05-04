@@ -265,3 +265,31 @@ If related problems are discovered during a task:
 - identify whether they are blocking or optional
 
 and extra goblins on the side.
+
+## Fresh Session Check
+
+Before starting high-risk or high-context work, pause and ask the user whether they want to start a fresh agent session.
+
+High-risk/high-context work includes:
+
+- touched-page registry changes
+- eval selection or freezing
+- GPT labeling runs
+- label conversion or label promotion
+- model-vs-pipeline evaluation
+- training or retraining
+- importing legacy CloudHammer code
+- moving datasets, model runs, generated outputs, or revision sets
+- modifying security/deployment behavior
+- bulk cleanup or archive moves
+- any task that relies on subtle distinctions between touched, reviewed, training, validation, eval, synthetic, or frozen data
+
+Use this wording:
+
+“Before I proceed: this is a high-risk/high-context task. Do you want to start a fresh agent session and have me re-read the canonical docs first?”
+
+If the user says continue, proceed with extra caution and restate the key assumptions before making changes.
+
+Do not ask this for minor documentation edits, typo fixes, report summaries, or non-destructive read-only inspections unless the context appears stale or ambiguous.
+
+When in doubt, fresh session beats compacted context for eval, labels, data, training, or legacy imports.

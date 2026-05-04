@@ -47,6 +47,8 @@ def merge_manifest_reviews(manifest_path: Path, review_log_path: Path) -> list[d
         merged["reviewer"] = None if review is None else review.get("reviewer")
         merged["false_positive_reason"] = None if review is None else review.get("false_positive_reason")
         merged["false_positive_reason_label"] = None if review is None else review.get("false_positive_reason_label")
+        merged["accept_reason"] = None if review is None else review.get("accept_reason")
+        merged["accept_reason_label"] = None if review is None else review.get("accept_reason_label")
         merged["review_tags"] = None if review is None else review.get("review_tags")
         merged["review_note"] = None if review is None else review.get("review_note")
         rows.append(merged)
@@ -139,6 +141,7 @@ def summarize(rows: list[dict[str, Any]], manifest_path: Path, review_log_path: 
         "by_member_count": grouped_status(reviewed, "member_count"),
         "by_pdf_stem": grouped_status(reviewed, "pdf_stem"),
         "by_false_positive_reason": grouped_status(reviewed_subset(rows, "false_positive"), "false_positive_reason"),
+        "by_accept_reason": grouped_status(reviewed_subset(rows, "accept"), "accept_reason"),
         "confidence_bins": confidence_bins(reviewed),
         "area_stats_all": candidate_area_stats(reviewed),
         "area_stats_accept": candidate_area_stats(accepted),
@@ -182,6 +185,7 @@ def write_markdown(summary: dict[str, Any], output_path: Path) -> None:
     add_group("By Size Bucket", summary["by_size_bucket"], "size_bucket")
     add_group("By Member Count", summary["by_member_count"], "member_count")
     add_group("By False Positive Reason", summary["by_false_positive_reason"], "false_positive_reason")
+    add_group("By Accept Reason", summary["by_accept_reason"], "accept_reason")
 
     lines.extend(["", "## Confidence Bins", "", "| Confidence | Total | Accept | Non-Accept | Accept Rate | Statuses |", "| --- | ---: | ---: | ---: | ---: | --- |"])
     for row in summary["confidence_bins"]:
@@ -223,6 +227,10 @@ def main() -> int:
 
     write_jsonl(output_dir / "reviewed_candidates.jsonl", rows)
     write_jsonl(output_dir / "accepted_candidates.jsonl", reviewed_subset(rows, "accept"))
+    write_jsonl(
+        output_dir / "tagged_accepted_candidates.jsonl",
+        [row for row in reviewed_subset(rows, "accept") if row.get("accept_reason")],
+    )
     write_jsonl(output_dir / "false_positive_candidates.jsonl", reviewed_subset(rows, "false_positive"))
     write_jsonl(
         output_dir / "tagged_false_positive_candidates.jsonl",

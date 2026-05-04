@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("overmerge_rescue", "split_release", "candidate_review", "low_priority", "marker_fp", "marker_retained")]
+    [ValidateSet("overmerge_rescue", "split_release", "candidate_review", "low_priority", "marker_fp", "marker_retained", "new_model_eval", "symbol_text_model_eval")]
     [string] $Queue = "overmerge_rescue"
 )
 
@@ -51,6 +51,18 @@ switch ($Queue) {
         $Tool = Join-Path $CloudHammerRoot "utilities\whole_cloud_candidate_reviewer.py"
         $Manifest = Join-Path $RunRoot "marker_anchor_retained_review_v1\review_queue.jsonl"
         $ReviewLog = Join-Path $DataRoot "whole_cloud_candidate_reviews\whole_cloud_candidates_broad_deduped_lowconf_lowfill_tuned_20260428.marker_retained.review.jsonl"
+        $ToolArgs = @($Tool, "--manifest", $Manifest, "--review-log", $ReviewLog, "--order", "confidence_asc")
+    }
+    "new_model_eval" {
+        $Tool = Join-Path $CloudHammerRoot "utilities\whole_cloud_candidate_reviewer.py"
+        $Manifest = Join-Path $CloudHammerRoot "runs\whole_cloud_eval_marker_fp_hn_20260502\whole_cloud_candidates_manifest.jsonl"
+        $ReviewLog = Join-Path $DataRoot "whole_cloud_candidate_reviews\whole_cloud_eval_marker_fp_hn_20260502.review.jsonl"
+        $ToolArgs = @($Tool, "--manifest", $Manifest, "--review-log", $ReviewLog, "--order", "confidence_asc")
+    }
+    "symbol_text_model_eval" {
+        $Tool = Join-Path $CloudHammerRoot "utilities\whole_cloud_candidate_reviewer.py"
+        $Manifest = Join-Path $CloudHammerRoot "runs\whole_cloud_eval_symbol_text_fp_hn_20260502\whole_cloud_candidates_manifest.jsonl"
+        $ReviewLog = Join-Path $DataRoot "whole_cloud_candidate_reviews\whole_cloud_eval_symbol_text_fp_hn_20260502.review.jsonl"
         $ToolArgs = @($Tool, "--manifest", $Manifest, "--review-log", $ReviewLog, "--order", "confidence_asc")
     }
 }

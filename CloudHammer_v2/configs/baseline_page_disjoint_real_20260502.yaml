@@ -1,0 +1,8 @@
+paths:
+  outputs: outputs/baseline_model_only_tiled_page_disjoint_real_20260502
+
+inference:
+  confidence_threshold: 0.5
+  tile_size: 1280
+  tile_overlap: 192
+  nms_iou: 0.5

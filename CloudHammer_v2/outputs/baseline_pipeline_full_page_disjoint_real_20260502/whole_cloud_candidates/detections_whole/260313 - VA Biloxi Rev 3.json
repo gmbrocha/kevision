@@ -1,0 +1,226 @@
+{
+  "model": "whole_cloud_candidates_from:CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\fragment_grouping\\detections_grouped\\260313 - VA Biloxi Rev 3.json",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            5496.818619384766,
+            1954.8838354492186,
+            3299.4714953613284,
+            1038.8887011718753
+          ],
+          "confidence": 0.9772779888766152,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260313 - VA Biloxi Rev 3\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_001_large.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              4946.818619384766,
+              1404.8838354492186,
+              4399.471495361328,
+              2138.8887011718753
+            ],
+            "fill_ratio": 0.705154497244019,
+            "group_area": 3427783.6563695553,
+            "member_area_sum": 2417117.060868539,
+            "member_boxes_page": [
+              [
+                7630.675476074219,
+                2183.8566284179688,
+                8568.740356445312,
+                2762.1255493164062
+              ],
+              [
+                5727.42919921875,
+                2182.43359375,
+                6713.5509033203125,
+                2766.2227783203125
+              ],
+              [
+                7626.805358886719,
+                2186.5787353515625,
+                8562.4951171875,
+                2368.0
+              ],
+              [
+                5730.807861328125,
+                2188.5556640625,
+                6701.373779296875,
+                2366.027587890625
+              ],
+              [
+                6531.24951171875,
+                2186.9612426757812,
+                7770.73046875,
+                2765.758056640625
+              ],
+              [
+                6532.3482666015625,
+                2189.587646484375,
+                7758.530517578125,
+                2355.188232421875
+              ],
+              [
+                5724.368377685547,
+                2188.5791015625,
+                6704.425537109375,
+                2225.831787109375
+              ]
+            ],
+            "member_confidences": [
+              0.9384777545928955,
+              0.9231228232383728,
+              0.8431717753410339,
+              0.8075453042984009,
+              0.7477571964263916,
+              0.578080952167511,
+              0.5117191076278687
+            ],
+            "member_count": 7,
+            "member_indexes": [
+              1,
+              2,
+              4,
+              6,
+              7,
+              9,
+              10
+            ],
+            "model_confidence": 0.9384777545928955,
+            "size_bucket": "large",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.9772779888766152
+          },
+          "source_mode": "whole_cloud_candidate"
+        },
+        {
+          "bbox_page": [
+            5628.806025390625,
+            3698.930048828125,
+            2492.1769506835935,
+            614.9766943359373
+          ],
+          "confidence": 0.9375468468666077,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260313 - VA Biloxi Rev 3\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188_whole_002_large.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              5078.806025390625,
+              3148.930048828125,
+              3592.1769506835926,
+              1714.9766943359373
+            ],
+            "fill_ratio": 0.43816632247783444,
+            "group_area": 1532630.7428316125,
+            "member_area_sum": 671547.1763029993,
+            "member_boxes_page": [
+              [
+                7616.871154785156,
+                3873.3853759765625,
+                7949.108703613281,
+                4142.032470703125
+              ],
+              [
+                5800.6802978515625,
+                3872.071533203125,
+                6720.0,
+                4139.728271484375
+              ],
+              [
+                6552.3121337890625,
+                3870.8043212890625,
+                7803.2662353515625,
+                4139.58349609375
+              ]
+            ],
+            "member_confidences": [
+              0.90687096118927,
+              0.841989278793335,
+              0.6612991094589233
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              3,
+              5,
+              8
+            ],
+            "model_confidence": 0.90687096118927,
+            "size_bucket": "large",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.9375468468666077
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 189,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0188.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3797.1308203125,
+            6291.581748046875,
+            717.9200000000001,
+            758.4309252929688
+          ],
+          "confidence": 0.9539915406703949,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\crops\\260313 - VA Biloxi Rev 3\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0197_whole_001_small.png",
+          "metadata": {
+            "confidence_tier": "high",
+            "crop_box_page": [
+              3247.1308203125,
+              5741.581748046875,
+              1817.92,
+              1858.4309252929688
+            ],
+            "fill_ratio": 0.2688388974903204,
+            "group_area": 544492.7298863282,
+            "member_area_sum": 146380.8251941353,
+            "member_boxes_page": [
+              [
+                4057.04833984375,
+                6347.40869140625,
+                4462.7452392578125,
+                6538.4332275390625
+              ],
+              [
+                3849.4364013671875,
+                6727.178909301758,
+                4027.5340576171875,
+                6997.707092285156
+              ],
+              [
+                4353.021286010742,
+                6343.8873291015625,
+                4461.336227416992,
+                6535.0181884765625
+              ]
+            ],
+            "member_confidences": [
+              0.901692807674408,
+              0.8696152567863464,
+              0.7940235137939453
+            ],
+            "member_count": 3,
+            "member_indexes": [
+              1,
+              2,
+              3
+            ],
+            "model_confidence": 0.901692807674408,
+            "size_bucket": "small",
+            "source_group_mode": "fragment_group",
+            "whole_cloud_confidence": 0.9539915406703949
+          },
+          "source_mode": "whole_cloud_candidate"
+        }
+      ],
+      "page": 198,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #3 - EHRM Drawings\\260313 - VA Biloxi Rev 3.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260313_-_VA_Biloxi_Rev_3_ff19da68_p0197.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

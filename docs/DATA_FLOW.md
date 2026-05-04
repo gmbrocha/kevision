@@ -14,7 +14,10 @@ Status: canonical high-level data flow as of 2026-05-02.
 
 ## Human-In-The-Loop Points
 
-- GPT-provisional full-page labels for frozen eval pages need audit status.
+- Frozen `page_disjoint_real` eval pages should be human-reviewed directly.
+  GPT full-page output on those pages is scratch only. GPT-5.5 prelabeling is
+  appropriate for cropped training/review candidates with `gpt_provisional`
+  status.
 - Detection outputs may need review before deliverable inclusion.
 - Scope/detail text remains reviewable evidence, not final automated truth.
 

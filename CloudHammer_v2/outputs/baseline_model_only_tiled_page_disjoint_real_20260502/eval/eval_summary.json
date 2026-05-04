@@ -1,0 +1,39 @@
+{
+  "confidence_buckets": {
+    "high_0.75_plus": 50,
+    "medium_0.50_0.75": 20
+  },
+  "detections_dir": "CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\detections",
+  "eval_manifest": "CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.gpt_provisional.jsonl",
+  "eval_subset": "page_disjoint_real",
+  "iou_25": {
+    "f1": 0.04761904761904761,
+    "false_positives_per_page": 4.0,
+    "fn": 12,
+    "fp": 68,
+    "precision": 0.02857142857142857,
+    "recall": 0.14285714285714285,
+    "threshold": 0.25,
+    "tp": 2
+  },
+  "iou_50": {
+    "f1": 0.0,
+    "false_positives_per_page": 4.117647058823529,
+    "fn": 14,
+    "fp": 70,
+    "precision": 0.0,
+    "recall": 0.0,
+    "threshold": 0.5,
+    "tp": 0
+  },
+  "label_status": "gpt_provisional",
+  "labels": 14,
+  "pages": 17,
+  "pages_with_labels": 8,
+  "pages_with_predictions": 17,
+  "prediction_source": "model_only_tiled",
+  "predictions": 70,
+  "run_name": "model_only_tiled_page_disjoint_real_20260502",
+  "schema": "cloudhammer_v2.fullpage_eval_summary.v1",
+  "unmatched_detection_pages": 0
+}

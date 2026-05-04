@@ -14,6 +14,23 @@ from cloudhammer.infer.fragment_grouping import GroupingParams, grouping_summary
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = ROOT.parent
+
+
+def resolve_project_path(value: str | Path | None) -> Path:
+    if value is None or str(value) == "":
+        return Path("")
+    candidate = Path(value)
+    if candidate.exists():
+        return candidate.resolve()
+    parts = candidate.parts
+    for anchor, root in (("CloudHammer", ROOT), ("revision_sets", REPO_ROOT / "revision_sets")):
+        for index, part in enumerate(parts):
+            if part.lower() == anchor.lower():
+                relocated = root.joinpath(*parts[index + 1 :])
+                if relocated.exists():
+                    return relocated.resolve()
+    return candidate
 
 
 def draw_group_overlay(image, fragments, groups, output_path: Path) -> None:
@@ -72,7 +89,8 @@ def process_detection_file(det_path: Path, output_dir: Path, params: GroupingPar
     for page in pages:
         if not page.render_path:
             continue
-        image = cv2.imread(page.render_path, cv2.IMREAD_GRAYSCALE)
+        render_path = resolve_project_path(page.render_path)
+        image = cv2.imread(str(render_path), cv2.IMREAD_GRAYSCALE)
         if image is None:
             continue
         height, width = image.shape[:2]
@@ -90,10 +108,10 @@ def process_detection_file(det_path: Path, output_dir: Path, params: GroupingPar
         page_summary = grouping_summary(page.detections, groups)
         page_summary.update(
             {
-                "pdf": page.pdf,
+                "pdf": str(resolve_project_path(page.pdf)),
                 "pdf_stem": det_path.stem,
                 "page": page.page,
-                "render_path": page.render_path,
+                "render_path": str(render_path),
                 "overlay_path": str(overlay_path),
             }
         )

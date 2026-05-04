@@ -15,6 +15,26 @@ from cloudhammer.page_catalog import stable_page_key
 from cloudhammer.runtime import configure_local_artifact_cache
 
 
+CLOUDHAMMER_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = CLOUDHAMMER_ROOT.parent
+
+
+def resolve_project_path(value: str | Path | None) -> Path:
+    if value is None or str(value) == "":
+        return Path("")
+    candidate = Path(value)
+    if candidate.exists():
+        return candidate.resolve()
+    parts = candidate.parts
+    for anchor, root in (("CloudHammer", CLOUDHAMMER_ROOT), ("revision_sets", REPO_ROOT / "revision_sets")):
+        for index, part in enumerate(parts):
+            if part.lower() == anchor.lower():
+                relocated = root.joinpath(*parts[index + 1 :])
+                if relocated.exists():
+                    return relocated.resolve()
+    return candidate
+
+
 def _load_yolo(cfg: CloudHammerConfig, model_path: str | Path):
     configure_local_artifact_cache(cfg)
     try:
@@ -78,8 +98,8 @@ def infer_pages_from_manifest(
             continue
         if only_pdf_stem and only_pdf_stem.lower() not in str(row.get("pdf_stem", "")).lower():
             continue
-        render_path = row.get("render_path")
-        if not render_path or not Path(render_path).exists():
+        render_path = resolve_project_path(row.get("render_path"))
+        if not render_path or not render_path.exists():
             continue
         if limit is not None and processed >= limit:
             break
@@ -91,13 +111,14 @@ def infer_pages_from_manifest(
             confidence_threshold=float(cfg.data["inference"]["confidence_threshold"]),
             nms_iou=float(cfg.data["inference"]["nms_iou"]),
         )
-        key = stable_page_key(Path(row["pdf_path"]), int(row["page_index"]))
+        pdf_path = resolve_project_path(row.get("pdf_path"))
+        key = stable_page_key(pdf_path, int(row["page_index"]))
         image = cv2.imread(str(render_path), cv2.IMREAD_GRAYSCALE)
         save_crops(image, detections, cfg.path("outputs") / "crops", key)
         draw_overlay(image, detections, cfg.path("outputs") / "overlays" / f"{key}_clouds.png")
         outputs[str(row["pdf_stem"])].append(
             DetectionPage(
-                pdf=str(row["pdf_path"]),
+                pdf=str(pdf_path),
                 page=int(row["page_number"]),
                 detections=detections,
                 render_path=str(render_path),

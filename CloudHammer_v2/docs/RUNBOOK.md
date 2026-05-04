@@ -7,14 +7,127 @@ legacy commands from `CloudHammer/` without audit.
 
 ## Current Verified Commands
 
-No functional CloudHammer_v2 commands are verified yet. The workspace currently
-contains docs and scaffold folders only.
+Run from the repo root with the project venv.
+
+Build touched-page registry and freeze `page_disjoint_real`:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_touched_page_registry.py
+```
+
+Launch human review for frozen `page_disjoint_real` eval truth.
+
+Known working launch command:
+
+```powershell
+$imageList = Resolve-Path CloudHammer_v2\eval\page_disjoint_real_human_review\images_resolved.txt
+$startImage = Get-Content CloudHammer_v2\eval\page_disjoint_real_human_review\images_resolved.txt -TotalCount 1
+$imageDir = Split-Path -Parent $startImage
+$env:LABELIMG_IMAGE_LIST = $imageList
+$env:LABELIMG_START_IMAGE = $startImage
+.\.venv\Scripts\python.exe .\.venv\Lib\site-packages\labelImg\labelImg.py $imageDir (Resolve-Path CloudHammer_v2\eval\page_disjoint_real_human_review\labels\classes.txt) (Resolve-Path CloudHammer_v2\eval\page_disjoint_real_human_review\labels)
+```
+
+The older `labelImg.exe` entrypoint may exit immediately in this environment.
+The batch launcher still works as a dry-run/path verifier:
+
+Dry-run result should show `17` images and start at item `1`.
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer\scripts\launch_labelimg_batch.py page_disjoint_real_human_review --batch-root CloudHammer_v2\eval --reviewed-label-dir CloudHammer_v2\eval\page_disjoint_real_human_review\labels --class-file CloudHammer_v2\eval\page_disjoint_real_human_review\labels\classes.txt --dry-run --start-first
+```
+
+Human-review queue:
+`CloudHammer_v2/eval/page_disjoint_real_human_review/manifest.jsonl`
+
+Human truth labels:
+`CloudHammer_v2/eval/page_disjoint_real_human_review/labels/`
+
+These labels are frozen eval truth only. Do not add them or their pages to
+training, mining, synthetic backgrounds, threshold tuning, or GPT/model relabel
+loops.
+
+Launch human review for the diagnostic touched-real style-balance supplement:
+
+```powershell
+$imageList = Resolve-Path CloudHammer_v2\eval\style_balance_diagnostic_real_touched_20260503\images_resolved.txt
+$startImage = Get-Content CloudHammer_v2\eval\style_balance_diagnostic_real_touched_20260503\images_resolved.txt -TotalCount 1
+$imageDir = Split-Path -Parent $startImage
+$env:LABELIMG_IMAGE_LIST = $imageList
+$env:LABELIMG_START_IMAGE = $startImage
+.\.venv\Scripts\python.exe .\.venv\Lib\site-packages\labelImg\labelImg.py $imageDir (Resolve-Path CloudHammer_v2\eval\style_balance_diagnostic_real_touched_20260503\labels\classes.txt) (Resolve-Path CloudHammer_v2\eval\style_balance_diagnostic_real_touched_20260503\labels)
+```
+
+This supplement is diagnostic-only and not promotion-clean. Do not blend its
+metrics with `page_disjoint_real`.
+
+Historical only: GPT-provisional full-page labels were generated during setup,
+but `page_disjoint_real` should now be human-reviewed directly. Do not use this
+command to create eval truth:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\generate_gpt_fullpage_labels.py --manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.jsonl --output-dir CloudHammer_v2\eval\page_disjoint_real --model gpt-5.4 --detail high --max-dim 3000 --image-format jpeg --min-confidence 0.40 --env-file CloudHammer\.env --request-delay 0.25
+```
+
+Do not run the GPT-5.5 full-page diagnostic pass on `page_disjoint_real`. The
+existing accidental output is marked scratch/do-not-score.
+
+Run GPT-5.5 cropped prelabeling on the supplement review batch:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer\scripts\prelabel_cloud_rois_openai.py --config CloudHammer_v2\configs\gpt55_crop_prelabel_small_corpus_supplement_20260502.yaml --manifest CloudHammer\data\review_batches\small_corpus_expansion_supplement_20260502\prelabel_manifest.jsonl --model gpt-5.5 --detail high --max-dim 1536 --min-confidence 0.40 --image-format jpeg --env-file CloudHammer\.env --request-delay 0.25
+```
+
+Historical provisional baseline only: the following commands scored against a
+GPT-provisional manifest. Rerun against a human-audited `page_disjoint_real`
+manifest once it exists.
+
+Human-audited manifest now exists:
+
+```powershell
+CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.human_audited.jsonl
+```
+
+Rerun model-only scoring against human-audited truth:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\evaluate_fullpage_detections.py --eval-manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.human_audited.jsonl --detections-dir CloudHammer_v2\outputs\baseline_model_only_tiled_page_disjoint_real_20260502\detections --output-dir CloudHammer_v2\outputs\baseline_model_only_tiled_page_disjoint_real_20260502\eval_human_audited --run-name model_only_tiled_page_disjoint_real_human_audited_20260503 --prediction-source model_only_tiled
+```
+
+Rerun pipeline-full scoring against human-audited truth:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\evaluate_fullpage_detections.py --eval-manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.human_audited.jsonl --detections-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\whole_cloud_candidates\detections_whole --output-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\eval_human_audited --run-name pipeline_full_page_disjoint_real_human_audited_20260503 --prediction-source pipeline_full_grouped_whole_cloud_candidates
+```
+
+Run model-only tiled inference using the latest continuity checkpoint:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer\scripts\infer_pages.py --config CloudHammer_v2\configs\baseline_page_disjoint_real_20260502.yaml --model CloudHammer\runs\cloudhammer_roi-symbol-text-fp-hn-20260502\weights\best.pt --pages-manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.gpt_provisional.jsonl
+```
+
+Score model-only tiled detections:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\evaluate_fullpage_detections.py --eval-manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.gpt_provisional.jsonl --detections-dir CloudHammer_v2\outputs\baseline_model_only_tiled_page_disjoint_real_20260502\detections --output-dir CloudHammer_v2\outputs\baseline_model_only_tiled_page_disjoint_real_20260502\eval --run-name model_only_tiled_page_disjoint_real_20260502 --prediction-source model_only_tiled
+```
+
+Run pipeline grouping and whole-cloud export:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer\scripts\group_fragment_detections.py --detections-dir CloudHammer_v2\outputs\baseline_model_only_tiled_page_disjoint_real_20260502\detections --output-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\fragment_grouping --overmerge-refinement --overmerge-refinement-profile review_v1
+```
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer\scripts\export_whole_cloud_candidates.py --grouped-detections-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\fragment_grouping\detections_grouped --output-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\whole_cloud_candidates --crop-margin-ratio 0.16 --min-crop-margin 550 --max-crop-margin 950
+```
+
+Score pipeline-full detections:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\evaluate_fullpage_detections.py --eval-manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.gpt_provisional.jsonl --detections-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\whole_cloud_candidates\detections_whole --output-dir CloudHammer_v2\outputs\baseline_pipeline_full_page_disjoint_real_20260502\eval --run-name pipeline_full_page_disjoint_real_20260502 --prediction-source pipeline_full_grouped_whole_cloud_candidates
+```
 
 ## TODO
 
-- Add touched-page registry command after implemented.
-- Add freeze guard command after implemented.
-- Add GPT provisional full-page labeling command after implemented.
-- Add overlay/contact sheet command after implemented.
-- Add `model_only_tiled` baseline command after implemented.
-- Add `pipeline_full` baseline command after implemented and audited.
+- Add synthetic diagnostic commands only after implementation.

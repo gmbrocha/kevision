@@ -14,6 +14,14 @@ from cloudhammer.bootstrap.cloud_roi_extract import clip_bbox_xywh, derive_targe
 from cloudhammer.bootstrap.roi_extract import clip_square_roi
 from cloudhammer.contracts.detections import CloudDetection, DetectionPage
 from cloudhammer.data.yolo import _convert_voc_xml_to_yolo, _write_label
+from cloudhammer.data.source_control import (
+    audit_sources,
+    page_index_for_row,
+    revision_group_for_row,
+    source_capped_rows,
+    source_control_fields,
+    source_id_for_row,
+)
 from cloudhammer.infer.candidate_release import attach_release_decisions, decide_candidate_release
 from cloudhammer.infer.candidate_policy import classify_whole_cloud_candidate
 from cloudhammer.infer.crop_tightening import CropTighteningParams, crop_metrics, tightened_crop_box_for_bbox
@@ -38,6 +46,8 @@ from cloudhammer.prelabel.gpt_review_queue import (
 )
 from cloudhammer.prelabel.manifest_dedupe import crop_box_xyxy, dedupe_manifest_rows, summarize_dedupe
 from cloudhammer.prelabel.review_prep import copy_unreviewed_labels_for_labelimg
+from scripts.build_balanced_expansion_review_batch import select_balanced_expansion
+from scripts.build_source_split_manifest import _assign_source_disjoint_splits
 from utilities.large_cloud_context_labeler import Box, ImageCanvas, Region, square_crop_around_labels, write_annotation
 
 
@@ -246,6 +256,95 @@ def test_review_prep_copies_only_txt_without_overwriting(tmp_path: Path) -> None
     assert dst.joinpath("roi_001.txt").read_text(encoding="utf-8") == "corrected\n"
     assert dst.joinpath("classes.txt").read_text(encoding="utf-8") == "cloud_motif\n"
     assert not dst.joinpath("roi_001.png").exists()
+
+
+def test_source_control_normalizes_current_crop_id_formats() -> None:
+    row = {"cloud_roi_id": "eval_symbol_text_fp_hn_Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_006"}
+
+    assert source_id_for_row(row) == "Revision_1_-_Drawing_Changes_6cbee960"
+    assert page_index_for_row(row) == 1
+    assert revision_group_for_row(row) == "Revision #1 - Drawing Changes"
+
+    rev7 = {"cloud_roi_id": "Revision_Set_7_37f6066a_p0003_random_0199"}
+    assert source_id_for_row(rev7) == "Revision_Set_7_37f6066a"
+    assert page_index_for_row(rev7) == 3
+    assert revision_group_for_row(rev7) == "Revision #7 - RFI 141 - Deteriorated Attic Wood"
+
+
+def test_source_audit_detects_source_split_leakage() -> None:
+    rows = [
+        {"cloud_roi_id": "Revision_1_-_Drawing_Changes_6cbee960_p0001_m001", "split": "train"},
+        {"cloud_roi_id": "Revision_1_-_Drawing_Changes_6cbee960_p0002_m001", "split": "val"},
+        {"cloud_roi_id": "260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0001_m001", "split": "train"},
+    ]
+
+    summary = audit_sources(rows)
+
+    assert "Revision_1_-_Drawing_Changes_6cbee960" in summary["mixed_split_sources"]
+    assert not summary["mixed_split_source_pages"]
+
+
+def test_source_split_builder_excludes_quasi_holdout_and_caps_pages() -> None:
+    rows = [
+        {"cloud_roi_id": f"Revision_1_-_Drawing_Changes_6cbee960_p0001_m{index:03d}", "has_cloud": True}
+        for index in range(5)
+    ]
+    rows.extend(
+        {"cloud_roi_id": f"Revision_Set_7_37f6066a_p0003_m{index:03d}", "has_cloud": True}
+        for index in range(3)
+    )
+
+    assigned, holdout = _assign_source_disjoint_splits(
+        rows,
+        val_fraction=0.5,
+        quasi_holdout_revisions={"Revision #7 - RFI 141 - Deteriorated Attic Wood"},
+    )
+    capped = source_capped_rows(assigned, max_rows_per_source=10, max_rows_per_source_page=2)
+
+    assert len(holdout) == 3
+    assert all(row["split"] == "quasi_holdout" for row in holdout)
+    assert len(capped) == 2
+    assert all(row["source_page_key"].endswith(":p0001") for row in capped)
+
+
+def test_balanced_expansion_batch_respects_existing_ids_and_holdout(tmp_path: Path) -> None:
+    image = tmp_path / "crop.png"
+    image.write_text("placeholder", encoding="utf-8")
+    candidates = [
+        {
+            "cloud_roi_id": "Revision_1_-_Drawing_Changes_6cbee960_p0001_random_0001",
+            "image_path": str(image),
+            "review_bucket": "gpt_negative_spotcheck",
+        },
+        {
+            "cloud_roi_id": "Revision_1_-_Drawing_Changes_6cbee960_p0001_random_0002",
+            "image_path": str(image),
+            "review_bucket": "high_conf_positive",
+            "max_confidence": "0.95",
+        },
+        {
+            "cloud_roi_id": "Revision_Set_7_37f6066a_p0003_random_0001",
+            "image_path": str(image),
+            "review_bucket": "high_conf_positive",
+            "max_confidence": "0.96",
+        },
+    ]
+
+    selected, summary = select_balanced_expansion(
+        candidates,
+        existing_ids={"Revision_1_-_Drawing_Changes_6cbee960_p0001_random_0002"},
+        api_labeled_ids=set(),
+        target_count=10,
+        quotas={"normal_hard_negative": 5, "high_conf_positive": 5},
+        max_rows_per_source=5,
+        max_rows_per_source_page=5,
+        excluded_revisions={"Revision #7 - RFI 141 - Deteriorated Attic Wood"},
+    )
+
+    assert [source_control_fields(row)["source_page_index"] for row in selected] == [1]
+    assert [row["cloud_roi_id"] for row in selected] == ["Revision_1_-_Drawing_Changes_6cbee960_p0001_random_0001"]
+    assert summary["skipped"]["existing_reviewed"] == 1
+    assert summary["skipped"]["quasi_holdout_excluded"] == 1
 
 
 def test_prelabel_resolves_migrated_absolute_roi_path(tmp_path: Path) -> None:

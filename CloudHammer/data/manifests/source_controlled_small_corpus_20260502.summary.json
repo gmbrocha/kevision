@@ -1,0 +1,70 @@
+{
+  "base_manifests": [
+    "data\\manifests\\reviewed_plus_marker_fp_hn_plus_eval_symbol_text_fp_hn_20260502.jsonl"
+  ],
+  "dropped_by_source_caps": 399,
+  "leakage_failures": 0,
+  "mixed_split_source_pages": {},
+  "mixed_split_sources": {},
+  "output": "data\\manifests\\source_controlled_small_corpus_20260502.jsonl",
+  "quasi_holdout_rows": 30,
+  "quasi_output": "data\\manifests\\source_controlled_small_corpus_20260502.quasi_holdout.jsonl",
+  "revision_counts": {
+    "Revision #1 - Drawing Changes": 218,
+    "Revision #2 - Mod 5 grab bar supports": 125,
+    "Revision #3 - EHRM Drawings": 105,
+    "Revision #4 - Dental Air": 54
+  },
+  "schema": "cloudhammer.source_controlled_split_summary.v1",
+  "source_caps": {
+    "max_rows_per_source": 150,
+    "max_rows_per_source_page": 15
+  },
+  "split_counts": {
+    "train": 397,
+    "val": 105
+  },
+  "top_sources": [
+    [
+      "Revision_1_-_Drawing_Changes_6cbee960",
+      150
+    ],
+    [
+      "260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3",
+      82
+    ],
+    [
+      "Revision_1_-_Drawing_Changes",
+      68
+    ],
+    [
+      "260313_-_VA_Biloxi_Rev_3_ff19da68",
+      59
+    ],
+    [
+      "260313_-_VA_Biloxi_Rev_3",
+      46
+    ],
+    [
+      "260309_-_Drawing_Rev2-_Steel_Grab_Bars",
+      38
+    ],
+    [
+      "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137",
+      28
+    ],
+    [
+      "260219_-_VA_Biloxi_Rev_4_Plumbing_1",
+      26
+    ],
+    [
+      "Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4",
+      4
+    ],
+    [
+      "Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995",
+      1
+    ]
+  ],
+  "training_rows": 502
+}

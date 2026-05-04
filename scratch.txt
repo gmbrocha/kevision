@@ -1,0 +1,111 @@
+Overview - consider removing the Project Files and Packages import/edit to a new container in Projects?
+
+**Only checked one "nearby text" for a cloud, and it grabbed like the entire text for the whole page I think, maybe not the whole thing, but much much more text than is in the crop. 
+The only things we would ever need are much closer to the cloud/within. We ocassionally have icons/labels that do have to have the legend portion of the sheet already mapped/or map on the fly to get the values
+
+
+**IMPORTANT** kevin mentioned he was looking at some view, and it was the small thick dark clouds, which apparently are always plumbing revisions? He saw that one of these thick clouds was 
+linked to AE# something, both AE or whatever is architectural level, not plumbing, and we need to be specific.
+
+
+Checkpoint the tooling/review log.
+The reviewer is now useful and we should not lose this state.
+
+Build a conservative “apply split rescue reviews” step.
+It should consume:
+still_overmerged_rescue_analysis/selected_split_groups.jsonl
+
+It should preserve manual groups, selected auto groups, repair drops, and manual repair overrides.
+
+Do not over-automate ambiguous marker repairs yet.
+If ambiguity has no human override, keep it explicit or leave the selected proposal as-is. The 5/10 manual rate says the heuristic is useful, not sovereign.
+
+Then return to false positives / triangle anchor.
+Once rescued overmerges are integrated, the next best CloudHammer win is using marker proximity to suppress false positives conservatively.
+
+Project:
+- Add Project container, add padding below name/workspace creation.
+- "No archived projects" needs to be centered
+- Remove any of the green highlight overlay notifications from the header area
+
+
+Overview:
+- Modify package needs a way to remove selected PDFs for append, same with import new package
+
+Drawings:
+- 12 sheet-index matches are hidden. These are pages where a sheet number appears inside the drawing index, not necessarily the drawing page itself. These likely shouldn't make it past the cropping stage. The index will *only* be used to gather broad information like "which sheets have revisions for this set" and "what's the name of that revision - broadly"
+
+Export:
+- Remove the Google Drive connection, unneeded, not sure why this is there currently.
+
+
+**Google Sheets is *not* to be used as a shared review fallback
+
+
+
+
+Quick compare to previous set on the output - add it to review packet and workbook
+
+Sheets Name - add it to review packet
+
+
++==============================================================+
+|                      DO NOT FORGET                           |
++==============================================================+
+
+Current goal:
+Train CloudHammer into a reliable cloud detector/cropper. The target is one
+real clouded revision area per crop, with false positives beaten down through
+reviewed hard negatives, held-out evals, and model training. Pipeline or review
+tool work only matters if it directly creates training data, eval coverage, or
+model-facing feedback for that goal.
+
+Do not drift:
+Marker anchors, split/merge repair logic, texture/text/symbol false positives,
+and other pipeline rules are lessons to bake into the model/training/eval loop,
+not a reason to spend forever polishing plumbing.
+
+Next major goal:
+After the cloud crops are reliably good, move to reliable itemized/detail
+extraction from those crops: read the scope/details inside and immediately
+around the accepted cloud, preserve applicable detail callouts/items, and turn
+that into useful reviewable deliverable rows.
+
+Review bias guardrail:
+Dense plan context is not automatically partial, overmerged, or false. If the
+candidate actually captures one intended clouded revision area, mark it accept
+even when the surrounding drawing content is visually brutal. Use partial only
+when the real cloud is clipped/missed; use overmerged only when distinct clouds
+are bundled together.
+
+Training guardrail:
+Accepting a crop does not mean the full green crop rectangle becomes model
+truth. Door swing arcs, fixture circles, text curves, seals, and plan geometry
+stay non-cloud. Training boxes stay on the actual revision-cloud motif only.
+
+
+Directionally: last night’s training did improve the specific marker false-positive issue, but the full-page eval still has too much noise to promote. High-confidence candidates were decent but not clean: 21/29 accepted. Medium and low confidence were all rejected or partial in this sample.
+
+Next training move should be:
+
+Convert the 9 latest false positives into empty-label hard negatives.
+Keep the 6 partial and 2 overmerged cases as eval/cropper failure cases, not simple positive labels.
+Combine those new negatives with reviewed_plus_marker_fp_hard_negatives_20260502.
+Train the next detector from cloudhammer_roi-marker-fp-hn-20260502/weights/best.pt.
+Re-run the same held-out full-page eval before promoting anything.
+The short version: we are still beating down false positives. The previous round helped, but the next round should target symbol/fixture circles and text/glyph arcs specifically.
+
+
+What are our eval sets now?
+
+Eval sets:
+- page_disjoint_real
+- gold_source_family_clean_real
+- style_balance_diagnostic_real_touched
+- expert_simulated_diagnostic
+
+Candidate pools:
+- full_page_review_candidates_from_touched
+- mining_safe_hard_negative_candidates
+- synthetic_background_candidates
+- future_training_expansion_candidates

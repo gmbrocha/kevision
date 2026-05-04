@@ -7,7 +7,9 @@ training. The immediate objective is to prove what the YOLOv8 model knows
 versus what the surrounding pipeline fixes.
 
 GPT-heavy labeling is allowed for the current project under the project-specific
-approval exception, but frozen real holdouts remain the measuring stick.
+approval exception, but frozen real holdouts remain the measuring stick. For
+`page_disjoint_real`, GPT full-page labels are scratch only; the eval truth
+should be human-reviewed directly.
 
 ## Current Objective
 
@@ -25,7 +27,7 @@ Both paths must score against the same frozen full-page labels.
 1. Build touched-page registry and freeze guards.
 2. Select and freeze `page_disjoint_real` from all eligible page-clean full
    pages unless this removes rare training-needed positives.
-3. Generate GPT-provisional full-page labels.
+3. Human-review frozen `page_disjoint_real` pages directly to create eval truth.
 4. Produce overlays/contact sheets for human audit.
 5. Run baseline eval for `model_only_tiled` and `pipeline_full`.
 6. Implement `synthetic_diagnostic` only after the real baseline exists.

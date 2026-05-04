@@ -1,0 +1,41 @@
+{
+  "base_manifests": [
+    "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\reviewed_plus_marker_fp_hard_negatives_20260502.jsonl",
+    "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\eval_symbol_text_fp_hard_negatives_20260502.jsonl"
+  ],
+  "box_count": {
+    "0": 292,
+    "1": 390,
+    "2": 112,
+    "3": 41,
+    "4": 41,
+    "5": 28,
+    "6": 16,
+    "7": 8,
+    "8": 3
+  },
+  "has_cloud": {
+    "False": 292,
+    "True": 639
+  },
+  "output": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\reviewed_plus_marker_fp_hn_plus_eval_symbol_text_fp_hn_20260502.jsonl",
+  "queue_roots": [],
+  "skipped_duplicate_ids": 0,
+  "source_queue": {
+    "ambiguous_positive": 4,
+    "hard_negative_marker_no_cloud": 41,
+    "high_conf_positive": 51,
+    "weird_multi_faint_partial": 74
+  },
+  "splits": {
+    "train": 715,
+    "val": 216
+  },
+  "total_rows": 931,
+  "training_source": {
+    "base_manifest": 723,
+    "eval_symbol_text_fp_hard_negative": 9,
+    "marker_fp_hard_negative": 29,
+    "review_queue": 170
+  }
+}

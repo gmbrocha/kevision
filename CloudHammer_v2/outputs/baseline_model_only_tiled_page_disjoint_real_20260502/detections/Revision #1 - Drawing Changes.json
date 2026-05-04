@@ -1,0 +1,352 @@
+{
+  "model": "CloudHammer\\runs\\cloudhammer_roi-symbol-text-fp-hn-20260502\\weights\\best.pt",
+  "pages": [
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3264.0,
+            3706.749267578125,
+            257.01690673828125,
+            453.779296875
+          ],
+          "confidence": 0.8416493535041809,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0003_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            2518.572265625,
+            3698.090789794922,
+            924.333984375,
+            359.5566711425781
+          ],
+          "confidence": 0.8310801386833191,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0003_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 4,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0003.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            10865.864013671875,
+            5018.461730957031,
+            177.103515625,
+            115.6817626953125
+          ],
+          "confidence": 0.8389901518821716,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0032_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10862.348388671875,
+            3260.514892578125,
+            158.85888671875,
+            101.060791015625
+          ],
+          "confidence": 0.8028002381324768,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0032_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 33,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0032.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            10807.070190429688,
+            5003.9266357421875,
+            150.636474609375,
+            97.810302734375
+          ],
+          "confidence": 0.797623336315155,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0033_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10767.968017578125,
+            3197.927490234375,
+            152.476318359375,
+            100.5517578125
+          ],
+          "confidence": 0.7635098099708557,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0033_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10880.0,
+            5006.4122314453125,
+            79.32901000976562,
+            92.984375
+          ],
+          "confidence": 0.6618404388427734,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0033_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 34,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0033.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            10893.324340820312,
+            3258.8531494140625,
+            185.45053100585938,
+            120.3974609375
+          ],
+          "confidence": 0.8414126634597778,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0034_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            11037.823822021484,
+            4766.107971191406,
+            163.85858154296875,
+            111.73773193359375
+          ],
+          "confidence": 0.8163369297981262,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0034_cloud_002.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 35,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0034.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            1720.33935546875,
+            6281.298095703125,
+            179.849853515625,
+            131.7998046875
+          ],
+          "confidence": 0.8103544116020203,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0036_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10988.713836669922,
+            5580.6368408203125,
+            169.13531494140625,
+            113.75579833984375
+          ],
+          "confidence": 0.7782874703407288,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0036_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8761.087158203125,
+            1088.6413879394531,
+            134.912841796875,
+            276.36187744140625
+          ],
+          "confidence": 0.7143905162811279,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0036_cloud_003.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 37,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0036.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            3651.5036010742188,
+            4177.4317626953125,
+            180.91448974609375,
+            120.7720947265625
+          ],
+          "confidence": 0.8374388217926025,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0037_cloud_001.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 38,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0037.png"
+    },
+    {
+      "detections": [
+        {
+          "bbox_page": [
+            9797.710327148438,
+            1303.5846710205078,
+            1113.5950927734375,
+            122.85081481933594
+          ],
+          "confidence": 0.8832564353942871,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_001.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8710.359680175781,
+            3724.5438537597656,
+            972.2835083007812,
+            192.63546752929688
+          ],
+          "confidence": 0.8609318137168884,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_002.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            8768.788818359375,
+            1303.0647735595703,
+            1215.211181640625,
+            123.32701110839844
+          ],
+          "confidence": 0.8262162804603577,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_003.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5446.7806396484375,
+            1306.4004516601562,
+            1254.3841552734375,
+            123.6717529296875
+          ],
+          "confidence": 0.8050190210342407,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_004.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            5471.1571044921875,
+            3728.4573364257812,
+            1245.1510009765625,
+            184.6700439453125
+          ],
+          "confidence": 0.797440230846405,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_005.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4368.31640625,
+            1311.0430297851562,
+            1258.21826171875,
+            114.838134765625
+          ],
+          "confidence": 0.7947657108306885,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_006.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7624.46630859375,
+            1308.5740203857422,
+            1252.239501953125,
+            120.51783752441406
+          ],
+          "confidence": 0.7942655086517334,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_007.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6560.2347412109375,
+            3725.0139770507812,
+            1236.29052734375,
+            189.3399658203125
+          ],
+          "confidence": 0.7926522493362427,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_008.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4180.662353515625,
+            3724.1842041015625,
+            363.337646484375,
+            189.8426513671875
+          ],
+          "confidence": 0.7922706007957458,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_009.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4389.529541015625,
+            3728.2579956054688,
+            1241.970703125,
+            184.6690673828125
+          ],
+          "confidence": 0.7777561545372009,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_010.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            7654.209716796875,
+            3726.2816467285156,
+            1234.023681640625,
+            191.82199096679688
+          ],
+          "confidence": 0.7726179361343384,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_011.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            6574.5419921875,
+            1307.1173858642578,
+            1233.4580078125,
+            122.45664978027344
+          ],
+          "confidence": 0.7585985064506531,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_012.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            4164.092468261719,
+            1297.9883422851562,
+            379.10894775390625,
+            126.8406982421875
+          ],
+          "confidence": 0.7003302574157715,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_013.png",
+          "source_mode": "page_tile"
+        },
+        {
+          "bbox_page": [
+            10880.0,
+            1305.4435119628906,
+            45.61155319213867,
+            106.81439208984375
+          ],
+          "confidence": 0.6692422032356262,
+          "crop_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\crops\\Revision_1_-_Drawing_Changes_147e3aec_p0041_cloud_014.png",
+          "source_mode": "page_tile"
+        }
+      ],
+      "page": 42,
+      "pdf": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #1 - Drawing Changes\\Revision #1 - Drawing Changes.pdf",
+      "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_1_-_Drawing_Changes_6cbee960_p0041.png"
+    }
+  ],
+  "schema": "cloudhammer.detections.v1"
+}

@@ -1,0 +1,95 @@
+# Next Actions
+
+Status: operational queue as of 2026-05-02.
+
+## Now
+
+1. Finish docs/root cleanup if not complete.
+   - Current status: substantially complete. Root canonical docs are reduced to
+     `README.md`, `AGENTS.md`, `PRODUCT_AND_DELIVERY.md`, `ROADMAP.md`, and
+     `docs/`. `docs/SECURITY_PRIVACY_POLICY.md` remains as a compatibility stub.
+2. Add/verify AGENTS.md and Cursor rules.
+   - Current status: verified by project owner on 2026-05-02.
+3. Run report-only experiments retention review.
+   - Current status: completed at
+     `docs/archive_cleanup_audits/experiments_retention_review_2026_05_02.md`.
+     Approved lessons were promoted to CloudHammer_v2 docs.
+4. Run model-vs-pipeline audit.
+   - Current status: completed at
+     `CloudHammer_v2/docs/MODEL_VS_PIPELINE_AUDIT_REPORT_2026_05_02.md`.
+5. Build touched-page registry dry run.
+   - Current status: completed at
+     `CloudHammer_v2/outputs/touched_page_registry_20260502/touched_page_registry_summary.md`.
+6. Select `page_disjoint_real` candidates.
+   - Current status: completed. `17` untouched eligible pages were frozen at
+     `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_manifest.jsonl`.
+7. Correct GPT-provisional full-page label handling.
+   - Current status: corrected. GPT full-page labels are provisional only.
+     `page_disjoint_real` should be human-reviewed directly.
+   - Accidental GPT-5.5 full-page outputs are scratch/do-not-score at
+     `CloudHammer_v2/eval/page_disjoint_real_gpt55/DO_NOT_SCORE.md`.
+8. Run baseline eval: `model_only_tiled` vs `pipeline_full`.
+   - Current status: completed as a provisional dry run only. Report:
+     `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_02.md`.
+   - Must be rerun against human-reviewed `page_disjoint_real` truth before it
+     is used for steering.
+9. Only after real baseline exists, implement `synthetic_diagnostic`.
+   - Current status: grammar/spec exists; keep generation deferred until the
+     provisional real baseline has been human-audited enough to trust.
+
+## Immediate Human Review
+
+1. Human-review `page_disjoint_real` directly and create audited eval truth.
+   - Current status: completed and consolidated.
+   - Review queue:
+     `CloudHammer_v2/eval/page_disjoint_real_human_review/manifest.jsonl`.
+   - Labels write to
+     `CloudHammer_v2/eval/page_disjoint_real_human_review/labels/`.
+   - Human-audited eval manifest:
+     `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_manifest.human_audited.jsonl`.
+   - Summary:
+     `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_human_audited_summary.md`.
+2. Human-review/correct GPT-5.5 cropped training/review candidate prelabels.
+   - Current status: completed for
+     `CloudHammer/data/review_batches/small_corpus_expansion_supplement_20260502/prelabel_manifest.jsonl`.
+     Output:
+     `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`.
+3. Human-review the style-balance diagnostic touched-real queue.
+   - Current status: queued and launched.
+   - Manifest:
+     `CloudHammer_v2/eval/style_balance_diagnostic_real_touched_20260503/manifest.jsonl`.
+   - Summary:
+     `CloudHammer_v2/eval/style_balance_diagnostic_real_touched_20260503/selection_summary.json`.
+   - This set is diagnostic-only and must not be blended with
+     `page_disjoint_real`.
+4. Audit `model_only_tiled` false positives/misses after audited eval truth
+   exists.
+5. Audit `pipeline_full` grouped-candidate false positives/misses after audited
+   eval truth exists.
+6. Convert full-page corrections into frozen eval truth only.
+7. Use audited mismatches to plan the next training batch without mining frozen
+   eval pages.
+
+## Later
+
+- Import approved legacy code into CloudHammer_v2 after audit.
+- Archive runtime noise.
+- Decide old experiment retention.
+- Archive older generated runs.
+- Implement synthetic training augmentation.
+- Run GPT-assisted training loop.
+
+## Current Blockers
+
+- Baseline scoring must be rerun against consolidated human-audited
+  `page_disjoint_real` truth.
+- Baseline mismatch cases need human audit.
+- The strict clean page-disjoint pool is exhausted inside current sets; any
+  style-balanced supplement must be classified honestly as new-data holdout,
+  future retrain-from-scratch holdout, or diagnostic touched-real slice.
+- No permanent audited legacy code import has been executed for CloudHammer_v2;
+  current baseline reuse executed legacy scripts in place and logged that
+  boundary.
+- Latest legacy model is not promoted; it was trained before the
+  source-controlled split became the active standard and has only a
+  provisional page-disjoint baseline.

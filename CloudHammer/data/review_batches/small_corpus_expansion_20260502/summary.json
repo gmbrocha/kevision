@@ -1,0 +1,93 @@
+{
+  "available_by_bucket": {
+    "large_dense_context": 19,
+    "normal_hard_negative": 194,
+    "weird_positive": 1920
+  },
+  "candidate_manifests": [
+    "data\\random_drawing_crops_small_corpus_20260502\\manifest.jsonl",
+    "data\\manifests\\cloud_roi_broad_allmarkers_20260427.jsonl",
+    "data\\manifests\\cloud_roi_broad_candidates_20260427.jsonl",
+    "runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\whole_cloud_candidates_manifest.jsonl",
+    "data\\temp_random_gpt_review_queue\\manifest.jsonl"
+  ],
+  "excluded_revisions": [
+    "Revision #5 - RFI 126 - Concrete Repairs",
+    "Revision #7 - RFI 141 - Deteriorated Attic Wood"
+  ],
+  "existing_reviewed_manifests": [
+    "data\\manifests\\reviewed_plus_marker_fp_hn_plus_eval_symbol_text_fp_hn_20260502.jsonl"
+  ],
+  "images_copied": 300,
+  "quotas": {
+    "high_conf_positive": 60,
+    "large_dense_context": 45,
+    "normal_hard_negative": 75,
+    "symbol_text_false_positive": 60,
+    "weird_positive": 60
+  },
+  "rows": 300,
+  "schema": "cloudhammer.small_corpus_expansion_review_batch.v1",
+  "selected_by_bucket": {
+    "large_dense_context": 16,
+    "normal_hard_negative": 131,
+    "weird_positive": 153
+  },
+  "selected_by_revision": {
+    "Revision #1 - Drawing Changes": 80,
+    "Revision #2 - Mod 5 grab bar supports": 96,
+    "Revision #3 - EHRM Drawings": 83,
+    "Revision #4 - Dental Air": 41
+  },
+  "selected_by_source": [
+    [
+      "Revision_1_-_Drawing_Changes",
+      70
+    ],
+    [
+      "260309_-_Drawing_Rev2-_Steel_Grab_Bars",
+      70
+    ],
+    [
+      "260313_-_VA_Biloxi_Rev_3",
+      70
+    ],
+    [
+      "260219_-_VA_Biloxi_Rev_4_Plumbing_1",
+      40
+    ],
+    [
+      "260313_-_VA_Biloxi_Rev_3_ff19da68",
+      13
+    ],
+    [
+      "Drawing_Rev2-_Steel_Grab_Bars_AE107",
+      11
+    ],
+    [
+      "Revision_1_-_Drawing_Changes_6cbee960",
+      10
+    ],
+    [
+      "260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3",
+      8
+    ],
+    [
+      "Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1",
+      7
+    ],
+    [
+      "260219_-_VA_Biloxi_Rev_4_Architectural_1_1fbe070b",
+      1
+    ]
+  ],
+  "skipped": {
+    "existing_reviewed": 830,
+    "quasi_holdout_excluded": 124
+  },
+  "source_caps": {
+    "max_rows_per_source": 70,
+    "max_rows_per_source_page": 10
+  },
+  "target_count": 300
+}

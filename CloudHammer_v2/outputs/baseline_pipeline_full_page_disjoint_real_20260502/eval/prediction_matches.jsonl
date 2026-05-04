@@ -1,0 +1,5 @@
+{"iou": 0.302764, "label_index": 1, "prediction_confidence": 0.8951148902134577, "prediction_index": 1, "source_page_key": "Revision_1_-_Drawing_Changes:p0003", "threshold": 0.25}
+{"iou": 0.38272, "label_index": 1, "prediction_confidence": 0.8372076050313582, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0025", "threshold": 0.25}
+{"iou": 0.276656, "label_index": 1, "prediction_confidence": 0.9128686909632365, "prediction_index": 1, "source_page_key": "260309_-_Drawing_Rev2-_Steel_Grab_Bars:p0028", "threshold": 0.25}
+{"iou": 0.493384, "label_index": 1, "prediction_confidence": 0.9772779888766152, "prediction_index": 1, "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188", "threshold": 0.25}
+{"iou": 0.403548, "label_index": 2, "prediction_confidence": 0.9375468468666077, "prediction_index": 2, "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0188", "threshold": 0.25}

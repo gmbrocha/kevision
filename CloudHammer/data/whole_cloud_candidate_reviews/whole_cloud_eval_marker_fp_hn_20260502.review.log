@@ -1,0 +1,80 @@
+2026-05-02 02:28:37,608 INFO Starting reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_eval_marker_fp_hn_20260502\whole_cloud_candidates_manifest.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_candidate_reviews\whole_cloud_eval_marker_fp_hn_20260502.review.jsonl candidates=38 reviewed=0 order=confidence_asc
+2026-05-02 02:28:37,827 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_006
+2026-05-02 02:29:43,136 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_006 as false_positive reason=text_glyph_arcs
+2026-05-02 02:29:43,153 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_whole_002
+2026-05-02 02:30:05,817 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_whole_002 as false_positive reason=circular_symbol_fixture
+2026-05-02 02:30:05,831 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_009
+2026-05-02 02:30:14,542 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_009 as partial
+2026-05-02 02:30:14,555 INFO Loaded candidate Revision_Set_7_37f6066a_p0002_whole_003
+2026-05-02 02:30:17,872 INFO Reviewed candidate Revision_Set_7_37f6066a_p0002_whole_003 as false_positive reason=circular_symbol_fixture
+2026-05-02 02:30:17,882 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_008
+2026-05-02 02:30:19,415 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_008 as false_positive reason=circular_symbol_fixture
+2026-05-02 02:30:19,415 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002
+2026-05-02 02:30:20,243 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002 as false_positive reason=circular_symbol_fixture
+2026-05-02 02:30:20,254 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_002
+2026-05-02 02:31:29,402 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_002 as partial
+2026-05-02 02:31:29,417 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_005
+2026-05-02 02:32:17,905 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_005 as partial
+2026-05-02 02:32:17,925 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_007
+2026-05-02 02:33:33,942 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_007 as partial
+2026-05-02 02:33:33,960 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_003
+2026-05-02 02:33:36,132 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_003 as false_positive reason=text_glyph_arcs
+2026-05-02 02:33:36,167 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_003
+2026-05-02 02:33:37,704 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_003 as false_positive reason=text_glyph_arcs
+2026-05-02 02:33:37,710 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_008
+2026-05-02 02:33:41,257 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_008 as overmerged
+2026-05-02 02:33:41,288 INFO Loaded candidate Revision_Set_7_37f6066a_p0002_whole_002
+2026-05-02 02:34:27,819 INFO Reviewed candidate Revision_Set_7_37f6066a_p0002_whole_002 as false_positive reason=circular_symbol_fixture
+2026-05-02 02:34:27,836 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_001
+2026-05-02 02:34:32,293 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0000_whole_001 as accept
+2026-05-02 02:34:32,304 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_007
+2026-05-02 02:34:33,581 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_007 as accept
+2026-05-02 02:34:33,584 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006
+2026-05-02 02:34:34,422 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006 as accept
+2026-05-02 02:34:34,434 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_002
+2026-05-02 02:34:37,085 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_002 as accept
+2026-05-02 02:34:37,093 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_005
+2026-05-02 02:34:37,756 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_005 as accept
+2026-05-02 02:34:37,766 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_004
+2026-05-02 02:34:38,240 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_004 as accept
+2026-05-02 02:34:38,259 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_003
+2026-05-02 02:34:38,851 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_003 as accept
+2026-05-02 02:34:38,878 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_002
+2026-05-02 02:34:40,054 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_002 as accept
+2026-05-02 02:34:40,054 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_002
+2026-05-02 02:34:40,666 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_002 as accept
+2026-05-02 02:34:40,679 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_001
+2026-05-02 02:34:41,663 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0001_whole_001 as accept
+2026-05-02 02:34:41,678 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_whole_001
+2026-05-02 02:34:43,279 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0173_whole_001 as accept
+2026-05-02 02:34:43,334 INFO Loaded candidate Revision_Set_7_37f6066a_p0002_whole_001
+2026-05-02 02:35:33,253 INFO Reviewed candidate Revision_Set_7_37f6066a_p0002_whole_001 as false_positive reason=text_glyph_arcs
+2026-05-02 02:35:33,276 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005_whole_001
+2026-05-02 02:37:20,441 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0005_whole_001 as accept
+2026-05-02 02:37:20,459 INFO Loaded candidate Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_whole_001
+2026-05-02 02:37:24,557 INFO Reviewed candidate Drawing_Rev2-_Steel_Grab_Bars_AE107_e23b5995_p0000_whole_001 as accept
+2026-05-02 02:37:24,587 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_002
+2026-05-02 02:37:26,955 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_002 as accept
+2026-05-02 02:37:26,975 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_001
+2026-05-02 02:42:51,034 INFO Starting reviewer manifest=F:\Desktop\m\projects\scopeLedger\CloudHammer\runs\whole_cloud_eval_marker_fp_hn_20260502\whole_cloud_candidates_manifest.jsonl review_log=F:\Desktop\m\projects\scopeLedger\CloudHammer\data\whole_cloud_candidate_reviews\whole_cloud_eval_marker_fp_hn_20260502.review.jsonl candidates=38 reviewed=28 order=confidence_asc
+2026-05-02 02:42:51,303 INFO Loaded candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_001
+2026-05-02 08:58:28,373 INFO Reviewed candidate 260313_-_VA_Biloxi_Rev_3_ff19da68_p0172_whole_001 as accept
+2026-05-02 08:58:28,394 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_whole_001
+2026-05-02 08:58:31,309 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0003_whole_001 as accept
+2026-05-02 08:58:31,326 INFO Loaded candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_001
+2026-05-02 08:58:32,540 INFO Reviewed candidate 260309_-_Drawing_Rev2-_Steel_Grab_Bars_75d983f3_p0004_whole_001 as accept
+2026-05-02 08:58:32,591 INFO Loaded candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001
+2026-05-02 08:58:49,272 INFO Reviewed candidate 260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001 as overmerged
+2026-05-02 08:58:49,335 INFO Loaded candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001
+2026-05-02 08:58:52,888 INFO Reviewed candidate 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001 as accept
+2026-05-02 08:58:52,930 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_001
+2026-05-02 08:58:55,419 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_001 as accept
+2026-05-02 08:58:55,451 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_003
+2026-05-02 08:59:15,763 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_003 as partial
+2026-05-02 08:59:15,785 INFO Loaded candidate Revision_Set_7_37f6066a_p0003_whole_004
+2026-05-02 08:59:18,553 INFO Reviewed candidate Revision_Set_7_37f6066a_p0003_whole_004 as partial
+2026-05-02 08:59:18,575 INFO Loaded candidate Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_whole_001
+2026-05-02 08:59:22,012 INFO Reviewed candidate Drawing_Rev2-_Steel_Grab_Bars_R1_AE107.1_9b6a81f4_p0000_whole_001 as accept
+2026-05-02 08:59:22,035 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_001
+2026-05-02 08:59:23,372 INFO Reviewed candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_001 as accept
+2026-05-02 08:59:23,391 INFO Loaded candidate Revision_1_-_Drawing_Changes_6cbee960_p0002_whole_001

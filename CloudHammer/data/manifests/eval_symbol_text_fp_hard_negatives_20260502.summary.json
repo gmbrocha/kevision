@@ -1,0 +1,23 @@
+{
+  "candidate_source": "whole_cloud_eval_marker_fp_hn_20260502_review",
+  "false_positive_reason": {
+    "circular_symbol_fixture": 5,
+    "text_glyph_arcs": 4
+  },
+  "id_prefix": "eval_symbol_text_fp_hn",
+  "input": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_marker_fp_hn_20260502\\review_analysis\\false_positive_candidates.jsonl",
+  "label_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\cloud_labels_reviewed_eval_symbol_text_fp_hard_negatives_20260502",
+  "marker_anchor_bucket": {
+    "None": 9
+  },
+  "output": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\manifests\\eval_symbol_text_fp_hard_negatives_20260502.jsonl",
+  "schema": "cloudhammer.false_positive_hard_negative_training_manifest.v1",
+  "skipped_missing_images": 0,
+  "source_name": "eval_symbol_text_fp_hard_negatives_20260502",
+  "splits": {
+    "train": 8,
+    "val": 1
+  },
+  "total_rows": 9,
+  "training_source": "eval_symbol_text_fp_hard_negative"
+}
