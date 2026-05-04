@@ -167,7 +167,7 @@ Consequences:
   without an explicit follow-up task.
 
 
-## 2026-05-03 — Keep binary touched guard unchanged
+## 2026-05-03 - Keep Binary Touched Guard Unchanged
 
 Decision: Keep the current binary touched registry guard unchanged for now.
 
@@ -180,7 +180,7 @@ Consequences:
 - Before that enrichment, decide whether `roi_manifest.jsonl` and `roi_manifest_resolved_20260427.jsonl` should be deduped to avoid double-counting.
 - Optionally regenerate `delta_manifest.jsonl` against current workspace paths before consuming it as registry provenance.
 
-## 2026-05-03 — Keep weak provenance separate from binary touched status
+## 2026-05-03 - Keep Weak Provenance Separate From Binary Touched Status
 
 Decision: Do not collapse weaker provenance signals into the binary `touched` guard.
 
@@ -303,3 +303,26 @@ Consequences:
 - No legacy code is imported or modified.
 - The reviewed `crossing_line_x_patterns` count remains a later hard-negative
   or training-family candidate, not the primary postprocessing blocker.
+
+## 2026-05-04 - Static Diagnostic Viewer Before Postprocessor
+
+Decision: Use a static read-only HTML viewer as the review surface for the
+first non-frozen postprocessing diagnostic before building the dry-run
+postprocessor.
+
+Reason: The diagnostic rows are easier to understand when grouped candidate
+IDs, crop links, source page renders, and diagnostic-family metrics are visible
+together. Raw JSONL review is too easy to misread and too slow for spotting
+merge, duplicate, overmerge, and localization patterns.
+
+Consequences:
+
+- Viewer artifact:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
+- The viewer is read-only and writes no review metadata.
+- It consumes existing non-frozen diagnostic rows and existing crop/page paths
+  only.
+- It must not edit truth labels, eval manifests, predictions, model files,
+  datasets, training data, or frozen eval artifacts.
+- Next implementation step remains a dry-run postprocessor on non-frozen
+  diagnostic inputs.

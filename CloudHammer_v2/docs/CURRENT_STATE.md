@@ -13,8 +13,9 @@ The immediate objective was to establish the real full-page eval baseline before
 more training, synthetic generation, or pipeline tuning. That baseline now
 exists against human-audited `page_disjoint_real` truth, the baseline mismatch
 review has been human-bucketed, and a first non-frozen postprocessing diagnostic
-has been generated. Current work is reviewing that diagnostic and defining
-guarded candidate pools before the next training decision.
+has been generated with a static viewer. Current work is spot-checking that
+diagnostic, then building a dry-run postprocessor and defining guarded
+candidate pools before the next training decision.
 
 ## Eval Baseline Status
 
@@ -63,10 +64,15 @@ guarded candidate pools before the next training decision.
   `44` diagnostic rows: `19` fragment-merge candidates, `0`
   duplicate-suppression candidates, `1` overmerge-split candidate, and `24`
   loose-localization candidates.
+- Static viewer for those diagnostic rows:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
+  links grouped candidate IDs to their existing crop paths and source page
+  renders. It is read-only and writes no review metadata.
 - Current blocker: review the non-frozen postprocessing diagnostic rows and
-  decide whether to implement a dry-run merge/suppress/split/localization
-  postprocessor. Two `truth_followup` rows require a separate frozen-truth
-  recheck task and do not change truth automatically.
+  use the static viewer to spot-check candidate groups before implementing a
+  dry-run merge/suppress/split/localization postprocessor. Two
+  `truth_followup` rows require a separate frozen-truth recheck task and do not
+  change truth automatically.
 
 ## Eval Subset Status
 
@@ -189,25 +195,27 @@ No experiment code was imported.
 
 ## Immediate Next Steps
 
-1. Review the first non-frozen postprocessing diagnostic:
-   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`
-   and spot-check candidate rows before implementing any postprocessor.
-2. Triage the two `truth_followup` rows as a separate frozen-truth recheck task;
+1. Spot-check the first non-frozen postprocessing diagnostic:
+   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
+   and inspect candidate rows before implementing any postprocessor.
+2. Build a dry-run merge/suppress/split/localization postprocessor on
+   non-frozen diagnostic inputs only.
+3. Triage the two `truth_followup` rows as a separate frozen-truth recheck task;
    do not edit truth automatically from mismatch metadata.
-3. Define and generate the candidate-pool manifests:
+4. Define and generate the candidate-pool manifests:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,
    `synthetic_background_candidates`, and
    `future_training_expansion_candidates`.
-4. Human-review `style_balance_diagnostic_real_touched_20260503`.
-5. Human-review/correct the GPT-5.5 cropped supplement prelabels.
-6. Convert any audited full-page eval corrections into frozen eval truth, not
+5. Human-review `style_balance_diagnostic_real_touched_20260503`.
+6. Human-review/correct the GPT-5.5 cropped supplement prelabels.
+7. Convert any audited full-page eval corrections into frozen eval truth, not
    training data.
-7. Decide the next training cycle only after postprocessing diagnostics and
+8. Decide the next training cycle only after postprocessing diagnostics and
    candidate-pool review clarify what should become training signal. The
    reviewed `crossing_line_x_patterns` count is a later hard-negative/training
    candidate family, not the primary blocker for the next cycle.
-8. Implement `synthetic_diagnostic` only after the real baseline and candidate
+9. Implement `synthetic_diagnostic` only after the real baseline and candidate
    pools are trustworthy enough to serve as a diagnostic ruler.
 
 ## Do Not Touch

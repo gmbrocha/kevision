@@ -1,6 +1,6 @@
 # CloudHammer_v2 Runbook
 
-Status: known-command runbook stub.
+Status: verified command runbook.
 
 Only add commands here after they are verified for CloudHammer_v2. Do not copy
 legacy commands from `CloudHammer/` without audit.
@@ -213,6 +213,30 @@ Expected artifacts:
 Safety: report-only. It must not edit truth labels, eval manifests,
 prediction files, model files, datasets, or training data. It is not threshold
 tuning, and frozen eval pages remain measurement-only.
+
+Build a static HTML viewer for the non-frozen postprocessing diagnostic rows.
+This links each diagnostic row to grouped candidate IDs, existing crop paths,
+and source page renders:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_diagnostic_viewer.py
+```
+
+Purpose: make the diagnostic rows reviewable without opening raw JSONL or
+manually chasing crop paths.
+
+Working directory: repo root.
+
+Expected artifact:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
+
+Open it from a browser or from a static server rooted at the repo root. If crop
+images return `404`, the server is likely rooted in the wrong directory.
+
+Safety: read-only. It consumes existing diagnostic rows and candidate crop
+paths. It must not edit truth labels, eval manifests, prediction files, model
+files, datasets, or training data.
 
 Run model-only tiled inference using the latest continuity checkpoint:
 

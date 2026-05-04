@@ -41,7 +41,8 @@ next training or synthetic decision.
    Completed for the current `77`-row baseline review.
 7. Run postprocessing diagnostics on non-frozen data for fragment merging,
    duplicate suppression, overmerge splitting, and localization. First
-   report-only diagnostic generated; needs spot review before implementation.
+   report-only diagnostic and static viewer generated; spot-check the rows
+   before implementing any dry-run postprocessor.
 8. Define/generate guarded candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,
@@ -58,6 +59,11 @@ postprocessing diagnostics clarify what remains true model-training signal. New
 training data should come from GPT-assisted labeling, model/GPT disagreement
 queues, reviewed hard negatives, candidate-pool review, and pipeline findings
 converted into training signal without mining frozen eval pages.
+
+The next implementation step is postprocessing-first: build a dry-run
+merge/suppress/split/localization postprocessor on non-frozen diagnostic inputs,
+then measure candidate behavior before deciding whether any remaining signal is
+training data.
 
 ## Reporting Rule
 

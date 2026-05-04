@@ -22,14 +22,16 @@ data into this workspace without audit, and record every import in
 - Keep real eval subsets separate from synthetic diagnostics.
 - Do not copy old code until the relevant behavior is audited.
 - Do not move existing datasets, model runs, or legacy artifacts.
-- Do not implement synthetic generation until the real eval baseline exists.
+- Do not implement synthetic generation until the human-audited baseline,
+  mismatch review, postprocessing findings, and candidate pools are trustworthy
+  enough to steer diagnostics.
 
 ## Folder Roles
 
-- `docs/`: subsystem policy, audit, and runbook docs
-- `configs/`: future eval/training configs
-- `scripts/`: future audited v2 scripts
-- `data/`: future v2 manifests and small metadata artifacts
-- `models/`: future promoted v2 model references
-- `eval/`: future frozen eval manifests and reports
-- `outputs/`: future generated v2 outputs
+- `docs/`: subsystem policy, audit, state, reports, and runbook docs
+- `configs/`: eval/training configs and audited workflow configs
+- `scripts/`: purpose-specific v2 scripts and audited helpers
+- `data/`: v2 manifests and small metadata artifacts
+- `models/`: promoted v2 model references when a model is promoted
+- `eval/`: frozen eval manifests, review queues, and eval reports
+- `outputs/`: generated v2 diagnostics, reports, and review artifacts

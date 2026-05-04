@@ -113,10 +113,15 @@ human-audited `page_disjoint_real` scoring completed on 2026-05-04.
 - First non-frozen postprocessing diagnostic:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`
   with `44` report-only diagnostic rows from `34` non-frozen candidates.
+- Static viewer for the diagnostic:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
+  links grouped candidate IDs to existing crop paths and source page renders.
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
-- Current blocker: review the non-frozen postprocessing diagnostic before model
-  selection, training decisions, threshold tuning, or promotion claims.
+- Current blocker: spot-check the non-frozen postprocessing diagnostic in the
+  static viewer, then build a dry-run postprocessor for merge/suppress/split
+  and localization behavior before model selection, training decisions,
+  threshold tuning, or promotion claims.
 
 Correction note: GPT-5.5 full-page labels on `page_disjoint_real` were created
 by mistake and are marked do-not-score. GPT-5.5 was rerun on the intended
@@ -126,8 +131,11 @@ human review before training use.
 ## Immediate Next Steps
 
 - AGENTS.md and Cursor rules were manually verified against the current docs.
-- Review the completed non-frozen postprocessing diagnostic for fragments,
-  duplicate predictions, overmerges, split fragments, and localization.
+- Spot-check the completed non-frozen postprocessing diagnostic in the static
+  viewer for fragments, duplicate predictions, overmerges, split fragments, and
+  localization.
+- Build the first dry-run postprocessor only on non-frozen diagnostic inputs;
+  keep frozen `page_disjoint_real` pages as measurement-only.
 - Triage the two `truth_followup` rows as a separate frozen-truth recheck task.
 - Define and generate the next candidate pools without treating them as eval
   subsets:
