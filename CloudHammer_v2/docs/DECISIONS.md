@@ -192,3 +192,25 @@ Consequences:
 - Future registry enrichment may add `delta_marker_detected`, `was_in_review_priority_queue`, and `had_unreviewed_candidate_rois` as separate fields.
 - Before adding `had_unreviewed_candidate_rois`, dedupe or choose between `roi_manifest.jsonl` and `roi_manifest_resolved_20260427.jsonl` to avoid double-counting.
 - Before relying on `delta_manifest.jsonl` as a registry input, refresh it or normalize old workspace path prefixes.
+
+## 2026-05-04 - Human-Audited Page-Disjoint Baseline Completed
+
+Decision: Treat the human-audited `page_disjoint_real` scoring as the current
+steering baseline, while keeping it separate from promotion claims until
+mismatch cases are audited and bucketed.
+
+Reason: The same frozen human-audited truth was used to score
+`model_only_tiled` and `pipeline_full`. At IoU `0.25`, `pipeline_full` reduced
+false positives substantially and produced stronger F1, while
+`model_only_tiled` retained higher recall.
+
+Consequences:
+
+- Current report:
+  `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_04.md`
+- Mismatch queue:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`
+- Do not train, tune thresholds, mine hard negatives, or generate synthetic
+  backgrounds from frozen `page_disjoint_real` pages.
+- Next action is human mismatch audit and error-family bucketing before the
+  next training decision.

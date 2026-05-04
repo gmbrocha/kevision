@@ -29,10 +29,11 @@ Status: operational queue as of 2026-05-02.
    - Accidental GPT-5.5 full-page outputs are scratch/do-not-score at
      `CloudHammer_v2/eval/page_disjoint_real_gpt55/DO_NOT_SCORE.md`.
 8. Run baseline eval: `model_only_tiled` vs `pipeline_full`.
-   - Current status: completed as a provisional dry run only. Report:
+   - Current status: completed against human-audited `page_disjoint_real`
+     truth. Current report:
+     `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_04.md`.
+   - Prior GPT-provisional report:
      `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_02.md`.
-   - Must be rerun against human-reviewed `page_disjoint_real` truth before it
-     is used for steering.
 9. Only after real baseline exists, implement `synthetic_diagnostic`.
    - Current status: grammar/spec exists; keep generation deferred until the
      provisional real baseline has been human-audited enough to trust.
@@ -62,10 +63,10 @@ Status: operational queue as of 2026-05-02.
      `CloudHammer_v2/eval/style_balance_diagnostic_real_touched_20260503/selection_summary.json`.
    - This set is diagnostic-only and must not be blended with
      `page_disjoint_real`.
-4. Audit `model_only_tiled` false positives/misses after audited eval truth
-   exists.
-5. Audit `pipeline_full` grouped-candidate false positives/misses after audited
-   eval truth exists.
+4. Audit `model_only_tiled` false positives/misses from:
+   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`.
+5. Audit `pipeline_full` grouped-candidate false positives/misses from the same
+   mismatch queue.
 6. Convert full-page corrections into frozen eval truth only.
 7. Use audited mismatches to plan the next training batch without mining frozen
    eval pages.
@@ -81,9 +82,7 @@ Status: operational queue as of 2026-05-02.
 
 ## Current Blockers
 
-- Baseline scoring must be rerun against consolidated human-audited
-  `page_disjoint_real` truth.
-- Baseline mismatch cases need human audit.
+- Baseline mismatch cases need human audit and error-family bucketing.
 - The strict clean page-disjoint pool is exhausted inside current sets; any
   style-balanced supplement must be classified honestly as new-data holdout,
   future retrain-from-scratch holdout, or diagnostic touched-real slice.

@@ -96,8 +96,15 @@ directly and should not rely on GPT full-page labels as eval truth.
   promotion-clean.
 - GPT-5.4 full-page labels: provisional only
 - GPT-5.5 full-page labels: accidental scratch only, do-not-score
-- Baseline report:
+- Current human-audited baseline report:
+  `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_04.md`
+- Prior GPT-provisional baseline report:
   `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_02.md`
+- Human-audited baseline result at IoU `0.25`: `pipeline_full` F1 `0.741`
+  with `8` false positives and `6` misses; `model_only_tiled` F1 `0.479`
+  with `47` false positives and `3` misses.
+- Human-audited mismatch queue:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
 - Current blocker: baseline scoring must be rerun against the human-audited
@@ -112,11 +119,10 @@ human review before training use.
 ## Immediate Next Steps
 
 - AGENTS.md and Cursor rules were manually verified against the current docs.
-- Rerun `model_only_tiled` and `pipeline_full` scoring against the
-  human-audited `page_disjoint_real` manifest.
+- Human-audit baseline mismatch cases for `model_only_tiled` and
+  `pipeline_full`.
+- Bucket baseline misses and false positives by approved error family.
 - Human-review the diagnostic touched-real style-balance queue.
 - Human-review/correct the GPT-5.5 cropped supplement prelabels.
-- Human-audit baseline mismatch cases for `model_only_tiled` and
-  `pipeline_full` after audited eval truth exists.
 - Preserve frozen `page_disjoint_real` pages as eval-only.
-- Decide the next CloudHammer training cycle after audited eval truth exists.
+- Decide the next CloudHammer training cycle after mismatch audit is credible.
