@@ -28,6 +28,9 @@ baseline now exists and needs human audit before it is used for steering.
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
   with `77` review rows across `16` pages: `55` false positives, `13`
   low-IoU localization cases, and `9` false negatives.
+- Editable mismatch review log:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.csv`
+  currently has `77` unreviewed rows.
 - Current blocker: baseline mismatch cases need human audit and error-family
   bucketing before model selection, training decisions, threshold tuning, or
   promotion claims.

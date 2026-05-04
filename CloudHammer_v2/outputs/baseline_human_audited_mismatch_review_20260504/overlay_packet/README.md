@@ -11,6 +11,8 @@ data from these frozen eval pages.
 - Contact sheet: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\contact_sheets\mismatch_truth_vs_predictions_contact_sheet.jpg`
 - Mismatch JSONL: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_manifest.jsonl`
 - Mismatch CSV: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_manifest.csv`
+- Editable review log: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_review_log.csv`
+- Review summary: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\mismatch_review_summary.md`
 - Individual overlays: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\baseline_human_audited_mismatch_review_20260504\overlay_packet\overlays`
 
 Overlay colors:
@@ -23,11 +25,17 @@ Overlay colors:
 
 ## Review Fields
 
-Fill these fields in a copy of the CSV or in a separate review log:
+Fill these fields in `mismatch_review_log.csv`:
 
 - `human_error_bucket`
 - `human_review_status`
 - `human_notes`
+
+Then rerun:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py
+```
 
 Recommended `human_review_status` values:
 

@@ -115,6 +115,25 @@ Expected artifacts:
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_manifest.jsonl`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_manifest.csv`
 
+Initialize an editable human review log and summarize current bucket status:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py --init-review-log
+```
+
+After humans fill `human_error_bucket`, `human_review_status`, and
+`human_notes` in the review log, rerun:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\summarize_mismatch_review.py
+```
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.csv`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_summary.json`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_summary.md`
+
 Run model-only tiled inference using the latest continuity checkpoint:
 
 ```powershell
