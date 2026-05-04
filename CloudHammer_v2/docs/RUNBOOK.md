@@ -115,6 +115,22 @@ Expected artifacts:
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_manifest.jsonl`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_manifest.csv`
 
+Build the static HTML reviewer with crisp PNG local/wide crops:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_mismatch_html_reviewer.py
+```
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_reviewer.html`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/reviewer_crops/local/`
+- `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/reviewer_crops/wide/`
+
+The reviewer stores browser-local edits and exports
+`mismatch_review_log.reviewed.csv`. It must not be used to edit truth labels,
+eval manifests, prediction files, or training data.
+
 Initialize an editable human review log and summarize current bucket status:
 
 ```powershell

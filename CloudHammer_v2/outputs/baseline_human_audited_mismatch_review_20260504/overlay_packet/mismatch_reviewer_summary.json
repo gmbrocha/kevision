@@ -1,0 +1,8 @@
+{
+  "items": 77,
+  "local_crops_dir": "CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/reviewer_crops/local",
+  "reviewer_html": "CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_reviewer.html",
+  "schema": "cloudhammer_v2.static_mismatch_reviewer.v1",
+  "wide_crops_dir": "CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/reviewer_crops/wide",
+  "writes": "Browser localStorage and exported mismatch_review_log.reviewed.csv only."
+}
