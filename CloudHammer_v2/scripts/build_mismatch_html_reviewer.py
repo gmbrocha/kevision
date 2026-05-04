@@ -68,6 +68,13 @@ def project_relative(path: Path) -> str:
         return path.resolve().as_posix()
 
 
+def html_relative(path: Path, base_dir: Path) -> str:
+    try:
+        return path.resolve().relative_to(base_dir.resolve()).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
+
+
 def box_from_row(row: dict[str, Any]) -> list[float] | None:
     box = row.get("bbox_xyxy")
     if isinstance(box, list) and len(box) == 4:
@@ -149,6 +156,7 @@ def row_colors(row: dict[str, Any]) -> tuple[str | None, str | None, str, str]:
 def make_review_crop(
     row: dict[str, Any],
     output_path: Path,
+    html_base_dir: Path,
     mode: str,
     padding: int,
     min_side: int,
@@ -185,7 +193,7 @@ def make_review_crop(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     crop.save(output_path)
     return {
-        "path": project_relative(output_path),
+        "path": html_relative(output_path, html_base_dir),
         "crop_box": crop_box,
         "width": crop.width,
         "height": crop.height,
@@ -420,6 +428,7 @@ def main() -> int:
         local_info = make_review_crop(
             row,
             reviewer_dir / "local" / f"{item_stem}_local.png",
+            html_base_dir=args.output_html.parent,
             mode="local",
             padding=args.local_padding,
             min_side=900,
@@ -428,6 +437,7 @@ def main() -> int:
         wide_info = make_review_crop(
             row,
             reviewer_dir / "wide" / f"{item_stem}_wide.png",
+            html_base_dir=args.output_html.parent,
             mode="wide",
             padding=args.wide_padding,
             min_side=2200,
