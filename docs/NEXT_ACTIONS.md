@@ -78,8 +78,10 @@ Status: operational queue as of 2026-05-02.
    `synthetic_background_candidates`, and
    `future_training_expansion_candidates`.
 7. Convert full-page corrections into frozen eval truth only.
-8. Use audited mismatches to plan a postprocessing-first diagnostic without
-   mining, tuning on, or training from frozen eval pages.
+8. Review the first non-frozen postprocessing diagnostic without mining, tuning
+   on, or training from frozen eval pages.
+   - Current report:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`.
 
 ## Later
 
@@ -92,8 +94,8 @@ Status: operational queue as of 2026-05-02.
 
 ## Current Blockers
 
-- Baseline overlay mismatch review is complete; next blocker is translating the
-  reviewed buckets into a non-frozen postprocessing diagnostic.
+- Baseline overlay mismatch review is complete; first non-frozen
+  postprocessing diagnostic exists and needs spot review before implementation.
 - Candidate pool manifests need to be defined and generated without changing
   frozen eval truth, training data, mining inputs, or synthetic outputs.
 - The strict clean page-disjoint pool is exhausted inside current sets; any

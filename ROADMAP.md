@@ -24,8 +24,9 @@ Completed foundation:
 
 Current priority:
 
-1. Run postprocessing diagnostics on non-frozen data for fragments, duplicate
-   predictions, overmerges, split fragments, and localization.
+1. Review the first report-only postprocessing diagnostic on non-frozen data
+   for fragments, duplicate predictions, overmerges, split fragments, and
+   localization.
 2. Define/generate candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,

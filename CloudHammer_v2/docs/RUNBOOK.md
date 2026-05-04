@@ -189,6 +189,31 @@ Expected artifacts:
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed_summary.json`
 - `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed_summary.md`
 
+Build the report-only non-frozen postprocessing diagnostic. This consumes the
+existing non-frozen whole-cloud candidate manifest from the legacy run as input
+data only; it does not import legacy code. It excludes frozen
+`page_disjoint_real` pages and writes only diagnostic reports:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\diagnose_postprocessing_candidates.py
+```
+
+Purpose: surface candidate rows for fragment merging, duplicate suppression,
+overmerge splitting, and loose-localization review before any training cycle.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_candidates.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.json`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/excluded_frozen_candidates.jsonl`
+
+Safety: report-only. It must not edit truth labels, eval manifests,
+prediction files, model files, datasets, or training data. It is not threshold
+tuning, and frozen eval pages remain measurement-only.
+
 Run model-only tiled inference using the latest continuity checkpoint:
 
 ```powershell

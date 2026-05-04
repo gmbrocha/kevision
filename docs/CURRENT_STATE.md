@@ -110,11 +110,13 @@ human-audited `page_disjoint_real` scoring completed on 2026-05-04.
 - Reviewed mismatch log:
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_review_log.reviewed.csv`
   with `77` reviewed rows, `0` unreviewed rows, and `0` invalid rows.
+- First non-frozen postprocessing diagnostic:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`
+  with `44` report-only diagnostic rows from `34` non-frozen candidates.
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
-- Current blocker: use the reviewed mismatch summary to design a
-  postprocessing-first diagnostic on non-frozen data before model selection,
-  training decisions, threshold tuning, or promotion claims.
+- Current blocker: review the non-frozen postprocessing diagnostic before model
+  selection, training decisions, threshold tuning, or promotion claims.
 
 Correction note: GPT-5.5 full-page labels on `page_disjoint_real` were created
 by mistake and are marked do-not-score. GPT-5.5 was rerun on the intended
@@ -124,9 +126,8 @@ human review before training use.
 ## Immediate Next Steps
 
 - AGENTS.md and Cursor rules were manually verified against the current docs.
-- Use the completed baseline mismatch review to plan postprocessing diagnostics
-  for fragments, duplicate predictions, overmerges, split fragments, and
-  localization.
+- Review the completed non-frozen postprocessing diagnostic for fragments,
+  duplicate predictions, overmerges, split fragments, and localization.
 - Triage the two `truth_followup` rows as a separate frozen-truth recheck task.
 - Define and generate the next candidate pools without treating them as eval
   subsets:

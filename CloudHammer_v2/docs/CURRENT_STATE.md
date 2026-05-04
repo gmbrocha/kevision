@@ -11,10 +11,10 @@ execution are logged in `CloudHammer_v2/IMPORT_LOG.md`.
 
 The immediate objective was to establish the real full-page eval baseline before
 more training, synthetic generation, or pipeline tuning. That baseline now
-exists against human-audited `page_disjoint_real` truth, and the baseline
-mismatch review has been human-bucketed. Current work is postprocessing-first
-diagnostics and guarded candidate-pool definition before the next training
-decision.
+exists against human-audited `page_disjoint_real` truth, the baseline mismatch
+review has been human-bucketed, and a first non-frozen postprocessing diagnostic
+has been generated. Current work is reviewing that diagnostic and defining
+guarded candidate pools before the next training decision.
 
 ## Eval Baseline Status
 
@@ -54,10 +54,19 @@ decision.
   `prediction_fragment_on_real_cloud` (`36`), duplicate prediction on real cloud
   (`12`), localization loose/tight (`12` total), `split_fragment` (`6`), and
   `overmerged_grouping` (`5`).
-- Current blocker: design the next postprocessing diagnostic on non-frozen data
-  before training, threshold tuning, or promotion claims. Two
-  `truth_followup` rows require a separate frozen-truth recheck task and do not
-  change truth automatically.
+- First non-frozen postprocessing diagnostic:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`
+  from the legacy-generated whole-cloud candidate manifest
+  `CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/whole_cloud_candidates_manifest.jsonl`.
+  It is report-only and imported no legacy code. It analyzed `34` non-frozen
+  candidates across `14` pages, excluded `0` frozen-page candidates, and wrote
+  `44` diagnostic rows: `19` fragment-merge candidates, `0`
+  duplicate-suppression candidates, `1` overmerge-split candidate, and `24`
+  loose-localization candidates.
+- Current blocker: review the non-frozen postprocessing diagnostic rows and
+  decide whether to implement a dry-run merge/suppress/split/localization
+  postprocessor. Two `truth_followup` rows require a separate frozen-truth
+  recheck task and do not change truth automatically.
 
 ## Eval Subset Status
 
@@ -180,8 +189,9 @@ No experiment code was imported.
 
 ## Immediate Next Steps
 
-1. Use the reviewed mismatch summary to design a postprocessing diagnostic on
-   non-frozen data for merge/suppress/split/localization behavior.
+1. Review the first non-frozen postprocessing diagnostic:
+   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`
+   and spot-check candidate rows before implementing any postprocessor.
 2. Triage the two `truth_followup` rows as a separate frozen-truth recheck task;
    do not edit truth automatically from mismatch metadata.
 3. Define and generate the candidate-pool manifests:
@@ -194,7 +204,9 @@ No experiment code was imported.
 6. Convert any audited full-page eval corrections into frozen eval truth, not
    training data.
 7. Decide the next training cycle only after postprocessing diagnostics and
-   candidate-pool review clarify what should become training signal.
+   candidate-pool review clarify what should become training signal. The
+   reviewed `crossing_line_x_patterns` count is a later hard-negative/training
+   candidate family, not the primary blocker for the next cycle.
 8. Implement `synthetic_diagnostic` only after the real baseline and candidate
    pools are trustworthy enough to serve as a diagnostic ruler.
 

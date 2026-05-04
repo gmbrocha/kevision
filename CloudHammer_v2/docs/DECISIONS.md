@@ -282,3 +282,24 @@ Consequences:
   postprocessing changes, not for threshold tuning.
 - Queue the two `truth_followup` rows as a separate frozen-truth recheck task;
   do not auto-edit truth from mismatch review metadata.
+
+## 2026-05-04 - First Postprocessing Diagnostic Uses Non-Frozen Candidate Output
+
+Decision: The first postprocessing diagnostic consumes the existing non-frozen
+whole-cloud candidate manifest from
+`CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/` as input data,
+while writing only v2 diagnostic reports under `CloudHammer_v2/outputs/`.
+
+Reason: Current v2 prediction outputs are for frozen `page_disjoint_real`
+baseline pages, which must not be used for tuning. The legacy-generated
+candidate manifest provides a small non-frozen geometry source for
+merge/suppress/split/localization diagnosis without importing legacy code.
+
+Consequences:
+
+- The diagnostic excludes frozen `page_disjoint_real` pages by manifest guard.
+- The output is report-only and not a postprocessor, training manifest,
+  threshold-tuning result, or eval truth edit.
+- No legacy code is imported or modified.
+- The reviewed `crossing_line_x_patterns` count remains a later hard-negative
+  or training-family candidate, not the primary postprocessing blocker.

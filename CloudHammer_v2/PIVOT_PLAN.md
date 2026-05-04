@@ -40,7 +40,8 @@ next training or synthetic decision.
 6. Human-audit mismatch cases and bucket errors by approved error family.
    Completed for the current `77`-row baseline review.
 7. Run postprocessing diagnostics on non-frozen data for fragment merging,
-   duplicate suppression, overmerge splitting, and localization.
+   duplicate suppression, overmerge splitting, and localization. First
+   report-only diagnostic generated; needs spot review before implementation.
 8. Define/generate guarded candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,
