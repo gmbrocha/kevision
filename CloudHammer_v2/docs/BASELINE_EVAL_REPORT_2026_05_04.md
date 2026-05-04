@@ -45,8 +45,10 @@ baseline. It is still a small and style-skewed ruler, not a promotion claim.
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`
 - Mismatch review summary:
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_summary.md`
+- Overlay mismatch packet:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
 
 ## Next Step
 
-Human-audit the mismatch queue and bucket misses/false positives by approved
-error family. Keep all frozen `page_disjoint_real` pages eval-only.
+Human-audit the overlay mismatch packet and bucket misses/false positives by
+approved error family. Keep all frozen `page_disjoint_real` pages eval-only.

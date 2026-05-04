@@ -64,9 +64,9 @@ Status: operational queue as of 2026-05-02.
    - This set is diagnostic-only and must not be blended with
      `page_disjoint_real`.
 4. Audit `model_only_tiled` false positives/misses from:
-   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`.
+   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`.
 5. Audit `pipeline_full` grouped-candidate false positives/misses from the same
-   mismatch queue.
+   overlay mismatch packet.
 6. Convert full-page corrections into frozen eval truth only.
 7. Use audited mismatches to plan the next training batch without mining frozen
    eval pages.
@@ -82,7 +82,7 @@ Status: operational queue as of 2026-05-02.
 
 ## Current Blockers
 
-- Baseline mismatch cases need human audit and error-family bucketing.
+- Baseline overlay mismatch packet needs human audit and error-family bucketing.
 - The strict clean page-disjoint pool is exhausted inside current sets; any
   style-balanced supplement must be classified honestly as new-data holdout,
   future retrain-from-scratch holdout, or diagnostic touched-real slice.

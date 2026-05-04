@@ -105,6 +105,8 @@ directly and should not rely on GPT full-page labels as eval truth.
   with `47` false positives and `3` misses.
 - Human-audited mismatch queue:
   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`
+- Read-only overlay mismatch packet:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
 - Current blocker: baseline scoring must be rerun against the human-audited

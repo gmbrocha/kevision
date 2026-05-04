@@ -24,6 +24,10 @@ baseline now exists and needs human audit before it is used for steering.
 - Current result at IoU `0.25`: `pipeline_full` has stronger F1 (`0.741`)
   than `model_only_tiled` (`0.479`) by reducing false positives, while
   `model_only_tiled` has higher recall (`0.885` vs `0.769`).
+- Read-only overlay mismatch packet:
+  `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
+  with `77` review rows across `16` pages: `55` false positives, `13`
+  low-IoU localization cases, and `9` false negatives.
 - Current blocker: baseline mismatch cases need human audit and error-family
   bucketing before model selection, training decisions, threshold tuning, or
   promotion claims.
@@ -124,7 +128,7 @@ No experiment code was imported.
 ## Immediate Next Steps
 
 1. Human-audit `model_only_tiled` and `pipeline_full` mismatch cases from:
-   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/mismatch_review_queue.jsonl`
+   `CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/README.md`
 2. Bucket false positives and misses by error family.
 3. Human-review `style_balance_diagnostic_real_touched_20260503`.
 4. Human-review/correct the GPT-5.5 cropped supplement prelabels.

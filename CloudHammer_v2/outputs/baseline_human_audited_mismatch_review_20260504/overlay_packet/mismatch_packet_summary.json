@@ -1,0 +1,45 @@
+{
+  "approved_error_buckets": [
+    "marker_neighborhood_no_cloud_regions",
+    "historical_or_nonmatching_revision_marker_context",
+    "isolated_arcs_and_scallop_fragments",
+    "fixture_circles_and_symbol_circles",
+    "glyph_text_arcs",
+    "crossing_line_x_patterns",
+    "index_table_x_marks",
+    "dense_linework_near_valid_clouds",
+    "thick_dark_cloud_false_positive_context",
+    "thin_light_cloud_low_contrast_miss",
+    "no_cloud_dense_dark_linework",
+    "no_cloud_door_swing_arc_false_positive_trap",
+    "mixed_cloud_with_dense_false_positive_regions",
+    "overmerged_grouping",
+    "split_fragment",
+    "localization_too_loose",
+    "localization_too_tight",
+    "truth_needs_recheck",
+    "other"
+  ],
+  "by_mismatch_type": {
+    "false_negative": 9,
+    "false_positive": 55,
+    "localization_low_iou": 13
+  },
+  "by_mode": {
+    "model_only_tiled": 55,
+    "pipeline_full": 22
+  },
+  "contact_sheet": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\contact_sheets\\mismatch_truth_vs_predictions_contact_sheet.jpg",
+  "eval_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.human_audited.jsonl",
+  "eval_subset": "page_disjoint_real",
+  "label_status": "human_audited",
+  "mismatch_manifest_csv": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_manifest.csv",
+  "mismatch_manifest_jsonl": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\mismatch_manifest.jsonl",
+  "mismatch_rows": 77,
+  "model_detections_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_model_only_tiled_page_disjoint_real_20260502\\detections",
+  "overlays_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_human_audited_mismatch_review_20260504\\overlay_packet\\overlays",
+  "pages": 17,
+  "pages_with_mismatches": 16,
+  "pipeline_detections_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\baseline_pipeline_full_page_disjoint_real_20260502\\whole_cloud_candidates\\detections_whole",
+  "schema": "cloudhammer_v2.mismatch_review_packet_summary.v1"
+}
