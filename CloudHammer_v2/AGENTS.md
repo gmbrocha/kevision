@@ -266,30 +266,45 @@ If related problems are discovered during a task:
 
 and extra goblins on the side.
 
-## Fresh Session Check
+## High-Risk Session And Reasoning Check
 
-Before starting high-risk or high-context work, pause and ask the user whether they want to start a fresh agent session.
+Default reasoning may be medium. Do not assume medium reasoning or the current
+session context is sufficient for high-risk/high-context work.
+
+Before starting high-risk/high-context work, pause and ask the user whether they
+want to:
+
+1. start a fresh agent session and re-read the canonical docs,
+2. increase reasoning effort for the task,
+3. run report-only or dry-run first.
 
 High-risk/high-context work includes:
 
-- touched-page registry changes
+- touched-page registry changes or touched-policy changes
 - eval selection or freezing
 - GPT labeling runs
 - label conversion or label promotion
-- model-vs-pipeline evaluation
-- training or retraining
+- training manifest generation
+- train/val split changes
+- model-vs-pipeline evaluation or scoring-logic changes
+- model training or retraining
 - importing legacy CloudHammer code
 - moving datasets, model runs, generated outputs, or revision sets
+- synthetic generation implementation
 - modifying security/deployment behavior
 - bulk cleanup or archive moves
-- any task that relies on subtle distinctions between touched, reviewed, training, validation, eval, synthetic, or frozen data
+- any task that relies on subtle distinctions between touched, reviewed,
+  training, validation, eval, synthetic, frozen, or provisional data
 
 Use this wording:
 
-“Before I proceed: this is a high-risk/high-context task. Do you want to start a fresh agent session and have me re-read the canonical docs first?”
+“Before I proceed: this is a high-risk/high-context task. Do you want to start a fresh session, increase reasoning effort, or run a report-only/dry-run pass first?”
 
-If the user says continue, proceed with extra caution and restate the key assumptions before making changes.
+If the user says continue, proceed with extra caution and restate the key
+assumptions before making changes.
 
-Do not ask this for minor documentation edits, typo fixes, report summaries, or non-destructive read-only inspections unless the context appears stale or ambiguous.
+Do not ask this for minor documentation edits, typo fixes, report summaries, or
+read-only inspections unless context appears stale or ambiguous.
 
-When in doubt, fresh session beats compacted context for eval, labels, data, training, or legacy imports.
+When in doubt, fresh session beats compacted context for eval, labels, data,
+training, or legacy imports.
