@@ -25,9 +25,11 @@ Completed foundation:
 
 Current priority:
 
-1. Inspect the reviewed first postprocessing dry-run plan on non-frozen data
-   and decide whether to apply only safe reviewed tighten/merge actions or
-   build geometry-review tooling for blocked expand/split cases first.
+1. Resolve or accept the `4` non-accepted GPT-5.5 crop-precheck rows, then use
+   the `28` GPT-accepted crop-ready postprocessed candidates for crop-based
+   inspection/export wiring if appropriate, or decide the next contained
+   pipeline-consumption comparison from the behavior summary, regenerated
+   crops, and GPT precheck.
 2. Define/generate candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,

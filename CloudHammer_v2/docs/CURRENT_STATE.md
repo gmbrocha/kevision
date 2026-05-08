@@ -124,12 +124,28 @@ comparison. New diagnostic queues require stoplight classification first.
   It compares the original `34` non-frozen source candidates with the derived
   `32` postprocessed candidates without scoring, tuning, or generating crops.
   The candidate count delta is `-2`, total bbox area ratio is `0.831645`, and
-  `22` postprocessed candidates still need crop regeneration before any
-  crop-based viewer/export consumes them.
-- Current blocker: regenerate crops for the `22`
-  `needs_regeneration_for_postprocessed_bbox` rows if crop-based inspection or
-  export is needed; otherwise use the behavior comparison to decide the next
-  pipeline-consumption step. Two
+  it identified `22` postprocessed candidates that needed crop regeneration
+  before any crop-based viewer/export consumed them.
+- Postprocessed non-frozen crop regeneration:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_summary.md`.
+  Dry-run was run first, then `22` regenerated PNG crops were written. The
+  crop-ready manifest has `32` rows: `22` `postprocessed_crop_regenerated`
+  candidates and `10` `source_crop_preserved` candidates. It is a separate
+  derived manifest and does not mutate the source candidate manifest, labels,
+  eval manifests, predictions, model files, datasets, training data, crops
+  outside its output folder, or threshold-tuning inputs.
+- GPT-5.5 postprocessed crop inspection precheck:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
+  All `32` crop-ready candidates were prechecked with GPT-5.5 after dry-run
+  overlay generation. Findings: `28` `accept_crop`, `2` `needs_human_review`,
+  and `2` `reject_no_visible_cloud`. Companion viewer:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`.
+  This is provisional inspection metadata only and does not mutate labels,
+  eval manifests, predictions, model files, datasets, training data, source
+  candidate manifests, or threshold-tuning inputs.
+- Current blocker: review or accept the `4` non-accepted GPT crop-precheck
+  rows, then decide whether the `28` accepted rows are enough for crop-based
+  inspection/export wiring or a contained pipeline-consumption comparison. Two
   `truth_followup` rows remain a separate frozen-truth recheck task and do not
   change truth automatically.
 - Diagnostic scope reset:
@@ -260,32 +276,36 @@ No experiment code was imported.
 
 ## Immediate Next Steps
 
-1. Regenerate crops for the `22` postprocessed candidates marked
-   `needs_regeneration_for_postprocessed_bbox` if crop-based inspection or
-   export is needed.
-2. Triage the two `truth_followup` rows as a separate frozen-truth recheck task;
+1. Resolve the `4` non-accepted GPT-5.5 crop-precheck rows from
+   `postprocessed_crop_inspection.gpt55_prefill.csv`; GPT found `2`
+   `needs_human_review` rows and `2` `reject_no_visible_cloud` rows.
+2. Use the `28` GPT-accepted crop-ready candidates for crop-based
+   inspection/export wiring if appropriate, or decide the next
+   pipeline-consumption step from the behavior comparison plus regenerated
+   crops and GPT precheck.
+3. Triage the two `truth_followup` rows as a separate frozen-truth recheck task;
    do not edit truth automatically from mismatch metadata.
-3. Do not create new diagnostic queues. If a new queue is proposed, classify it
+4. Do not create new diagnostic queues. If a new queue is proposed, classify it
    as `GREEN`, `YELLOW`, or `RED` first and reject `RED`.
-4. Define candidate-pool manifests report-first only when they directly change
+5. Define candidate-pool manifests report-first only when they directly change
    training inclusion or postprocessing follow-up:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,
    `synthetic_background_candidates`, and
    `future_training_expansion_candidates`.
-5. Apply the review fatigue guardrail before asking for manual review of
+6. Apply the review fatigue guardrail before asking for manual review of
    `style_balance_diagnostic_real_touched_20260503`; the queued set has `12`
    pages, so GPT-5.5 sample or full prefill should be considered first, and the
    queue should otherwise remain deferred.
-6. Human-confirm/correct GPT-5.5 cropped supplement prelabels only through a
+7. Human-confirm/correct GPT-5.5 cropped supplement prelabels only through a
    sampled or targeted training-inclusion path.
-7. Convert any audited full-page eval corrections into frozen eval truth, not
+8. Convert any audited full-page eval corrections into frozen eval truth, not
    training data.
-8. Decide the next training cycle only after contained postprocessing work and
+9. Decide the next training cycle only after contained postprocessing work and
    candidate-pool review clarify what should become training signal. The
    reviewed `crossing_line_x_patterns` count is a later hard-negative/training
    candidate family, not the primary blocker for the next cycle.
-9. Implement `synthetic_diagnostic` only after the real baseline and candidate
+10. Implement `synthetic_diagnostic` only after the real baseline and candidate
    pools are trustworthy enough to serve as a diagnostic ruler.
 
 ## Do Not Touch

@@ -1,0 +1,49 @@
+{
+  "candidate_count": 32,
+  "crop_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505\\crop_regeneration_20260508\\crops",
+  "crop_params": {
+    "crop_margin_ratio": 0.16,
+    "max_crop_margin": 950.0,
+    "min_crop_margin": 550.0
+  },
+  "guardrails": [
+    "derived_crop_manifest_only",
+    "non_frozen_postprocessed_manifest_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning",
+    "excluded_page_disjoint_real_frozen_pages"
+  ],
+  "input_crop_status": {
+    "needs_regeneration_for_postprocessed_bbox": 22,
+    "source_crop_preserved": 10
+  },
+  "input_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505\\postprocessed_non_frozen_candidates_manifest.jsonl",
+  "output_crop_status": {
+    "postprocessed_crop_regenerated": 22,
+    "source_crop_preserved": 10
+  },
+  "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505\\crop_regeneration_20260508",
+  "output_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505\\crop_regeneration_20260508\\postprocessed_non_frozen_candidates_manifest.regenerated_crops.jsonl",
+  "preserved_source_crops": 10,
+  "regenerated_crops_written": 22,
+  "regeneration_targets": 22,
+  "schema": "cloudhammer_v2.postprocessed_crop_regeneration_summary.v1",
+  "status": "regenerated_crop_manifest_written",
+  "targets_by_postprocessing_action": {
+    "corrected_bbox_update": 1,
+    "merge_component_bbox": 3,
+    "split_child_bbox": 8,
+    "tighten_bbox": 10
+  },
+  "targets_by_size_bucket": {
+    "large": 2,
+    "medium": 3,
+    "small": 17
+  },
+  "warnings": []
+}

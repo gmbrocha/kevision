@@ -22,6 +22,7 @@ answered from existing review data, geometry, metadata, or GPT-5.5 prefill.
 | Baseline mismatch review | 77 rows | Completed | GREEN, closed | Already human-bucketed model-vs-pipeline baseline failures. Collapse future error-family questions into this reviewed CSV where possible. |
 | Non-frozen postprocessing diagnostic review | 44 rows | Completed | GREEN, closed | Already produced reviewed merge, reject, tighten, split, expand, and `tighten_adjust` decisions. Do not re-review these crops for new taxonomy. |
 | Blocked postprocessing geometry review | 18 rows | Human-reviewed export complete and consumed by comparison | GREEN, closed | Provides full-cloud, child, and merge-component geometry for the postprocessing apply/dry-run comparison. |
+| Postprocessed crop inspection precheck | 32 rows | GPT-5.5 precheck complete | GREEN, small | Documents whether regenerated/preserved crops are suitable for crop-based consumption. GPT accepted `28`, flagged `2` for human review, and rejected `2` no-visible-cloud rows. |
 | `truth_followup` rows from mismatch review | 2 rows | Pending targeted recheck | GREEN, small | Potentially changes frozen eval truth. Handle as targeted truth recheck from existing mismatch records, not a broad new queue. |
 | `style_balance_diagnostic_real_touched_20260503` | 12 pages | Deferred diagnostic-only queue | YELLOW | May help baseline interpretation, but it is not promotion-clean and does not block the current usable baseline. Use GPT prefill/sample only if explicitly approved. |
 | GPT-5.5 cropped supplement prelabels | 150 crops | Provisional labels | YELLOW | May support future training inclusion after confirmation, but does not block the current frozen baseline. Prefer sampled confirmation or targeted subsets over full manual pass. |
@@ -56,6 +57,8 @@ comparison.
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_apply_summary.md`.
   The metadata behavior comparison is
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_summary.md`.
+  Crop-based consumption should start from the GPT-5.5 precheck:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
 - Style/source-family notes should be additive metadata on existing rows or
   sampled diagnostics, not a full repeated review pass.
 - Training inclusion from GPT crop prelabels should be sampled or targeted by
@@ -77,8 +80,9 @@ comparison.
    steering baseline.
 2. Resolve only the two existing `truth_followup` rows if baseline truth
    correctness is in doubt.
-3. Use the behavior comparison to decide whether to regenerate crops for the
-   `22` postprocessed candidates that need crop refresh before crop-based
-   inspection/export.
+3. Resolve or accept the `4` non-accepted GPT-5.5 crop-precheck rows, then use
+   the `28` accepted crop-ready postprocessed candidates for crop-based
+   inspection/export wiring if needed, or use the behavior comparison plus
+   regenerated crops to decide the next contained pipeline-consumption step.
 4. Defer style-balance, crop supplement, candidate-pool, and synthetic work
    until the postprocessing comparison identifies a decision-changing need.

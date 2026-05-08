@@ -516,13 +516,120 @@ Current behavior comparison result:
 - candidate count delta `-2`
 - total bbox area ratio postprocessed/source `0.831645`
 - `13` source candidates replaced by merge/split outputs
-- `22` postprocessed candidates need crop regeneration before crop-based
-  inspection/export
+- `22` postprocessed candidates were identified as needing crop regeneration
+  before crop-based inspection/export
 - page count remains `14`
 
 Safety: report-first comparison only. It must not edit the legacy source
 candidate manifest, truth labels, eval manifests, predictions, model files,
 datasets, training data, crops, or threshold-tuning inputs.
+
+Regenerate crops for changed non-frozen postprocessed candidates. Run dry-run
+first:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\regenerate_postprocessed_non_frozen_crops.py --dry-run
+```
+
+Then run the real derived crop write:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\regenerate_postprocessed_non_frozen_crops.py
+```
+
+Purpose: write crop images and a crop-ready manifest for the postprocessed
+non-frozen candidates marked `needs_regeneration_for_postprocessed_bbox`.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_plan.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_candidates_manifest.regenerated_crops.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_records.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crops/`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_summary.json`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_summary.md`
+
+Current crop regeneration result:
+
+- input manifest rows: `32`
+- regenerated crops: `22`
+- preserved source crops: `10`
+- output crop status: `22` `postprocessed_crop_regenerated`, `10`
+  `source_crop_preserved`
+
+Safety: derived crop output only. It must not edit the legacy source candidate
+manifest, truth labels, eval manifests, predictions, model files, datasets,
+training data, or threshold-tuning inputs.
+
+Build the postprocessed crop inspection packet:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessed_crop_inspection_viewer.py
+```
+
+Purpose: create a durable inspection CSV plus static viewer for the crop-ready
+postprocessed non-frozen manifest.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.csv`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection_viewer.html`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection_summary.md`
+
+Safety: inspection metadata only. It must not edit the legacy source candidate
+manifest, truth labels, eval manifests, predictions, model files, datasets,
+training data, or threshold-tuning inputs.
+
+Precheck the postprocessed crop inspection packet with GPT-5.5. Run dry-run
+first to generate API overlay inputs without API calls:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\prefill_postprocessed_crop_inspection_gpt.py --dry-run
+```
+
+Then run the real precheck:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\prefill_postprocessed_crop_inspection_gpt.py --overwrite
+```
+
+Purpose: reduce manual inspection burden by writing provisional GPT-5.5 crop
+suitability decisions before human review.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.csv`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/gpt55_crop_inspection_prefill/predictions.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/gpt55_crop_inspection_prefill/api_inputs/`
+
+Current GPT-5.5 crop precheck result:
+
+- rows: `32`
+- API predictions: `32`
+- `28` `accept_crop`
+- `2` `needs_human_review`
+- `2` `reject_no_visible_cloud`
+
+Build a companion viewer using the GPT-5.5 precheck CSV:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessed_crop_inspection_viewer.py --inspection-csv CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\postprocessing_apply_non_frozen_20260505\crop_regeneration_20260508\crop_inspection_20260508\postprocessed_crop_inspection.gpt55_prefill.csv --output-html CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\postprocessing_apply_non_frozen_20260505\crop_regeneration_20260508\crop_inspection_20260508\postprocessed_crop_inspection.gpt55_prefill.html
+```
+
+Expected artifact:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`
+
+Safety: GPT-5.5 crop precheck is provisional inspection metadata only. It must
+not edit the legacy source candidate manifest, truth labels, eval manifests,
+predictions, model files, datasets, training data, or threshold-tuning inputs.
 
 Run model-only tiled inference using the latest continuity checkpoint:
 

@@ -1,0 +1,40 @@
+{
+  "api_predictions": 32,
+  "by_gpt_decision": {
+    "accept_crop": 28,
+    "needs_human_review": 2,
+    "reject_no_visible_cloud": 2
+  },
+  "by_gpt_status": {
+    "gpt_prefilled": 28,
+    "needs_followup": 2,
+    "not_actionable": 2
+  },
+  "by_postprocessing_action": {
+    "carried_through_not_flagged_by_diagnostic": 9,
+    "corrected_bbox_update": 1,
+    "merge_component_bbox": 3,
+    "split_child_bbox": 8,
+    "tighten_bbox": 10,
+    "unchanged": 1
+  },
+  "by_recommended_next_step": {
+    "exclude_from_crop_consumption": 2,
+    "human_review_before_use": 2,
+    "use_for_crop_inspection_or_export": 28
+  },
+  "dry_run": false,
+  "guardrails": [
+    "provisional_inspection_metadata_only",
+    "non_frozen_derived_manifest_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning"
+  ],
+  "rows": 32,
+  "schema": "cloudhammer_v2.postprocessed_crop_inspection_gpt_prefill_summary.v1"
+}

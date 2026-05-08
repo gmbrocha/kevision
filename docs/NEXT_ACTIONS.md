@@ -1,6 +1,6 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-05.
+Status: operational queue as of 2026-05-08.
 
 ## Now
 
@@ -107,12 +107,28 @@ Status: operational queue as of 2026-05-05.
      split rows, and `10` no-change rows.
    - Blocked-geometry reviewer:
      `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.html`.
-   - Geometry queue size: `18` items (`11` expand, `3` merge component, `3`
-     split, `1` `tighten_adjust`), so consider GPT-5.5 provisional geometry
-     prefill before asking for manual geometry review.
-   - Next step: export
+   - Geometry review:
      `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.reviewed.csv`
-     before any apply script consumes blocked geometry.
+     completed with `18` reviewed geometry items.
+   - Apply dry-run comparison:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/postprocessing_apply_dry_run_summary.md`.
+   - Derived non-frozen apply output:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_apply_summary.md`.
+   - Behavior comparison:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_summary.md`.
+   - Crop regeneration:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_summary.md`.
+     Dry-run was run first; `22` regenerated crops were written and `10`
+     source crops were preserved.
+   - GPT-5.5 crop inspection precheck:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
+     Current result: `28` `accept_crop`, `2` `needs_human_review`, and `2`
+     `reject_no_visible_cloud`; companion viewer:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`.
+   - Next step: resolve or accept the `4` non-accepted GPT crop-precheck rows,
+     then decide whether the `28` GPT-accepted crop-ready candidates feed
+     crop-based inspection/export wiring or another contained
+     pipeline-consumption comparison.
 
 ## Later
 
@@ -126,11 +142,12 @@ Status: operational queue as of 2026-05-05.
 ## Current Blockers
 
 - Baseline overlay mismatch review is complete; first non-frozen
-  postprocessing diagnostic reviewer controls, reviewed CSV, and dry-run
-  postprocessing plan exist. A blocked-geometry reviewer now exists; the next
-  blocker is geometry review or GPT-5.5 provisional geometry prefill for its
-  `18` items before any apply script consumes expand/split/merge-component
-  geometry.
+  postprocessing diagnostic review, geometry review, apply preview, derived
+  manifest, behavior comparison, crop regeneration, and GPT-5.5 crop precheck
+  are complete. The next blocker is resolving or accepting the `4`
+  non-accepted crop-precheck rows before choosing whether the `28` accepted
+  crop-ready candidates should feed crop-based inspection/export wiring or
+  another contained pipeline-consumption comparison.
 - Candidate pool manifests need to be defined and generated without changing
   frozen eval truth, training data, mining inputs, or synthetic outputs.
 - The strict clean page-disjoint pool is exhausted inside current sets; any

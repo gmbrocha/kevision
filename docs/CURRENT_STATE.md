@@ -151,14 +151,29 @@ human-audited `page_disjoint_real` scoring completed on 2026-05-04.
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_summary.md`.
   It compares the original source manifest with the derived postprocessed
   manifest without scoring, tuning, or crop generation. Candidate count changes
-  `34` -> `32`, total bbox area ratio is `0.831645`, and `22` rows need crop
-  regeneration before crop-based inspection/export.
+  `34` -> `32`, total bbox area ratio is `0.831645`, and it identified `22`
+  rows that needed crop regeneration before crop-based inspection/export.
+- Postprocessed non-frozen crop regeneration:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/postprocessed_non_frozen_crop_regeneration_summary.md`.
+  Dry-run was run first, then `22` regenerated PNG crops were written. The
+  crop-ready manifest has `32` rows: `22` regenerated postprocessed crops and
+  `10` preserved source crops. It is a separate derived manifest and does not
+  mutate labels, eval manifests, predictions, datasets, training data, source
+  candidate manifests, or threshold-tuning inputs.
+- GPT-5.5 postprocessed crop inspection precheck:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
+  It prechecked all `32` crop-ready candidates after dry-run overlay creation:
+  `28` `accept_crop`, `2` `needs_human_review`, and `2`
+  `reject_no_visible_cloud`. Companion viewer:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`.
+  These findings are provisional inspection metadata only.
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
-- Current blocker: regenerate crops for the `22`
-  `needs_regeneration_for_postprocessed_bbox` rows if crop-based inspection or
-  export is needed. No labels, eval manifests, predictions, datasets, training
-  data, or legacy candidate manifests were mutated.
+- Current blocker: resolve or accept the `4` non-accepted GPT crop-precheck
+  rows, then decide whether the `28` GPT-accepted crop-ready candidates feed
+  crop-based inspection/export wiring or a contained pipeline-consumption
+  comparison. No labels, eval manifests, predictions, datasets, training data,
+  or legacy candidate manifests were mutated.
 - Diagnostic scope reset:
   `CloudHammer_v2/docs/DIAGNOSTIC_STOPLIGHT_AUDIT_2026_05_05.md`.
   New CloudHammer diagnostic/review queues must be classified `GREEN`,
@@ -174,9 +189,10 @@ human confirmation/correction before training use.
 ## Immediate Next Steps
 
 - AGENTS.md and Cursor rules were manually verified against the current docs.
-- Regenerate crops for the `22` postprocessed candidates marked
-  `needs_regeneration_for_postprocessed_bbox` if crop-based inspection/export
-  is needed; keep frozen `page_disjoint_real` pages as measurement-only.
+- Resolve or accept the `4` non-accepted GPT-5.5 crop-precheck rows, then use
+  the `28` GPT-accepted crop-ready candidates for crop-based inspection/export
+  wiring if appropriate; keep frozen `page_disjoint_real` pages as
+  measurement-only.
 - Triage the two `truth_followup` rows as a separate frozen-truth recheck task.
 - Do not create new CloudHammer diagnostic queues unless they pass the
   stoplight rule in the diagnostic scope reset.

@@ -535,6 +535,56 @@ Consequences:
   eval manifests, predictions, model files, datasets, training data, crops, or
   threshold-tuning inputs.
 
+## 2026-05-08 - Crop Regeneration Writes A Separate Derived Manifest
+
+Decision: Regenerate crops for changed non-frozen postprocessed candidates into
+a separate crop-ready manifest and crop folder instead of editing the accepted
+apply manifest or legacy source candidate manifest in place.
+
+Reason: The accepted apply manifest is useful provenance for the postprocessing
+decision, while crop consumers need concrete image paths for the changed boxes.
+Keeping regeneration as a derived artifact preserves source manifests and makes
+the crop-writing step auditable.
+
+Consequences:
+
+- Script:
+  `CloudHammer_v2/scripts/regenerate_postprocessed_non_frozen_crops.py`
+- Output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/`
+- Dry-run must be run before real crop writing.
+- The current run wrote `22` regenerated crops and a `32`-row crop-ready
+  manifest with `10` source crops preserved.
+- This artifact must not be treated as eval truth, training data, threshold
+  tuning, or a mutation of the legacy source candidate manifest.
+
+## 2026-05-08 - GPT-5.5 Crop Precheck Before Human Inspection
+
+Decision: Postprocessed crop inspection should be prechecked with GPT-5.5 into
+a separate provisional CSV before asking Michael to review the crop-ready
+queue.
+
+Reason: The regenerated crop manifest has `32` items and the user explicitly
+asked to avoid drifting into another blank manual inspection pass. GPT-5.5 can
+separate likely-usable crops from obvious no-cloud or ambiguous rows while
+preserving a durable record of the findings.
+
+Consequences:
+
+- Inspection packet script:
+  `CloudHammer_v2/scripts/build_postprocessed_crop_inspection_viewer.py`
+- GPT precheck script:
+  `CloudHammer_v2/scripts/prefill_postprocessed_crop_inspection_gpt.py`
+- Prefill CSV:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.csv`
+- Companion viewer:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`
+- Current precheck result: `28` `accept_crop`, `2` `needs_human_review`, and
+  `2` `reject_no_visible_cloud`.
+- GPT crop decisions are provisional inspection metadata only. They must not
+  edit the legacy source candidate manifest, labels, eval manifests,
+  predictions, model files, datasets, training data, or threshold-tuning inputs.
+
 ## 2026-05-05 - Diagnostic Scope Reset
 
 Decision: CloudHammer diagnostics must maximize value per reviewed item, not

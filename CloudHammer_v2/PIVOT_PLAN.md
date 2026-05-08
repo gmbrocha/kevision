@@ -23,8 +23,10 @@ and audit:
 
 Both paths have now been scored against the same frozen human-audited full-page
 labels, and the baseline mismatch rows have been human-bucketed. Current work is
-contained postprocessing follow-through and guarded candidate-pool planning
-before the next training or synthetic decision.
+using the contained non-frozen postprocessing outputs, including regenerated
+crops and GPT-5.5 crop precheck, to decide the next pipeline-consumption step
+and guarded candidate-pool planning before the next training or synthetic
+decision.
 
 All future repetitive review queues must report item count and estimated burden
 and ask whether GPT-5.5 should prefill provisional decisions before Michael is
@@ -52,8 +54,9 @@ queues without explicit approval.
 7. Run postprocessing diagnostics on non-frozen data for fragment merging,
    duplicate suppression, overmerge splitting, and localization. First
    report-only diagnostic, reviewer controls, and GPT-5.5 provisional prefill
-   generated; durable reviewed decisions and the first dry-run postprocessing
-   action plan now exist.
+   generated; durable reviewed decisions, dry-run/apply comparisons, a derived
+   non-frozen manifest, regenerated crops, and a GPT-5.5 crop inspection
+   precheck now exist.
 8. Define/generate guarded candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,
@@ -71,10 +74,12 @@ training data should come from GPT-assisted labeling, model/GPT disagreement
 queues, reviewed hard negatives, candidate-pool review, and pipeline findings
 converted into training signal without mining frozen eval pages.
 
-The next implementation step is postprocessing-first: build a dry-run
-merge/suppress/split/localization postprocessor on non-frozen diagnostic inputs,
-then measure candidate behavior before deciding whether any remaining signal is
-training data.
+The next implementation step is still postprocessing-first, but the first
+non-frozen diagnostic loop has now produced a crop-ready derived manifest and a
+GPT-5.5 crop inspection precheck. Resolve or accept the `4` non-accepted
+precheck rows, then use the `28` GPT-accepted rows for crop-based
+inspection/export wiring or a contained pipeline-consumption comparison before
+deciding whether any remaining signal is training data.
 
 ## Reporting Rule
 
