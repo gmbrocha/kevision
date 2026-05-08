@@ -1,0 +1,42 @@
+{
+  "blocked_or_manual_reasons": {
+    "expand_needs_reviewed_full_cloud_geometry_or_merge_component": 11,
+    "split_needs_child_candidate_geometry": 3,
+    "tighten_adjust_not_safe_to_apply_from_tight_member_bbox": 1
+  },
+  "by_proposed_action": {
+    "manual_geometry_required": 12,
+    "manual_split_required": 3,
+    "merge_component_edge": 9,
+    "no_change": 10,
+    "tighten_bbox": 10
+  },
+  "by_review_decision": {
+    "expand": 11,
+    "merge": 9,
+    "reject_merge": 10,
+    "split": 3,
+    "tighten": 10,
+    "tighten_adjust": 1
+  },
+  "candidate_actions": 25,
+  "component_actions": 3,
+  "diagnostic_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504",
+  "frozen_manifest_guard": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.human_audited.jsonl",
+  "guardrails": [
+    "dry_run_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning"
+  ],
+  "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505",
+  "review_log": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\postprocessing_diagnostic_review_log.reviewed.csv",
+  "review_rows": 44,
+  "row_actions": 44,
+  "schema": "cloudhammer_v2.postprocessing_dry_run_summary.v1",
+  "source_candidate_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\whole_cloud_candidates_manifest.jsonl"
+}

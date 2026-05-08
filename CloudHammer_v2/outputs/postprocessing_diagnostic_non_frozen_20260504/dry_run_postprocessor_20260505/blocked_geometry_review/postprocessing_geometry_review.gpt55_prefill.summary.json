@@ -1,0 +1,31 @@
+{
+  "api_predictions": 18,
+  "by_geometry_decision": {
+    "child_bboxes": 3,
+    "component_bbox": 3,
+    "corrected_bbox": 1,
+    "merge_with_component": 11
+  },
+  "by_item_type": {
+    "expand_geometry": 11,
+    "merge_component_geometry": 3,
+    "split_geometry": 3,
+    "tighten_adjust_geometry": 1
+  },
+  "by_review_status": {
+    "gpt_prefilled": 18
+  },
+  "dry_run": false,
+  "guardrails": [
+    "provisional_geometry_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning"
+  ],
+  "rows": 18,
+  "schema": "cloudhammer_v2.postprocessing_geometry_gpt_prefill_summary.v1"
+}

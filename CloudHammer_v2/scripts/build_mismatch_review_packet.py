@@ -532,7 +532,17 @@ error-analysis metadata only.
 The HTML reviewer is the primary review surface. The contact sheet is retained
 only as a quick overview and should not be the main review tool.
 
-## Human Review Rule
+## Review Fatigue Guardrail
+
+Queue size: `{summary['mismatch_rows']}` rows.
+
+Before asking Michael to manually review this packet, report the queue size and
+estimated burden, then ask whether GPT-5.5 should prefill provisional decisions
+first. For `10-50` rows, usually recommend GPT-5.5 sample or full prefill. For
+more than `50` rows, recommend staged GPT-5.5 prefill unless explicitly told
+otherwise. GPT prefill remains provisional until human accepted.
+
+## Human Authority Rule
 
 The human cloud/not-cloud judgment is authoritative when the displayed context
 is adequate. If the display does not make the case understandable, mark the row
@@ -568,7 +578,8 @@ Then browse to:
 http://127.0.0.1:8766/CloudHammer_v2/outputs/baseline_human_audited_mismatch_review_20260504/overlay_packet/mismatch_reviewer.html
 ```
 
-Use the browser UI to fill review metadata and click `Export Reviewed CSV`.
+After any approved prefill step, use the browser UI to confirm/correct review
+metadata and click `Export Reviewed CSV`.
 Save the export as `mismatch_review_log.reviewed.csv` in this packet directory,
 then run:
 

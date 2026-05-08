@@ -23,8 +23,18 @@ and audit:
 
 Both paths have now been scored against the same frozen human-audited full-page
 labels, and the baseline mismatch rows have been human-bucketed. Current work is
-postprocessing-first diagnostics and guarded candidate-pool generation before the
-next training or synthetic decision.
+contained postprocessing follow-through and guarded candidate-pool planning
+before the next training or synthetic decision.
+
+All future repetitive review queues must report item count and estimated burden
+and ask whether GPT-5.5 should prefill provisional decisions before Michael is
+asked to review manually.
+
+Diagnostics must support decisions, not become the product. Before creating a
+new review queue, classify it as `GREEN` required now and decision-changing,
+`YELLOW` useful but deferrable/GPT-prefillable/sampleable, or `RED` interesting
+but not actionable now. Do not create `RED` queues, and do not create `YELLOW`
+queues without explicit approval.
 
 ## Priority Order
 
@@ -41,8 +51,9 @@ next training or synthetic decision.
    Completed for the current `77`-row baseline review.
 7. Run postprocessing diagnostics on non-frozen data for fragment merging,
    duplicate suppression, overmerge splitting, and localization. First
-   report-only diagnostic and static viewer generated; spot-check the rows
-   before implementing any dry-run postprocessor.
+   report-only diagnostic, reviewer controls, and GPT-5.5 provisional prefill
+   generated; durable reviewed decisions and the first dry-run postprocessing
+   action plan now exist.
 8. Define/generate guarded candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,

@@ -2,8 +2,8 @@
 
 Status: accidental scratch output. Do not score.
 
-Correction: `page_disjoint_real` is intended for direct human review and should
-not rely on GPT full-page labels. The GPT-5.5 full-page label pass documented
+Correction: `page_disjoint_real` eval truth should be confirmed directly and
+must not rely on GPT full-page labels. The GPT-5.5 full-page label pass documented
 here is retained only as scratch context and must not be used as eval ground
 truth, training data, threshold tuning input, or promotion evidence.
 

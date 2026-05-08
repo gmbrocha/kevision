@@ -1,0 +1,16 @@
+{
+  "api_predictions": 44,
+  "by_review_decision": {
+    "merge": 9,
+    "reject_merge": 10,
+    "reject_tighten": 3,
+    "split": 3,
+    "tighten": 19
+  },
+  "by_review_status": {
+    "reviewed": 44
+  },
+  "dry_run": false,
+  "rows": 44,
+  "schema": "cloudhammer_v2.postprocessing_review_gpt_prefill_summary.v1"
+}

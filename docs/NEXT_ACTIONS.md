@@ -1,6 +1,6 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-04.
+Status: operational queue as of 2026-05-05.
 
 ## Now
 
@@ -25,7 +25,7 @@ Status: operational queue as of 2026-05-04.
      `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_manifest.jsonl`.
 7. Correct GPT-provisional full-page label handling.
    - Current status: corrected. GPT full-page labels are provisional only.
-     `page_disjoint_real` should be human-reviewed directly.
+     `page_disjoint_real` eval truth should be confirmed directly.
    - Accidental GPT-5.5 full-page outputs are scratch/do-not-score at
      `CloudHammer_v2/eval/page_disjoint_real_gpt55/DO_NOT_SCORE.md`.
 8. Run baseline eval: `model_only_tiled` vs `pipeline_full`.
@@ -39,10 +39,13 @@ Status: operational queue as of 2026-05-04.
      reviewed baseline mismatch summary, postprocessing diagnostics, and
      candidate pools are trustworthy enough to steer diagnostics.
 
-## Immediate Human Review
+## Immediate Review Queues
 
-1. Human-review `page_disjoint_real` directly and create audited eval truth.
+1. Directly confirm `page_disjoint_real` and create audited eval truth.
    - Current status: completed and consolidated.
+   - Burden note: this completed queue had `17` frozen eval pages. GPT output
+     for frozen eval pages is scratch/provisional only and cannot become eval
+     truth.
    - Review queue:
      `CloudHammer_v2/eval/page_disjoint_real_human_review/manifest.jsonl`.
    - Labels write to
@@ -51,13 +54,16 @@ Status: operational queue as of 2026-05-04.
      `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_manifest.human_audited.jsonl`.
    - Summary:
      `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_human_audited_summary.md`.
-2. Human-review/correct GPT-5.5 cropped training/review candidate prelabels.
+2. Human-confirm/correct GPT-5.5 cropped training/review candidate prelabels.
    - Current status: completed for
      `CloudHammer/data/review_batches/small_corpus_expansion_supplement_20260502/prelabel_manifest.jsonl`.
      Output:
      `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`.
-3. Human-review the style-balance diagnostic touched-real queue.
+3. Review the style-balance diagnostic touched-real queue only after applying
+   the review fatigue guardrail.
    - Current status: queued and launched.
+   - Queue size: `12` pages, so GPT-5.5 sample or full prefill should be
+     considered before asking for manual review.
    - Manifest:
      `CloudHammer_v2/eval/style_balance_diagnostic_real_touched_20260503/manifest.jsonl`.
    - Summary:
@@ -78,15 +84,35 @@ Status: operational queue as of 2026-05-04.
    `synthetic_background_candidates`, and
    `future_training_expansion_candidates`.
 7. Convert full-page corrections into frozen eval truth only.
-8. Spot-check the first non-frozen postprocessing diagnostic without mining,
-   tuning on, or training from frozen eval pages.
+8. Use the durable review workflow for the first non-frozen postprocessing
+   diagnostic without mining, tuning on, or training from frozen eval pages.
+   - Queue size: `44` diagnostic rows, so GPT-5.5 prefill was appropriate and
+     has been generated before manual confirmation.
    - Current report:
      `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_summary.md`.
    - Static viewer:
      `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`.
-   - Next step after spot-check: build a dry-run postprocessor for fragment
-     merge, duplicate suppression, overmerge split, and localization tightening
-     behavior on non-frozen inputs.
+   - Blank/template review log:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.csv`.
+   - GPT-5.5 prefilled review log:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.gpt55_prefill.csv`.
+   - GPT-5.5 companion reviewer:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.gpt55_prefill.html`.
+   - Reviewed CSV:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.reviewed.csv`.
+   - Dry-run plan:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_dry_run_summary.md`.
+   - Current dry-run result: `3` merge components, `10` tighten bbox proposals,
+     `12` expand/`tighten_adjust` rows requiring explicit geometry, `3` manual
+     split rows, and `10` no-change rows.
+   - Blocked-geometry reviewer:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.html`.
+   - Geometry queue size: `18` items (`11` expand, `3` merge component, `3`
+     split, `1` `tighten_adjust`), so consider GPT-5.5 provisional geometry
+     prefill before asking for manual geometry review.
+   - Next step: export
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.reviewed.csv`
+     before any apply script consumes blocked geometry.
 
 ## Later
 
@@ -100,8 +126,11 @@ Status: operational queue as of 2026-05-04.
 ## Current Blockers
 
 - Baseline overlay mismatch review is complete; first non-frozen
-  postprocessing diagnostic and static viewer exist and need spot-check review
-  before dry-run postprocessor implementation.
+  postprocessing diagnostic reviewer controls, reviewed CSV, and dry-run
+  postprocessing plan exist. A blocked-geometry reviewer now exists; the next
+  blocker is geometry review or GPT-5.5 provisional geometry prefill for its
+  `18` items before any apply script consumes expand/split/merge-component
+  geometry.
 - Candidate pool manifests need to be defined and generated without changing
   frozen eval truth, training data, mining inputs, or synthetic outputs.
 - The strict clean page-disjoint pool is exhausted inside current sets; any

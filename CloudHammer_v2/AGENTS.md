@@ -316,3 +316,88 @@ read-only inspections unless context appears stale or ambiguous.
 
 When in doubt, fresh session beats compacted context for eval, labels, data,
 training, or legacy imports.
+
+
+## Review Fatigue Guardrail
+
+Policy reference: `docs/EVAL_POLICY.md#review-fatigue-guardrail`.
+
+Do not hand Michael repetitive review labor by default.
+
+Do not create workflows that quietly convert model uncertainty into large amounts of repetitive human review labor.
+
+Michael's role is final judgment and strategic correction, not bulk manual classification.
+
+Before generating or presenting any human review queue, the agent must estimate the review burden and ask whether GPT-5.5 should prefill provisional decisions first.
+
+This is mandatory when:
+- the queue has more than 10 items;
+- the same kind of decision repeats across many crops or rows;
+- the review involves postprocessing diagnostics, mismatch rows, loose localization candidates, merge/split candidates, hard negatives, or crop-level accept/reject decisions;
+- the task is visually obvious to a human but tedious at scale;
+- the review is likely to happen late at night or during rapid iteration.
+
+For each review queue, report:
+
+- approximate item count;
+- item type;
+- image/crop size risk;
+- estimated manual burden;
+- whether GPT-5.5 prefill is recommended;
+- recommended prefill mode: none, sample, crop-only, full queue, or staged.
+
+The agent must ask before running GPT-5.5 prefill.
+
+The agent must not default to manual-first review for medium or large repetitive queues.
+
+For queues of 10-50 visually repetitive items, GPT-5.5 prefill should normally be recommended unless cost/image size makes it unreasonable.
+
+For queues larger than 50 items, use staged prefill by default: sample first, review quality, then scale only with approval.
+
+Human review remains the final authority. GPT-prefilled decisions are provisional and must be clearly separated from reviewed/accepted outputs.
+
+Use these thresholds:
+
+- `<= 10` items: manual review may be fine, but still name the item count.
+- `10-50` items: usually recommend GPT-5.5 sample or full prefill.
+- `> 50` items: recommend staged GPT-5.5 prefill unless explicitly told
+  otherwise.
+
+The agent must ask before running GPT-5.5 prefill. GPT prefill must never be
+treated as ground truth; it is provisional until human accepted. Keep
+GPT-prefilled, human-confirmed, and human-corrected outputs clearly separated.
+
+## Diagnostic Scope Reset
+
+Policy reference: `docs/EVAL_POLICY.md#diagnostic-scope-reset`.
+
+CloudHammer diagnostics must support decisions, not become the product.
+Maximize value per reviewed item, not the number of review queues.
+
+For current eval and diagnostic work, do not add a new diagnostic dimension
+unless it directly changes one of:
+
+- frozen eval truth;
+- training inclusion;
+- postprocessing behavior;
+- baseline interpretation;
+- delivery-facing behavior.
+
+Before creating any new review queue, classify it:
+
+- `GREEN`: required now and decision-changing.
+- `YELLOW`: useful but can be GPT-prefilled, backfilled, or sampled.
+- `RED`: interesting but not actionable now.
+
+Do not create `RED` queues.
+
+Do not create `YELLOW` queues unless they are cheap, GPT-prefilled or
+backfilled where practical, and explicitly approved.
+
+Do not re-review already-seen visual items unless the new question cannot be
+answered from existing review logs, geometry records, metadata, or GPT-5.5
+prefill outputs.
+
+When in doubt, prefer fewer queues, additive fields on existing review records,
+GPT-prefilled provisional fields, sampled diagnostics, decision-changing labels
+only, and forward progress toward frozen eval and baseline comparison.

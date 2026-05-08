@@ -9,13 +9,23 @@ legacy commands from `CloudHammer/` without audit.
 
 Run from the repo root with the project venv.
 
+Before launching any review queue, apply the review fatigue guardrail from
+`CloudHammer_v2/docs/EVAL_POLICY.md#review-fatigue-guardrail`: report item
+count, item type, image/API-cost risk, estimated manual burden, and whether
+GPT-5.5 provisional prefill is recommended. Do not default to manual review for
+repetitive queues.
+
 Build touched-page registry and freeze `page_disjoint_real`:
 
 ```powershell
 .\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_touched_page_registry.py
 ```
 
-Launch human review for frozen `page_disjoint_real` eval truth.
+Launch direct review for frozen `page_disjoint_real` eval truth.
+
+Burden and policy note: this queue has `17` frozen eval pages. GPT output may
+be used only as scratch/provisional support and must not become eval truth,
+training data, threshold-tuning input, or promotion evidence.
 
 Known working launch command:
 
@@ -37,7 +47,7 @@ Dry-run result should show `17` images and start at item `1`.
 .\.venv\Scripts\python.exe CloudHammer\scripts\launch_labelimg_batch.py page_disjoint_real_human_review --batch-root CloudHammer_v2\eval --reviewed-label-dir CloudHammer_v2\eval\page_disjoint_real_human_review\labels --class-file CloudHammer_v2\eval\page_disjoint_real_human_review\labels\classes.txt --dry-run --start-first
 ```
 
-Human-review queue:
+Eval truth review queue:
 `CloudHammer_v2/eval/page_disjoint_real_human_review/manifest.jsonl`
 
 Human truth labels:
@@ -47,7 +57,11 @@ These labels are frozen eval truth only. Do not add them or their pages to
 training, mining, synthetic backgrounds, threshold tuning, or GPT/model relabel
 loops.
 
-Launch human review for the diagnostic touched-real style-balance supplement:
+Launch review for the diagnostic touched-real style-balance supplement only
+after applying the review fatigue guardrail:
+
+Burden note: this queue has `12` pages, so GPT-5.5 sample or full prefill
+should be considered before asking for manual LabelImg review.
 
 ```powershell
 $imageList = Resolve-Path CloudHammer_v2\eval\style_balance_diagnostic_real_touched_20260503\images_resolved.txt
@@ -62,8 +76,8 @@ This supplement is diagnostic-only and not promotion-clean. Do not blend its
 metrics with `page_disjoint_real`.
 
 Historical only: GPT-provisional full-page labels were generated during setup,
-but `page_disjoint_real` should now be human-reviewed directly. Do not use this
-command to create eval truth:
+but `page_disjoint_real` eval truth should be confirmed directly. Do not use
+this command to create eval truth:
 
 ```powershell
 .\.venv\Scripts\python.exe CloudHammer_v2\scripts\generate_gpt_fullpage_labels.py --manifest CloudHammer_v2\eval\page_disjoint_real\page_disjoint_real_manifest.jsonl --output-dir CloudHammer_v2\eval\page_disjoint_real --model gpt-5.4 --detail high --max-dim 3000 --image-format jpeg --min-confidence 0.40 --env-file CloudHammer\.env --request-delay 0.25
@@ -214,9 +228,9 @@ Safety: report-only. It must not edit truth labels, eval manifests,
 prediction files, model files, datasets, or training data. It is not threshold
 tuning, and frozen eval pages remain measurement-only.
 
-Build a static HTML viewer for the non-frozen postprocessing diagnostic rows.
+Build a static HTML reviewer for the non-frozen postprocessing diagnostic rows.
 This links each diagnostic row to grouped candidate IDs, existing crop paths,
-and source page renders:
+source page renders, and reviewer controls for durable decision export:
 
 ```powershell
 .\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_diagnostic_viewer.py
@@ -230,13 +244,285 @@ Working directory: repo root.
 Expected artifact:
 
 - `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.csv`
 
 Open it from a browser or from a static server rooted at the repo root. If crop
 images return `404`, the server is likely rooted in the wrong directory.
 
-Safety: read-only. It consumes existing diagnostic rows and candidate crop
-paths. It must not edit truth labels, eval manifests, prediction files, model
-files, datasets, or training data.
+The reviewer stores browser-local edits and exports
+`postprocessing_diagnostic_review_log.reviewed.csv`. Use review statuses:
+
+- `unreviewed`
+- `reviewed`
+- `needs_followup`
+- `not_actionable`
+
+Use review decisions:
+
+- `merge`
+- `reject_merge`
+- `suppress_duplicate`
+- `reject_suppress`
+- `split`
+- `reject_split`
+- `tighten`
+- `tighten_adjust`
+- `reject_tighten`
+- `expand`
+- `ignore`
+- `unclear`
+
+Use `tighten_adjust` when the candidate should tighten but the displayed tight
+member bbox is not acceptable, such as when it clips part of the visible cloud
+or remains materially too loose in one axis.
+
+Safety: review-metadata only. It consumes existing diagnostic rows and
+candidate crop paths. It must not edit truth labels, eval manifests, prediction
+files, model files, datasets, or training data. The exported reviewed CSV is
+input for a later dry-run or explicit apply step only.
+
+Prefill the non-frozen postprocessing diagnostic review log with GPT-5.5
+suggestions. Run dry-run first to generate/check API overlay inputs without API
+calls:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\prefill_postprocessing_review_gpt.py --dry-run
+```
+
+Then run the API prefill:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\prefill_postprocessing_review_gpt.py --overwrite
+```
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.gpt55_prefill.csv`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.gpt55_prefill.summary.md`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/gpt55_review_prefill/predictions.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/gpt55_review_prefill/api_inputs/`
+
+Build a companion reviewer using the GPT-5.5 prefill:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_diagnostic_viewer.py --review-log CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\postprocessing_diagnostic_review_log.gpt55_prefill.csv --output-html CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\postprocessing_diagnostic_viewer.gpt55_prefill.html
+```
+
+Open the companion reviewer and click `Apply Review Log Values` to load the
+GPT suggestions into browser state, then confirm or correct each row and export
+`postprocessing_diagnostic_review_log.reviewed.csv`.
+
+Safety: GPT-5.5 prefill is provisional review metadata only. It must not be
+treated as human-reviewed truth, training data, threshold tuning, eval truth,
+or automatic postprocessor input until the human-reviewed CSV is exported.
+
+Build the dry-run postprocessing action plan from the reviewed diagnostic CSV:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_dry_run_plan.py
+```
+
+Purpose: convert reviewed postprocessing decisions into a report-only action
+plan. The plan proposes deterministic merge/tighten candidates where possible
+and flags expand, split, and `tighten_adjust` cases that still need explicit
+geometry before any apply step.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_dry_run_plan.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_dry_run_summary.json`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_dry_run_summary.md`
+
+Current dry-run result from the reviewed `44` rows:
+
+- `3` reviewed merge components
+- `10` tighten bbox proposals
+- `12` manual geometry rows for expand/`tighten_adjust`
+- `3` manual split rows
+- `10` no-change rows
+
+Safety: dry-run only. It must not edit the legacy source candidate manifest,
+truth labels, eval manifests, predictions, model files, datasets, training
+data, or threshold-tuning inputs.
+
+Build the blocked-geometry reviewer from the dry-run plan:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_geometry_reviewer.py
+```
+
+Purpose: review only the dry-run cases that need explicit geometry before any
+apply step. This includes expand, split, `tighten_adjust`, and merge-component
+rollups whose final full-cloud bbox cannot be safely inferred.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.html`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.csv`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer_summary.md`
+
+Current queue size is `18`: `11` expand geometry items, `3` merge-component
+geometry items, `3` split geometry items, and `1` `tighten_adjust` geometry
+item. Under the review fatigue guardrail, GPT-5.5 geometry prefill may be
+considered, but any prefilled geometry is provisional until human accepted.
+
+The reviewer exports `postprocessing_geometry_review.reviewed.csv`. Save it in
+the same `blocked_geometry_review` directory.
+
+Safety: review artifact only. It must not edit the legacy source candidate
+manifest, truth labels, eval manifests, predictions, model files, datasets,
+training data, or threshold-tuning inputs.
+
+Prefill the blocked-geometry reviewer with GPT-5.5 provisional geometry:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\prefill_postprocessing_geometry_gpt.py --overwrite
+```
+
+Purpose: reduce repetitive manual geometry entry for the `18` blocked
+postprocessing geometry items. GPT-5.5 writes provisional review metadata only;
+the output must be human-confirmed or corrected before any apply script consumes
+it.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.gpt55_prefill.csv`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.gpt55_prefill.summary.md`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/gpt55_geometry_prefill/predictions.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/gpt55_geometry_prefill/api_inputs/`
+
+Build a companion reviewer using the GPT-5.5 geometry prefill:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_geometry_reviewer.py --review-log CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\blocked_geometry_review\postprocessing_geometry_review.gpt55_prefill.csv --output-html CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\blocked_geometry_review\postprocessing_geometry_reviewer.gpt55_prefill.html
+```
+
+Expected artifact:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.gpt55_prefill.html`
+
+Open the prefilled reviewer, confirm or correct each row, and export
+`postprocessing_geometry_review.reviewed.csv` to the same
+`blocked_geometry_review` directory. Prefilled rows use `gpt_prefilled` status;
+the reviewer must change accepted rows to `reviewed` before the export is used
+by any apply step.
+
+Safety: GPT-5.5 geometry prefill is provisional review metadata only. It must
+not edit the legacy source candidate manifest, truth labels, eval manifests,
+predictions, model files, datasets, training data, or threshold-tuning inputs.
+
+Build the postprocessing apply dry-run comparison from the reviewed diagnostic
+and geometry logs:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessing_apply_dry_run_comparison.py
+```
+
+Purpose: convert the reviewed diagnostic decisions, dry-run plan, and reviewed
+geometry CSV into a candidate-level apply preview and change log. This is a
+report-first comparison only, not an apply script.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/postprocessing_apply_dry_run_candidate_preview.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/postprocessing_apply_dry_run_changes.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/postprocessing_apply_dry_run_summary.json`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/postprocessing_apply_dry_run_summary.md`
+
+Current dry-run comparison result:
+
+- `25` referenced source candidates
+- `23` preview output candidates
+- `3` merge-component bboxes
+- `8` split-child bboxes
+- `10` tighten bboxes
+- `1` corrected bbox
+- `1` unchanged candidate
+- `0` unresolved manual geometry rows after geometry review
+- `1` duplicate split geometry record collapsed into the latest reviewed row
+
+Safety: dry-run comparison only. It must not edit the legacy source candidate
+manifest, truth labels, eval manifests, predictions, model files, datasets,
+training data, or threshold-tuning inputs.
+
+Apply the accepted postprocessing preview into a derived non-frozen candidate
+manifest:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\apply_postprocessing_non_frozen.py
+```
+
+Purpose: write a new non-frozen postprocessed candidate manifest from the
+accepted apply dry-run comparison. This is an explicit derived-output apply
+path; it does not mutate the legacy source candidate manifest.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_candidates_manifest.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_suppressed_sources.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_apply_summary.json`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_apply_summary.md`
+
+Current derived-output result:
+
+- `34` source manifest candidates
+- `32` postprocessed output candidates
+- `13` suppressed source candidates replaced by merge/split outputs
+- `9` carried-through unflagged candidates
+- `10` tighten bboxes
+- `8` split-child bboxes
+- `3` merge-component bboxes
+- `1` corrected bbox
+- `1` unchanged reviewed candidate
+
+Safety: derived output only. It must not edit the legacy source candidate
+manifest, truth labels, eval manifests, predictions, model files, datasets,
+training data, or threshold-tuning inputs.
+
+Compare the derived non-frozen postprocessed manifest against the original
+source candidate manifest:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\compare_postprocessing_non_frozen_behavior.py
+```
+
+Purpose: produce a report-first metadata comparison between the original
+non-frozen source candidates and the derived postprocessed candidates. This
+does not score against eval truth, tune thresholds, regenerate crops, or create
+a review queue.
+
+Working directory: repo root.
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_by_source.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_by_page.jsonl`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_summary.json`
+- `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_summary.md`
+
+Current behavior comparison result:
+
+- `34` source candidates -> `32` postprocessed candidates
+- candidate count delta `-2`
+- total bbox area ratio postprocessed/source `0.831645`
+- `13` source candidates replaced by merge/split outputs
+- `22` postprocessed candidates need crop regeneration before crop-based
+  inspection/export
+- page count remains `14`
+
+Safety: report-first comparison only. It must not edit the legacy source
+candidate manifest, truth labels, eval manifests, predictions, model files,
+datasets, training data, crops, or threshold-tuning inputs.
 
 Run model-only tiled inference using the latest continuity checkpoint:
 

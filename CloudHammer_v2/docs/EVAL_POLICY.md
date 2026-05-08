@@ -25,15 +25,17 @@ training or eval manifests.
 ## Candidate Pools
 
 Candidate pools are not eval subsets and must not be reported as promotion
-metrics. They are review or data-selection queues that may feed later human
-review, training expansion, hard-negative mining, or synthetic planning only
-after the applicable guards are satisfied.
+metrics. They are review or data-selection queues that may feed later
+GPT-prefilled provisional review, human confirmation/correction, training
+expansion, hard-negative mining, or synthetic planning only after the
+applicable guards are satisfied.
 
 Current canonical candidate pool names:
 
 - `full_page_review_candidates_from_touched`: touched pages or regions that may
-  deserve direct full-page human review because prior crop-level review does not
-  prove full-page truth.
+  deserve direct full-page review because prior crop-level review does not
+  prove full-page truth. Apply the review fatigue guardrail before asking for
+  repetitive manual review.
 - `mining_safe_hard_negative_candidates`: candidate no-cloud regions for future
   hard-negative mining. Frozen eval pages are excluded, and mixed pages require
   region-level exclusion of real cloud-containing areas.
@@ -81,8 +83,8 @@ Labels must track status:
 
 Reports must state label status.
 
-For `page_disjoint_real`, GPT full-page labels are not eval truth. The frozen
-real pages should be human-reviewed directly. Any GPT full-page output on these
+For `page_disjoint_real`, GPT full-page labels are not eval truth. Frozen real
+eval truth should be confirmed directly. Any GPT full-page output on these
 pages is scratch/provisional only and must not be used for training, threshold
 tuning, or promotion scoring.
 
@@ -91,6 +93,92 @@ Current human-truth review queue:
 
 Current human-truth label directory:
 `CloudHammer_v2/eval/page_disjoint_real_human_review/labels/`
+
+## Review Artifact Rule
+
+Do not use passive visual inspection as a review gate for eval, diagnostics,
+labeling, postprocessing, or candidate-pool work. Review means the workflow can
+record explicit decisions and corrections in a durable artifact.
+
+At minimum, a review workflow must provide one of:
+
+- an editable manifest, CSV, JSONL, label file, or review log with explicit
+  allowed decisions
+- reviewer controls that write decisions to a separate review artifact
+- a report-only protocol that names the exact decisions to record and where
+  they will be stored next
+
+Static viewers, screenshots, overlays, and contact sheets are visual context
+only unless they are paired with a durable decision record. If direct edits to
+truth, predictions, labels, or manifests are too risky, write review decisions
+separately first and consume them through a dry-run or explicit apply step.
+
+## Review Fatigue Guardrail
+
+Do not hand Michael repetitive review labor by default. Before generating,
+presenting, or asking Michael to work through any review queue, estimate the
+burden and ask whether GPT-5.5 should prefill provisional decisions first.
+
+This applies to review queues for postprocessing diagnostics, mismatch review,
+loose localization candidates, fragment merge/split candidates, duplicate
+suppression candidates, hard negatives, crop review, LabelImg queues, contact
+sheets, and static visual packets.
+
+For each review queue, report:
+
+- approximate item count
+- item type
+- image/crop size or API-cost risk
+- estimated manual burden
+- whether GPT-5.5 prefill is recommended
+- recommended prefill mode: none, sample, crop-only, full queue, or staged
+
+Use these thresholds:
+
+- `<= 10` items: manual review may be fine, but still name the item count.
+- `10-50` items: usually recommend GPT-5.5 sample or full prefill.
+- `> 50` items: recommend staged GPT-5.5 prefill unless explicitly told
+  otherwise.
+
+The agent must ask before running GPT-5.5 prefill. GPT prefill must never be
+treated as ground truth; it is provisional until human accepted. Keep
+GPT-prefilled, human-confirmed, and human-corrected outputs clearly separated.
+
+For frozen real eval truth, GPT prefill remains scratch/provisional only and
+must not become eval truth, training data, threshold tuning input, or promotion
+evidence. If GPT prefill is inappropriate for a queue because of eval policy,
+source sensitivity, cost, or image-size risk, say why before asking for manual
+review.
+
+## Diagnostic Scope Reset
+
+CloudHammer diagnostics must support decisions, not become the product.
+Maximize value per reviewed item, not the number of review queues.
+
+For current eval and diagnostic work, do not add a new diagnostic dimension
+unless it directly changes at least one of:
+
+- frozen eval truth
+- training inclusion
+- postprocessing behavior
+- baseline interpretation
+- delivery-facing behavior
+
+Before creating any new review queue, classify the proposed diagnostic:
+
+- `GREEN`: required now and decision-changing.
+- `YELLOW`: useful but can be GPT-prefilled, backfilled, or sampled.
+- `RED`: interesting but not actionable now.
+
+Do not create `RED` queues. Do not create `YELLOW` queues unless they are
+cheap, GPT-prefilled or backfilled where practical, and explicitly approved.
+Do not re-review already-seen visual items unless the new question cannot be
+answered from existing review logs, geometry records, metadata, or GPT-5.5
+prefill outputs.
+
+When in doubt, prefer fewer queues, additive fields on existing review records,
+GPT-prefilled provisional fields, sampled diagnostics, decision-changing labels
+only, and forward progress toward frozen eval and baseline comparison.
 
 ## Baseline Paths
 

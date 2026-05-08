@@ -94,8 +94,8 @@ human-audited.
 
 ## Next Step
 
-Human-review `page_disjoint_real` directly and rerun the baseline against
-human-audited truth before any more training, threshold tuning, or synthetic
+Directly confirm `page_disjoint_real` eval truth and rerun the baseline against
+human-audited labels before any more training, threshold tuning, or synthetic
 generation. Preserve the frozen page set as eval only; do not mine it for
 training examples.
 
@@ -103,7 +103,8 @@ training examples.
 
 A separate GPT-5.5 full-page prelabel pass was generated after the first
 GPT-5.4 baseline, but this was the wrong target. `page_disjoint_real` is meant
-for direct human review and should not use GPT full-page labels as eval truth.
+for direct eval-truth confirmation and should not use GPT full-page labels as
+eval truth.
 
 The accidental GPT-5.5 full-page outputs are marked scratch/do-not-score:
 

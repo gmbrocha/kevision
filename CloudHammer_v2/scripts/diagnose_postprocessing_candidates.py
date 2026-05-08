@@ -456,6 +456,10 @@ def markdown_summary(summary: dict[str, Any], top_rows: list[dict[str, Any]]) ->
             "",
             "These are candidate rows for postprocessing diagnosis only. Do not treat them as truth labels.",
             "",
+            "Review fatigue guardrail: report this queue size before asking for manual review. For 10-50",
+            "repetitive diagnostic rows, usually recommend GPT-5.5 sample or full provisional prefill first.",
+            "For more than 50 rows, recommend staged GPT-5.5 prefill unless explicitly declined.",
+            "",
             "## Top Rows",
             "",
         ]

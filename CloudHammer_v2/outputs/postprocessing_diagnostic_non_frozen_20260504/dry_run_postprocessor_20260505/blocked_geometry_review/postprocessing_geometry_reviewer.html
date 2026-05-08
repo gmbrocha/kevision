@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CloudHammer Blocked Geometry Reviewer</title>
+<style>
+  :root {
+    font-family: Arial, sans-serif;
+    color: #111;
+    --border: #c8cdd3;
+    --muted: #5b6570;
+    --panel: #f6f7f9;
+    --active: #fff4bf;
+  }
+  body {
+    margin: 0;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    overflow: hidden;
+  }
+  aside {
+    border-right: 1px solid var(--border);
+    overflow: auto;
+    background: var(--panel);
+  }
+  main {
+    overflow: auto;
+    padding: 18px;
+  }
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+  }
+  button, select, input, textarea {
+    font: inherit;
+  }
+  button {
+    border: 1px solid #9199a3;
+    background: white;
+    padding: 6px 9px;
+    cursor: pointer;
+  }
+  .item {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    background: white;
+  }
+  .item.active {
+    background: var(--active);
+  }
+  .item .id {
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    word-break: break-all;
+  }
+  .pill {
+    display: inline-block;
+    padding: 2px 5px;
+    margin-right: 4px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 11px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 12px;
+  }
+  .panel {
+    border: 1px solid var(--border);
+    padding: 10px;
+    background: white;
+  }
+  .crop {
+    position: relative;
+    max-height: 520px;
+    overflow: auto;
+    border: 1px solid var(--border);
+    background: #fafafa;
+  }
+  .crop-image-wrap {
+    position: relative;
+    width: 100%;
+  }
+  .crop img {
+    width: 100%;
+    display: block;
+  }
+  .overlay-box {
+    position: absolute;
+    box-sizing: border-box;
+    pointer-events: none;
+    min-width: 5px;
+    min-height: 5px;
+  }
+  .overlay-label {
+    position: absolute;
+    left: -1px;
+    top: -18px;
+    padding: 2px 4px;
+    color: white;
+    font: 11px Consolas, monospace;
+    white-space: nowrap;
+    background: var(--box-color);
+  }
+  .box-active {
+    --box-color: #e11d48;
+    border: 3px solid var(--box-color);
+    background: rgba(225, 29, 72, 0.08);
+  }
+  .box-other {
+    --box-color: #2563eb;
+    border: 3px dashed var(--box-color);
+    background: rgba(37, 99, 235, 0.06);
+  }
+  .box-member {
+    --box-color: #f59e0b;
+    border: 2px dashed var(--box-color);
+  }
+  .box-proposed {
+    --box-color: #7c3aed;
+    border: 3px dashed var(--box-color);
+    background: rgba(124, 58, 237, 0.07);
+  }
+  .box-corrected {
+    --box-color: #16a34a;
+    border: 4px solid var(--box-color);
+    background: rgba(22, 163, 74, 0.08);
+  }
+  .box-child {
+    --box-color: #0891b2;
+    border: 3px solid var(--box-color);
+    background: rgba(8, 145, 178, 0.08);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0;
+    font-size: 12px;
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .swatch {
+    width: 14px;
+    height: 10px;
+    border: 2px solid currentColor;
+  }
+  .swatch.dashed {
+    border-style: dashed;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 4px 8px;
+    font-size: 12px;
+  }
+  .kv .label {
+    color: var(--muted);
+  }
+  code {
+    font-family: Consolas, monospace;
+    font-size: 11px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 90px;
+  }
+  input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .form label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .note {
+    color: var(--muted);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<aside>
+  <div class="toolbar">
+    <button id="exportBtn">Export CSV</button>
+    <button id="clearBtn">Clear Local</button>
+  </div>
+  <div id="list"></div>
+</aside>
+<main id="detail"></main>
+<script>
+const DATA = {"items": [{"geometry_item_id": "row_023_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [23], "source_candidate_ids": ["260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001", "short_id": "whole_001", "bbox_page_xyxy": [6343.183, 3840.187, 7667.803, 6520.032], "crop_box_page_xyxy": [5793.183, 3290.187, 8217.803, 7070.032], "member_boxes_page_xyxy": [[6528.0, 4352.0, 7482.986, 5502.913], [6540.884, 4025.004, 7471.059, 4544.0], [6536.928, 5440.0, 7482.131, 6335.215]], "confidence": 0.989347, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.6839932990390123, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}]}, {"geometry_item_id": "row_024_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [24], "source_candidate_ids": ["260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002", "short_id": "whole_002", "bbox_page_xyxy": [4104.056, 3755.521, 7714.077, 4350.314], "crop_box_page_xyxy": [3526.453, 3177.918, 8291.681, 4927.917], "member_boxes_page_xyxy": [[4353.023, 4006.009, 5621.275, 4094.829], [5457.711, 4004.488, 6714.611, 4101.347], [6542.62, 4012.946, 7465.11, 4096.743]], "confidence": 0.783209, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.14516020088974915, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}]}, {"geometry_item_id": "row_025_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [25], "source_candidate_ids": ["260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003", "short_id": "whole_003", "bbox_page_xyxy": [3765.236, 5306.945, 5694.538, 6472.827], "crop_box_page_xyxy": [3215.236, 4756.945, 6244.538, 7022.827], "member_boxes_page_xyxy": [[3898.291, 5441.698, 4544.0, 6336.312], [4353.03, 5440.0, 5561.483, 6339.772]], "confidence": 0.99306, "size_bucket": "medium", "member_count": 2, "group_fill_ratio": 0.7402138176068461, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}]}, {"geometry_item_id": "row_026_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [26], "source_candidate_ids": ["260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004", "short_id": "whole_004", "bbox_page_xyxy": [3781.465, 3895.347, 4661.768, 5602.981], "crop_box_page_xyxy": [3231.465, 3345.347, 5211.768, 6152.981], "member_boxes_page_xyxy": [[3902.207, 4013.115, 4544.0, 4544.0], [3899.233, 4352.0, 4544.0, 5485.213]], "confidence": 0.945136, "size_bucket": "medium", "member_count": 2, "group_fill_ratio": 0.7127142734722709, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}]}, {"geometry_item_id": "row_027_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [27], "source_candidate_ids": ["260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005", "short_id": "whole_005", "bbox_page_xyxy": [4176.425, 6096.817, 6899.639, 6532.324], "crop_box_page_xyxy": [3626.425, 5546.817, 7449.639, 7082.324], "member_boxes_page_xyxy": [[5445.857, 6284.625, 6711.831, 6342.817], [4364.233, 6291.056, 5622.36, 6344.516]], "confidence": 0.665051, "size_bucket": "large", "member_count": 2, "group_fill_ratio": 0.11882996532138887, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}]}, {"geometry_item_id": "row_039_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [39], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_002"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_002", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_002", "short_id": "whole_002", "bbox_page_xyxy": [10706.288, 4923.85, 11631.161, 7442.67], "crop_box_page_xyxy": [10156.288, 4373.85, 12181.161, 7992.67], "member_boxes_page_xyxy": [[10880.0, 6528.0, 11452.085, 7268.958], [10881.262, 5440.0, 11457.45, 6588.786], [10884.57, 5097.562, 11457.336, 5632.0], [11320.492, 5112.78, 11445.893, 5632.0], [11321.973, 6533.765, 11447.533, 7234.028]], "confidence": 1.0, "size_bucket": "large", "member_count": 5, "group_fill_ratio": 0.6631870528365239, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_002_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_002_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "row_040_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [40], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_003"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_003", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten. only needs to expand to the left, adjacent cloud under shouldn't be encroached on any further.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_003", "short_id": "whole_003", "bbox_page_xyxy": [9630.635, 2844.077, 10874.604, 5247.636], "crop_box_page_xyxy": [9080.635, 2294.077, 11424.604, 5797.636], "member_boxes_page_xyxy": [[9800.236, 3264.0, 10700.363, 4371.968], [9796.398, 3009.84, 10704.731, 3452.592], [9804.458, 4352.0, 10708.842, 5081.873]], "confidence": 0.995394, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.688828215589629, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_003_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_003_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "row_041_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [41], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_004"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_004", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_004", "short_id": "whole_004", "bbox_page_xyxy": [9221.8, 4924.502, 10157.921, 7446.353], "crop_box_page_xyxy": [8671.8, 4374.502, 10707.921, 7996.353], "member_boxes_page_xyxy": [[9395.817, 6529.471, 9983.187, 7272.432], [9395.72, 5440.0, 9984.0, 6603.129], [9400.377, 5098.422, 9984.0, 5632.0]], "confidence": 1.0, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.6066041844426464, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_004_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_004_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "row_042_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [42], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_005"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_005", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_005", "short_id": "whole_005", "bbox_page_xyxy": [6967.651, 2835.926, 7973.101, 5229.896], "crop_box_page_xyxy": [6417.651, 2285.926, 8523.101, 5779.896], "member_boxes_page_xyxy": [[7132.753, 3363.915, 7807.946, 4528.799], [7140.846, 4352.0, 7808.0, 5064.795], [7147.534, 3001.027, 7808.0, 3453.888]], "confidence": 0.964794, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.6485888644840067, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_005_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_005_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "row_043_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [43], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_006"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_006", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_006", "short_id": "whole_006", "bbox_page_xyxy": [7444.995, 2811.363, 10171.009, 3280.254], "crop_box_page_xyxy": [6894.995, 2261.363, 10721.009, 3830.254], "member_boxes_page_xyxy": [[7632.996, 3007.82, 8893.206, 3092.254], [8714.332, 2999.364, 9983.008, 3074.019]], "confidence": 0.703501, "size_bucket": "large", "member_count": 2, "group_fill_ratio": 0.15734254337131295, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_006_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_006_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "row_044_expand_geometry", "item_type": "expand_geometry", "source_row_numbers": [44], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_007"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_007", "review_notes": "", "decision_options": ["corrected_bbox", "merge_with_component", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "Fragment/undercoverage case. Candidate misses full visible cloud extent; needs expand/merge handling, not tighten.", "blocked_reason": "expand_needs_reviewed_full_cloud_geometry_or_merge_component", "geometry_status": "expand_requires_same_cloud_extent", "review_decision": "expand", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_007", "short_id": "whole_007", "bbox_page_xyxy": [9706.42, 7101.96, 11173.154, 7379.742], "crop_box_page_xyxy": [9156.42, 6551.96, 11723.154, 7929.742], "member_boxes_page_xyxy": [[9807.574, 7203.114, 11072.0, 7278.588]], "confidence": 0.695277, "size_bucket": "medium", "member_count": 1, "group_fill_ratio": 0.23422623029403822, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_007_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_007_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "merge_component_001", "item_type": "merge_component_geometry", "source_row_numbers": [18, 19, 20, 21, 22, 23, 24, 25, 26, 27], "source_candidate_ids": ["260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001", "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002", "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003", "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004", "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001 | 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002 | 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003 | 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004 | 260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005", "review_notes": "", "decision_options": ["component_bbox", "component_needs_split", "component_not_actionable", "unclear"], "proposed_bbox_xyxy": [3765.236, 3755.521, 7714.077, 6532.324], "dry_run_notes": "Merge edge is reviewed, but one or more source candidates also have expand/split/tighten_adjust evidence. Do not apply as final geometry without a reviewed full-cloud bbox.", "blocked_reason": "", "geometry_status": "union_only_needs_expand_review", "review_decision": "merge_candidates", "candidates": [{"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001", "short_id": "whole_001", "bbox_page_xyxy": [6343.183, 3840.187, 7667.803, 6520.032], "crop_box_page_xyxy": [5793.183, 3290.187, 8217.803, 7070.032], "member_boxes_page_xyxy": [[6528.0, 4352.0, 7482.986, 5502.913], [6540.884, 4025.004, 7471.059, 4544.0], [6536.928, 5440.0, 7482.131, 6335.215]], "confidence": 0.989347, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.6839932990390123, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_001_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}, {"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002", "short_id": "whole_002", "bbox_page_xyxy": [4104.056, 3755.521, 7714.077, 4350.314], "crop_box_page_xyxy": [3526.453, 3177.918, 8291.681, 4927.917], "member_boxes_page_xyxy": [[4353.023, 4006.009, 5621.275, 4094.829], [5457.711, 4004.488, 6714.611, 4101.347], [6542.62, 4012.946, 7465.11, 4096.743]], "confidence": 0.783209, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.14516020088974915, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_002_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}, {"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003", "short_id": "whole_003", "bbox_page_xyxy": [3765.236, 5306.945, 5694.538, 6472.827], "crop_box_page_xyxy": [3215.236, 4756.945, 6244.538, 7022.827], "member_boxes_page_xyxy": [[3898.291, 5441.698, 4544.0, 6336.312], [4353.03, 5440.0, 5561.483, 6339.772]], "confidence": 0.99306, "size_bucket": "medium", "member_count": 2, "group_fill_ratio": 0.7402138176068461, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_003_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}, {"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004", "short_id": "whole_004", "bbox_page_xyxy": [3781.465, 3895.347, 4661.768, 5602.981], "crop_box_page_xyxy": [3231.465, 3345.347, 5211.768, 6152.981], "member_boxes_page_xyxy": [[3902.207, 4013.115, 4544.0, 4544.0], [3899.233, 4352.0, 4544.0, 5485.213]], "confidence": 0.945136, "size_bucket": "medium", "member_count": 2, "group_fill_ratio": 0.7127142734722709, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_004_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}, {"candidate_id": "260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005", "short_id": "whole_005", "bbox_page_xyxy": [4176.425, 6096.817, 6899.639, 6532.324], "crop_box_page_xyxy": [3626.425, 5546.817, 7449.639, 7082.324], "member_boxes_page_xyxy": [[5445.857, 6284.625, 6711.831, 6342.817], [4364.233, 6291.056, 5622.36, 6344.516]], "confidence": 0.665051, "size_bucket": "large", "member_count": 2, "group_fill_ratio": 0.11882996532138887, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260303-VA Biloxi Rev 5 RFI-126\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260303-VA%20Biloxi%20Rev%205%20RFI-126/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002_whole_005_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260303-VA_Biloxi_Rev_5_RFI-126_56f520d9_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #5 - RFI 126 - Concrete Repairs\\260303-VA Biloxi Rev 5 RFI-126.pdf"}]}, {"geometry_item_id": "merge_component_002", "item_type": "merge_component_geometry", "source_row_numbers": [34, 37, 39, 41, 44], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_002", "Revision_Set_7_37f6066a_p0003_whole_004", "Revision_Set_7_37f6066a_p0003_whole_007"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_002 | Revision_Set_7_37f6066a_p0003_whole_004 | Revision_Set_7_37f6066a_p0003_whole_007", "review_notes": "", "decision_options": ["component_bbox", "component_needs_split", "component_not_actionable", "unclear"], "proposed_bbox_xyxy": [9221.8, 4923.85, 11631.161, 7446.353], "dry_run_notes": "Merge edge is reviewed, but one or more source candidates also have expand/split/tighten_adjust evidence. Do not apply as final geometry without a reviewed full-cloud bbox.", "blocked_reason": "", "geometry_status": "union_only_needs_expand_review", "review_decision": "merge_candidates", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_002", "short_id": "whole_002", "bbox_page_xyxy": [10706.288, 4923.85, 11631.161, 7442.67], "crop_box_page_xyxy": [10156.288, 4373.85, 12181.161, 7992.67], "member_boxes_page_xyxy": [[10880.0, 6528.0, 11452.085, 7268.958], [10881.262, 5440.0, 11457.45, 6588.786], [10884.57, 5097.562, 11457.336, 5632.0], [11320.492, 5112.78, 11445.893, 5632.0], [11321.973, 6533.765, 11447.533, 7234.028]], "confidence": 1.0, "size_bucket": "large", "member_count": 5, "group_fill_ratio": 0.6631870528365239, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_002_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_002_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}, {"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_004", "short_id": "whole_004", "bbox_page_xyxy": [9221.8, 4924.502, 10157.921, 7446.353], "crop_box_page_xyxy": [8671.8, 4374.502, 10707.921, 7996.353], "member_boxes_page_xyxy": [[9395.817, 6529.471, 9983.187, 7272.432], [9395.72, 5440.0, 9984.0, 6603.129], [9400.377, 5098.422, 9984.0, 5632.0]], "confidence": 1.0, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.6066041844426464, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_004_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_004_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}, {"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_007", "short_id": "whole_007", "bbox_page_xyxy": [9706.42, 7101.96, 11173.154, 7379.742], "crop_box_page_xyxy": [9156.42, 6551.96, 11723.154, 7929.742], "member_boxes_page_xyxy": [[9807.574, 7203.114, 11072.0, 7278.588]], "confidence": 0.695277, "size_bucket": "medium", "member_count": 1, "group_fill_ratio": 0.23422623029403822, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_007_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_007_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "merge_component_003", "item_type": "merge_component_geometry", "source_row_numbers": [36, 38, 40, 42, 43], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0003_whole_003", "Revision_Set_7_37f6066a_p0003_whole_005", "Revision_Set_7_37f6066a_p0003_whole_006"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0003_whole_003 | Revision_Set_7_37f6066a_p0003_whole_005 | Revision_Set_7_37f6066a_p0003_whole_006", "review_notes": "", "decision_options": ["component_bbox", "component_needs_split", "component_not_actionable", "unclear"], "proposed_bbox_xyxy": [6967.651, 2811.363, 10874.604, 5247.636], "dry_run_notes": "Merge edge is reviewed, but one or more source candidates also have expand/split/tighten_adjust evidence. Do not apply as final geometry without a reviewed full-cloud bbox.", "blocked_reason": "", "geometry_status": "union_only_needs_expand_review", "review_decision": "merge_candidates", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_003", "short_id": "whole_003", "bbox_page_xyxy": [9630.635, 2844.077, 10874.604, 5247.636], "crop_box_page_xyxy": [9080.635, 2294.077, 11424.604, 5797.636], "member_boxes_page_xyxy": [[9800.236, 3264.0, 10700.363, 4371.968], [9796.398, 3009.84, 10704.731, 3452.592], [9804.458, 4352.0, 10708.842, 5081.873]], "confidence": 0.995394, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.688828215589629, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_003_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_003_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}, {"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_005", "short_id": "whole_005", "bbox_page_xyxy": [6967.651, 2835.926, 7973.101, 5229.896], "crop_box_page_xyxy": [6417.651, 2285.926, 8523.101, 5779.896], "member_boxes_page_xyxy": [[7132.753, 3363.915, 7807.946, 4528.799], [7140.846, 4352.0, 7808.0, 5064.795], [7147.534, 3001.027, 7808.0, 3453.888]], "confidence": 0.964794, "size_bucket": "large", "member_count": 3, "group_fill_ratio": 0.6485888644840067, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_005_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_005_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}, {"candidate_id": "Revision_Set_7_37f6066a_p0003_whole_006", "short_id": "whole_006", "bbox_page_xyxy": [7444.995, 2811.363, 10171.009, 3280.254], "crop_box_page_xyxy": [6894.995, 2261.363, 10721.009, 3830.254], "member_boxes_page_xyxy": [[7632.996, 3007.82, 8893.206, 3092.254], [8714.332, 2999.364, 9983.008, 3074.019]], "confidence": 0.703501, "size_bucket": "large", "member_count": 2, "group_fill_ratio": 0.15734254337131295, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0003_whole_006_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0003_whole_006_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0003.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0003.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}, {"geometry_item_id": "row_009_split_geometry", "item_type": "split_geometry", "source_row_numbers": [9], "source_candidate_ids": ["260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001", "review_notes": "", "decision_options": ["child_bboxes", "split_by_existing_candidates", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "GPT-5.5 prefill, confidence 0.92: Red candidate bbox spans multiple distinct revision cloud callouts separated across the plan area rather than one continuous/grouped cloud. This appears to be an overmerged candidate and should be split into separate clouds/groups.", "blocked_reason": "split_needs_child_candidate_geometry", "geometry_status": "split_requires_child_geometry", "review_decision": "split", "candidates": [{"candidate_id": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001", "short_id": "whole_001", "bbox_page_xyxy": [899.12, 3206.424, 1759.349, 4675.978], "crop_box_page_xyxy": [349.12, 2656.424, 2309.349, 5225.978], "member_boxes_page_xyxy": [[1452.811, 3307.772, 1658.0, 3414.051], [1000.468, 4236.213, 1174.937, 4344.575], [1040.964, 3587.436, 1213.299, 3698.117], [1430.44, 3661.92, 1634.122, 3770.933], [1039.752, 3991.414, 1213.451, 4102.782], [1012.65, 4463.511, 1185.659, 4574.629], [1088.0, 4237.161, 1174.926, 4345.586]], "confidence": 0.965571, "size_bucket": "medium", "member_count": 7, "group_fill_ratio": 0.10282393335156687, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260219 - VA Biloxi Rev 4_Plumbing 1\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260219%20-%20VA%20Biloxi%20Rev%204_Plumbing%201/260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf"}]}, {"geometry_item_id": "row_010_split_geometry", "item_type": "split_geometry", "source_row_numbers": [10], "source_candidate_ids": ["260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001", "review_notes": "", "decision_options": ["child_bboxes", "split_by_existing_candidates", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "GPT-5.5 prefill, confidence 0.86: The red candidate box encloses several spatially separated revision cloud bubbles rather than one continuous cloud/group. The amber tight-member box would reduce the loose margins but still contains multiple distinct clouds, so splitting is preferred over simple tightening.", "blocked_reason": "split_needs_child_candidate_geometry", "geometry_status": "split_requires_child_geometry", "review_decision": "split", "candidates": [{"candidate_id": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001", "short_id": "whole_001", "bbox_page_xyxy": [899.12, 3206.424, 1759.349, 4675.978], "crop_box_page_xyxy": [349.12, 2656.424, 2309.349, 5225.978], "member_boxes_page_xyxy": [[1452.811, 3307.772, 1658.0, 3414.051], [1000.468, 4236.213, 1174.937, 4344.575], [1040.964, 3587.436, 1213.299, 3698.117], [1430.44, 3661.92, 1634.122, 3770.933], [1039.752, 3991.414, 1213.451, 4102.782], [1012.65, 4463.511, 1185.659, 4574.629], [1088.0, 4237.161, 1174.926, 4345.586]], "confidence": 0.965571, "size_bucket": "medium", "member_count": 7, "group_fill_ratio": 0.10282393335156687, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260219 - VA Biloxi Rev 4_Plumbing 1\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001_medium.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260219%20-%20VA%20Biloxi%20Rev%204_Plumbing%201/260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001_medium.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf"}]}, {"geometry_item_id": "row_015_split_geometry", "item_type": "split_geometry", "source_row_numbers": [15], "source_candidate_ids": ["260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006", "review_notes": "", "decision_options": ["child_bboxes", "split_by_existing_candidates", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "GPT-5.5 prefill, confidence 0.82: Candidate/red box contains two visually separate revision cloud bubbles stacked vertically. Tightening to the amber member box would still keep multiple separate clouds together, so this should be split rather than just tightened.", "blocked_reason": "split_needs_child_candidate_geometry", "geometry_status": "split_requires_child_geometry", "review_decision": "split", "candidates": [{"candidate_id": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006", "short_id": "whole_006", "bbox_page_xyxy": [546.114, 4549.025, 760.667, 4812.268], "crop_box_page_xyxy": [0.0, 3999.025, 1310.667, 5362.268], "member_boxes_page_xyxy": [[571.114, 4574.025, 735.667, 4787.268]], "confidence": 0.84708, "size_bucket": "small", "member_count": 1, "group_fill_ratio": 0.6212819234335519, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\260219 - VA Biloxi Rev 4_Plumbing 1\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006_small.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/260219%20-%20VA%20Biloxi%20Rev%204_Plumbing%201/260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_006_small.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #4 - Dental Air\\260219 - VA Biloxi Rev 4_Plumbing 1.pdf"}]}, {"geometry_item_id": "row_031_tighten_adjust_geometry", "item_type": "tighten_adjust_geometry", "source_row_numbers": [31], "source_candidate_ids": ["Revision_Set_7_37f6066a_p0002_whole_001"], "review_status": "unreviewed", "geometry_decision": "", "corrected_bbox_xyxy": "", "child_bboxes_json": "", "target_candidate_ids": "Revision_Set_7_37f6066a_p0002_whole_001", "review_notes": "", "decision_options": ["corrected_bbox", "not_actionable", "unclear"], "proposed_bbox_xyxy": [], "dry_run_notes": "candidate should tighten, but the shown tight member box is not acceptable because it clips the cloud and the corrected geometry needs manual adjustment.", "blocked_reason": "tighten_adjust_not_safe_to_apply_from_tight_member_bbox", "geometry_status": "tighten_adjust_requires_reviewed_corrected_bbox", "review_decision": "tighten_adjust", "candidates": [{"candidate_id": "Revision_Set_7_37f6066a_p0002_whole_001", "short_id": "whole_001", "bbox_page_xyxy": [9207.149, 6362.18, 11641.259, 7682.488], "crop_box_page_xyxy": [8657.149, 5812.18, 12191.259, 8232.488], "member_boxes_page_xyxy": [[9375.019, 7358.767, 9984.0, 7514.619], [10895.616, 7357.629, 11473.39, 7511.544], [9822.476, 7358.832, 11044.013, 7507.772], [9547.8, 6530.049, 9984.0, 7444.428]], "confidence": 0.899061, "size_bucket": "large", "member_count": 4, "group_fill_ratio": 0.23792147478212042, "crop_image_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\crops\\Revision Set #7\\Revision_Set_7_37f6066a_p0002_whole_001_large.png", "crop_href": "../../../../../CloudHammer/runs/whole_cloud_eval_symbol_text_fp_hn_20260502/crops/Revision%20Set%20%237/Revision_Set_7_37f6066a_p0002_whole_001_large.png", "render_href": "../../../../../CloudHammer/data/rasterized_pages/Revision_Set_7_37f6066a_p0002.png", "render_path": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\data\\rasterized_pages\\Revision_Set_7_37f6066a_p0002.png", "pdf_path": "F:\\Desktop\\m\\projects\\scopeLedger\\revision_sets\\Revision #7 - RFI 141 - Deteriorated Attic Wood\\Revision Set #7.pdf"}]}], "summary": {"schema": "cloudhammer_v2.postprocessing_geometry_reviewer_summary.v1", "geometry_items": 18, "by_item_type": {"expand_geometry": 11, "merge_component_geometry": 3, "split_geometry": 3, "tighten_adjust_geometry": 1}, "by_review_status": {"unreviewed": 18}, "source_dry_run_plan": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_dry_run_plan.jsonl", "source_review_log": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\blocked_geometry_review\\postprocessing_geometry_review.csv", "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\blocked_geometry_review", "guardrails": ["review_artifact_only", "no_source_candidate_manifest_edits", "no_truth_label_edits", "no_eval_manifest_edits", "no_prediction_file_edits", "no_model_file_edits", "no_dataset_or_training_data_writes", "not_threshold_tuning"]}};
+const STORAGE_KEY = "cloudhammer_postprocessing_geometry_review_v2:" + (DATA.summary.source_review_log || window.location.pathname);
+const STATUSES = ["unreviewed", "gpt_prefilled", "reviewed", "needs_followup", "not_actionable"];
+let activeIndex = 0;
+let state = loadState();
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+  catch (_) { return {}; }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function current(item) {
+  return Object.assign({
+    geometry_item_id: item.geometry_item_id,
+    item_type: item.item_type,
+    source_row_numbers: (item.source_row_numbers || []).join(' | '),
+    source_candidate_ids: (item.source_candidate_ids || []).join(' | '),
+    review_status: item.review_status || 'unreviewed',
+    geometry_decision: item.geometry_decision || '',
+    corrected_bbox_xyxy: item.corrected_bbox_xyxy || '',
+    child_bboxes_json: item.child_bboxes_json || '',
+    target_candidate_ids: item.target_candidate_ids || '',
+    review_notes: item.review_notes || ''
+  }, state[item.geometry_item_id] || {});
+}
+function shortText(value, n=86) {
+  value = String(value || '');
+  return value.length > n ? value.slice(0, n - 1) + '...' : value;
+}
+function validBox(box) {
+  return Array.isArray(box) && box.length === 4 && box.every(value => Number.isFinite(Number(value)));
+}
+function normalizeBox(box) {
+  const values = box.map(Number);
+  return [Math.min(values[0], values[2]), Math.min(values[1], values[3]), Math.max(values[0], values[2]), Math.max(values[1], values[3])];
+}
+function parseBoxText(value) {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return validBox(parsed) ? normalizeBox(parsed) : [];
+  } catch (_) {
+    const matches = String(value).match(/-?\d+(?:\.\d+)?/g) || [];
+    if (matches.length < 4) return [];
+    return normalizeBox(matches.slice(0, 4).map(Number));
+  }
+}
+function parseChildBoxes(value) {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(child => child && validBox(child.bbox_xyxy)).map((child, index) => ({
+      label: child.label || `child_${index + 1}`,
+      bbox_xyxy: normalizeBox(child.bbox_xyxy)
+    }));
+  } catch (_) {
+    return [];
+  }
+}
+function boxToStyle(box, cropBox) {
+  if (!validBox(box) || !validBox(cropBox)) return '';
+  const b = normalizeBox(box);
+  const c = normalizeBox(cropBox);
+  const x1 = Math.max(b[0], c[0]);
+  const y1 = Math.max(b[1], c[1]);
+  const x2 = Math.min(b[2], c[2]);
+  const y2 = Math.min(b[3], c[3]);
+  const cropWidth = c[2] - c[0];
+  const cropHeight = c[3] - c[1];
+  if (x2 <= x1 || y2 <= y1 || cropWidth <= 0 || cropHeight <= 0) return '';
+  return `left:${((x1 - c[0]) / cropWidth) * 100}%;top:${((y1 - c[1]) / cropHeight) * 100}%;width:${((x2 - x1) / cropWidth) * 100}%;height:${((y2 - y1) / cropHeight) * 100}%;`;
+}
+function overlayBox(box, cropBox, className, label) {
+  const style = boxToStyle(box, cropBox);
+  if (!style) return '';
+  return `<div class="overlay-box ${esc(className)}" style="${esc(style)}"><span class="overlay-label">${esc(label)}</span></div>`;
+}
+function renderList() {
+  const list = document.getElementById('list');
+  list.innerHTML = DATA.items.map((item, index) => {
+    const review = current(item);
+    return `<div class="item ${index === activeIndex ? 'active' : ''}" data-index="${index}">
+      <div><span class="pill">${esc(item.item_type)}</span><span class="pill">${esc(review.review_status)}</span></div>
+      <div class="id">${esc(item.geometry_item_id)}</div>
+      <div class="note">rows ${esc((item.source_row_numbers || []).join(', '))}</div>
+      <div class="note">${esc(shortText(review.geometry_decision || 'no decision'))}</div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.item').forEach(node => {
+    node.addEventListener('click', () => {
+      activeIndex = Number(node.dataset.index);
+      render();
+    });
+  });
+}
+function candidatePanel(item, review, candidate, candidateIndex) {
+  const cropBox = candidate.crop_box_page_xyxy || [];
+  const overlays = [];
+  (item.candidates || []).forEach((other, otherIndex) => {
+    const isActive = other.candidate_id === candidate.candidate_id;
+    overlays.push(overlayBox(other.bbox_page_xyxy, cropBox, isActive ? 'box-active' : 'box-other', isActive ? 'active' : (other.short_id || `other_${otherIndex + 1}`)));
+  });
+  (candidate.member_boxes_page_xyxy || []).forEach((box, memberIndex) => {
+    overlays.push(overlayBox(box, cropBox, 'box-member', `member_${memberIndex + 1}`));
+  });
+  if (validBox(item.proposed_bbox_xyxy || [])) {
+    overlays.push(overlayBox(item.proposed_bbox_xyxy, cropBox, 'box-proposed', 'proposed'));
+  }
+  const correctedBox = parseBoxText(review.corrected_bbox_xyxy);
+  if (validBox(correctedBox)) {
+    overlays.push(overlayBox(correctedBox, cropBox, 'box-corrected', 'review bbox'));
+  }
+  parseChildBoxes(review.child_bboxes_json).forEach((child, childIndex) => {
+    overlays.push(overlayBox(child.bbox_xyxy, cropBox, 'box-child', child.label || `child_${childIndex + 1}`));
+  });
+  const imageHtml = candidate.crop_href
+    ? `<div class="crop-image-wrap"><img src="${esc(candidate.crop_href)}" alt="${esc(candidate.candidate_id)}">${overlays.join('')}</div>`
+    : 'missing crop';
+  return `<div class="panel">
+    <div><strong>${esc(candidate.short_id)}</strong> <span class="note">crop ${candidateIndex + 1}</span></div>
+    <div class="crop">${imageHtml}</div>
+    <div class="kv">
+      <div class="label">candidate_id</div><div><code>${esc(candidate.candidate_id)}</code></div>
+      <div class="label">bbox_xyxy</div><div><code>${esc(JSON.stringify(candidate.bbox_page_xyxy))}</code></div>
+      <div class="label">crop_box</div><div><code>${esc(JSON.stringify(candidate.crop_box_page_xyxy))}</code></div>
+      <div class="label">member_count</div><div>${esc(candidate.member_count)}</div>
+      <div class="label">fill_ratio</div><div>${esc(candidate.group_fill_ratio)}</div>
+      <div class="label">render</div><div>${candidate.render_href ? `<a href="${esc(candidate.render_href)}" target="_blank">open page render</a>` : ''}</div>
+    </div>
+  </div>`;
+}
+function saveActive() {
+  const item = DATA.items[activeIndex];
+  state[item.geometry_item_id] = {
+    geometry_item_id: item.geometry_item_id,
+    item_type: item.item_type,
+    source_row_numbers: (item.source_row_numbers || []).join(' | '),
+    source_candidate_ids: (item.source_candidate_ids || []).join(' | '),
+    review_status: document.getElementById('reviewStatus').value,
+    geometry_decision: document.getElementById('geometryDecision').value,
+    corrected_bbox_xyxy: document.getElementById('correctedBbox').value.trim(),
+    child_bboxes_json: document.getElementById('childBboxes').value.trim(),
+    target_candidate_ids: document.getElementById('targetCandidateIds').value.trim(),
+    review_notes: document.getElementById('reviewNotes').value.trim()
+  };
+  saveState();
+  renderList();
+}
+function renderDetail() {
+  const item = DATA.items[activeIndex];
+  const review = current(item);
+  const statusOptions = STATUSES.map(status => `<option value="${esc(status)}" ${status === review.review_status ? 'selected' : ''}>${esc(status)}</option>`).join('');
+  const decisionOptions = [''].concat(item.decision_options || []).map(decision => `<option value="${esc(decision)}" ${decision === review.geometry_decision ? 'selected' : ''}>${esc(decision || 'choose decision')}</option>`).join('');
+  document.getElementById('detail').innerHTML = `
+    <h2>${esc(item.item_type)} <code>${esc(item.geometry_item_id)}</code></h2>
+    <div class="kv">
+      <div class="label">source rows</div><div><code>${esc((item.source_row_numbers || []).join(' | '))}</code></div>
+      <div class="label">source candidates</div><div><code>${esc((item.source_candidate_ids || []).join(' | '))}</code></div>
+      <div class="label">dry-run status</div><div><code>${esc(item.geometry_status)}</code></div>
+      <div class="label">review decision</div><div><code>${esc(item.review_decision)}</code></div>
+      <div class="label">proposed bbox</div><div><code>${esc(JSON.stringify(item.proposed_bbox_xyxy || []))}</code></div>
+      <div class="label">blocked reason</div><div><code>${esc(item.blocked_reason)}</code></div>
+    </div>
+    <div class="form">
+      <div><label>status</label><select id="reviewStatus">${statusOptions}</select></div>
+      <div><label>geometry decision</label><select id="geometryDecision">${decisionOptions}</select></div>
+      <div><label>corrected_bbox_xyxy</label><input id="correctedBbox" type="text" value="${esc(review.corrected_bbox_xyxy)}" placeholder="[x1, y1, x2, y2]"></div>
+      <div><label>target_candidate_ids</label><input id="targetCandidateIds" type="text" value="${esc(review.target_candidate_ids)}" placeholder="pipe-separated ids"></div>
+    </div>
+    <div><label class="note">child_bboxes_json</label><textarea id="childBboxes" placeholder='[{"label":"child_1","bbox_xyxy":[x1,y1,x2,y2]}]'>${esc(review.child_bboxes_json)}</textarea></div>
+    <div><label class="note">review_notes</label><textarea id="reviewNotes">${esc(review.review_notes || item.dry_run_notes || '')}</textarea></div>
+    <p><button id="saveBtn">Save Item</button> <span class="note">Export when done; local save is browser-only.</span></p>
+    <h3>Candidate Crops</h3>
+    <div class="legend">
+      <span style="color:#e11d48"><i class="swatch"></i>active candidate</span>
+      <span style="color:#2563eb"><i class="swatch dashed"></i>other candidate in item</span>
+      <span style="color:#f59e0b"><i class="swatch dashed"></i>member detector box</span>
+      <span style="color:#7c3aed"><i class="swatch dashed"></i>dry-run proposed</span>
+      <span style="color:#16a34a"><i class="swatch"></i>review/GPT bbox</span>
+      <span style="color:#0891b2"><i class="swatch"></i>review/GPT child box</span>
+    </div>
+    <div class="grid">${(item.candidates || []).map((candidate, candidateIndex) => candidatePanel(item, review, candidate, candidateIndex)).join('')}</div>
+  `;
+  ['reviewStatus','geometryDecision','correctedBbox','targetCandidateIds','childBboxes','reviewNotes'].forEach(id => {
+    document.getElementById(id).addEventListener('change', saveActive);
+  });
+  document.getElementById('saveBtn').addEventListener('click', saveActive);
+}
+function csvEscape(value) {
+  value = String(value ?? '');
+  if (/[",\r\n]/.test(value)) return '"' + value.replace(/"/g, '""') + '"';
+  return value;
+}
+function exportCsv() {
+  const fields = ["geometry_item_id", "item_type", "source_row_numbers", "source_candidate_ids", "review_status", "geometry_decision", "corrected_bbox_xyxy", "child_bboxes_json", "target_candidate_ids", "review_notes"];
+  const rows = DATA.items.map(item => current(item));
+  const csv = [fields.join(',')].concat(rows.map(row => fields.map(field => csvEscape(row[field])).join(','))).join('\n') + '\n';
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'postprocessing_geometry_review.reviewed.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+function render() {
+  renderList();
+  renderDetail();
+}
+document.getElementById('exportBtn').addEventListener('click', exportCsv);
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (confirm('Clear browser-local geometry review state?')) {
+    state = {};
+    saveState();
+    render();
+  }
+});
+render();
+</script>
+</body>
+</html>

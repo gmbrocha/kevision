@@ -19,9 +19,9 @@ Every label set should track:
 
 GPT labels can accelerate training, but frozen real holdouts validate progress.
 
-For `page_disjoint_real`, do not treat GPT full-page labels as eval truth. The
-frozen real eval pages should be human-reviewed directly. GPT output on those
-pages is scratch/provisional only.
+For `page_disjoint_real`, do not treat GPT full-page labels as eval truth.
+Frozen real eval truth should be confirmed directly. GPT output on those pages
+is scratch/provisional only.
 
 ## Drift Guard
 
@@ -72,10 +72,27 @@ of a `1170 px` displayed raster view.
 ## Disagreement Queues
 
 - GPT and YOLO agree strongly: lower-priority or sample audit.
-- GPT finds cloud YOLO missed: human review priority.
-- YOLO finds cloud GPT rejects: human review priority.
+- GPT finds cloud YOLO missed: review priority after reporting queue size and
+  deciding whether GPT-5.5 prefill or sampling can reduce manual burden.
+- YOLO finds cloud GPT rejects: review priority after reporting queue size and
+  deciding whether GPT-5.5 prefill or sampling can reduce manual burden.
 - Both reject: likely negative, with sampled audit.
-- Faint, partial, dense, or ambiguous cases: human review priority.
+- Faint, partial, dense, or ambiguous cases: review priority, but do not hand
+  off repetitive manual review without applying the review fatigue guardrail.
+
+## Review Fatigue Guardrail
+
+Before presenting GPT, YOLO, disagreement, crop, hard-negative, or LabelImg
+review queues, report the item count, estimated manual burden, and whether
+GPT-5.5 should prefill provisional decisions first.
+
+Use the thresholds in `EVAL_POLICY.md#review-fatigue-guardrail`:
+
+- `<= 10` items: manual review may be fine.
+- `10-50` items: usually recommend GPT-5.5 sample or full prefill.
+- `> 50` items: recommend staged GPT-5.5 prefill unless explicitly declined.
+
+GPT prefill is never ground truth. It remains provisional until human accepted.
 
 ## Training Use
 

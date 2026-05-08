@@ -116,35 +116,80 @@ human-audited `page_disjoint_real` scoring completed on 2026-05-04.
 - Static viewer for the diagnostic:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
   links grouped candidate IDs to existing crop paths and source page renders.
+- GPT-5.5 prefilled postprocessing diagnostic review metadata:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.gpt55_prefill.csv`
+  embedded in the default reviewer and also available in companion reviewer
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.gpt55_prefill.html`.
+  These suggestions were human-confirmed/corrected and exported to
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_review_log.reviewed.csv`.
+- Dry-run postprocessing plan:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_dry_run_summary.md`.
+  It is report-only and proposes `3` merge components plus `10` tighten bbox
+  actions, while blocking `12` expand/`tighten_adjust` rows and `3` split rows
+  for explicit geometry before any apply step.
+- Blocked-geometry reviewer:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.html`
+  produced
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.reviewed.csv`
+  with `18` reviewed geometry items.
+- GPT-5.5 provisional blocked-geometry prefill:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.gpt55_prefill.csv`
+  with `18` `gpt_prefilled` provisional rows. Companion reviewer:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.gpt55_prefill.html`.
+- Postprocessing apply dry-run comparison:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/postprocessing_apply_dry_run_summary.md`.
+  It is report-first and non-mutating. It previews `25` referenced source
+  candidates becoming `23` output candidates, resolves all `15` manual geometry
+  row actions, and reports one duplicate split geometry record collapsed into
+  the latest reviewed row.
+- Non-frozen postprocessing apply output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/postprocessed_non_frozen_apply_summary.md`.
+  It writes a derived manifest only. The `34` source candidates become `32`
+  postprocessed candidates, with `13` suppression records for source candidates
+  replaced by merge/split outputs.
+- Non-frozen postprocessing behavior comparison:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/postprocessing_non_frozen_behavior_summary.md`.
+  It compares the original source manifest with the derived postprocessed
+  manifest without scoring, tuning, or crop generation. Candidate count changes
+  `34` -> `32`, total bbox area ratio is `0.831645`, and `22` rows need crop
+  regeneration before crop-based inspection/export.
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
-- Current blocker: spot-check the non-frozen postprocessing diagnostic in the
-  static viewer, then build a dry-run postprocessor for merge/suppress/split
-  and localization behavior before model selection, training decisions,
-  threshold tuning, or promotion claims.
+- Current blocker: regenerate crops for the `22`
+  `needs_regeneration_for_postprocessed_bbox` rows if crop-based inspection or
+  export is needed. No labels, eval manifests, predictions, datasets, training
+  data, or legacy candidate manifests were mutated.
+- Diagnostic scope reset:
+  `CloudHammer_v2/docs/DIAGNOSTIC_STOPLIGHT_AUDIT_2026_05_05.md`.
+  New CloudHammer diagnostic/review queues must be classified `GREEN`,
+  `YELLOW`, or `RED` before creation. Do not create `RED` queues, and do not
+  create `YELLOW` queues unless cheap, GPT-prefilled/backfilled or sampled, and
+  explicitly approved.
 
 Correction note: GPT-5.5 full-page labels on `page_disjoint_real` were created
 by mistake and are marked do-not-score. GPT-5.5 was rerun on the intended
 cropped supplement review batch; those outputs are `gpt_provisional` and need
-human review before training use.
+human confirmation/correction before training use.
 
 ## Immediate Next Steps
 
 - AGENTS.md and Cursor rules were manually verified against the current docs.
-- Spot-check the completed non-frozen postprocessing diagnostic in the static
-  viewer for fragments, duplicate predictions, overmerges, split fragments, and
-  localization.
-- Build the first dry-run postprocessor only on non-frozen diagnostic inputs;
-  keep frozen `page_disjoint_real` pages as measurement-only.
+- Regenerate crops for the `22` postprocessed candidates marked
+  `needs_regeneration_for_postprocessed_bbox` if crop-based inspection/export
+  is needed; keep frozen `page_disjoint_real` pages as measurement-only.
 - Triage the two `truth_followup` rows as a separate frozen-truth recheck task.
+- Do not create new CloudHammer diagnostic queues unless they pass the
+  stoplight rule in the diagnostic scope reset.
 - Define and generate the next candidate pools without treating them as eval
   subsets:
   `full_page_review_candidates_from_touched`,
   `mining_safe_hard_negative_candidates`,
   `synthetic_background_candidates`, and
   `future_training_expansion_candidates`.
-- Human-review the diagnostic touched-real style-balance queue.
-- Human-review/correct the GPT-5.5 cropped supplement prelabels.
+- Apply the review fatigue guardrail before asking for any remaining
+  style-balance diagnostic touched-real review; the queued set has `12` pages,
+  so GPT-5.5 sample or full prefill should be considered first.
+- Human-confirm/correct the GPT-5.5 cropped supplement prelabels.
 - Preserve frozen `page_disjoint_real` pages as eval-only.
 - Decide the next CloudHammer training cycle only after postprocessing
   diagnostics and candidate-pool review clarify the remaining training signal.

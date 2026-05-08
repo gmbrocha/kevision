@@ -1,0 +1,26 @@
+{
+  "by_item_type": {
+    "expand_geometry": 11,
+    "merge_component_geometry": 3,
+    "split_geometry": 3,
+    "tighten_adjust_geometry": 1
+  },
+  "by_review_status": {
+    "unreviewed": 18
+  },
+  "geometry_items": 18,
+  "guardrails": [
+    "review_artifact_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning"
+  ],
+  "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\blocked_geometry_review",
+  "schema": "cloudhammer_v2.postprocessing_geometry_reviewer_summary.v1",
+  "source_dry_run_plan": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_dry_run_plan.jsonl",
+  "source_review_log": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\blocked_geometry_review\\postprocessing_geometry_review.csv"
+}

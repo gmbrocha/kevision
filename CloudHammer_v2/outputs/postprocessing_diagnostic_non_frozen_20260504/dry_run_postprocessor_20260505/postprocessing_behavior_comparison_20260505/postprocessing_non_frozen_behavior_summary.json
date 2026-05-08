@@ -1,0 +1,269 @@
+{
+  "apply_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505",
+  "bbox_area_delta": -6471982.577,
+  "bbox_area_ratio_postprocessed_vs_source": 0.831645,
+  "candidate_count_delta": -2,
+  "crop_status": {
+    "needs_regeneration_for_postprocessed_bbox": 22,
+    "source_crop_preserved": 10
+  },
+  "frozen_manifest_guard": "CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.human_audited.jsonl",
+  "guardrails": [
+    "report_first_only",
+    "non_frozen_source_manifest_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning",
+    "excluded_page_disjoint_real_frozen_pages",
+    "not_eval_scoring"
+  ],
+  "largest_page_area_reductions": [
+    {
+      "area_delta": -2831399.906,
+      "area_ratio_postprocessed_vs_source": 0.150617,
+      "candidate_count_delta": 0,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1,
+        "source_crop_preserved": 1
+      },
+      "postprocessed_bbox_area_sum": 502079.523,
+      "postprocessed_candidate_count": 2,
+      "postprocessing_actions": {
+        "carried_through_not_flagged_by_diagnostic": 1,
+        "corrected_bbox_update": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 3333479.429,
+      "source_candidate_count": 2,
+      "source_page_key": "Revision_Set__7:p0002",
+      "suppressed_source_candidates": 0
+    },
+    {
+      "area_delta": -2127744.072,
+      "area_ratio_postprocessed_vs_source": 0.79994,
+      "candidate_count_delta": -4,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1
+      },
+      "postprocessed_bbox_area_sum": 8507800.0,
+      "postprocessed_candidate_count": 1,
+      "postprocessing_actions": {
+        "merge_component_bbox": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 10635544.072,
+      "source_candidate_count": 5,
+      "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0002",
+      "suppressed_source_candidates": 5
+    },
+    {
+      "area_delta": -1273048.895,
+      "area_ratio_postprocessed_vs_source": 0.230444,
+      "candidate_count_delta": 6,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 14
+      },
+      "postprocessed_bbox_area_sum": 381216.169,
+      "postprocessed_candidate_count": 14,
+      "postprocessing_actions": {
+        "split_child_bbox": 8,
+        "tighten_bbox": 6
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 1654265.064,
+      "source_candidate_count": 8,
+      "source_page_key": "260219_-_VA_Biloxi_Rev_4_Plumbing_1:p0001",
+      "suppressed_source_candidates": 2
+    },
+    {
+      "area_delta": -339310.251,
+      "area_ratio_postprocessed_vs_source": 0.684539,
+      "candidate_count_delta": 0,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1
+      },
+      "postprocessed_bbox_area_sum": 736291.799,
+      "postprocessed_candidate_count": 1,
+      "postprocessing_actions": {
+        "tighten_bbox": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 1075602.049,
+      "source_candidate_count": 1,
+      "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0173",
+      "suppressed_source_candidates": 0
+    },
+    {
+      "area_delta": -139380.937,
+      "area_ratio_postprocessed_vs_source": 0.79642,
+      "candidate_count_delta": 0,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1,
+        "source_crop_preserved": 1
+      },
+      "postprocessed_bbox_area_sum": 545270.051,
+      "postprocessed_candidate_count": 2,
+      "postprocessing_actions": {
+        "carried_through_not_flagged_by_diagnostic": 1,
+        "tighten_bbox": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 684650.988,
+      "source_candidate_count": 2,
+      "source_page_key": "Revision__1_-_Drawing_Changes:p0001",
+      "suppressed_source_candidates": 0
+    }
+  ],
+  "largest_page_count_changes": [
+    {
+      "area_delta": -1273048.895,
+      "area_ratio_postprocessed_vs_source": 0.230444,
+      "candidate_count_delta": 6,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 14
+      },
+      "postprocessed_bbox_area_sum": 381216.169,
+      "postprocessed_candidate_count": 14,
+      "postprocessing_actions": {
+        "split_child_bbox": 8,
+        "tighten_bbox": 6
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 1654265.064,
+      "source_candidate_count": 8,
+      "source_page_key": "260219_-_VA_Biloxi_Rev_4_Plumbing_1:p0001",
+      "suppressed_source_candidates": 2
+    },
+    {
+      "area_delta": -2127744.072,
+      "area_ratio_postprocessed_vs_source": 0.79994,
+      "candidate_count_delta": -4,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1
+      },
+      "postprocessed_bbox_area_sum": 8507800.0,
+      "postprocessed_candidate_count": 1,
+      "postprocessing_actions": {
+        "merge_component_bbox": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 10635544.072,
+      "source_candidate_count": 5,
+      "source_page_key": "260303-VA_Biloxi_Rev_5_RFI-126:p0002",
+      "suppressed_source_candidates": 5
+    },
+    {
+      "area_delta": 320672.954,
+      "area_ratio_postprocessed_vs_source": 1.020264,
+      "candidate_count_delta": -4,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 2,
+        "source_crop_preserved": 1
+      },
+      "postprocessed_bbox_area_sum": 16145772.353,
+      "postprocessed_candidate_count": 3,
+      "postprocessing_actions": {
+        "merge_component_bbox": 2,
+        "unchanged": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 15825099.399,
+      "source_candidate_count": 7,
+      "source_page_key": "Revision_Set__7:p0003",
+      "suppressed_source_candidates": 6
+    },
+    {
+      "area_delta": -2831399.906,
+      "area_ratio_postprocessed_vs_source": 0.150617,
+      "candidate_count_delta": 0,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1,
+        "source_crop_preserved": 1
+      },
+      "postprocessed_bbox_area_sum": 502079.523,
+      "postprocessed_candidate_count": 2,
+      "postprocessing_actions": {
+        "carried_through_not_flagged_by_diagnostic": 1,
+        "corrected_bbox_update": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 3333479.429,
+      "source_candidate_count": 2,
+      "source_page_key": "Revision_Set__7:p0002",
+      "suppressed_source_candidates": 0
+    },
+    {
+      "area_delta": -339310.251,
+      "area_ratio_postprocessed_vs_source": 0.684539,
+      "candidate_count_delta": 0,
+      "crop_status": {
+        "needs_regeneration_for_postprocessed_bbox": 1
+      },
+      "postprocessed_bbox_area_sum": 736291.799,
+      "postprocessed_candidate_count": 1,
+      "postprocessing_actions": {
+        "tighten_bbox": 1
+      },
+      "schema": "cloudhammer_v2.postprocessing_non_frozen_page_behavior.v1",
+      "source_bbox_area_sum": 1075602.049,
+      "source_candidate_count": 1,
+      "source_page_key": "260313_-_VA_Biloxi_Rev_3:p0173",
+      "suppressed_source_candidates": 0
+    }
+  ],
+  "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_behavior_comparison_20260505",
+  "page_count_delta_buckets": {
+    "candidate_count_decreased": 2,
+    "candidate_count_increased": 1,
+    "candidate_count_same": 11
+  },
+  "postprocessed_area_stats": {
+    "area_max": 8507800.0,
+    "area_mean": 999078.353,
+    "area_median": 101877.004,
+    "area_min": 17368.0,
+    "area_sum": 31970507.296,
+    "count": 32
+  },
+  "postprocessed_candidate_count": 32,
+  "postprocessed_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505\\postprocessed_non_frozen_candidates_manifest.jsonl",
+  "postprocessed_page_count": 14,
+  "postprocessing_actions": {
+    "carried_through_not_flagged_by_diagnostic": 9,
+    "corrected_bbox_update": 1,
+    "merge_component_bbox": 3,
+    "split_child_bbox": 8,
+    "tighten_bbox": 10,
+    "unchanged": 1
+  },
+  "schema": "cloudhammer_v2.postprocessing_non_frozen_behavior_comparison_summary.v1",
+  "source_area_stats": {
+    "area_max": 4052147.353,
+    "area_mean": 1130661.467,
+    "area_median": 830194.37,
+    "area_min": 50130.404,
+    "area_sum": 38442489.873,
+    "count": 34
+  },
+  "source_behavior_counts": {
+    "carried_through_not_flagged_by_diagnostic": 9,
+    "corrected_bbox_update": 1,
+    "replaced": 13,
+    "tighten_bbox": 10,
+    "unchanged": 1
+  },
+  "source_candidate_count": 34,
+  "source_candidate_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\whole_cloud_candidates_manifest.jsonl",
+  "source_page_count": 14,
+  "status": "report_first_behavior_comparison_only",
+  "suppressed_source_candidates": 13,
+  "suppressed_sources": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_non_frozen_20260505\\postprocessed_non_frozen_suppressed_sources.jsonl",
+  "suppression_reasons": {
+    "merge_component_bbox": 11,
+    "split_child_bboxes": 2
+  }
+}

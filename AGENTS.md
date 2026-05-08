@@ -214,6 +214,30 @@ For scripts or workflows that affect datasets, eval manifests, frozen pages, syn
 - report what would change
 - do not execute destructive or expensive actions unless explicitly requested
 
+## Review Workflow Rules
+
+Do not recommend passive visual review as a standalone next step.
+
+Any task described as review, audit, triage, spot-check, or human look-over
+must have a system that can persist the review result before it blocks later
+work. At minimum, provide one of:
+
+- an editable manifest, CSV, JSONL, label file, or review log with explicit
+  allowed decisions
+- a viewer or app control that writes those decisions to a separate review
+  artifact
+- a report-only protocol that names the exact decisions to record and where
+  they will be stored next
+
+Review systems must make it possible to change labels, candidate metadata,
+decisions, or notes when that is the point of the review. If direct mutation is
+too risky, write a separate review artifact first and feed it into a dry-run or
+apply step later.
+
+Screenshots, static viewers, overlays, and "look this over" instructions are
+context only. They are not a completed review unless paired with a durable
+decision record.
+
 ## Selection Before Copying
 
 Before copying, freezing, moving, or generating datasets/eval pages at scale:

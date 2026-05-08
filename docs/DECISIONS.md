@@ -36,3 +36,21 @@ for old scripts, experiments, outputs, and implementation artifacts.
 
 Archived root pointer/tombstone docs and folded the CloudHammer pointer into
 `README.md` and `docs/MODULES.md`.
+
+## 2026-05-05 - Review Requires Durable Decisions
+
+Do not treat passive visual look-over as a review gate. Review tasks must have
+a way to persist decisions, corrections, labels, candidate metadata, or notes
+before they block implementation.
+
+Reason: static output inspection repeatedly creates ambiguous next steps and
+does not produce usable inputs for later workflows.
+
+Consequences:
+
+- Review surfaces should write or pair with a manifest, CSV, JSONL, label file,
+  or review log.
+- Read-only screenshots, overlays, and static viewers are context only unless
+  they are paired with a durable decision record.
+- If direct mutation is risky, capture decisions separately first and consume
+  them through a dry-run or explicit apply step.

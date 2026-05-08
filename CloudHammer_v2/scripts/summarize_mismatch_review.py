@@ -257,7 +257,7 @@ def console_summary(summary: dict[str, Any]) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Initialize and summarize a human mismatch review log.")
+    parser = argparse.ArgumentParser(description="Initialize and summarize a mismatch review log.")
     parser.add_argument(
         "--manifest-csv",
         type=Path,
@@ -268,7 +268,7 @@ def main() -> int:
         "--review-log",
         type=Path,
         default=DEFAULT_PACKET_DIR / "mismatch_review_log.csv",
-        help="Editable human review log CSV.",
+        help="Editable review log CSV.",
     )
     parser.add_argument(
         "--summary-dir",

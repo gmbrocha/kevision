@@ -1,0 +1,104 @@
+{
+  "action_area_stats": {
+    "corrected_bbox_update": {
+      "after_bbox_area_sum": 382375.0,
+      "area_ratio_after_vs_before": 0.11898,
+      "before_bbox_area_sum": 3213774.906,
+      "change_records": 1,
+      "output_candidates": 1,
+      "source_candidates": 1
+    },
+    "merge_component_bbox": {
+      "after_bbox_area_sum": 20601425.0,
+      "area_ratio_after_vs_before": 0.919358,
+      "before_bbox_area_sum": 22408496.119,
+      "change_records": 3,
+      "output_candidates": 3,
+      "source_candidates": 11
+    },
+    "split_child_bboxes": {
+      "after_bbox_area_sum": 178143.699,
+      "area_ratio_after_vs_before": 0.134893,
+      "before_bbox_area_sum": 1320632.543,
+      "change_records": 2,
+      "output_candidates": 8,
+      "source_candidates": 2
+    },
+    "tighten_bbox": {
+      "after_bbox_area_sum": 1385880.821,
+      "area_ratio_after_vs_before": 0.667282,
+      "before_bbox_area_sum": 2076903.528,
+      "change_records": 10,
+      "output_candidates": 10,
+      "source_candidates": 10
+    },
+    "unchanged": {
+      "after_bbox_area_sum": 4052147.353,
+      "area_ratio_after_vs_before": 1.0,
+      "before_bbox_area_sum": 4052147.353,
+      "change_records": 1,
+      "output_candidates": 1,
+      "source_candidates": 1
+    }
+  },
+  "candidate_count_delta": -2,
+  "change_records": 17,
+  "diagnostic_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504",
+  "dry_run_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505",
+  "frozen_manifest_guard": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\eval\\page_disjoint_real\\page_disjoint_real_manifest.human_audited.jsonl",
+  "geometry_decisions": {
+    "child_bboxes": 3,
+    "component_bbox": 3,
+    "corrected_bbox": 1,
+    "merge_with_component": 11
+  },
+  "geometry_review_csv": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\blocked_geometry_review\\postprocessing_geometry_review.reviewed.csv",
+  "guardrails": [
+    "dry_run_only",
+    "report_first_only",
+    "no_source_candidate_manifest_edits",
+    "no_truth_label_edits",
+    "no_eval_manifest_edits",
+    "no_prediction_file_edits",
+    "no_model_file_edits",
+    "no_dataset_or_training_data_writes",
+    "not_threshold_tuning",
+    "excluded_page_disjoint_real_frozen_pages"
+  ],
+  "manual_geometry_row_actions_before_geometry_review": 15,
+  "output_candidates_by_action": {
+    "corrected_bbox_update": 1,
+    "merge_component_bbox": 3,
+    "split_child_bboxes": 8,
+    "tighten_bbox": 10,
+    "unchanged": 1
+  },
+  "output_dir": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer_v2\\outputs\\postprocessing_diagnostic_non_frozen_20260504\\dry_run_postprocessor_20260505\\postprocessing_apply_dry_run_20260505",
+  "preview_output_candidates": 23,
+  "referenced_source_candidates": 25,
+  "reviewed_diagnostic_rows": 44,
+  "reviewed_geometry_rows": 18,
+  "schema": "cloudhammer_v2.postprocessing_apply_dry_run_comparison_summary.v1",
+  "source_candidate_manifest": "F:\\Desktop\\m\\projects\\scopeLedger\\CloudHammer\\runs\\whole_cloud_eval_symbol_text_fp_hn_20260502\\whole_cloud_candidates_manifest.jsonl",
+  "source_candidates_by_action": {
+    "corrected_bbox_update": 1,
+    "merge_component_bbox": 11,
+    "split_child_bboxes": 2,
+    "tighten_bbox": 10,
+    "unchanged": 1
+  },
+  "status": "report_first_dry_run_only",
+  "unresolved_manual_geometry_rows": [],
+  "unresolved_manual_geometry_rows_after_geometry_review": 0,
+  "warnings": [
+    {
+      "ignored_geometry_item_ids": [
+        "row_009_split_geometry"
+      ],
+      "kept_geometry_item_id": "row_010_split_geometry",
+      "reason": "Multiple reviewed split rows targeted the same source candidate; the latest source row was used for the apply-preview.",
+      "source_candidate_id": "260219_-_VA_Biloxi_Rev_4_Plumbing_1_bed93137_p0001_whole_001",
+      "warning_type": "duplicate_child_geometry_rows_collapsed"
+    }
+  ]
+}

@@ -195,7 +195,7 @@ def suggest(row: dict[str, Any]) -> tuple[str, str, str, str]:
             "low",
         )
 
-    return "other", "resolved", "Unrecognized mismatch type; human review required.", "low"
+    return "other", "resolved", "Unrecognized mismatch type; confirm/correct after prefill or sampled review.", "low"
 
 
 def markdown(rows: list[dict[str, Any]], start_row: int, end_row: int, output_csv: Path) -> str:
@@ -206,6 +206,7 @@ def markdown(rows: list[dict[str, Any]], start_row: int, end_row: int, output_cs
         f"Suggested CSV: `{output_csv}`",
         "",
         "These are review metadata suggestions only. They do not modify truth, eval manifests, predictions, model files, datasets, or training data.",
+        "Apply the review fatigue guardrail before asking for manual review: report queue size and consider GPT-5.5 provisional prefill for repetitive rows.",
         "",
         "| row | mode | type | page | bucket | confidence | note |",
         "| --- | --- | --- | --- | --- | --- | --- |",

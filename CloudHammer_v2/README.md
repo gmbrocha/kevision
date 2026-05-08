@@ -25,6 +25,8 @@ data into this workspace without audit, and record every import in
 - Do not implement synthetic generation until the human-audited baseline,
   mismatch review, postprocessing findings, and candidate pools are trustworthy
   enough to steer diagnostics.
+- Before presenting repetitive review queues, report queue size and estimated
+  burden, then ask whether GPT-5.5 should prefill provisional decisions first.
 
 ## Folder Roles
 

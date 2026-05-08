@@ -84,3 +84,22 @@ Do not import old code until the relevant behavior has been audited.
 - Notes: outputs were written under `CloudHammer_v2/outputs/`
 - Follow-up tests: baseline eval completed and scored with
   `CloudHammer_v2/scripts/evaluate_fullpage_detections.py`
+
+## 2026-05-05 - GPT Postprocessing Review Prefill Flow
+
+- Date: 2026-05-05
+- Imported from old path:
+  `CloudHammer/cloudhammer/prelabel/openai_clouds.py` and
+  `CloudHammer_v2/scripts/generate_gpt_fullpage_labels.py`
+- Imported to new path:
+  `CloudHammer_v2/scripts/prefill_postprocessing_review_gpt.py`
+- Reason: prefill non-frozen postprocessing diagnostic review metadata with
+  GPT-5.5 suggestions before human confirmation.
+- Modified or copied unchanged: adapted conceptually into a purpose-specific v2
+  script that writes review CSV/JSONL metadata, not YOLO labels.
+- Dependencies: OpenAI Python SDK, PIL
+- Notes: outputs stay under
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/` and
+  are provisional review metadata only.
+- Follow-up tests: `py_compile`, dry-run overlay generation, one-row GPT probe,
+  full 44-row GPT-5.5 run, and companion reviewer syntax check completed.

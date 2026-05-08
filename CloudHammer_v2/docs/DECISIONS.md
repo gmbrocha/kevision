@@ -66,9 +66,10 @@ Report: `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_02.md`
 
 ## 2026-05-02 - GPT Full-Page Eval Labels Are Scratch Only
 
-`page_disjoint_real` should be human-reviewed directly. GPT full-page labels on
-the frozen real eval pages are provisional scratch only and must not be used as
-eval ground truth, training data, threshold-tuning input, or promotion evidence.
+`page_disjoint_real` eval truth should be confirmed directly. GPT full-page
+labels on the frozen real eval pages are provisional scratch only and must not
+be used as eval ground truth, training data, threshold-tuning input, or
+promotion evidence.
 
 The accidental GPT-5.5 full-page eval outputs were marked with `DO_NOT_SCORE.md`.
 
@@ -319,10 +320,239 @@ Consequences:
 
 - Viewer artifact:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/postprocessing_diagnostic_viewer.html`
-- The viewer is read-only and writes no review metadata.
+- At creation time, the viewer was read-only and wrote no review metadata. This
+  was superseded on 2026-05-05 by separate review-log controls.
 - It consumes existing non-frozen diagnostic rows and existing crop/page paths
   only.
 - It must not edit truth labels, eval manifests, predictions, model files,
   datasets, training data, or frozen eval artifacts.
 - Next implementation step remains a dry-run postprocessor on non-frozen
   diagnostic inputs.
+
+## 2026-05-05 - Review Requires Durable Decisions
+
+Decision: A CloudHammer review, audit, triage, spot-check, or human look-over is
+not complete unless it produces a durable decision record or explicitly states a
+report-only purpose and where decisions will be recorded next.
+
+Reason: passive visual inspection does not create usable inputs for label
+correction, candidate metadata changes, postprocessing dry-runs, training
+selection, or eval truth follow-up.
+
+Consequences:
+
+- Static viewers, overlays, contact sheets, and screenshots are visual context
+  only unless paired with a manifest, CSV, JSONL, label file, or review log.
+- Review tools should expose explicit decisions such as merge, reject merge,
+  split, tighten, tighten-adjust, expand, suppress, ignore, truth follow-up, or
+  correction notes when those decisions are relevant to the task.
+- If direct mutation is unsafe, write decisions to a separate review artifact
+  and require a dry-run or explicit apply step before changing labels,
+  predictions, eval manifests, datasets, or training inputs.
+- The current non-frozen postprocessing diagnostic now has reviewer controls
+  and a blank/template review log. It must export a reviewed CSV before it can
+  gate the dry-run postprocessor.
+
+## 2026-05-05 - GPT-5.5 Prefill Is Provisional Review Metadata
+
+Decision: GPT-5.5 may prefill the non-frozen postprocessing diagnostic review
+log, but the output is provisional review metadata only.
+
+Reason: model-suggested decisions can speed human confirmation, but they are
+not a replacement for durable human review and must not silently steer
+postprocessing behavior.
+
+Consequences:
+
+- GPT-5.5 prefill writes separate artifacts under
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/`.
+- The prefill must not edit labels, eval manifests, predictions, datasets,
+  model files, training data, threshold-tuning inputs, or frozen eval artifacts.
+- A human must confirm or correct the companion reviewer and export a final
+  reviewed CSV before any dry-run postprocessor consumes the decisions.
+
+## 2026-05-05 - Review Fatigue Guardrail
+
+Decision: Agents must not default to handing Michael repetitive review queues.
+Before presenting a review queue, they must report queue size, estimate manual
+burden, and ask whether GPT-5.5 should prefill provisional decisions first.
+
+Reason: Repetitive late-night review is expensive and error-prone. GPT-5.5 can
+provide provisional first-pass decisions that Michael confirms or corrects.
+
+Consequences:
+
+- `<= 10` items may be manual after the item count is stated.
+- `10-50` items should usually get a GPT-5.5 sample or full prefill
+  recommendation.
+- `> 50` items should get staged GPT-5.5 prefill unless explicitly declined.
+- GPT prefill remains provisional and must never be treated as ground truth.
+
+## 2026-05-05 - Dry-Run Postprocessing Plan From Reviewed Diagnostics
+
+Decision: The first postprocessing implementation step after reviewed
+diagnostic rows is a dry-run action plan, not an apply script.
+
+Reason: The reviewed diagnostic rows include deterministic tighten and merge
+signals, but also expand, split, and `tighten_adjust` cases where the correct
+geometry is not safely derivable from the current candidate boxes or tight
+member boxes.
+
+Consequences:
+
+- Dry-run script:
+  `CloudHammer_v2/scripts/build_postprocessing_dry_run_plan.py`
+- Output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/`
+- The plan proposes `3` merge components and `10` tighten bbox actions.
+- It blocks `12` expand/`tighten_adjust` rows and `3` split rows until explicit
+  reviewed geometry exists.
+- The dry-run must not edit the legacy source candidate manifest, labels, eval
+  manifests, predictions, model files, datasets, training data, or
+  threshold-tuning inputs.
+
+## 2026-05-05 - Blocked Geometry Requires Separate Review Artifact
+
+Decision: Expand, split, `tighten_adjust`, and merge-component geometry from
+the first postprocessing dry-run must be resolved in a separate geometry review
+artifact before any apply script consumes it.
+
+Reason: These cases require explicit full-cloud or child geometry. The correct
+boxes are not safely derivable from current candidate boxes, tight member
+boxes, or merge-component unions.
+
+Consequences:
+
+- Reviewer script:
+  `CloudHammer_v2/scripts/build_postprocessing_geometry_reviewer.py`
+- Output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/`
+- Current queue has `18` items: `11` expand geometry, `3` merge-component
+  geometry, `3` split geometry, and `1` `tighten_adjust` geometry.
+- Under the review fatigue guardrail, GPT-5.5 provisional geometry prefill may
+  be considered before manual review, but any prefilled geometry is provisional
+  until human accepted.
+- The geometry reviewer must not edit the legacy source candidate manifest,
+  labels, eval manifests, predictions, model files, datasets, training data, or
+  threshold-tuning inputs.
+
+## 2026-05-05 - GPT-5.5 Geometry Prefill Remains Provisional
+
+Decision: The `18` blocked postprocessing geometry items may be prefilled by
+GPT-5.5 into a separate review CSV, but the output is provisional metadata only
+until Michael confirms or corrects it in the geometry reviewer.
+
+Reason: The queue is above the manual-review comfort threshold and requires
+repetitive geometry entry. GPT-5.5 can reduce that burden, but its geometry is
+not ground truth and cannot be applied automatically.
+
+Consequences:
+
+- Prefill script:
+  `CloudHammer_v2/scripts/prefill_postprocessing_geometry_gpt.py`
+- Prefill CSV:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_review.gpt55_prefill.csv`
+- Companion reviewer:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/blocked_geometry_review/postprocessing_geometry_reviewer.gpt55_prefill.html`
+- The human-confirmed export must still be
+  `postprocessing_geometry_review.reviewed.csv` before any apply script consumes
+  expand, split, `tighten_adjust`, or merge-component geometry.
+- Prefill rows use `gpt_prefilled` status, not human `reviewed` status.
+- The prefill must not edit the legacy source candidate manifest, labels, eval
+  manifests, predictions, model files, datasets, training data, or
+  threshold-tuning inputs.
+
+## 2026-05-05 - Postprocessing Apply Preview Is Report-First
+
+Decision: The first postprocessing apply follow-through is a non-mutating
+candidate-level dry-run comparison, not an apply script.
+
+Reason: The reviewed diagnostic and geometry records are enough to measure
+candidate behavior, but they should not directly mutate the legacy source
+candidate manifest or any eval/training artifact. The comparison must expose
+merge, split, tighten, corrected, unchanged, and unresolved cases first.
+
+Consequences:
+
+- Comparison script:
+  `CloudHammer_v2/scripts/build_postprocessing_apply_dry_run_comparison.py`
+- Output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_dry_run_20260505/`
+- Current preview converts `25` referenced source candidates into `23` output
+  candidates and leaves `0` unresolved manual geometry rows.
+- One duplicate split geometry record is collapsed into the latest reviewed row
+  and reported as a warning.
+- The comparison must not edit the legacy source candidate manifest, labels,
+  eval manifests, predictions, model files, datasets, training data, or
+  threshold-tuning inputs.
+
+## 2026-05-05 - Non-Frozen Postprocessing Apply Writes Derived Manifest
+
+Decision: The accepted postprocessing apply preview is consumed by a dedicated
+non-frozen apply script that writes a new derived manifest and suppression log,
+not an in-place edit to the legacy source manifest.
+
+Reason: The reviewed postprocessing decisions are ready to become a concrete
+candidate artifact, but the source manifest and all eval/training artifacts
+must remain immutable unless a later explicit workflow consumes the derived
+output.
+
+Consequences:
+
+- Apply script:
+  `CloudHammer_v2/scripts/apply_postprocessing_non_frozen.py`
+- Output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/`
+- Current derived manifest converts `34` source candidates into `32`
+  postprocessed candidates and writes `13` suppression records.
+- Changed/merged/split/corrected boxes are marked as needing crop
+  regeneration; unchanged and carried-through candidates preserve source crops.
+- The apply path must not edit the legacy source candidate manifest, labels,
+  eval manifests, predictions, model files, datasets, training data, or
+  threshold-tuning inputs.
+
+## 2026-05-05 - Behavior Comparison Before Crop Regeneration
+
+Decision: After writing the derived non-frozen postprocessed manifest, compare
+it against the original source manifest before regenerating crops or wiring
+pipeline consumers.
+
+Reason: The metadata comparison answers whether the accepted postprocessing
+changes are coherent without creating more visual artifacts or asking for more
+review. Crop regeneration is useful only once the derived manifest behavior is
+understood.
+
+Consequences:
+
+- Comparison script:
+  `CloudHammer_v2/scripts/compare_postprocessing_non_frozen_behavior.py`
+- Output:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_behavior_comparison_20260505/`
+- Current comparison reports `34` source candidates becoming `32`
+  postprocessed candidates, a total bbox area ratio of `0.831645`, and `22`
+  candidates needing crop regeneration before crop-based inspection/export.
+- The comparison must not edit the legacy source candidate manifest, labels,
+  eval manifests, predictions, model files, datasets, training data, crops, or
+  threshold-tuning inputs.
+
+## 2026-05-05 - Diagnostic Scope Reset
+
+Decision: CloudHammer diagnostics must maximize value per reviewed item, not
+the number of review queues. New diagnostic dimensions require a stoplight
+classification before any queue is created.
+
+Reason: The eval-pivot loop needs reliable baselines and targeted model or
+pipeline improvements. Repeated visual review of the same evidence burns human
+time without necessarily changing frozen truth, training inclusion,
+postprocessing behavior, baseline interpretation, or delivery behavior.
+
+Consequences:
+
+- `GREEN` queues are required now and decision-changing.
+- `YELLOW` queues are useful but must be cheap, GPT-prefilled/backfilled or
+  sampled where practical, and explicitly approved.
+- `RED` queues are interesting but not actionable now and must not be created.
+- Do not re-review already-seen visual items if existing review records,
+  geometry, metadata, or GPT-5.5 prefill can answer the question.
+- Current audit:
+  `CloudHammer_v2/docs/DIAGNOSTIC_STOPLIGHT_AUDIT_2026_05_05.md`

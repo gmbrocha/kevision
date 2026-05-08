@@ -16,17 +16,18 @@ Completed foundation:
 
 1. Build touched-page registry and freeze guards.
 2. Freeze `page_disjoint_real` from eligible full pages.
-3. Human-review `page_disjoint_real` directly for eval truth.
-4. Produce overlays/contact sheets for audit.
+3. Directly confirm `page_disjoint_real` eval truth, with GPT outputs
+   treated as scratch/provisional only.
+4. Produce overlays/contact sheets for audit, paired with durable review logs.
 5. Evaluate `model_only_tiled` and `pipeline_full` against the same
    human-audited labels.
-6. Human-review and bucket the `77` baseline mismatch rows.
+6. Bucket the `77` baseline mismatch rows in a durable review log.
 
 Current priority:
 
-1. Review the first report-only postprocessing diagnostic on non-frozen data
-   for fragments, duplicate predictions, overmerges, split fragments, and
-   localization.
+1. Inspect the reviewed first postprocessing dry-run plan on non-frozen data
+   and decide whether to apply only safe reviewed tighten/merge actions or
+   build geometry-review tooling for blocked expand/split cases first.
 2. Define/generate candidate pools:
    `full_page_review_candidates_from_touched`,
    `mining_safe_hard_negative_candidates`,
@@ -63,6 +64,8 @@ Current priority:
 - Candidate pools are defined separately from eval subsets.
 - Synthetic diagnostics remain deferred until the real baseline and candidate
   pools are trustworthy.
+- Repetitive review queues must report item count and consider GPT-5.5
+  provisional prefill before asking for manual review.
 - Root docs and `CloudHammer_v2` docs stay separated by responsibility.
 
 ## Current Non-Goals
