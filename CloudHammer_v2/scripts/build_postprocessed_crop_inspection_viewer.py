@@ -69,6 +69,14 @@ def inspection_item_id(row: dict[str, Any]) -> str:
     return str(row.get("candidate_id") or "")
 
 
+def overlay_image_path(api_input_dir: Path, row_number: int) -> Path | None:
+    row_dir = api_input_dir / f"row_{row_number:03d}"
+    if not row_dir.exists():
+        return None
+    matches = sorted(row_dir.glob("*.jpg")) + sorted(row_dir.glob("*.png")) + sorted(row_dir.glob("*.webp"))
+    return matches[0] if matches else None
+
+
 def default_inspection_row(row: dict[str, Any], row_number: int, saved: dict[str, str] | None = None) -> dict[str, Any]:
     saved = saved or {}
     return {
@@ -87,7 +95,12 @@ def default_inspection_row(row: dict[str, Any], row_number: int, saved: dict[str
     }
 
 
-def build_view_rows(manifest_rows: list[dict[str, Any]], review_rows: list[dict[str, Any]], output_html: Path) -> list[dict[str, Any]]:
+def build_view_rows(
+    manifest_rows: list[dict[str, Any]],
+    review_rows: list[dict[str, Any]],
+    output_html: Path,
+    api_input_dir: Path,
+) -> list[dict[str, Any]]:
     review_by_id = {str(row["inspection_item_id"]): row for row in review_rows}
     view_rows: list[dict[str, Any]] = []
     for index, row in enumerate(manifest_rows, start=1):
@@ -97,6 +110,7 @@ def build_view_rows(manifest_rows: list[dict[str, Any]], review_rows: list[dict[
         view["row_number"] = index
         view["inspection_item_id"] = inspection_item_id(row)
         view["crop_href"] = project_relative(crop_path, output_html)
+        view["overlay_href"] = project_relative(overlay_image_path(api_input_dir, index), output_html)
         view["render_href"] = project_relative(render_path, output_html)
         view["inspection_defaults"] = review_by_id.get(view["inspection_item_id"], {})
         view_rows.append(view)
@@ -124,6 +138,7 @@ def summarize(rows: list[dict[str, Any]], review_rows: list[dict[str, Any]]) -> 
         "by_crop_status": dict(sorted(by_crop_status.items())),
         "by_gpt_status": dict(sorted(by_gpt_status.items())),
         "by_gpt_decision": dict(sorted(by_gpt_decision.items())),
+        "overlay_image_count": sum(1 for row in rows if row.get("overlay_href")),
         "guardrails": [
             "inspection_metadata_only",
             "non_frozen_derived_manifest_only",
@@ -132,8 +147,9 @@ def summarize(rows: list[dict[str, Any]], review_rows: list[dict[str, Any]]) -> 
             "no_eval_manifest_edits",
             "no_prediction_file_edits",
             "no_model_file_edits",
-            "no_dataset_or_training_data_writes",
-            "not_threshold_tuning",
+                "no_dataset_or_training_data_writes",
+                "not_threshold_tuning",
+            "review_viewers_must_show_visual_evidence",
         ],
     }
 
@@ -172,6 +188,7 @@ def html_document(rows: list[dict[str, Any]], summary: dict[str, Any], review_ro
   .rowButton.reject {{ border-left: 5px solid #dc2626; }}
   .pill {{ display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 7px; font-size: 11px; color: var(--muted); background: white; margin-right: 4px; }}
   .panel {{ border: 1px solid var(--border); background: white; padding: 10px; margin: 12px 0; }}
+  .evidence {{ border: 3px solid #e11d48; }}
   img {{ display: block; max-width: 100%; max-height: 760px; border: 1px solid var(--border); background: #eee; }}
   code {{ font-family: Consolas, monospace; font-size: 12px; }}
   table {{ border-collapse: collapse; width: 100%; font-size: 13px; }}
@@ -270,6 +287,7 @@ function metaGrid(row) {{
     ['confidence', row.whole_cloud_confidence || row.confidence],
     ['bbox_page_xyxy', row.bbox_page_xyxy],
     ['crop_box_page_xyxy', row.crop_box_page_xyxy],
+    ['overlay_image', row.overlay_href],
     ['crop_image_path', row.crop_image_path],
   ];
   return fields.map(([k, v]) => `<div class="label">${{esc(k)}}</div><div><code>${{esc(fmt(v))}}</code></div>`).join('');
@@ -297,9 +315,12 @@ function renderDetail() {{
       <p>${{esc(item.gpt_notes || '')}}</p>
     </div>
     <div class="panel">
-      <h2>Crop</h2>
-      ${{row.crop_href ? `<img src="${{esc(row.crop_href)}}" alt="${{esc(row.candidate_id)}}">` : '<div class="small">missing crop path</div>'}}
-      <div class="small">${{row.render_href ? `<a href="${{esc(row.render_href)}}" target="_blank" rel="noreferrer">open page render</a>` : ''}}</div>
+      <h2>Visual Evidence: Red Bbox Overlay</h2>
+      ${{row.overlay_href ? `<img class="evidence" src="${{esc(row.overlay_href)}}" alt="${{esc(row.candidate_id)}} bbox overlay">` : '<div class="small">missing bbox overlay image</div>'}}
+      <div class="small">
+        ${{row.crop_href ? `<a href="${{esc(row.crop_href)}}" target="_blank" rel="noreferrer">open raw crop</a>` : ''}}
+        ${{row.render_href ? ` | <a href="${{esc(row.render_href)}}" target="_blank" rel="noreferrer">open page render</a>` : ''}}
+      </div>
     </div>
     <div class="panel">
       <h2>Metadata</h2>
@@ -349,6 +370,7 @@ def markdown_summary(summary: dict[str, Any], output_dir: Path, manifest: Path, 
         "",
         f"- candidates: `{summary['candidate_count']}`",
         f"- inspection rows: `{summary['inspection_rows']}`",
+        f"- bbox overlay images: `{summary['overlay_image_count']}`",
         "",
         "## Crop Status",
         "",
@@ -373,19 +395,21 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_CROP_REGEN_DIR / "crop_inspection_20260508")
     parser.add_argument("--inspection-csv", type=Path, default=None)
     parser.add_argument("--output-html", type=Path, default=None)
+    parser.add_argument("--api-input-dir", type=Path, default=None)
     args = parser.parse_args()
 
     output_dir = args.output_dir
     inspection_csv = args.inspection_csv or output_dir / "postprocessed_crop_inspection.csv"
     output_html = args.output_html or output_dir / "postprocessed_crop_inspection_viewer.html"
+    api_input_dir = args.api_input_dir or output_dir / "gpt55_crop_inspection_prefill" / "api_inputs"
     manifest_rows = read_jsonl(args.manifest)
     saved_rows = read_csv_by_id(inspection_csv)
     inspection_rows = [
         default_inspection_row(row, index, saved_rows.get(inspection_item_id(row)))
         for index, row in enumerate(manifest_rows, start=1)
     ]
-    view_rows = build_view_rows(manifest_rows, inspection_rows, output_html)
-    summary = summarize(manifest_rows, inspection_rows)
+    view_rows = build_view_rows(manifest_rows, inspection_rows, output_html, api_input_dir)
+    summary = summarize(view_rows, inspection_rows)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     write_csv(inspection_csv, inspection_rows)

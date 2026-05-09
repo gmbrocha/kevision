@@ -113,6 +113,14 @@ only unless they are paired with a durable decision record. If direct edits to
 truth, predictions, labels, or manifests are too risky, write review decisions
 separately first and consume them through a dry-run or explicit apply step.
 
+Human-facing review artifacts must also show the decision target directly on
+the image. For detection, geometry, crop inspection, and mismatch review, this
+means visible overlays for candidate boxes, truth boxes, prediction boxes, crop
+boundaries, or the specific target being reviewed. Raw crops or page images
+alone are not sufficient unless the raw image itself is the decision target. If
+the visual target cannot be rendered, mark the row as missing visual evidence
+instead of asking for human review.
+
 ## Review Fatigue Guardrail
 
 Do not hand Michael repetitive review labor by default. Before generating,

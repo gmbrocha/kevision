@@ -570,7 +570,9 @@ Build the postprocessed crop inspection packet:
 ```
 
 Purpose: create a durable inspection CSV plus static viewer for the crop-ready
-postprocessed non-frozen manifest.
+postprocessed non-frozen manifest. When GPT precheck overlay inputs exist, the
+viewer must render the red-bbox overlay image as the primary visual evidence
+for each row.
 
 Working directory: repo root.
 
@@ -583,6 +585,11 @@ Expected artifacts:
 Safety: inspection metadata only. It must not edit the legacy source candidate
 manifest, truth labels, eval manifests, predictions, model files, datasets,
 training data, or threshold-tuning inputs.
+
+Current viewer evidence status:
+
+- rows: `32`
+- red-bbox overlay images: `32`
 
 Precheck the postprocessed crop inspection packet with GPT-5.5. Run dry-run
 first to generate API overlay inputs without API calls:

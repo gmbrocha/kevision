@@ -31,8 +31,10 @@
     "no_prediction_file_edits",
     "no_model_file_edits",
     "no_dataset_or_training_data_writes",
-    "not_threshold_tuning"
+    "not_threshold_tuning",
+    "review_viewers_must_show_visual_evidence"
   ],
   "inspection_rows": 32,
+  "overlay_image_count": 32,
   "schema": "cloudhammer_v2.postprocessed_crop_inspection_summary.v1"
 }

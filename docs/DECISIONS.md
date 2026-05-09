@@ -54,3 +54,24 @@ Consequences:
   they are paired with a durable decision record.
 - If direct mutation is risky, capture decisions separately first and consume
   them through a dry-run or explicit apply step.
+
+## 2026-05-08 - Review Viewers Require Visual Evidence
+
+Review viewers, inspection packets, contact sheets, and similar human-facing
+artifacts must show the decision target directly on the image. For detection
+and geometry workflows, raw crops are not enough; the viewer must render the
+candidate bbox, truth bbox, prediction bbox, crop boundary, or other relevant
+overlay needed to understand the requested decision.
+
+Reason: repeated review packets without visible boxes forced the reviewer to
+infer what the machine meant from metadata, which is not a reasonable human
+review task and creates avoidable drift.
+
+Consequences:
+
+- Human-facing review artifacts must include visual overlays or explicitly mark
+  the row as missing visual evidence.
+- Raw-image-only viewers are acceptable only when the raw image itself is the
+  decision target.
+- This rule complements the durable decision-record rule; both are required for
+  review gates.

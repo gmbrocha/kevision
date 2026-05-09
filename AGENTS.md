@@ -238,6 +238,18 @@ Screenshots, static viewers, overlays, and "look this over" instructions are
 context only. They are not a completed review unless paired with a durable
 decision record.
 
+## Visual Evidence Rule
+
+Any viewer, review packet, contact sheet, or inspection artifact prepared for a
+human reviewer must show the visual target of the decision directly on the
+image. For detection or geometry work, this means rendered overlays for the
+candidate bbox, truth bbox, prediction bbox, crop boundary, or other relevant
+decision target. Raw crops or page images alone are not acceptable review
+evidence unless the task is explicitly about the raw image itself.
+
+If a review item cannot show its visual target, mark it blocked or missing
+evidence in the durable review artifact instead of asking for human review.
+
 ## Selection Before Copying
 
 Before copying, freezing, moving, or generating datasets/eval pages at scale:

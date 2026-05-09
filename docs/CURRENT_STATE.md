@@ -166,7 +166,8 @@ human-audited `page_disjoint_real` scoring completed on 2026-05-04.
   `28` `accept_crop`, `2` `needs_human_review`, and `2`
   `reject_no_visible_cloud`. Companion viewer:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`.
-  These findings are provisional inspection metadata only.
+  The viewer renders red-bbox overlay images as the primary visual evidence for
+  all `32` rows. These findings are provisional inspection metadata only.
 - GPT-5.5 cropped supplement prelabels:
   `CloudHammer_v2/data/gpt55_crop_prelabels_small_corpus_supplement_20260502/README.md`
 - Current blocker: resolve or accept the `4` non-accepted GPT crop-precheck

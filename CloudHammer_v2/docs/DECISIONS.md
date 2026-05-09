@@ -585,6 +585,25 @@ Consequences:
   edit the legacy source candidate manifest, labels, eval manifests,
   predictions, model files, datasets, training data, or threshold-tuning inputs.
 
+## 2026-05-08 - Review Viewers Must Show Decision Overlays
+
+Decision: CloudHammer review viewers and inspection packets must render the
+visual target of the decision directly on the image, not just list bbox
+coordinates or metadata.
+
+Reason: Reviewers cannot reliably assess candidate, prediction, truth, crop, or
+geometry decisions from raw crops alone. The artifact must show what the model,
+pipeline, or review queue is asking about.
+
+Consequences:
+
+- Detection and crop-inspection viewers must show candidate bbox overlays.
+- Mismatch viewers must show prediction/truth overlays and matching context.
+- Geometry viewers must show source and proposed geometry overlays when
+  available.
+- Rows without renderable visual evidence should be marked missing evidence or
+  blocked, not handed to a human as a normal review item.
+
 ## 2026-05-05 - Diagnostic Scope Reset
 
 Decision: CloudHammer diagnostics must maximize value per reviewed item, not
