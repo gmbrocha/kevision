@@ -150,7 +150,28 @@ class RevisionScanner:
         narrative_by_sheet: dict[str, list[NarrativeEntry]] = {}
 
         fitz.TOOLS.reset_mupdf_warnings()
-        document = fitz.open(pdf_path)
+        try:
+            document = fitz.open(pdf_path)
+        except Exception as exc:
+            source_document = SourceDocument(
+                id=document_id,
+                revision_set_id=revision_set.id,
+                source_pdf=source_pdf,
+                page_count=0,
+            )
+            preflight_issues.append(
+                PreflightIssue(
+                    id=stable_id(source_pdf, 0, "open", "pdf_open_failed", exc.__class__.__name__),
+                    document_id=document_id,
+                    source_pdf=source_pdf,
+                    page_number=None,
+                    operation="open",
+                    code="pdf_open_failed",
+                    severity="high",
+                    message=f"PDF could not be opened: {exc.__class__.__name__}",
+                )
+            )
+            return source_document, preflight_issues, narratives, sheets, clouds
         try:
             preflight_issues.extend(
                 capture_preflight_issues(

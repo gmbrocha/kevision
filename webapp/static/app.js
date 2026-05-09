@@ -93,11 +93,195 @@ function bindReviewShortcuts() {
 
 function bindGenerateForms() {
   document.querySelectorAll(".js-generate-form").forEach((form) => {
+    if (form.classList.contains("js-chunked-upload-form")) return;
     form.addEventListener("submit", () => {
       const button = form.querySelector(".js-generate-button");
       if (!button) return;
       button.disabled = true;
       button.textContent = button.dataset.loadingText || "Working...";
+    });
+  });
+}
+
+function bindChunkedUploadForms() {
+  const fileEntriesForForm = (form) => {
+    const entries = [];
+    form.querySelectorAll('input[type="file"]').forEach((input) => {
+      Array.from(input.files || []).forEach((file) => {
+        entries.push({
+          file,
+          relativePath: file.webkitRelativePath || file.name,
+        });
+      });
+    });
+    return entries;
+  };
+
+  const setUploadStatus = (form, { text = "", count = "", percent = 0, hidden = false } = {}) => {
+    const status = form.querySelector("[data-upload-status]");
+    if (!status) return;
+    status.hidden = hidden;
+    const textNode = status.querySelector("[data-upload-status-text]");
+    const countNode = status.querySelector("[data-upload-status-count]");
+    const progressNode = status.querySelector("[data-upload-progress]");
+    if (textNode && text) textNode.textContent = text;
+    if (countNode) countNode.textContent = count;
+    if (progressNode) progressNode.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+  };
+
+  const responsePayload = async (response) => {
+    const text = await response.text();
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch {
+      return { error: text || response.statusText };
+    }
+  };
+
+  const csrfTokenForForm = (form) => {
+    const input = form.querySelector('input[name="csrf_token"]');
+    if (input && input.value) return input.value;
+    return document.querySelector('meta[name="csrf-token"]')?.content || "";
+  };
+
+  const abortUpload = async (form, uploadId, { beacon = false } = {}) => {
+    if (!uploadId || !form.dataset.abortUrl) return;
+    const payload = JSON.stringify({ upload_id: uploadId, csrf_token: csrfTokenForForm(form) });
+    if (beacon && navigator.sendBeacon) {
+      const body = new Blob([payload], { type: "application/json" });
+      navigator.sendBeacon(form.dataset.abortUrl, body);
+      return;
+    }
+    try {
+      await fetch(form.dataset.abortUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: payload,
+        keepalive: beacon,
+      });
+    } catch {
+      // Stale server-side upload folders are also cleaned opportunistically.
+    }
+  };
+
+  document.querySelectorAll(".js-chunked-upload-form").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      const entries = fileEntriesForForm(form);
+      if (!entries.length) return;
+
+      event.preventDefault();
+      const button = form.querySelector(".js-generate-button");
+      const originalButtonText = button ? button.textContent : "";
+      if (button) {
+        button.disabled = true;
+        button.textContent = button.dataset.loadingText || "Uploading...";
+      }
+      setUploadStatus(form, { text: "Preparing upload...", count: "", percent: 0, hidden: false });
+
+      let uploadId = "";
+      let completed = false;
+      const abortOnUnload = () => {
+        if (!completed && uploadId) abortUpload(form, uploadId, { beacon: true });
+      };
+      window.addEventListener("beforeunload", abortOnUnload);
+
+      try {
+        const formData = new FormData(form);
+        const initResponse = await fetch(form.dataset.initUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            purpose: form.dataset.uploadPurpose,
+            package_label: formData.get("package_label") || "",
+            revision_set_id: formData.get("revision_set_id") || "",
+            csrf_token: csrfTokenForForm(form),
+            files: entries.map(({ file, relativePath }) => ({
+              name: file.name,
+              relative_path: relativePath,
+              size: file.size,
+            })),
+          }),
+        });
+        const initPayload = await responsePayload(initResponse);
+        if (!initResponse.ok || initPayload.error) {
+          throw new Error(initPayload.error || "Upload could not start.");
+        }
+
+        uploadId = initPayload.upload_id;
+        const chunkSize = Number(initPayload.chunk_size || 8 * 1024 * 1024);
+        const totalBytes = entries.reduce((sum, entry) => sum + entry.file.size, 0);
+        let uploadedBytes = 0;
+        let uploadedChunks = 0;
+        const totalChunks = entries.reduce((sum, entry) => sum + Math.ceil(entry.file.size / chunkSize), 0);
+
+        for (let fileIndex = 0; fileIndex < entries.length; fileIndex += 1) {
+          const { file, relativePath } = entries[fileIndex];
+          const chunkCount = Math.ceil(file.size / chunkSize);
+          for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += 1) {
+            const start = chunkIndex * chunkSize;
+            const end = Math.min(file.size, start + chunkSize);
+            const chunkForm = new FormData();
+            chunkForm.append("upload_id", uploadId);
+            chunkForm.append("file_index", String(fileIndex));
+            chunkForm.append("chunk_index", String(chunkIndex));
+            chunkForm.append("csrf_token", csrfTokenForForm(form));
+            chunkForm.append("chunk", file.slice(start, end), `${file.name}.part${chunkIndex}`);
+
+            const percent = totalBytes ? (uploadedBytes / totalBytes) * 100 : 0;
+            setUploadStatus(form, {
+              text: `Uploading ${relativePath}`,
+              count: `${uploadedChunks + 1} of ${totalChunks} chunks`,
+              percent,
+              hidden: false,
+            });
+
+            const chunkResponse = await fetch(form.dataset.chunkUrl, {
+              method: "POST",
+              headers: { Accept: "application/json" },
+              body: chunkForm,
+            });
+            const chunkPayload = await responsePayload(chunkResponse);
+            if (!chunkResponse.ok || chunkPayload.error) {
+              throw new Error(chunkPayload.error || `Chunk upload failed for ${relativePath}.`);
+            }
+            uploadedBytes += end - start;
+            uploadedChunks += 1;
+          }
+        }
+
+        setUploadStatus(form, { text: "Rebuilding package on server...", count: "", percent: 100, hidden: false });
+        const completeResponse = await fetch(form.dataset.completeUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ upload_id: uploadId, csrf_token: csrfTokenForForm(form) }),
+        });
+        const completePayload = await responsePayload(completeResponse);
+        if (!completeResponse.ok || completePayload.error) {
+          throw new Error(completePayload.error || "Upload could not be completed.");
+        }
+        completed = true;
+        window.removeEventListener("beforeunload", abortOnUnload);
+        window.location.href = completePayload.redirect_url || window.location.href;
+      } catch (error) {
+        await abortUpload(form, uploadId);
+        setUploadStatus(form, { text: error.message || "Upload failed.", count: "", percent: 0, hidden: false });
+        window.alert(error.message || "Upload failed.");
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalButtonText;
+        }
+      } finally {
+        window.removeEventListener("beforeunload", abortOnUnload);
+      }
     });
   });
 }
@@ -297,6 +481,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyBoundingBoxes();
   bindQueueSelection();
   bindReviewShortcuts();
+  bindChunkedUploadForms();
   bindGenerateForms();
   bindFilePickerSummaries();
   bindFolderDialogs();

@@ -57,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--host", default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=5000)
     serve_parser.add_argument("--debug", action="store_true")
+    serve_parser.add_argument("--production", action="store_true", help="Serve with Waitress and require production-safe environment settings.")
 
     export_parser = subparsers.add_parser("export", help="Export approved review data.")
     export_parser.add_argument("workspace_dir", type=Path)
@@ -99,8 +100,22 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "serve":
-        app = create_app(args.workspace_dir)
-        app.run(host=args.host, port=args.port, debug=args.debug)
+        if args.production and not _is_loopback_host(args.host):
+            print("--production must bind to a loopback host such as 127.0.0.1 or localhost.")
+            return 1
+        try:
+            app = create_app(args.workspace_dir, production=args.production)
+        except RuntimeError as exc:
+            print(str(exc))
+            return 1
+        if args.production:
+            try:
+                serve_production_app(app, host=args.host, port=args.port)
+            except RuntimeError as exc:
+                print(str(exc))
+                return 1
+        else:
+            app.run(host=args.host, port=args.port, debug=args.debug)
         return 0
 
     if args.command == "export":
@@ -136,6 +151,20 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.error(f"Unsupported command: {args.command}")
     return 2
+
+
+def _is_loopback_host(host: str) -> bool:
+    normalized = host.strip().lower()
+    return normalized in {"127.0.0.1", "localhost", "::1"}
+
+
+def serve_production_app(app, *, host: str, port: int) -> None:
+    try:
+        from waitress import serve
+    except ImportError as exc:
+        raise RuntimeError("Waitress is required for --production. Install dependencies with requirements.txt.") from exc
+    print(f"Serving ScopeLedger with Waitress at http://{host}:{port}")
+    serve(app, host=host, port=port)
 
 
 def approve_cloudhammer_detections(store: WorkspaceStore) -> int:

@@ -33,6 +33,25 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   folder import copies PDFs only, and CloudHammer subprocess failures are
   compact enough to display in the UI. Plain repo-level pytest now includes
   the legacy CloudHammer import path through `pytest.ini`.
+- Immediate client handoff hosting uses the existing Cloudflare Tunnel route
+  `ledger.nezcoupe.net` -> `http://localhost:5000`. Production serve mode runs
+  Waitress, requires `SCOPELEDGER_WEBAPP_SECRET`, and restricts manual
+  server-path imports to `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`. It also requires
+  loopback binding, secure session cookies, production CSRF tokens on POST
+  requests, and release security headers. Cloudflare Access remains the
+  authentication gate; this is not a public SaaS deployment.
+- Remote browser PDF intake now uses chunked upload endpoints for selected
+  files/folders, with 8 MiB chunks reconstructed inside the active project
+  workspace before Populate runs. This avoids Cloudflare request-body 413s for
+  large package PDFs while preserving the normal manual server-path fallback.
+  Failed or abandoned chunk sessions are cleaned by browser abort calls when
+  possible and by automatic stale cleanup under `.chunked_uploads/`. Uploads
+  are capped by `SCOPELEDGER_MAX_UPLOAD_BYTES`, defaulting to `2 GiB`.
+- Pre-release app audit is complete for the private handoff surface. Declared
+  dependencies and the current runtime environment pass `pip-audit`; Bandit
+  has no remaining actionable findings after documenting controlled
+  subprocess calls and non-security stable IDs. Uploaded unreadable PDFs now
+  become high-severity diagnostics instead of crashing scans.
 - CloudHammer_v2 training/eval work remains paused for client handoff work and
   should resume afterward at the existing crop-precheck blocker:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.

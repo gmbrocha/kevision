@@ -33,6 +33,7 @@
   </header>
 
   <form method="post" action="{{ url_for('review_change', change_id=item.id) }}" class="js-review-form cockpit-layout">
+    {{ csrf_field()|safe }}
     <input type="hidden" name="redirect_to" value="{{ url_for('change_detail', change_id=item.id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">
     <input type="hidden" name="queue_status" value="{{ queue_status }}">
     <input type="hidden" name="search_query" value="{{ search_query }}">

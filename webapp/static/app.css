@@ -684,6 +684,20 @@ input, textarea, select { font-family: inherit; }
   height: 6px;
 }
 
+.chunked-upload-status {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+.chunked-upload-status-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
 .package-card {
   display: flex;
   flex-direction: column;

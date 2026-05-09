@@ -22,7 +22,10 @@ def slugify(value: str) -> str:
 
 
 def stable_id(*parts: object) -> str:
-    digest = hashlib.sha1("::".join(str(part) for part in parts).encode("utf-8")).hexdigest()
+    digest = hashlib.sha1(
+        "::".join(str(part) for part in parts).encode("utf-8"),
+        usedforsecurity=False,
+    ).hexdigest()
     return digest[:16]
 
 

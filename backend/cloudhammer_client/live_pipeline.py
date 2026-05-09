@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import subprocess  # nosec B404
 import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -219,7 +219,7 @@ class LiveCloudHammerPipeline:
 
     def _run_command(self, label: str, command: list[str]) -> CloudHammerCommandRecord:
         try:
-            completed = subprocess.run(
+            completed = subprocess.run(  # nosec B603
                 command,
                 cwd=self.repo_root,
                 capture_output=True,

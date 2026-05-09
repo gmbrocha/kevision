@@ -48,6 +48,68 @@ Serve the local review app after creating or selecting a project registry root:
 - Safety: local development server; it does not expose the app externally by
   itself.
 
+Serve the private client handoff app behind the existing Cloudflare Access
+route:
+
+- Purpose: run ScopeLedger for the immediate client handoff at
+  `https://ledger.nezcoupe.net`.
+- Working directory: repo root.
+- Prerequisites:
+  - `C:\Users\gmbro\.cloudflared\config.yml` maps `ledger.nezcoupe.net` to
+    `http://localhost:5000`.
+  - Cloudflare Access has an allowed-users policy for `ledger.nezcoupe.net`.
+  - `cloudflared` tunnel `nez-dev-projects` is connected.
+  - The Windows host stays awake and online.
+- Command:
+
+```powershell
+$env:SCOPELEDGER_WEBAPP_SECRET = "<generated-long-random-secret>"
+$env:SCOPELEDGER_ALLOWED_IMPORT_ROOTS = "F:\Desktop\m\projects\scopeLedger\revision_sets"
+$env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
+.\.venv\Scripts\python.exe -m backend serve runs\cloudhammer_real_export_corrected_split_v1_20260428_171246 --host 127.0.0.1 --port 5000 --production
+```
+
+- Expected output/artifact: Waitress serves ScopeLedger at
+  `http://127.0.0.1:5000`; Cloudflare Tunnel exposes it at
+  `https://ledger.nezcoupe.net`, where Cloudflare Access prompts before the
+  app loads.
+- Safety: private handoff mode. Cloudflare Access is the auth gate. The app
+  must bind only to loopback in `--production`; POST requests require CSRF
+  tokens; session cookies are secure/HttpOnly/Lax; manual server-path imports
+  are restricted to the configured import root; custom project workspace paths
+  are disabled. This does not make the app public-hosting ready without
+  additional background jobs, durable process supervision, retention policy,
+  and app-level user/session management.
+
+Check the existing Cloudflare Tunnel mapping:
+
+- Purpose: confirm the local route still points `ledger.nezcoupe.net` at the
+  local app port.
+- Working directory: repo root or any PowerShell directory.
+- Command:
+
+```powershell
+Get-Content $env:USERPROFILE\.cloudflared\config.yml
+```
+
+- Expected output/artifact: an ingress entry for `ledger.nezcoupe.net` with
+  service `http://localhost:5000`.
+- Safety: read-only.
+
+Check the Cloudflare Tunnel connector:
+
+- Purpose: confirm the `nez-dev-projects` tunnel has an active connector.
+- Working directory: repo root or any PowerShell directory.
+- Command:
+
+```powershell
+C:\cloudflared\cloudflared.exe tunnel info b829004a-c4f7-4141-98d0-a83bf1b90068
+```
+
+- Expected output/artifact: tunnel info for `nez-dev-projects` with at least
+  one active connector.
+- Safety: read-only.
+
 Run the repo test suite:
 
 - Purpose: verify ScopeLedger app tests and legacy CloudHammer unit tests from
@@ -77,7 +139,8 @@ Fresh client project flow with live CloudHammer Populate:
 - Browser steps:
   1. Open `http://127.0.0.1:5000/projects`.
   2. Create a new project.
-  3. On Overview, import manual server path:
+  3. On Overview, import packages by either selecting PDFs/folders in the
+     browser or entering manual server path:
      `F:\Desktop\m\projects\scopeLedger\revision_sets`.
   4. Click Populate Workspace.
   5. Review Overview, Drawings, Latest Set, Review Changes, Diagnostics,
@@ -86,11 +149,56 @@ Fresh client project flow with live CloudHammer Populate:
   the selected project workspace at `outputs/cloudhammer_live/run_*/`, then
   imports the generated `whole_cloud_candidates_manifest.jsonl` into normal
   app review items.
-- Safety: local inference/product workflow. It copies source packages into the
-  selected app workspace and writes generated project outputs only. Manual
-  folder import copies PDF files, not arbitrary sidecar files. It must not
-  delete or mutate `revision_sets/`, CloudHammer_v2 eval/training artifacts,
-  frozen pages, labels, datasets, or model checkpoints.
+- Safety: local inference/product workflow. Browser-selected PDF files upload
+  in 8 MiB chunks and are reconstructed in the selected app workspace. Manual
+  folder import copies PDF files, not arbitrary sidecar files. It writes
+  generated project outputs only and must not delete or mutate `revision_sets/`,
+  CloudHammer_v2 eval/training artifacts, frozen pages, labels, datasets, or
+  model checkpoints.
+
+Large remote browser uploads:
+
+- Purpose: stage package PDFs through `https://ledger.nezcoupe.net` without
+  hitting Cloudflare's per-request upload limit.
+- Working directory: no shell command; use the Overview page.
+- Browser steps:
+  1. Open the project Overview page.
+  2. Under Import new package, choose a PDF or folder from the browser file
+     dialog.
+  3. Click Import package.
+  4. Wait for the chunked upload progress bar to finish and redirect back to
+     Overview.
+  5. Click Populate Workspace.
+- Expected output/artifact: selected PDFs appear under the active project's
+  `input/` folder; temporary chunks are created under `.chunked_uploads/` and
+  removed after successful reconstruction, browser aborts, or stale cleanup.
+- Safety: upload-only into the active project workspace. Only `.pdf` files are
+  accepted by the chunked upload init endpoint. Upload batches are capped by
+  `SCOPELEDGER_MAX_UPLOAD_BYTES`, defaulting to `2 GiB`, and by `500` PDF
+  files per batch.
+
+Run pre-release audit checks:
+
+- Purpose: verify tests, dependency vulnerability posture, static security
+  scan, and installed package consistency before sharing the client link.
+- Working directory: repo root.
+- Commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m pip_audit -r requirements.txt
+.\.venv\Scripts\python.exe -m pip_audit
+.\.venv\Scripts\python.exe -m bandit -q -r backend webapp -x tests
+.\.venv\Scripts\python.exe -m pip check
+node --check webapp\static\app.js
+```
+
+- Expected output/artifact: tests pass, declared/runtime dependency audits
+  report no known vulnerabilities, Bandit reports no actionable findings,
+  `pip check` reports no broken requirements, and JavaScript syntax check
+  succeeds. Torch CUDA wheels may be skipped by `pip-audit` because they are
+  not PyPI-resolvable.
+- Safety: read-only checks except for normal test/cache artifacts.
 
 CloudHammer_v2-specific runbook content belongs in
 `CloudHammer_v2/docs/RUNBOOK.md`.

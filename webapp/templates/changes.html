@@ -45,6 +45,7 @@
       {% endif %}
 
       <form method="post" action="{{ url_for('bulk_review') }}" class="panel">
+        {{ csrf_field()|safe }}
         <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0') }}">
         <div class="panel-header">
           <span class="panel-title">Change list</span>

@@ -43,9 +43,11 @@
                   <td class="cell-dim">{{ row.project.workspace_dir }}</td>
                   <td class="col-right">
                     <form method="post" action="{{ url_for('select_project', project_id=row.project.id) }}" style="display: inline;">
+                      {{ csrf_field()|safe }}
                       <button class="btn btn-secondary btn-sm" type="submit">Select</button>
                     </form>
                     <form method="post" action="{{ url_for('archive_project', project_id=row.project.id) }}" style="display: inline;">
+                      {{ csrf_field()|safe }}
                       <button class="btn btn-ghost btn-sm" type="submit">Archive</button>
                     </form>
                   </td>
@@ -63,6 +65,7 @@
           <span class="panel-title">Add project</span>
         </div>
         <form class="panel-body package-card project-create-card js-generate-form" method="post" action="{{ url_for('create_project') }}">
+          {{ csrf_field()|safe }}
           <div class="package-card-head">
             <div>
               <span class="panel-title">Create project</span>
@@ -75,13 +78,15 @@
               <span class="form-label">Project name</span>
               <input class="form-input" name="name" placeholder="Project name" required>
             </label>
-            <div>
-              <span class="form-label">Workspace folder</span>
-              <div class="path-picker">
-                <input id="workspace-dir-input" class="form-input" name="workspace_dir" placeholder="Optional workspace path">
-                <button class="btn btn-secondary js-folder-dialog" type="button" data-target="#workspace-dir-input" data-dialog-url="{{ url_for('workspace_folder_dialog') }}">Browse folder</button>
+            {% if not is_production %}
+              <div>
+                <span class="form-label">Workspace folder</span>
+                <div class="path-picker">
+                  <input id="workspace-dir-input" class="form-input" name="workspace_dir" placeholder="Optional workspace path">
+                  <button class="btn btn-secondary js-folder-dialog" type="button" data-target="#workspace-dir-input" data-dialog-url="{{ url_for('workspace_folder_dialog') }}">Browse folder</button>
+                </div>
               </div>
-            </div>
+            {% endif %}
           </div>
         </form>
       </section>
@@ -111,6 +116,7 @@
                   <td class="cell-dim">{{ row.project.workspace_dir }}</td>
                   <td class="col-right">
                     <form method="post" action="{{ url_for('restore_project', project_id=row.project.id) }}">
+                      {{ csrf_field()|safe }}
                       <button class="btn btn-secondary btn-sm" type="submit">Restore</button>
                     </form>
                   </td>

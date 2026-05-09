@@ -138,3 +138,70 @@ Consequences:
   status or flash messages.
 - `pytest.ini` keeps the legacy `CloudHammer/` package importable during a
   plain repo-level test run.
+
+## 2026-05-09 - Cloudflare Access Client Handoff
+
+Decision: Use the existing Cloudflare Tunnel hostname `ledger.nezcoupe.net` for
+the immediate client handoff, with Cloudflare Access as the authentication
+gate and ScopeLedger served locally through Waitress on `127.0.0.1:5000`.
+
+Reason: This is the fastest usable private handoff path without moving source
+revision packages, model checkpoints, or generated app workspaces to a new
+host.
+
+Consequences:
+
+- Production serve mode requires `SCOPELEDGER_WEBAPP_SECRET`; the development
+  fallback secret is not allowed when `--production` is used.
+- Manual server-path imports in production are limited to
+  `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`; browser uploads remain available.
+- Cloudflare Access allowed-user policy must be confirmed in the Cloudflare
+  dashboard before sharing the link.
+- Populate remains synchronous for this handoff. Background jobs and app-level
+  auth remain follow-up work if this becomes a longer-lived deployment.
+- Production serve mode refuses non-loopback hosts. The Cloudflare Tunnel is
+  the external ingress path.
+- Custom project workspace paths are disabled in production handoff mode;
+  projects are created under the registry's managed projects folder.
+- Production POST requests require app-level CSRF tokens even though
+  Cloudflare Access is the authentication gate.
+
+## 2026-05-09 - Chunked Remote PDF Uploads
+
+Decision: Browser-selected package PDFs upload through app-level chunked
+endpoints during the client handoff. Each request carries a small chunk, and
+the server reconstructs the original PDF in the selected project workspace.
+
+Reason: Cloudflare can reject oversized request bodies with `413 Payload Too
+Large` before Flask receives the request. The remote client workflow must be
+able to stage large drawing-package PDFs through the browser.
+
+Consequences:
+
+- The Overview import and append forms use chunked upload when browser files
+  are selected; manual server-path imports still use the existing form path.
+- Chunks are 8 MiB, with a server-side per-chunk cap of 16 MiB.
+- Only PDF filenames are accepted by the chunked upload init endpoint.
+- Temporary chunk folders are removed after successful reconstruction, explicit
+  browser aborts, and automatic stale cleanup. Upload resume is deferred.
+
+## 2026-05-09 - Pre-Release Handoff Audit
+
+Decision: Treat the current `ledger.nezcoupe.net` handoff as a private
+release candidate and harden the application surface before client use.
+
+Reason: The client will use the app remotely with real package PDFs. The app
+needs predictable failure behavior and concrete browser-session protections
+without delaying the handoff for a full SaaS rewrite.
+
+Consequences:
+
+- Production mode sets secure/HttpOnly/Lax session cookies plus
+  `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and
+  `Cache-Control: no-store`.
+- Upload sessions are capped by `SCOPELEDGER_MAX_UPLOAD_BYTES`, defaulting to
+  `2 GiB`, and limited to `500` PDF files per batch.
+- Unreadable PDFs are recorded as high-severity diagnostics instead of
+  crashing Populate.
+- Declared and runtime Python dependencies were audited; Pillow is now pinned
+  to `>=12.2.0` to avoid the vulnerable `12.1.1` runtime.

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import hmac
+import json
 import os
 import re
+import secrets
 import shutil
+import time
+import uuid
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -130,6 +135,13 @@ HIGH_RES_CROP_TARGET_WIDTH = 1800
 DRIVE_REVIEW_FOLDER_URL = "https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT"
 SAFE_PROJECT_ASSET_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"}
 VALID_REVIEW_STATUSES = {"pending", "approved", "rejected"}
+DEFAULT_DEV_SECRET_KEY = "scopeledger-dev"  # nosec B105
+CHUNKED_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024
+MAX_CHUNKED_UPLOAD_CHUNK_BYTES = 16 * 1024 * 1024
+DEFAULT_MAX_CHUNKED_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024
+MAX_CHUNKED_UPLOAD_FILES = 500
+CHUNKED_UPLOAD_STALE_SECONDS = 6 * 60 * 60
+UPLOAD_ID_RE = re.compile(r"^[a-f0-9]{32}$")
 
 
 class ActiveProjectWorkspace:
@@ -143,18 +155,64 @@ class ActiveProjectWorkspace:
         return getattr(self.current(), name)
 
 
-def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runner: CloudHammerRunner | None = None) -> Flask:
+def _load_secret_key(*, production: bool) -> str:
+    secret = os.getenv("SCOPELEDGER_WEBAPP_SECRET", "")
+    if production and not secret:
+        raise RuntimeError("SCOPELEDGER_WEBAPP_SECRET is required when production mode is enabled.")
+    return secret or DEFAULT_DEV_SECRET_KEY
+
+
+def _configured_allowed_import_roots() -> tuple[Path, ...]:
+    raw_value = os.getenv("SCOPELEDGER_ALLOWED_IMPORT_ROOTS", "")
+    roots = []
+    for item in raw_value.split(os.pathsep):
+        root_text = item.strip().strip('"')
+        if root_text:
+            roots.append(Path(root_text).expanduser().resolve())
+    return tuple(roots)
+
+
+def _configured_max_chunked_upload_bytes() -> int:
+    raw_value = os.getenv("SCOPELEDGER_MAX_UPLOAD_BYTES", "").strip()
+    if not raw_value:
+        return DEFAULT_MAX_CHUNKED_UPLOAD_BYTES
+    try:
+        value = int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError("SCOPELEDGER_MAX_UPLOAD_BYTES must be an integer byte count.") from exc
+    if value < MAX_CHUNKED_UPLOAD_CHUNK_BYTES:
+        raise RuntimeError("SCOPELEDGER_MAX_UPLOAD_BYTES must be at least 16777216 bytes.")
+    return value
+
+
+def create_app(
+    workspace_dir: Path,
+    verification_provider=None,
+    cloudhammer_runner: CloudHammerRunner | None = None,
+    *,
+    production: bool = False,
+) -> Flask:
     configure_mupdf()
     app = Flask(__name__, template_folder="templates", static_folder="static")
-    app.secret_key = os.getenv("SCOPELEDGER_WEBAPP_SECRET", "scopeledger-dev")
+    app.secret_key = _load_secret_key(production=production)
     registry = ProjectRegistry(Path(workspace_dir)).load()
     provider = verification_provider or DisabledReviewAssistProvider()
     cloudhammer_runner = cloudhammer_runner or LiveCloudHammerPipeline()
     project_root = Path.cwd().resolve()
+    allowed_import_roots = _configured_allowed_import_roots()
+    max_chunked_upload_bytes = _configured_max_chunked_upload_bytes()
     app.config["STORE"] = None
     app.config["PROJECT_REGISTRY"] = registry
     app.config["REVIEW_ASSIST_PROVIDER"] = provider
     app.config["CLOUDHAMMER_RUNNER"] = cloudhammer_runner
+    app.config["SCOPELEDGER_PRODUCTION"] = production
+    app.config["SCOPELEDGER_ALLOWED_IMPORT_ROOTS"] = allowed_import_roots
+    app.config["SCOPELEDGER_MAX_CHUNKED_UPLOAD_BYTES"] = max_chunked_upload_bytes
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    if production:
+        app.config["SESSION_COOKIE_SECURE"] = True
+        app.config["MAX_CONTENT_LENGTH"] = MAX_CHUNKED_UPLOAD_CHUNK_BYTES + (1024 * 1024)
     project_asset_roots = [
         project_root / "CloudHammer" / "runs",
         project_root / "CloudHammer" / "data" / "rasterized_pages",
@@ -212,6 +270,38 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
 
     store = ActiveProjectWorkspace(load_project_store)
 
+    def csrf_token() -> str:
+        token = session.get("csrf_token")
+        if not token:
+            token = secrets.token_urlsafe(32)
+            session["csrf_token"] = token
+        return token
+
+    def csrf_field() -> str:
+        return f'<input type="hidden" name="csrf_token" value="{csrf_token()}">'
+
+    def request_csrf_token() -> str:
+        if request.is_json:
+            payload = request.get_json(silent=True) or {}
+            return str(payload.get("csrf_token", ""))
+        return request.form.get("csrf_token", "") or request.headers.get("X-CSRF-Token", "")
+
+    def csrf_error_response():
+        message = "Invalid or missing form token. Refresh the page and try again."
+        if request.path.startswith("/uploads/") or "application/json" in request.headers.get("Accept", ""):
+            return jsonify({"error": message}), 400
+        abort(400, description=message)
+
+    @app.before_request
+    def enforce_csrf_for_production_posts():
+        if not app.config["SCOPELEDGER_PRODUCTION"] or request.method != "POST":
+            return None
+        expected = session.get("csrf_token")
+        supplied = request_csrf_token()
+        if not expected or not supplied or not hmac.compare_digest(str(expected), str(supplied)):
+            return csrf_error_response()
+        return None
+
     @app.before_request
     def require_project_for_workspace_routes():
         endpoint = request.endpoint or ""
@@ -221,6 +311,15 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
             flash("Create or restore a project before running workspace actions.", "warning")
             return redirect(url_for("projects"))
         return None
+
+    @app.after_request
+    def add_release_security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "same-origin")
+        if app.config["SCOPELEDGER_PRODUCTION"]:
+            response.headers.setdefault("Cache-Control", "no-store")
+        return response
 
     def rescan_active_project(cloud_inference_client=None) -> tuple[WorkspaceStore, int]:
         project = active_project()
@@ -304,6 +403,20 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
             return 1
         raise FileNotFoundError(source_path)
 
+    def require_manual_source_allowed(source_path: Path) -> None:
+        if not app.config["SCOPELEDGER_PRODUCTION"]:
+            return
+        roots: tuple[Path, ...] = app.config["SCOPELEDGER_ALLOWED_IMPORT_ROOTS"]
+        if not roots:
+            raise PermissionError("Manual server-path imports are disabled until SCOPELEDGER_ALLOWED_IMPORT_ROOTS is configured.")
+        for root in roots:
+            try:
+                source_path.relative_to(root)
+                return
+            except ValueError:
+                continue
+        raise PermissionError("Manual server path is outside the configured production import allowlist.")
+
     def safe_path_part(value: str) -> str:
         cleaned = "".join("_" if char in '<>:"/\\|?*' or ord(char) < 32 else char for char in value.strip())
         return cleaned.strip(" .")
@@ -356,6 +469,12 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
             saved.append(target)
         return saved
 
+    def safe_upload_relative_path(filename: str, relative_path: str = "") -> Path:
+        parts = safe_upload_parts(relative_path or filename)
+        if not parts or Path(parts[-1]).suffix.lower() != ".pdf":
+            raise ValueError(f"Only PDF files can be uploaded: {filename or relative_path}")
+        return Path(*parts)
+
     def stage_uploaded_package(field_name: str, input_dir: Path, package_label: str) -> tuple[str, list[Path]]:
         destination_name = safe_package_dir_name(package_label) or infer_package_name_from_uploads(field_name)
         destination_dir = input_dir / destination_name
@@ -363,6 +482,7 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
 
     def stage_manual_package(source_text: str, input_dir: Path, package_label: str) -> tuple[str, Path]:
         source_path = Path(source_text).expanduser().resolve()
+        require_manual_source_allowed(source_path)
         if not source_path.exists():
             raise FileNotFoundError(source_path)
         if source_path.is_dir() and _is_revision_package_root(source_path):
@@ -395,6 +515,108 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
         direct_pdfs = list(source_path.glob("*.pdf"))
         return not direct_pdfs
 
+    def chunked_upload_root(project: ProjectRecord | None = None) -> Path:
+        selected = project or active_project()
+        return Path(selected.workspace_dir).resolve() / ".chunked_uploads"
+
+    def chunked_upload_dir(upload_id: str, project: ProjectRecord | None = None) -> Path:
+        if not UPLOAD_ID_RE.match(upload_id):
+            raise ValueError("Invalid upload id.")
+        return chunked_upload_root(project) / upload_id
+
+    def chunked_metadata_path(upload_id: str, project: ProjectRecord | None = None) -> Path:
+        return chunked_upload_dir(upload_id, project) / "metadata.json"
+
+    def remove_chunked_upload(upload_id: str, project: ProjectRecord | None = None) -> bool:
+        root = chunked_upload_root(project).resolve()
+        upload_dir = chunked_upload_dir(upload_id, project).resolve()
+        try:
+            upload_dir.relative_to(root)
+        except ValueError:
+            return False
+        if not upload_dir.exists():
+            return False
+        shutil.rmtree(upload_dir, ignore_errors=True)
+        return True
+
+    def cleanup_stale_chunked_uploads(project: ProjectRecord | None = None) -> int:
+        root = chunked_upload_root(project)
+        if not root.exists():
+            return 0
+        cutoff = time.time() - CHUNKED_UPLOAD_STALE_SECONDS
+        deleted = 0
+        for child in root.iterdir():
+            if not child.is_dir() or not UPLOAD_ID_RE.match(child.name):
+                continue
+            try:
+                if child.stat().st_mtime >= cutoff:
+                    continue
+            except OSError:
+                continue
+            if remove_chunked_upload(child.name, project):
+                deleted += 1
+        return deleted
+
+    def load_chunked_metadata(upload_id: str, project: ProjectRecord | None = None) -> dict:
+        metadata_path = chunked_metadata_path(upload_id, project)
+        if not metadata_path.exists():
+            raise FileNotFoundError("Upload session was not found.")
+        return json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    def infer_package_name_from_upload_records(files: list[dict]) -> str:
+        if not files:
+            return "Uploaded_Package"
+        parts = Path(files[0]["relative_path"]).parts
+        if len(parts) > 1:
+            return parts[0]
+        return Path(parts[0]).stem if parts else "Uploaded_Package"
+
+    def stage_chunked_uploaded_files(metadata: dict, assembled_paths: list[Path], current: WorkspaceStore) -> tuple[str, int]:
+        files = metadata["files"]
+        if metadata["purpose"] == "append_file":
+            revision_set_id = metadata.get("revision_set_id", "")
+            try:
+                revision_set = next(item for item in current.data.revision_sets if item.id == revision_set_id)
+            except StopIteration as exc:
+                raise ValueError("Target package was not found.") from exc
+            destination_dir = current.resolve_path(revision_set.source_dir)
+            destination_dir.mkdir(parents=True, exist_ok=True)
+            for file_record, assembled_path in zip(files, assembled_paths):
+                target = destination_dir / Path(file_record["relative_path"]).name
+                shutil.copy2(assembled_path, target)
+            return revision_set.label, len(assembled_paths)
+
+        package_label = metadata.get("package_label", "")
+        destination_name = safe_package_dir_name(package_label) or infer_package_name_from_upload_records(files)
+        destination_dir = Path(current.data.input_dir) / destination_name
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        for file_record, assembled_path in zip(files, assembled_paths):
+            relative_path = Path(file_record["relative_path"])
+            if len(relative_path.parts) > 1 and relative_path.parts[0].lower() == destination_dir.name.lower():
+                relative_path = Path(*relative_path.parts[1:]) if len(relative_path.parts) > 1 else Path(relative_path.name)
+            target = destination_dir / relative_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(assembled_path, target)
+        return destination_name, len(assembled_paths)
+
+    def assemble_chunked_upload(metadata: dict, upload_dir: Path) -> list[Path]:
+        assembled_paths: list[Path] = []
+        for file_record in metadata["files"]:
+            file_index = int(file_record["index"])
+            chunk_count = int(file_record["chunk_count"])
+            assembled_path = upload_dir / f"file_{file_index}.assembled"
+            with assembled_path.open("wb") as output:
+                for chunk_index in range(chunk_count):
+                    chunk_path = upload_dir / f"file_{file_index}_chunk_{chunk_index}.part"
+                    if not chunk_path.exists():
+                        raise FileNotFoundError(f"Missing upload chunk {chunk_index + 1} of {chunk_count} for {file_record['name']}.")
+                    with chunk_path.open("rb") as chunk_file:
+                        shutil.copyfileobj(chunk_file, output)
+            if assembled_path.stat().st_size != int(file_record["size"]):
+                raise ValueError(f"Uploaded file size mismatch for {file_record['name']}.")
+            assembled_paths.append(assembled_path)
+        return assembled_paths
+
     @app.context_processor
     def inject_globals() -> dict[str, object]:
         project = active_project_or_none()
@@ -424,6 +646,9 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
             "diagnostic_summary": diagnostic_summary,
             "needs_attention": change_item_needs_attention,
             "drive_review_folder_url": DRIVE_REVIEW_FOLDER_URL,
+            "is_production": app.config["SCOPELEDGER_PRODUCTION"],
+            "csrf_token": csrf_token,
+            "csrf_field": csrf_field,
         }
 
     @app.template_filter("status_label")
@@ -612,6 +837,9 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
         if not name:
             flash("Project name is required.", "warning")
             return redirect(url_for("projects"))
+        if app.config["SCOPELEDGER_PRODUCTION"] and workspace_dir:
+            flash("Custom workspace paths are disabled in production handoff mode.", "warning")
+            return redirect(url_for("projects"))
         try:
             project = registry.create_project(
                 name=name,
@@ -626,6 +854,8 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
 
     @app.get("/system/dialog/workspace-folder")
     def workspace_folder_dialog():
+        if app.config["SCOPELEDGER_PRODUCTION"]:
+            return jsonify({"error": "Server-side folder browsing is disabled in production handoff mode."}), 404
         try:
             import tkinter as tk
             from tkinter import filedialog
@@ -682,7 +912,8 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
 
     @app.route("/overview")
     def dashboard():
-        if active_project_or_none() is None:
+        project = active_project_or_none()
+        if project is None:
             return render_template(
                 "dashboard.html",
                 revision_rows=[],
@@ -692,6 +923,7 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
                 output_files=empty_output_files(),
                 populate_status={},
             )
+        cleanup_stale_chunked_uploads(project)
         rows = []
         for revision_set in store.data.revision_sets:
             set_sheets = [sheet for sheet in store.data.sheets if sheet.revision_set_id == revision_set.id]
@@ -790,8 +1022,16 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
 
         if source_text:
             source_path = Path(source_text).expanduser().resolve()
+            try:
+                require_manual_source_allowed(source_path)
+            except PermissionError as exc:
+                flash(f"File append failed: {exc}", "warning")
+                return redirect(url_for("dashboard"))
             if not source_path.exists() or not source_path.is_file():
                 flash(f"PDF path does not exist: {source_path}", "warning")
+                return redirect(url_for("dashboard"))
+            if source_path.suffix.lower() != ".pdf":
+                flash(f"Manual append file must be a PDF: {source_path}", "warning")
                 return redirect(url_for("dashboard"))
             try:
                 destination_dir.mkdir(parents=True, exist_ok=True)
@@ -807,6 +1047,134 @@ def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runn
 
         flash("Choose PDF files from your computer, or enter a manual server path.", "warning")
         return redirect(url_for("dashboard"))
+
+    @app.post("/uploads/chunked/init")
+    def init_chunked_upload():
+        project = active_project()
+        cleanup_stale_chunked_uploads(project)
+        current = load_project_store(project)
+        payload = request.get_json(silent=True) or {}
+        purpose = payload.get("purpose", "")
+        if purpose not in {"import_package", "append_file"}:
+            return jsonify({"error": "Unsupported upload purpose."}), 400
+        if purpose == "append_file":
+            revision_set_id = str(payload.get("revision_set_id", "")).strip()
+            if not any(item.id == revision_set_id for item in current.data.revision_sets):
+                return jsonify({"error": "Choose a target package."}), 400
+        else:
+            revision_set_id = ""
+
+        raw_files = payload.get("files") or []
+        if not raw_files:
+            return jsonify({"error": "Choose at least one PDF file."}), 400
+        if len(raw_files) > MAX_CHUNKED_UPLOAD_FILES:
+            return jsonify({"error": f"Upload is limited to {MAX_CHUNKED_UPLOAD_FILES} PDF files at a time."}), 413
+
+        files = []
+        total_size = 0
+        for index, file_record in enumerate(raw_files):
+            name = str(file_record.get("name", "")).strip()
+            relative_path = str(file_record.get("relative_path", "")).strip()
+            try:
+                safe_relative_path = safe_upload_relative_path(name, relative_path)
+                size = int(file_record.get("size", 0))
+            except (TypeError, ValueError) as exc:
+                return jsonify({"error": str(exc)}), 400
+            if size <= 0:
+                return jsonify({"error": f"Uploaded PDF is empty: {name or relative_path}"}), 400
+            if total_size + size > app.config["SCOPELEDGER_MAX_CHUNKED_UPLOAD_BYTES"]:
+                limit_mb = app.config["SCOPELEDGER_MAX_CHUNKED_UPLOAD_BYTES"] // (1024 * 1024)
+                return jsonify({"error": f"Selected PDFs exceed the configured {limit_mb} MiB upload limit."}), 413
+            chunk_count = (size + CHUNKED_UPLOAD_CHUNK_BYTES - 1) // CHUNKED_UPLOAD_CHUNK_BYTES
+            files.append(
+                {
+                    "index": index,
+                    "name": safe_relative_path.name,
+                    "relative_path": str(safe_relative_path),
+                    "size": size,
+                    "chunk_count": chunk_count,
+                }
+            )
+            total_size += size
+
+        upload_id = uuid.uuid4().hex
+        upload_dir = chunked_upload_dir(upload_id, project)
+        upload_dir.mkdir(parents=True, exist_ok=False)
+        metadata = {
+            "schema": "scopeledger.chunked_upload.v1",
+            "upload_id": upload_id,
+            "purpose": purpose,
+            "package_label": str(payload.get("package_label", "")).strip(),
+            "revision_set_id": revision_set_id,
+            "created_at": utc_timestamp(),
+            "files": files,
+            "total_size": total_size,
+        }
+        chunked_metadata_path(upload_id, project).write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+        return jsonify(
+            {
+                "upload_id": upload_id,
+                "chunk_size": CHUNKED_UPLOAD_CHUNK_BYTES,
+                "file_count": len(files),
+                "total_size": total_size,
+            }
+        )
+
+    @app.post("/uploads/chunked/chunk")
+    def receive_chunked_upload_chunk():
+        project = active_project()
+        upload_id = request.form.get("upload_id", "")
+        try:
+            metadata = load_chunked_metadata(upload_id, project)
+            upload_dir = chunked_upload_dir(upload_id, project)
+            file_index = int(request.form.get("file_index", "-1"))
+            chunk_index = int(request.form.get("chunk_index", "-1"))
+        except (FileNotFoundError, TypeError, ValueError) as exc:
+            return jsonify({"error": str(exc)}), 400
+        files = metadata["files"]
+        if file_index < 0 or file_index >= len(files):
+            return jsonify({"error": "Invalid file index."}), 400
+        chunk_count = int(files[file_index]["chunk_count"])
+        if chunk_index < 0 or chunk_index >= chunk_count:
+            return jsonify({"error": "Invalid chunk index."}), 400
+        chunk = request.files.get("chunk")
+        if chunk is None:
+            return jsonify({"error": "Missing upload chunk."}), 400
+        chunk_path = upload_dir / f"file_{file_index}_chunk_{chunk_index}.part"
+        chunk.save(chunk_path)
+        if chunk_path.stat().st_size > MAX_CHUNKED_UPLOAD_CHUNK_BYTES:
+            chunk_path.unlink(missing_ok=True)
+            return jsonify({"error": "Upload chunk is too large."}), 413
+        return jsonify({"ok": True})
+
+    @app.post("/uploads/chunked/abort")
+    def abort_chunked_upload():
+        project = active_project()
+        payload = request.get_json(silent=True) or request.form
+        upload_id = str(payload.get("upload_id", "")).strip()
+        try:
+            deleted = remove_chunked_upload(upload_id, project)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"ok": True, "deleted": deleted})
+
+    @app.post("/uploads/chunked/complete")
+    def complete_chunked_upload():
+        project = active_project()
+        current = load_project_store(project)
+        payload = request.get_json(silent=True) or {}
+        upload_id = str(payload.get("upload_id", "")).strip()
+        try:
+            metadata = load_chunked_metadata(upload_id, project)
+            upload_dir = chunked_upload_dir(upload_id, project)
+            assembled_paths = assemble_chunked_upload(metadata, upload_dir)
+            destination_name, file_count = stage_chunked_uploaded_files(metadata, assembled_paths, current)
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 400
+        remove_chunked_upload(upload_id, project)
+        action = "appended to" if metadata["purpose"] == "append_file" else "staged as"
+        flash(f"Chunked upload complete: {file_count} PDF file(s) {action} {destination_name}. Populate the workspace to generate review data.", "success")
+        return jsonify({"ok": True, "redirect_url": url_for("dashboard")})
 
     @app.post("/workspace/populate")
     def populate_workspace():

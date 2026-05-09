@@ -64,6 +64,7 @@
           <span class="panel-title">Project Files and Packages</span>
           {% if active_project %}
             <form class="js-generate-form" method="post" action="{{ url_for('populate_workspace') }}">
+              {{ csrf_field()|safe }}
               <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating...">Populate Workspace</button>
             </form>
           {% else %}
@@ -108,11 +109,22 @@
           {% endif %}
 
           {% if active_project %}
-            <form class="package-card js-generate-form" method="post" action="{{ url_for('import_package') }}" enctype="multipart/form-data">
+            <form
+              class="package-card js-chunked-upload-form"
+              method="post"
+              action="{{ url_for('import_package') }}"
+              enctype="multipart/form-data"
+              data-upload-purpose="import_package"
+              data-init-url="{{ url_for('init_chunked_upload') }}"
+              data-chunk-url="{{ url_for('receive_chunked_upload_chunk') }}"
+              data-abort-url="{{ url_for('abort_chunked_upload') }}"
+              data-complete-url="{{ url_for('complete_chunked_upload') }}"
+            >
+              {{ csrf_field()|safe }}
               <div class="package-card-head">
                 <div>
                   <span class="panel-title">Import new package</span>
-                  <p class="form-help">Choose PDFs or a folder from the computer using this browser. Manual path is for server-local imports. After staging files, populate the workspace.</p>
+                  <p class="form-help">Choose PDFs or a folder from this browser. Large files upload in chunks for remote review. Manual path is for server-local imports. After staging files, populate the workspace.</p>
                 </div>
                 <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading...">Import package</button>
               </div>
@@ -134,6 +146,15 @@
                   <input class="form-input" name="source_path" placeholder="Optional folder or PDF path on server">
                 </label>
               </div>
+              <div class="chunked-upload-status" data-upload-status hidden>
+                <div class="chunked-upload-status-line">
+                  <span data-upload-status-text>Preparing upload...</span>
+                  <span data-upload-status-count></span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" data-upload-progress style="width: 0%;"></div>
+                </div>
+              </div>
             </form>
           {% else %}
             <section class="callout callout-info">
@@ -142,11 +163,22 @@
           {% endif %}
 
           {% if revision_rows %}
-            <form class="package-card js-generate-form" method="post" action="{{ url_for('append_package_file') }}" enctype="multipart/form-data">
+            <form
+              class="package-card js-chunked-upload-form"
+              method="post"
+              action="{{ url_for('append_package_file') }}"
+              enctype="multipart/form-data"
+              data-upload-purpose="append_file"
+              data-init-url="{{ url_for('init_chunked_upload') }}"
+              data-chunk-url="{{ url_for('receive_chunked_upload_chunk') }}"
+              data-abort-url="{{ url_for('abort_chunked_upload') }}"
+              data-complete-url="{{ url_for('complete_chunked_upload') }}"
+            >
+              {{ csrf_field()|safe }}
               <div class="package-card-head">
               <div>
                 <span class="panel-title">Modify package</span>
-                <p class="form-help">Append PDF files to an existing revision package. After staging files, populate the workspace to refresh generated review data.</p>
+                <p class="form-help">Append PDF files to an existing revision package. Large browser files upload in chunks. After staging files, populate the workspace to refresh generated review data.</p>
               </div>
                 <button class="btn btn-secondary js-generate-button" type="submit" data-loading-text="Uploading...">Append PDF</button>
               </div>
@@ -169,6 +201,15 @@
                   <span class="form-label">Manual server path</span>
                   <input class="form-input" name="source_path" placeholder="Optional PDF path on server">
                 </label>
+              </div>
+              <div class="chunked-upload-status" data-upload-status hidden>
+                <div class="chunked-upload-status-line">
+                  <span data-upload-status-text>Preparing upload...</span>
+                  <span data-upload-status-count></span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" data-upload-progress style="width: 0%;"></div>
+                </div>
               </div>
             </form>
           {% endif %}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -176,7 +176,7 @@ def _ocr_rect(page: fitz.Page, rect: fitz.Rect) -> str:
         pix = page.get_pixmap(matrix=fitz.Matrix(3, 3), clip=rect, alpha=False)
         pix.save(image_path)
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603
                 [tesseract, str(image_path), "stdout", "--psm", "6"],
                 capture_output=True,
                 text=True,

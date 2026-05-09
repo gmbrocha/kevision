@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import io
 import json
+import os
+import re
+import time
 from collections import Counter
 from pathlib import Path
 
 import fitz
 import pytest
 
+import backend.cli as cli_module
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult
@@ -47,6 +52,14 @@ def register_workspace_project(workspace_dir: Path, *, name: str = "Test Project
         )
     ]
     registry.save()
+
+
+def csrf_token_from(response) -> str:
+    match = re.search(rb'name="csrf_token" value="([^"]+)"', response.data)
+    if not match:
+        match = re.search(rb'<meta name="csrf-token" content="([^"]+)"', response.data)
+    assert match
+    return match.group(1).decode("utf-8")
 
 
 def test_regression_fixture_metrics(workspace_copy):
@@ -249,6 +262,21 @@ def test_scan_reprocesses_cache_when_cloudhammer_manifest_changes(tmp_path: Path
     assert scanner.cache_hits == 0
     assert len(refreshed.data.clouds) == 1
     assert refreshed.data.change_items[0].provenance["extraction_method"] == "cloudhammer_manifest"
+
+
+def test_scan_records_invalid_pdf_as_diagnostic_without_crashing(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    bad_pdf = input_dir / "Revision #1 - Bad Package" / "not-really.pdf"
+    bad_pdf.parent.mkdir(parents=True)
+    bad_pdf.write_bytes(b"not a valid pdf")
+
+    store = RevisionScanner(input_dir, workspace_dir).scan()
+
+    assert len(store.data.documents) == 1
+    assert store.data.documents[0].page_count == 0
+    assert store.data.documents[0].max_severity == "high"
+    assert any(issue.code == "pdf_open_failed" for issue in store.data.preflight_issues)
 
 
 def test_sheet_id_parser_prefers_repeated_plumbing_sheet_over_late_arch_reference():
@@ -1134,6 +1162,102 @@ def test_empty_project_registry_starts_without_demo(tmp_path: Path):
     assert populate.headers["Location"].endswith("/projects")
 
 
+def test_production_app_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
+
+    with pytest.raises(RuntimeError, match="SCOPELEDGER_WEBAPP_SECRET"):
+        create_app(tmp_path / "seed-workspace", production=True)
+
+
+def test_cli_production_serve_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys):
+    monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
+
+    result = cli_main(["serve", str(tmp_path / "seed-workspace"), "--production"])
+
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "SCOPELEDGER_WEBAPP_SECRET" in captured.out
+
+
+def test_cli_production_serve_uses_waitress(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    calls = {}
+
+    def fake_serve(app, *, host: str, port: int) -> None:
+        calls["host"] = host
+        calls["port"] = port
+        calls["secret"] = app.secret_key
+        calls["production"] = app.config["SCOPELEDGER_PRODUCTION"]
+
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    monkeypatch.setattr(cli_module, "serve_production_app", fake_serve)
+
+    result = cli_main(["serve", str(tmp_path / "seed-workspace"), "--host", "127.0.0.1", "--port", "5055", "--production"])
+
+    assert result == 0
+    assert calls == {
+        "host": "127.0.0.1",
+        "port": 5055,
+        "secret": "test-production-secret",
+        "production": True,
+    }
+
+
+def test_cli_production_serve_rejects_public_host(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+
+    result = cli_main(["serve", str(tmp_path / "seed-workspace"), "--host", "0.0.0.0", "--production"])
+
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "loopback host" in captured.out
+
+
+def test_production_app_sets_release_cookie_and_security_headers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+    response = client.get("/projects")
+
+    assert app.config["SESSION_COOKIE_SECURE"] is True
+    assert app.config["SESSION_COOKIE_HTTPONLY"] is True
+    assert app.config["SESSION_COOKIE_SAMESITE"] == "Lax"
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "same-origin"
+    assert response.headers["Cache-Control"] == "no-store"
+
+
+def test_production_post_requires_csrf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+    response = client.post("/projects", data={"name": "Blocked Project"})
+
+    assert response.status_code == 400
+    assert ProjectRegistry(tmp_path / "seed-workspace").load().projects == []
+
+
+def test_production_project_creation_disables_custom_workspace(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+    projects = client.get("/projects")
+    token = csrf_token_from(projects)
+    assert b"Browse folder" not in projects.data
+
+    response = client.post(
+        "/projects",
+        data={"name": "Unsafe Path", "workspace_dir": str(tmp_path / "elsewhere"), "csrf_token": token},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Custom workspace paths are disabled" in response.data
+    assert ProjectRegistry(tmp_path / "seed-workspace").load().projects == []
+
+
 def test_cli_reset_projects_clears_registry_without_deleting_workspace(tmp_path: Path):
     input_dir = tmp_path / "input"
     workspace_dir = tmp_path / "workspace"
@@ -1199,6 +1323,279 @@ def test_import_revision_sets_root_preserves_child_packages(tmp_path: Path):
     assert (input_dir / "Revision #1 - Alpha" / "alpha.pdf").exists()
     assert (input_dir / "Revision #2 - Beta" / "beta.pdf").exists()
     assert not (input_dir / "revision_sets" / "Revision #1 - Alpha" / "alpha.pdf").exists()
+
+
+def test_production_manual_import_allows_configured_root(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    source_root = tmp_path / "revision_sets"
+    write_minimal_drawing_pdf(source_root / "Revision #1 - Alpha" / "alpha.pdf")
+    write_minimal_drawing_pdf(source_root / "Revision #2 - Beta" / "beta.pdf")
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    monkeypatch.setenv("SCOPELEDGER_ALLOWED_IMPORT_ROOTS", str(source_root))
+
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+    token = csrf_token_from(client.get("/projects"))
+    created = client.post("/projects", data={"name": "Fresh Project", "csrf_token": token})
+    assert created.status_code == 302
+
+    imported = client.post("/packages/import", data={"source_path": str(source_root), "package_label": "", "csrf_token": token})
+
+    assert imported.status_code == 302
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    assert (input_dir / "Revision #1 - Alpha" / "alpha.pdf").exists()
+    assert (input_dir / "Revision #2 - Beta" / "beta.pdf").exists()
+
+
+def test_production_manual_import_rejects_outside_allowed_root(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    allowed_root = tmp_path / "allowed_revision_sets"
+    source_root = tmp_path / "outside_revision_sets"
+    allowed_root.mkdir()
+    write_minimal_drawing_pdf(source_root / "Revision #1 - Outside" / "outside.pdf")
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    monkeypatch.setenv("SCOPELEDGER_ALLOWED_IMPORT_ROOTS", str(allowed_root))
+
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+    token = csrf_token_from(client.get("/projects"))
+    created = client.post("/projects", data={"name": "Fresh Project", "csrf_token": token})
+    assert created.status_code == 302
+
+    imported = client.post(
+        "/packages/import",
+        data={"source_path": str(source_root), "package_label": "", "csrf_token": token},
+        follow_redirects=True,
+    )
+
+    assert imported.status_code == 200
+    assert b"outside the configured production import allowlist" in imported.data
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    assert not (input_dir / "Revision #1 - Outside" / "outside.pdf").exists()
+
+
+def test_chunked_browser_import_reconstructs_pdf_package(tmp_path: Path):
+    payload = b"%PDF-1.7\n" + (b"0" * (8 * 1024 * 1024)) + b"\n%%EOF"
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    init = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "package_label": "Chunked Package",
+            "files": [{"name": "large_package.pdf", "relative_path": "large_package.pdf", "size": len(payload)}],
+        },
+    )
+    assert init.status_code == 200
+    upload_id = init.get_json()["upload_id"]
+
+    first_chunk = payload[: 8 * 1024 * 1024]
+    second_chunk = payload[8 * 1024 * 1024 :]
+    for index, chunk in enumerate([first_chunk, second_chunk]):
+        response = client.post(
+            "/uploads/chunked/chunk",
+            data={
+                "upload_id": upload_id,
+                "file_index": "0",
+                "chunk_index": str(index),
+                "chunk": (io.BytesIO(chunk), f"chunk-{index}.part"),
+            },
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+
+    complete = client.post("/uploads/chunked/complete", json={"upload_id": upload_id})
+
+    assert complete.status_code == 200
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    assert (input_dir / "Chunked Package" / "large_package.pdf").read_bytes() == payload
+    assert not (tmp_path / "projects" / "fresh-project" / ".chunked_uploads" / upload_id).exists()
+
+
+def test_chunked_upload_rejects_non_pdf(tmp_path: Path):
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    response = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "files": [{"name": "notes.txt", "relative_path": "notes.txt", "size": 10}],
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Only PDF files" in response.get_json()["error"]
+
+
+def test_production_chunked_upload_requires_csrf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+    token = csrf_token_from(client.get("/projects"))
+    created = client.post("/projects", data={"name": "Fresh Project", "csrf_token": token})
+    assert created.status_code == 302
+
+    response = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "files": [{"name": "drawing.pdf", "relative_path": "drawing.pdf", "size": 12}],
+        },
+    )
+
+    assert response.status_code == 400
+    assert "form token" in response.get_json()["error"]
+
+
+def test_chunked_upload_respects_configured_size_limit(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_MAX_UPLOAD_BYTES", str(20 * 1024 * 1024))
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    response = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "files": [{"name": "huge.pdf", "relative_path": "huge.pdf", "size": 21 * 1024 * 1024}],
+        },
+    )
+
+    assert response.status_code == 413
+    assert "upload limit" in response.get_json()["error"]
+
+
+def test_production_workspace_folder_dialog_is_disabled(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    app = create_app(tmp_path / "seed-workspace", production=True)
+    client = app.test_client()
+
+    response = client.get("/system/dialog/workspace-folder")
+
+    assert response.status_code == 404
+    assert "disabled" in response.get_json()["error"]
+
+
+def test_chunked_upload_abort_removes_temp_session(tmp_path: Path):
+    payload = b"%PDF-1.7\n%%EOF"
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    init = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "files": [{"name": "cancel_me.pdf", "relative_path": "cancel_me.pdf", "size": len(payload)}],
+        },
+    )
+    assert init.status_code == 200
+    upload_id = init.get_json()["upload_id"]
+    chunk = client.post(
+        "/uploads/chunked/chunk",
+        data={
+            "upload_id": upload_id,
+            "file_index": "0",
+            "chunk_index": "0",
+            "chunk": (io.BytesIO(payload), "cancel.part"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert chunk.status_code == 200
+    upload_dir = tmp_path / "projects" / "fresh-project" / ".chunked_uploads" / upload_id
+    assert upload_dir.exists()
+
+    abort = client.post("/uploads/chunked/abort", json={"upload_id": upload_id})
+
+    assert abort.status_code == 200
+    assert abort.get_json()["deleted"] is True
+    assert not upload_dir.exists()
+
+
+def test_chunked_upload_init_cleans_stale_temp_sessions(tmp_path: Path):
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+    upload_root = tmp_path / "projects" / "fresh-project" / ".chunked_uploads"
+    stale_dir = upload_root / ("a" * 32)
+    current_dir = upload_root / ("b" * 32)
+    stale_dir.mkdir(parents=True)
+    current_dir.mkdir(parents=True)
+    (stale_dir / "metadata.json").write_text("{}", encoding="utf-8")
+    (current_dir / "metadata.json").write_text("{}", encoding="utf-8")
+    old_time = time.time() - (7 * 60 * 60)
+    os.utime(stale_dir, (old_time, old_time))
+
+    init = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "files": [{"name": "fresh.pdf", "relative_path": "fresh.pdf", "size": 12}],
+        },
+    )
+
+    assert init.status_code == 200
+    assert not stale_dir.exists()
+    assert current_dir.exists()
+
+
+def test_chunked_browser_append_reconstructs_pdf(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    revision_source_dir = input_dir / "Revision #1 - Base"
+    write_minimal_drawing_pdf(revision_source_dir / "base.pdf", scope_text="BASE PACKAGE")
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    revision_set = RevisionSet(
+        id="rev-1",
+        label="Revision #1 - Base",
+        source_dir=str(revision_source_dir),
+        set_number=1,
+        set_date="05/09/2026",
+    )
+    store.data.revision_sets = [revision_set]
+    store.save()
+    register_workspace_project(workspace_dir)
+
+    app = create_app(workspace_dir)
+    client = app.test_client()
+    appended_source = tmp_path / "appendix.pdf"
+    write_minimal_drawing_pdf(appended_source, scope_text="APPENDED VALID PDF")
+    payload = appended_source.read_bytes()
+
+    init = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "append_file",
+            "revision_set_id": revision_set.id,
+            "files": [{"name": "appendix.pdf", "relative_path": "appendix.pdf", "size": len(payload)}],
+        },
+    )
+    assert init.status_code == 200
+    upload_id = init.get_json()["upload_id"]
+    chunk = client.post(
+        "/uploads/chunked/chunk",
+        data={
+            "upload_id": upload_id,
+            "file_index": "0",
+            "chunk_index": "0",
+            "chunk": (io.BytesIO(payload), "appendix.part"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert chunk.status_code == 200
+
+    complete = client.post("/uploads/chunked/complete", json={"upload_id": upload_id})
+
+    assert complete.status_code == 200
+    destination = WorkspaceStore(workspace_dir).load().resolve_path(revision_set.source_dir) / "appendix.pdf"
+    assert destination.read_bytes() == payload
 
 
 def test_manual_import_rejects_folder_without_pdfs(tmp_path: Path):
