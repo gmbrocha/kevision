@@ -9,6 +9,23 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Active detection workspace: `CloudHammer_v2/`
 - Legacy detection workspace: `CloudHammer/` reference only
 
+## Application Project Registry Status
+
+- The web app no longer seeds a `Demo Project` automatically when the project
+  registry is missing or empty.
+- Empty app registry state is valid: `/projects` and the main read-only
+  workspace pages should render with no active project and prompt explicit
+  project creation. Mutating workspace actions still require an active project.
+- App project reset is registry-only. It must not delete old generated run
+  folders, `revision_sets/`, CloudHammer artifacts, model runs, or outputs.
+- Fresh projects can import the repo-level `revision_sets/` folder; each
+  `Revision #...` child folder is copied as its own package into the selected
+  project input folder before Populate Workspace runs.
+- Client/product handoff work is application-layer only. CloudHammer_v2
+  training/eval work should resume afterward at the existing crop-precheck
+  blocker:
+  `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
+
 ## Documentation Structure Status
 
 Root-level docs now describe the overall ScopeLedger application. CloudHammer_v2

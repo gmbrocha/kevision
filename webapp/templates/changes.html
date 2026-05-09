@@ -48,11 +48,13 @@
         <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0') }}">
         <div class="panel-header">
           <span class="panel-title">Change list</span>
-          <div class="page-actions">
-            <button type="button" class="btn btn-ghost btn-sm js-toggle-checkboxes" data-target=".js-queue-checkbox">Toggle selection</button>
-            <button type="submit" class="btn btn-secondary btn-sm" name="status" value="approved">Accept selected</button>
-            <button type="submit" class="btn btn-danger btn-sm" name="status" value="rejected">Reject selected</button>
-          </div>
+          {% if active_project %}
+            <div class="page-actions">
+              <button type="button" class="btn btn-ghost btn-sm js-toggle-checkboxes" data-target=".js-queue-checkbox">Toggle selection</button>
+              <button type="submit" class="btn btn-secondary btn-sm" name="status" value="approved">Accept selected</button>
+              <button type="submit" class="btn btn-danger btn-sm" name="status" value="rejected">Reject selected</button>
+            </div>
+          {% endif %}
         </div>
 
         <div class="data-table-wrap">

@@ -6,6 +6,7 @@ from pathlib import Path
 from .cloudhammer_client.inference import ManifestCloudInferenceClient
 from .deliverables.excel_exporter import ExportBlockedError, Exporter
 from .deliverables.review_packet import build_review_packet
+from .projects import ProjectRegistry
 from .revision_state.tracker import RevisionScanner
 from .workspace import WorkspaceStore
 from webapp.app import create_app
@@ -64,6 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
     packet_parser = subparsers.add_parser("review-packet", help="Build a browser review packet with crop and source-page context images.")
     packet_parser.add_argument("workspace_dir", type=Path)
     packet_parser.add_argument("--output", type=Path, default=None, help="Optional HTML output path.")
+
+    reset_parser = subparsers.add_parser("reset-projects", help="Clear the app project registry without deleting workspaces or source packages.")
+    reset_parser.add_argument("workspace_dir", type=Path, help="Any workspace path under the app registry root.")
     return parser
 
 
@@ -120,6 +124,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  Items: {result.item_count}")
         print(f"  Assets: {result.asset_count}")
         print(f"  HTML: {result.html_path}")
+        return 0
+
+    if args.command == "reset-projects":
+        registry = ProjectRegistry(args.workspace_dir).load()
+        count = registry.clear()
+        print(f"Cleared {count} app project registration(s).")
+        print(f"  Registry: {registry.data_path}")
+        print("  Workspace folders and revision_sets were not deleted.")
         return 0
 
     parser.error(f"Unsupported command: {args.command}")

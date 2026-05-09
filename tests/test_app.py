@@ -7,10 +7,11 @@ from pathlib import Path
 import fitz
 import pytest
 
-from backend.cli import approve_cloudhammer_detections
+from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
+from backend.projects import ProjectRecord, ProjectRegistry
 from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
 from backend.review import change_item_needs_attention
 from backend.revision_state.tracker import RevisionScanner
@@ -18,6 +19,22 @@ from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_
 from backend.utils import choose_best_sheet_id, parse_detail_ref
 from backend.workspace import WorkspaceStore
 from webapp.app import create_app, discipline_for_sheet
+
+
+def register_workspace_project(workspace_dir: Path, *, name: str = "Test Project") -> None:
+    store = WorkspaceStore(workspace_dir).load()
+    registry = ProjectRegistry(workspace_dir).load()
+    registry.projects = [
+        ProjectRecord(
+            id="test-project",
+            name=name,
+            workspace_dir=str(workspace_dir.resolve()),
+            input_dir=store.data.input_dir,
+            status="active",
+            created_at=store.data.created_at,
+        )
+    ]
+    registry.save()
 
 
 def test_regression_fixture_metrics(workspace_copy):
@@ -1036,6 +1053,53 @@ def test_cli_export_summary_is_human_readable():
     assert "python -m backend serve" in text
 
 
+def test_empty_project_registry_starts_without_demo(tmp_path: Path):
+    app = create_app(tmp_path / "empty-seed-workspace")
+    client = app.test_client()
+
+    projects = client.get("/projects")
+    assert projects.status_code == 200
+    assert b"Demo Project" not in projects.data
+    assert b"No active projects." in projects.data
+    assert b"No project selected" in projects.data
+
+    overview = client.get("/overview")
+    assert overview.status_code == 200
+    assert b"No project selected" in overview.data
+    assert b"No revision packages have been loaded." in overview.data
+    assert b"Choose PDF(s)" not in overview.data
+
+    for path, expected in [
+        ("/sheets", b"No drawings match the current filters."),
+        ("/changes", b"No changes match the current filters."),
+        ("/conformed", b"No sheets match the current filter."),
+        ("/export", b"No project workspace is selected."),
+        ("/diagnostics", b"No PDFs have been scanned."),
+        ("/settings", b"No historical review-assist records were found"),
+    ]:
+        response = client.get(path)
+        assert response.status_code == 200
+        assert expected in response.data
+
+    populate = client.post("/workspace/populate")
+    assert populate.status_code == 302
+    assert populate.headers["Location"].endswith("/projects")
+
+
+def test_cli_reset_projects_clears_registry_without_deleting_workspace(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    WorkspaceStore(workspace_dir).create(input_dir)
+    register_workspace_project(workspace_dir)
+
+    result = cli_main(["reset-projects", str(workspace_dir)])
+
+    assert result == 0
+    assert (workspace_dir / "workspace.json").exists()
+    assert ProjectRegistry(workspace_dir).load().projects == []
+
+
 def test_web_routes_render_without_ai(workspace_copy):
     app = create_app(workspace_copy)
     client = app.test_client()
@@ -1061,6 +1125,32 @@ def test_web_routes_render_without_ai(workspace_copy):
     settings = client.get("/settings")
     assert settings.status_code == 200
     assert b"archived" in settings.data
+
+
+def test_import_revision_sets_root_preserves_child_packages(tmp_path: Path):
+    def write_pdf(path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        document = fitz.open()
+        document.new_page(width=300, height=200)
+        document.save(path)
+        document.close()
+
+    source_root = tmp_path / "revision_sets"
+    write_pdf(source_root / "Revision #1 - Alpha" / "alpha.pdf")
+    write_pdf(source_root / "Revision #2 - Beta" / "beta.pdf")
+
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    imported = client.post("/packages/import", data={"source_path": str(source_root), "package_label": ""})
+    assert imported.status_code == 302
+
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    assert (input_dir / "Revision #1 - Alpha" / "alpha.pdf").exists()
+    assert (input_dir / "Revision #2 - Beta" / "beta.pdf").exists()
+    assert not (input_dir / "revision_sets" / "Revision #1 - Alpha" / "alpha.pdf").exists()
 
 
 def test_change_detail_uses_previous_current_comparison_asset(tmp_path: Path):
@@ -1133,6 +1223,7 @@ def test_change_detail_uses_previous_current_comparison_asset(tmp_path: Path):
         )
     ]
     store.save()
+    register_workspace_project(workspace_dir)
 
     app = create_app(workspace_dir)
     client = app.test_client()

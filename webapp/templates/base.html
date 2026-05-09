@@ -17,7 +17,7 @@
 
         <section class="nav-project">
           <div class="nav-project-label">Active Project</div>
-          <div class="nav-project-name">{{ active_project.name }}</div>
+          <div class="nav-project-name">{{ active_project.name if active_project else "No project selected" }}</div>
           <div class="nav-project-pkg">
             <span class="nav-pkg-dot"></span>
             <span class="nav-pkg-label">{{ current_package_label }}</span>

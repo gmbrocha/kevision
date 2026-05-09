@@ -29,10 +29,10 @@
             </thead>
             <tbody>
               {% for row in project_rows if row.project.status == "active" %}
-                <tr class="{% if row.project.id == active_project.id %}row-next-up{% endif %}">
+                <tr class="{% if active_project and row.project.id == active_project.id %}row-next-up{% endif %}">
                   <td>
                     <span class="cell-mono">{{ row.project.name }}</span>
-                    {% if row.project.id == active_project.id %}
+                    {% if active_project and row.project.id == active_project.id %}
                       <span class="badge badge-active">Selected</span>
                     {% endif %}
                   </td>

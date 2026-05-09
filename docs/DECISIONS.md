@@ -75,3 +75,24 @@ Consequences:
   decision target.
 - This rule complements the durable decision-record rule; both are required for
   review gates.
+
+## 2026-05-09 - No Seeded App UI Project
+
+Decision: ScopeLedger app project state starts empty unless a user explicitly
+creates or restores a project. The registry reset workflow clears project
+registrations only; it does not delete generated run folders, source revision
+sets, CloudHammer artifacts, model runs, or outputs.
+
+Reason: the client-facing product should not depend on a pre-seeded demo
+project. A fresh project should be creatable from the UI, then populated from
+durable source packages such as `revision_sets/`.
+
+Consequences:
+
+- Missing or empty `projects.json` means no active app projects.
+- Main read-only workspace pages render empty project state without crashing.
+- Mutating workspace actions redirect to `/projects` until a project exists.
+- Importing the repo-level `revision_sets/` folder preserves each
+  `Revision #...` child as a separate package in the new workspace.
+- CloudHammer_v2 diagnostic/training artifacts remain internal and are not
+  treated as client product data.

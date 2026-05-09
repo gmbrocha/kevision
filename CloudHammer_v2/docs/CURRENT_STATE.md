@@ -281,6 +281,12 @@ No experiment code was imported.
 
 ## Immediate Next Steps
 
+Application handoff/reset note: current app work is registry/UI cleanup only.
+It does not change CloudHammer_v2 labels, eval manifests, predictions,
+datasets, model files, training data, source candidate manifests, or
+threshold-tuning inputs. Resume CloudHammer work at the crop-precheck blocker
+below.
+
 1. Resolve the `4` non-accepted GPT-5.5 crop-precheck rows from
    `postprocessed_crop_inspection.gpt55_prefill.csv`; GPT found `2`
    `needs_human_review` rows and `2` `reject_no_visible_cloud` rows.

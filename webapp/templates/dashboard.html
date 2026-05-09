@@ -3,7 +3,7 @@
 {% block content %}
   <header class="overview-hero">
     <div class="overview-hero-left">
-      <h1 class="overview-project-title">{{ active_project.name }}</h1>
+      <h1 class="overview-project-title">{{ active_project.name if active_project else "No project selected" }}</h1>
       <p class="overview-project-subtitle">Turn drawing revisions into accountable scope records.</p>
       <div class="overview-pkg-chip">
         <span class="nav-pkg-dot"></span>
@@ -11,7 +11,9 @@
         <span class="pkg-name">{{ current_package_label }}</span>
       </div>
     </div>
-    {% if first_pending %}
+    {% if not active_project %}
+      <a class="btn btn-primary btn-xl" href="{{ url_for('projects') }}">Create project</a>
+    {% elif first_pending %}
       <a class="btn btn-primary btn-xl" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending') }}">Review next - {{ pending_count }} pending</a>
     {% else %}
       <a class="btn btn-primary btn-xl" href="{{ url_for('export_view') }}">Export workbook</a>
@@ -60,9 +62,13 @@
       <section class="panel">
         <div class="panel-header">
           <span class="panel-title">Project Files and Packages</span>
-          <form class="js-generate-form" method="post" action="{{ url_for('populate_workspace') }}">
-            <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating...">Populate Workspace</button>
-          </form>
+          {% if active_project %}
+            <form class="js-generate-form" method="post" action="{{ url_for('populate_workspace') }}">
+              <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating...">Populate Workspace</button>
+            </form>
+          {% else %}
+            <a class="btn btn-primary btn-sm" href="{{ url_for('projects') }}">Create project</a>
+          {% endif %}
         </div>
         <div class="panel-body package-panel-body">
           {% if populate_status %}
@@ -97,33 +103,39 @@
             </div>
           {% endif %}
 
-          <form class="package-card js-generate-form" method="post" action="{{ url_for('import_package') }}" enctype="multipart/form-data">
-            <div class="package-card-head">
-              <div>
-                <span class="panel-title">Import new package</span>
-                <p class="form-help">Choose PDFs or a folder from the computer using this browser. Manual path is for server-local imports. After staging files, populate the workspace.</p>
+          {% if active_project %}
+            <form class="package-card js-generate-form" method="post" action="{{ url_for('import_package') }}" enctype="multipart/form-data">
+              <div class="package-card-head">
+                <div>
+                  <span class="panel-title">Import new package</span>
+                  <p class="form-help">Choose PDFs or a folder from the computer using this browser. Manual path is for server-local imports. After staging files, populate the workspace.</p>
+                </div>
+                <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading...">Import package</button>
               </div>
-              <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading...">Import package</button>
-            </div>
-            <div class="package-form-grid">
-              <label>
-                <span class="form-label">Optional package name</span>
-                <input class="form-input" name="package_label" placeholder="Package name">
-              </label>
-              <div class="file-picker">
-                <span class="form-label">File dialog</span>
-                <input id="package-files-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple data-summary-target="#package-file-summary">
-                <label class="btn btn-secondary" for="package-files-input">Choose PDF(s)</label>
-                <input id="package-folder-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple webkitdirectory data-summary-target="#package-file-summary">
-                <label class="btn btn-ghost" for="package-folder-input">Choose folder</label>
-                <span class="file-picker-summary" id="package-file-summary">No files selected</span>
+              <div class="package-form-grid">
+                <label>
+                  <span class="form-label">Optional package name</span>
+                  <input class="form-input" name="package_label" placeholder="Package name">
+                </label>
+                <div class="file-picker">
+                  <span class="form-label">File dialog</span>
+                  <input id="package-files-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple data-summary-target="#package-file-summary">
+                  <label class="btn btn-secondary" for="package-files-input">Choose PDF(s)</label>
+                  <input id="package-folder-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple webkitdirectory data-summary-target="#package-file-summary">
+                  <label class="btn btn-ghost" for="package-folder-input">Choose folder</label>
+                  <span class="file-picker-summary" id="package-file-summary">No files selected</span>
+                </div>
+                <label>
+                  <span class="form-label">Manual server path</span>
+                  <input class="form-input" name="source_path" placeholder="Optional folder or PDF path on server">
+                </label>
               </div>
-              <label>
-                <span class="form-label">Manual server path</span>
-                <input class="form-input" name="source_path" placeholder="Optional folder or PDF path on server">
-              </label>
-            </div>
-          </form>
+            </form>
+          {% else %}
+            <section class="callout callout-info">
+              <span>No project workspace is selected. Create a project to stage packages and populate review data.</span>
+            </section>
+          {% endif %}
 
           {% if revision_rows %}
             <form class="package-card js-generate-form" method="post" action="{{ url_for('append_package_file') }}" enctype="multipart/form-data">
@@ -195,6 +207,8 @@
                   </td>
                   <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all') }}">Review queue</a></td>
                 </tr>
+              {% else %}
+                <tr><td colspan="7" class="data-table-empty">No revision packages have been loaded.</td></tr>
               {% endfor %}
             </tbody>
           </table>

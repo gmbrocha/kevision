@@ -55,21 +55,8 @@ class ProjectRegistry:
 
             payload = json.loads(self.data_path.read_text(encoding="utf-8"))
             self.projects = [ProjectRecord.from_dict(item) for item in payload.get("projects", [])]
-            if self.projects:
-                return self
-
-        seed_store = WorkspaceStore(self.seed_workspace_dir).load()
-        self.projects = [
-            ProjectRecord(
-                id="demo-project",
-                name="Demo Project",
-                workspace_dir=str(self.seed_workspace_dir),
-                input_dir=seed_store.data.input_dir,
-                status="active",
-                created_at=seed_store.data.created_at or utc_now(),
-            )
-        ]
-        self.save()
+        else:
+            self.projects = []
         return self
 
     def save(self) -> None:
@@ -84,13 +71,11 @@ class ProjectRegistry:
     def archived_projects(self) -> list[ProjectRecord]:
         return [project for project in self.projects if project.status == "archived"]
 
-    def first_active(self) -> ProjectRecord:
+    def first_active(self) -> ProjectRecord | None:
         active = self.active_projects()
         if active:
             return active[0]
-        if self.projects:
-            return self.projects[0]
-        raise RuntimeError("No projects are registered.")
+        return None
 
     def get(self, project_id: str) -> ProjectRecord:
         for project in self.projects:
@@ -122,6 +107,12 @@ class ProjectRegistry:
         self.projects.append(record)
         self.save()
         return record
+
+    def clear(self) -> int:
+        count = len(self.projects)
+        self.projects = []
+        self.save()
+        return count
 
     def archive_project(self, project_id: str) -> ProjectRecord:
         project = self.get(project_id)

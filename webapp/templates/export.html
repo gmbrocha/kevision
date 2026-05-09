@@ -69,20 +69,26 @@
               </div>
             {% endfor %}
 
-            <form method="post" action="{{ url_for('export_run') }}" class="js-generate-form">
-              {% if attention_pending_count %}
-                <label class="callout callout-check" style="margin-bottom: var(--sp-3);">
-                  <input type="checkbox" name="force_attention" value="1">
-                  <span>Generate with flagged items still pending</span>
-                </label>
-              {% endif %}
-              <button class="btn btn-primary btn-xl js-generate-button" type="submit" style="width: 100%; justify-content: center;">
-                {% if output_files.workbook.exists() %}Re-generate workbook{% else %}Generate workbook{% endif %}
-              </button>
-            </form>
-            <form method="post" action="{{ url_for('review_packet_run') }}">
-              <button class="btn btn-secondary btn-lg" type="submit" style="width: 100%; justify-content: center;">Refresh Review Packet</button>
-            </form>
+            {% if active_project %}
+              <form method="post" action="{{ url_for('export_run') }}" class="js-generate-form">
+                {% if attention_pending_count %}
+                  <label class="callout callout-check" style="margin-bottom: var(--sp-3);">
+                    <input type="checkbox" name="force_attention" value="1">
+                    <span>Generate with flagged items still pending</span>
+                  </label>
+                {% endif %}
+                <button class="btn btn-primary btn-xl js-generate-button" type="submit" style="width: 100%; justify-content: center;">
+                  {% if output_files.workbook.exists() %}Re-generate workbook{% else %}Generate workbook{% endif %}
+                </button>
+              </form>
+              <form method="post" action="{{ url_for('review_packet_run') }}">
+                <button class="btn btn-secondary btn-lg" type="submit" style="width: 100%; justify-content: center;">Refresh Review Packet</button>
+              </form>
+            {% else %}
+              <section class="callout callout-info">
+                <span>No project workspace is selected. Export files will appear here after a project is created and populated.</span>
+              </section>
+            {% endif %}
           </div>
         </section>
 

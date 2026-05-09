@@ -6,7 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from backend.projects import ProjectRecord, ProjectRegistry
 from backend.revision_state.tracker import RevisionScanner
+from backend.workspace import WorkspaceStore
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -39,4 +41,17 @@ def scanned_workspace_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
 def workspace_copy(tmp_path: Path, scanned_workspace_dir: Path) -> Path:
     destination = tmp_path / "workspace"
     shutil.copytree(scanned_workspace_dir, destination)
+    store = WorkspaceStore(destination).load()
+    registry = ProjectRegistry(destination).load()
+    registry.projects = [
+        ProjectRecord(
+            id="test-project",
+            name="Test Project",
+            workspace_dir=str(destination.resolve()),
+            input_dir=store.data.input_dir,
+            status="active",
+            created_at=store.data.created_at,
+        )
+    ]
+    registry.save()
     return destination

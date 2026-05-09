@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 from collections import Counter
 from datetime import datetime, timezone
@@ -142,14 +143,30 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.secret_key = os.getenv("SCOPELEDGER_WEBAPP_SECRET", "scopeledger-dev")
     registry = ProjectRegistry(Path(workspace_dir)).load()
-    seed_store = WorkspaceStore(Path(workspace_dir)).load()
     provider = verification_provider or DisabledReviewAssistProvider()
     project_root = Path.cwd().resolve()
-    app.config["STORE"] = seed_store
+    app.config["STORE"] = None
     app.config["PROJECT_REGISTRY"] = registry
     app.config["REVIEW_ASSIST_PROVIDER"] = provider
+    project_optional_endpoints = {
+        "index",
+        "projects",
+        "create_project",
+        "dashboard",
+        "conformed",
+        "sheets",
+        "changes",
+        "export_view",
+        "settings",
+        "diagnostics",
+        "workspace_folder_dialog",
+        "select_project",
+        "archive_project",
+        "restore_project",
+        "static",
+    }
 
-    def active_project() -> ProjectRecord:
+    def active_project_or_none() -> ProjectRecord | None:
         project_id = session.get("project_id")
         if project_id:
             try:
@@ -159,7 +176,16 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             except KeyError:
                 pass
         project = registry.first_active()
-        session["project_id"] = project.id
+        if project:
+            session["project_id"] = project.id
+        else:
+            session.pop("project_id", None)
+        return project
+
+    def active_project() -> ProjectRecord:
+        project = active_project_or_none()
+        if project is None:
+            raise RuntimeError("No active project is selected.")
         return project
 
     def load_project_store(project: ProjectRecord | None = None) -> WorkspaceStore:
@@ -174,6 +200,16 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     store = ActiveProjectWorkspace(load_project_store)
 
+    @app.before_request
+    def require_project_for_workspace_routes():
+        endpoint = request.endpoint or ""
+        if endpoint in project_optional_endpoints:
+            return None
+        if active_project_or_none() is None:
+            flash("Create or restore a project before running workspace actions.", "warning")
+            return redirect(url_for("projects"))
+        return None
+
     def rescan_active_project() -> tuple[WorkspaceStore, int]:
         project = active_project()
         current = load_project_store(project)
@@ -182,6 +218,34 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     def utc_timestamp() -> str:
         return datetime.now(timezone.utc).isoformat()
+
+    def empty_pricing_summary() -> dict[str, object]:
+        return {
+            "output_dir": "",
+            "approved_count": 0,
+            "pending_count": 0,
+            "rejected_count": 0,
+            "attention_pending_count": 0,
+            "force_attention": False,
+            "pricing_log_count": 0,
+            "pricing_candidate_count": 0,
+            "filtered_count": 0,
+            "filtered_by_reason": {},
+            "active_sheet_count": 0,
+            "superseded_sheet_count": 0,
+            "revision_set_count": 0,
+        }
+
+    def empty_counts() -> dict[str, int]:
+        return {"all": 0, "pending": 0, "approved": 0, "rejected": 0, "needs_check": 0}
+
+    def empty_output_files() -> dict[str, Path]:
+        missing_output_dir = Path(workspace_dir) / "__no_active_project_outputs__"
+        return {
+            "workbook": missing_output_dir / "revision_changelog.xlsx",
+            "review_packet": missing_output_dir / "revision_changelog_review_packet.html",
+            "preview_pdf": missing_output_dir / "conformed_preview.pdf",
+        }
 
     def copy_package_source(source_path: Path, destination_dir: Path) -> None:
         destination_dir.mkdir(parents=True, exist_ok=True)
@@ -254,21 +318,47 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         source_path = Path(source_text).expanduser().resolve()
         if not source_path.exists():
             raise FileNotFoundError(source_path)
+        if source_path.is_dir() and _is_revision_package_root(source_path):
+            copied = []
+            for package_dir in _revision_package_children(source_path):
+                destination_dir = input_dir / safe_package_dir_name(package_dir.name)
+                copy_package_source(package_dir, destination_dir)
+                copied.append(destination_dir)
+            return f"{len(copied)} packages from {source_path.name}", input_dir
         destination_name = safe_package_dir_name(package_label) or source_path.stem
         destination_dir = input_dir / destination_name
         copy_package_source(source_path, destination_dir)
         return destination_name, destination_dir
 
+    def _revision_package_children(source_path: Path) -> list[Path]:
+        return sorted(
+            child
+            for child in source_path.iterdir()
+            if child.is_dir() and re.search(r"Revision\s*#\s*\d+", child.name, re.IGNORECASE)
+        )
+
+    def _is_revision_package_root(source_path: Path) -> bool:
+        children = _revision_package_children(source_path)
+        if len(children) < 2:
+            return False
+        direct_pdfs = list(source_path.glob("*.pdf"))
+        return not direct_pdfs
+
     @app.context_processor
     def inject_globals() -> dict[str, object]:
-        store = load_project_store()
-        change_items = store.data.change_items
+        project = active_project_or_none()
+        active_store = load_project_store(project) if project else None
+        change_items = active_store.data.change_items if active_store else []
         total_changes = len(change_items)
         reviewed_count = len([item for item in change_items if item.status in {"approved", "rejected"}])
-        current_package = max(store.data.revision_sets, key=lambda item: item.set_number, default=None)
-        diagnostic_summary = build_diagnostic_summary(store.data.documents, store.data.preflight_issues)
+        current_package = max(active_store.data.revision_sets, key=lambda item: item.set_number, default=None) if active_store else None
+        diagnostic_summary = (
+            build_diagnostic_summary(active_store.data.documents, active_store.data.preflight_issues)
+            if active_store
+            else build_diagnostic_summary([], [])
+        )
         return {
-            "active_project": active_project(),
+            "active_project": project,
             "active_projects": registry.active_projects(),
             "archived_projects": registry.archived_projects(),
             "pending_count": len([item for item in change_items if item.status == "pending"]),
@@ -512,7 +602,10 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             abort(404)
         if session.get("project_id") == project.id:
             active = registry.active_projects()
-            session["project_id"] = active[0].id if active else project.id
+            if active:
+                session["project_id"] = active[0].id
+            else:
+                session.pop("project_id", None)
         flash(f"Archived {project.name}. Its workspace files are kept, but it is removed from active workflow until restored.", "success")
         return redirect(url_for("projects"))
 
@@ -532,6 +625,16 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.route("/overview")
     def dashboard():
+        if active_project_or_none() is None:
+            return render_template(
+                "dashboard.html",
+                revision_rows=[],
+                pricing_summary=empty_pricing_summary(),
+                pending_review_count=0,
+                first_pending=None,
+                output_files=empty_output_files(),
+                populate_status={},
+            )
         rows = []
         for revision_set in store.data.revision_sets:
             set_sheets = [sheet for sheet in store.data.sheets if sheet.revision_set_id == revision_set.id]
@@ -713,6 +816,16 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.route("/conformed")
     def conformed():
+        if active_project_or_none() is None:
+            return render_template(
+                "conformed.html",
+                groups=[],
+                show_filter=request.args.get("show", "revised"),
+                search_query=request.args.get("q", ""),
+                sheet_id_count=0,
+                revised_count=0,
+                index_page_count=0,
+            )
         revision_sets_by_id = {revision_set.id: revision_set for revision_set in store.data.revision_sets}
         groups: dict[str, list] = {}
         for sheet in store.data.sheets:
@@ -764,6 +877,18 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         filter_status = request.args.get("status", "all")
         search_query = request.args.get("q", "")
         include_index_matches = request.args.get("include_index", "0") == "1"
+        if active_project_or_none() is None:
+            return render_template(
+                "sheets.html",
+                sheets=[],
+                filter_status=filter_status,
+                search_query=search_query,
+                changes_by_sheet={},
+                active_sheet_count=0,
+                superseded_sheet_count=0,
+                include_index_matches=include_index_matches,
+                index_match_count=0,
+            )
         active_sheet_count = len([sheet for sheet in store.data.sheets if sheet.status == "active"])
         superseded_sheet_count = len([sheet for sheet in store.data.sheets if sheet.status == "superseded"])
         index_match_count = len([sheet for sheet in store.data.sheets if sheet_is_index_like(sheet)])
@@ -825,6 +950,16 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         filter_status = request.args.get("status", "pending")
         search_query = request.args.get("q", "")
         attention_only = request.args.get("attention", "0") == "1"
+        if active_project_or_none() is None:
+            return render_template(
+                "changes.html",
+                items=[],
+                filter_status=filter_status,
+                search_query=search_query,
+                attention_only=attention_only,
+                counts=empty_counts(),
+                first_pending=None,
+            )
         items = filter_change_items(store, filter_status, search_query)
         if attention_only:
             items = [item for item in items if item.status == "pending" and change_item_needs_attention(item)]
@@ -951,6 +1086,14 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.route("/export")
     def export_view():
+        if active_project_or_none() is None:
+            return render_template(
+                "export.html",
+                export_history=[],
+                attention_pending_count=0,
+                output_files=empty_output_files(),
+                pricing_summary=empty_pricing_summary(),
+            )
         export_history = list(reversed(store.data.exports))
         attention_pending_count = len(
             [item for item in store.data.change_items if item.status == "pending" and change_item_needs_attention(item)]
@@ -982,12 +1125,22 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.route("/settings")
     def settings():
+        if active_project_or_none() is None:
+            return render_template("settings.html", provider=provider, verification_history=[])
         verification_history = list(reversed(store.data.verifications))
         return render_template("settings.html", provider=provider, verification_history=verification_history)
 
     @app.route("/diagnostics")
     def diagnostics():
         filter_severity = request.args.get("severity", "all")
+        if active_project_or_none() is None:
+            return render_template(
+                "diagnostics.html",
+                documents=[],
+                issues=[],
+                issue_summary=[],
+                filter_severity=filter_severity,
+            )
         issues = store.data.preflight_issues
         if filter_severity != "all":
             issues = [issue for issue in issues if issue.severity == filter_severity]
