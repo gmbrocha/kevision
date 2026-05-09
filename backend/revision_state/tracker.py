@@ -49,6 +49,15 @@ class RevisionScanner:
         self.previous_scan_cache = dict(self.store.data.scan_cache.get("documents", {}))
         self.cache_hits = 0
 
+    def _cloud_inference_cache_key(self) -> str:
+        return str(
+            getattr(
+                self.cloud_inference_client,
+                "cache_key",
+                getattr(self.cloud_inference_client, "name", self.cloud_inference_client.__class__.__name__),
+            )
+        )
+
     def scan(self) -> WorkspaceStore:
         documents: list[SourceDocument] = []
         preflight_issues: list[PreflightIssue] = []
@@ -250,6 +259,8 @@ class RevisionScanner:
     def _cache_entry_usable(self, cache_entry: dict[str, object] | None, fingerprint: str) -> bool:
         if not cache_entry or cache_entry.get("fingerprint") != fingerprint:
             return False
+        if cache_entry.get("cloud_inference_cache_key") != self._cloud_inference_cache_key():
+            return False
         if (
             cache_entry.get("clouds")
             and cache_entry.get("scope_extraction_version") != SCOPE_EXTRACTION_CACHE_VERSION
@@ -305,6 +316,7 @@ class RevisionScanner:
         return {
             "fingerprint": fingerprint,
             "scope_extraction_version": SCOPE_EXTRACTION_CACHE_VERSION,
+            "cloud_inference_cache_key": self._cloud_inference_cache_key(),
             "document": asdict(document),
             "preflight_issues": [asdict(issue) for issue in preflight_issues],
             "narratives": [asdict(entry) for entry in narratives],

@@ -6,10 +6,13 @@ import shutil
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import fitz
 from flask import Flask, abort, flash, g, has_request_context, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
+from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
+from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult, CloudHammerRunner, LiveCloudHammerPipeline
 from backend.diagnostics import build_diagnostic_summary, configure_mupdf, format_pdf_label
 from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
@@ -125,6 +128,8 @@ HIGH_RES_SHEET_SCALE = 2.25
 HIGH_RES_CROP_MAX_SCALE = 6.0
 HIGH_RES_CROP_TARGET_WIDTH = 1800
 DRIVE_REVIEW_FOLDER_URL = "https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT"
+SAFE_PROJECT_ASSET_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"}
+VALID_REVIEW_STATUSES = {"pending", "approved", "rejected"}
 
 
 class ActiveProjectWorkspace:
@@ -138,16 +143,23 @@ class ActiveProjectWorkspace:
         return getattr(self.current(), name)
 
 
-def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
+def create_app(workspace_dir: Path, verification_provider=None, cloudhammer_runner: CloudHammerRunner | None = None) -> Flask:
     configure_mupdf()
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.secret_key = os.getenv("SCOPELEDGER_WEBAPP_SECRET", "scopeledger-dev")
     registry = ProjectRegistry(Path(workspace_dir)).load()
     provider = verification_provider or DisabledReviewAssistProvider()
+    cloudhammer_runner = cloudhammer_runner or LiveCloudHammerPipeline()
     project_root = Path.cwd().resolve()
     app.config["STORE"] = None
     app.config["PROJECT_REGISTRY"] = registry
     app.config["REVIEW_ASSIST_PROVIDER"] = provider
+    app.config["CLOUDHAMMER_RUNNER"] = cloudhammer_runner
+    project_asset_roots = [
+        project_root / "CloudHammer" / "runs",
+        project_root / "CloudHammer" / "data" / "rasterized_pages",
+        project_root / "CloudHammer_v2" / "outputs",
+    ]
     project_optional_endpoints = {
         "index",
         "projects",
@@ -210,14 +222,42 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             return redirect(url_for("projects"))
         return None
 
-    def rescan_active_project() -> tuple[WorkspaceStore, int]:
+    def rescan_active_project(cloud_inference_client=None) -> tuple[WorkspaceStore, int]:
         project = active_project()
         current = load_project_store(project)
-        scanner = RevisionScanner(Path(current.data.input_dir), Path(project.workspace_dir))
+        scanner = RevisionScanner(
+            Path(current.data.input_dir),
+            Path(project.workspace_dir),
+            cloud_inference_client=cloud_inference_client,
+        )
         return scanner.scan(), scanner.cache_hits
 
     def utc_timestamp() -> str:
         return datetime.now(timezone.utc).isoformat()
+
+    def safe_redirect_target(value: str | None, default: str) -> str:
+        target = (value or "").strip()
+        if not target or "\\" in target:
+            return default
+        parsed = urlsplit(target)
+        if parsed.scheme or parsed.netloc or not target.startswith("/") or target.startswith("//"):
+            return default
+        return target
+
+    def is_safe_project_asset(path: Path) -> bool:
+        if path.suffix.lower() not in SAFE_PROJECT_ASSET_SUFFIXES:
+            return False
+        try:
+            resolved = path.resolve()
+        except OSError:
+            return False
+        for root in project_asset_roots:
+            try:
+                resolved.relative_to(root.resolve())
+                return True
+            except ValueError:
+                continue
+        return False
 
     def empty_pricing_summary() -> dict[str, object]:
         return {
@@ -247,14 +287,21 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             "preview_pdf": missing_output_dir / "conformed_preview.pdf",
         }
 
-    def copy_package_source(source_path: Path, destination_dir: Path) -> None:
+    def copy_package_source(source_path: Path, destination_dir: Path) -> int:
         destination_dir.mkdir(parents=True, exist_ok=True)
         if source_path.is_dir():
-            shutil.copytree(source_path, destination_dir, dirs_exist_ok=True)
-            return
+            copied = 0
+            for pdf_path in sorted(source_path.rglob("*.pdf")):
+                target = destination_dir / pdf_path.relative_to(source_path)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(pdf_path, target)
+                copied += 1
+            return copied
         if source_path.is_file():
+            if source_path.suffix.lower() != ".pdf":
+                raise ValueError(f"Manual package file must be a PDF: {source_path}")
             shutil.copy2(source_path, destination_dir / source_path.name)
-            return
+            return 1
         raise FileNotFoundError(source_path)
 
     def safe_path_part(value: str) -> str:
@@ -322,12 +369,16 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             copied = []
             for package_dir in _revision_package_children(source_path):
                 destination_dir = input_dir / safe_package_dir_name(package_dir.name)
-                copy_package_source(package_dir, destination_dir)
-                copied.append(destination_dir)
+                if copy_package_source(package_dir, destination_dir):
+                    copied.append(destination_dir)
+            if not copied:
+                raise ValueError(f"No PDF files found under revision package root: {source_path}")
             return f"{len(copied)} packages from {source_path.name}", input_dir
         destination_name = safe_package_dir_name(package_label) or source_path.stem
         destination_dir = input_dir / destination_name
-        copy_package_source(source_path, destination_dir)
+        copied_count = copy_package_source(source_path, destination_dir)
+        if copied_count == 0:
+            raise ValueError(f"No PDF files found under {source_path}")
         return destination_name, destination_dir
 
     def _revision_package_children(source_path: Path) -> list[Path]:
@@ -507,8 +558,14 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         except ValueError:
             pass
         try:
+            relative = resolved.relative_to(store.output_dir.resolve()).as_posix()
+            return url_for("output_asset", asset_path=relative)
+        except ValueError:
+            pass
+        try:
             relative = resolved.relative_to(project_root).as_posix()
-            return url_for("project_asset", asset_path=relative)
+            if is_safe_project_asset(resolved):
+                return url_for("project_asset", asset_path=relative)
         except ValueError:
             pass
         parts = list(resolved.parts)
@@ -753,11 +810,12 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.post("/workspace/populate")
     def populate_workspace():
+        project = active_project()
         current = load_project_store()
         current.update_populate_status(
             state="running",
-            stage="scan",
-            message="Scanning staged packages and rendering drawing pages.",
+            stage="cloudhammer_inference",
+            message="Running CloudHammer live inference for staged drawing packages.",
             started_at=utc_timestamp(),
             finished_at="",
             package_count=0,
@@ -769,8 +827,21 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             error="",
         )
         refreshed: WorkspaceStore | None = None
+        cloudhammer_result: CloudHammerRunResult | None = None
         try:
-            refreshed, cache_hits = rescan_active_project()
+            runner = app.config["CLOUDHAMMER_RUNNER"]
+            cloudhammer_result = runner.run(
+                input_dir=Path(current.data.input_dir),
+                workspace_dir=Path(project.workspace_dir),
+            )
+            current.update_populate_status(
+                state="running",
+                stage="scan",
+                message="Scanning staged packages with live CloudHammer whole-cloud candidates.",
+                **cloudhammer_result.to_status(),
+            )
+            cloud_client = ManifestCloudInferenceClient(cloudhammer_result.candidate_manifest)
+            refreshed, cache_hits = rescan_active_project(cloud_inference_client=cloud_client)
             refreshed.update_populate_status(
                 state="running",
                 stage="scope_extraction",
@@ -781,12 +852,13 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
                 cloud_count=len(refreshed.data.clouds),
                 change_item_count=len(refreshed.data.change_items),
                 cache_hits=cache_hits,
+                **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             enrich_workspace_scope_text(refreshed)
             refreshed.update_populate_status(
                 state="done",
                 stage="complete",
-                message="Workspace is populated and ready for review.",
+                message="Workspace is populated with live CloudHammer detections and ready for review.",
                 finished_at=utc_timestamp(),
                 package_count=len(refreshed.data.revision_sets),
                 document_count=len(refreshed.data.documents),
@@ -795,6 +867,7 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
                 change_item_count=len(refreshed.data.change_items),
                 cache_hits=cache_hits,
                 error="",
+                **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             g.active_store = refreshed
         except Exception as exc:
@@ -805,6 +878,7 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
                 message="Workspace population failed.",
                 finished_at=utc_timestamp(),
                 error=str(exc),
+                **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             flash(f"Workspace population failed: {exc}", "warning")
             return redirect(url_for("dashboard"))
@@ -1019,6 +1093,10 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
         except KeyError:
             abort(404)
         status = request.form.get("status_override") or request.form.get("status", item.status)
+        default_redirect = url_for("change_detail", change_id=change_id)
+        if status not in VALID_REVIEW_STATUSES:
+            flash("Choose a valid review status.", "warning")
+            return redirect(safe_redirect_target(request.form.get("redirect_to"), default_redirect))
         reviewer_text = request.form.get("reviewer_text", item.reviewer_text or item.raw_text)
         reviewer_notes = request.form.get("reviewer_notes", item.reviewer_notes)
         store.update_change_item(change_id, status=status, reviewer_text=reviewer_text, reviewer_notes=reviewer_notes)
@@ -1038,7 +1116,7 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             )
         else:
             if request.form.get("redirect_to"):
-                redirect_to = request.form["redirect_to"]
+                redirect_to = safe_redirect_target(request.form.get("redirect_to"), default_redirect)
             else:
                 redirect_kwargs = {
                     "change_id": change_id,
@@ -1053,13 +1131,14 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
     @app.post("/changes/bulk-review")
     def bulk_review():
         selected_ids = request.form.getlist("change_ids")
+        redirect_to = safe_redirect_target(request.form.get("redirect_to"), url_for("changes"))
         if not selected_ids:
             flash("No queue items were selected.", "warning")
-            return redirect(request.form.get("redirect_to") or url_for("changes"))
+            return redirect(redirect_to)
         status = request.form.get("status")
-        if status not in {"pending", "approved", "rejected"}:
+        if status not in VALID_REVIEW_STATUSES:
             flash("Choose a valid bulk action.", "warning")
-            return redirect(request.form.get("redirect_to") or url_for("changes"))
+            return redirect(redirect_to)
         count = 0
         for change_id in selected_ids:
             try:
@@ -1070,7 +1149,7 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
             store.update_change_item(change_id, status=status, reviewer_text=reviewer_text)
             count += 1
         flash(f"Updated {count} queue items to {status}.", "success")
-        return redirect(request.form.get("redirect_to") or url_for("changes"))
+        return redirect(redirect_to)
 
     @app.post("/changes/<change_id>/verify")
     def verify_change(change_id: str):
@@ -1199,7 +1278,10 @@ def create_app(workspace_dir: Path, verification_provider=None) -> Flask:
 
     @app.route("/project-assets/<path:asset_path>")
     def project_asset(asset_path: str):
-        return send_from_directory(project_root, asset_path)
+        target = (project_root / asset_path).resolve()
+        if not is_safe_project_asset(target):
+            abort(404)
+        return send_from_directory(project_root, target.relative_to(project_root).as_posix())
 
     @app.route("/outputs/<path:asset_path>")
     def output_asset(asset_path: str):

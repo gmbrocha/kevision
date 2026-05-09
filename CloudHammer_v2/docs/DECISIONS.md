@@ -604,6 +604,25 @@ Consequences:
 - Rows without renderable visual evidence should be marked missing evidence or
   blocked, not handed to a human as a normal review item.
 
+## 2026-05-09 - App Populate Uses Live CloudHammer For Handoff
+
+Decision: ScopeLedger's client-facing Populate Workspace action may run the
+current legacy CloudHammer full-page inference pipeline directly from the UI
+for project handoff.
+
+Reason: The product handoff needs live cloud-detection output for freshly
+created app projects, while CloudHammer_v2 training/eval work remains paused.
+
+Consequences:
+
+- Product-run artifacts are written under each app project workspace at
+  `outputs/cloudhammer_live/`.
+- The UI path uses the current continuity checkpoint, fragment grouping, and
+  whole-cloud export as an application integration.
+- This does not promote the checkpoint as a new model baseline and must not
+  mutate CloudHammer_v2 eval/training artifacts, frozen eval pages, labels,
+  datasets, or model checkpoints.
+
 ## 2026-05-05 - Diagnostic Scope Reset
 
 Decision: CloudHammer diagnostics must maximize value per reviewed item, not

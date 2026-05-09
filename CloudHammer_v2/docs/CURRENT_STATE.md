@@ -18,6 +18,14 @@ work is contained to decision-changing postprocessing geometry confirmation,
 targeted truth follow-up if needed, and the shortest path to a usable baseline
 comparison. New diagnostic queues require stoplight classification first.
 
+Client handoff note: ScopeLedger Populate Workspace now runs the legacy
+CloudHammer full-page inference pipeline from the app UI using the current
+continuity checkpoint and writes product-run artifacts under each app project
+workspace at `outputs/cloudhammer_live/`. This is application handoff wiring,
+not CloudHammer_v2 training/eval progress, and it must not mutate frozen eval
+pages, labels, datasets, model checkpoints, or CloudHammer_v2 diagnostic
+artifacts.
+
 ## Eval Baseline Status
 
 - `model_only_tiled`: human-audited baseline scoring completed

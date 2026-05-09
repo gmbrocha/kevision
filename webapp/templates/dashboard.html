@@ -96,6 +96,10 @@
                 <span>Clouds <strong>{{ populate_status.get("cloud_count", 0) }}</strong></span>
                 <span>Changes <strong>{{ populate_status.get("change_item_count", 0) }}</strong></span>
                 <span>Cache hits <strong>{{ populate_status.get("cache_hits", 0) }}</strong></span>
+                {% if populate_status.get("cloudhammer_page_count") is not none %}
+                  <span>CloudHammer pages <strong>{{ populate_status.get("cloudhammer_page_count", 0) }}</strong></span>
+                  <span>CloudHammer candidates <strong>{{ populate_status.get("cloudhammer_candidate_count", 0) }}</strong></span>
+                {% endif %}
               </div>
               {% if populate_status.get("error") %}
                 <div class="populate-status-error">{{ populate_status.get("error") }}</div>

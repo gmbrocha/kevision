@@ -21,9 +21,20 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Fresh projects can import the repo-level `revision_sets/` folder; each
   `Revision #...` child folder is copied as its own package into the selected
   project input folder before Populate Workspace runs.
-- Client/product handoff work is application-layer only. CloudHammer_v2
-  training/eval work should resume afterward at the existing crop-precheck
-  blocker:
+- Populate Workspace now runs the local CloudHammer full-page pipeline before
+  the app scanner consumes review data. The live handoff path uses the current
+  continuity checkpoint
+  `CloudHammer/runs/cloudhammer_roi-symbol-text-fp-hn-20260502/weights/best.pt`,
+  grouping profile `review_v1`, and whole-cloud export into the selected app
+  project's `outputs/cloudhammer_live/` folder.
+- Handoff hardening pass is complete for the current web app surface: review
+  status writes are validated, form redirects are constrained to local paths,
+  project-root asset serving is limited to generated image assets, manual
+  folder import copies PDFs only, and CloudHammer subprocess failures are
+  compact enough to display in the UI. Plain repo-level pytest now includes
+  the legacy CloudHammer import path through `pytest.ini`.
+- CloudHammer_v2 training/eval work remains paused for client handoff work and
+  should resume afterward at the existing crop-precheck blocker:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
 
 ## Documentation Structure Status

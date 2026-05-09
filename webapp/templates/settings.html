@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Settings{% endblock %}
 {% block page_heading %}Settings and Audit{% endblock %}
-{% block page_lead %}The active web workflow is local-first. CloudHammer inference will plug in later; the old API verification helper is archived for now.{% endblock %}
+{% block page_lead %}The active web workflow is local-first. Populate Workspace runs the local CloudHammer inference pipeline; the old API verification helper is archived for now.{% endblock %}
 {% block content %}
   <section class="split">
     <article class="panel">
@@ -14,8 +14,8 @@
       </div>
       <div class="stack">
         <div><strong>Provider:</strong> {{ provider.name }}</div>
-        <div>The OpenAI verification path has been removed from the active product flow while CloudHammer model integration is being rebuilt.</div>
-        <div>Human review remains the only live source of truth for text corrections and export approval.</div>
+        <div>Populate Workspace runs the local CloudHammer model, fragment grouping, and whole-cloud export before review data is scanned into the app.</div>
+        <div>Human review remains the source of truth for text corrections and export approval.</div>
         <div><strong>Preflight:</strong> {{ diagnostic_summary.affected_document_count }} of {{ diagnostic_summary.document_count }} documents produced warnings during scan.</div>
       </div>
     </article>
@@ -29,7 +29,7 @@
       </div>
       <ul class="flat-list">
         <li class="list-card">Malformed PDF warnings are captured during scan and exported as diagnostics.</li>
-        <li class="list-card">Narrative- and parser-derived items can still be reviewed even while cloud inference is being reattached.</li>
+        <li class="list-card">CloudHammer detections are imported as review items; they are not auto-approved for export.</li>
         <li class="list-card">Historical review-assist records are preserved for audit, but no new API verification calls are made from the web app.</li>
       </ul>
     </article>

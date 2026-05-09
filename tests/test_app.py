@@ -9,6 +9,7 @@ import pytest
 
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
+from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.projects import ProjectRecord, ProjectRegistry
@@ -19,6 +20,17 @@ from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_
 from backend.utils import choose_best_sheet_id, parse_detail_ref
 from backend.workspace import WorkspaceStore
 from webapp.app import create_app, discipline_for_sheet
+
+
+def write_minimal_drawing_pdf(path: Path, *, scope_text: str = "PROVIDE NEW GRAB BAR BLOCKING") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    page = document.new_page(width=600, height=800)
+    page.insert_text((60, 80), f"AE101 FIRST FLOOR PLAN {scope_text}", fontsize=12)
+    page.insert_text((430, 720), "AE101", fontsize=14)
+    page.insert_text((430, 742), "FIRST FLOOR PLAN", fontsize=10)
+    document.save(path)
+    document.close()
 
 
 def register_workspace_project(workspace_dir: Path, *, name: str = "Test Project") -> None:
@@ -201,6 +213,42 @@ def test_manifest_cloudhammer_client_filters_release_and_bbox_noise(tmp_path: Pa
     assert client.stats["skipped_policy"] == 1
     assert client.stats["skipped_invalid_bbox"] == 1
     assert client.stats["skipped_missing_pdf_page"] == 1
+
+
+def test_scan_reprocesses_cache_when_cloudhammer_manifest_changes(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1 - Test" / "drawing.pdf"
+    write_minimal_drawing_pdf(pdf_path)
+
+    initial = RevisionScanner(input_dir, workspace_dir).scan()
+    assert initial.data.clouds == []
+
+    crop_path = tmp_path / "crop.png"
+    crop_path.write_bytes(b"png")
+    manifest = tmp_path / "manifest.jsonl"
+    manifest.write_text(
+        json.dumps(
+            {
+                "candidate_id": "live-1",
+                "pdf_path": str(pdf_path),
+                "page_number": 1,
+                "bbox_page_xywh": [70, 70, 120, 80],
+                "whole_cloud_confidence": 0.93,
+                "policy_bucket": "auto_deliverable_candidate",
+                "crop_image_path": str(crop_path),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    scanner = RevisionScanner(input_dir, workspace_dir, cloud_inference_client=ManifestCloudInferenceClient(manifest))
+    refreshed = scanner.scan()
+
+    assert scanner.cache_hits == 0
+    assert len(refreshed.data.clouds) == 1
+    assert refreshed.data.change_items[0].provenance["extraction_method"] == "cloudhammer_manifest"
 
 
 def test_sheet_id_parser_prefers_repeated_plumbing_sheet_over_late_arch_reference():
@@ -1151,6 +1199,128 @@ def test_import_revision_sets_root_preserves_child_packages(tmp_path: Path):
     assert (input_dir / "Revision #1 - Alpha" / "alpha.pdf").exists()
     assert (input_dir / "Revision #2 - Beta" / "beta.pdf").exists()
     assert not (input_dir / "revision_sets" / "Revision #1 - Alpha" / "alpha.pdf").exists()
+
+
+def test_manual_import_rejects_folder_without_pdfs(tmp_path: Path):
+    source_root = tmp_path / "not-a-package"
+    source_root.mkdir()
+    (source_root / "notes.txt").write_text("not a drawing", encoding="utf-8")
+
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    imported = client.post("/packages/import", data={"source_path": str(source_root), "package_label": ""})
+
+    assert imported.status_code == 302
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    assert not (input_dir / "not-a-package" / "notes.txt").exists()
+
+
+def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
+    class FakeCloudHammerRunner:
+        name = "fake_cloudhammer_live"
+
+        def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
+            pdf_path = next(input_dir.rglob("*.pdf"))
+            run_dir = workspace_dir / "outputs" / "cloudhammer_live" / "fake"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            crop_path = run_dir / "crop.png"
+            crop_path.write_bytes(b"png")
+            pages_manifest = run_dir / "pages_manifest.jsonl"
+            pages_manifest.write_text(
+                json.dumps(
+                    {
+                        "page_kind": "drawing",
+                        "pdf_path": str(pdf_path),
+                        "pdf_stem": pdf_path.stem,
+                        "page_index": 0,
+                        "page_number": 1,
+                        "render_path": str(run_dir / "render.png"),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            candidate_manifest = run_dir / "whole_cloud_candidates_manifest.jsonl"
+            candidate_manifest.write_text(
+                json.dumps(
+                    {
+                        "candidate_id": "fake-live-1",
+                        "pdf_path": str(pdf_path),
+                        "page_number": 1,
+                        "bbox_page_xywh": [70, 70, 120, 80],
+                        "whole_cloud_confidence": 0.91,
+                        "policy_bucket": "auto_deliverable_candidate",
+                        "crop_image_path": str(crop_path),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            return CloudHammerRunResult(
+                run_dir=run_dir,
+                pages_manifest=pages_manifest,
+                candidate_manifest=candidate_manifest,
+                page_count=1,
+                candidate_count=1,
+            )
+
+    app = create_app(tmp_path / "seed-workspace", cloudhammer_runner=FakeCloudHammerRunner())
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    write_minimal_drawing_pdf(input_dir / "Revision #1 - Test" / "drawing.pdf")
+
+    populated = client.post("/workspace/populate")
+
+    assert populated.status_code == 302
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert len(store.data.clouds) == 1
+    assert any(item.provenance.get("extraction_method") == "cloudhammer_manifest" for item in store.data.change_items)
+    assert store.data.populate_status["cloudhammer_page_count"] == 1
+    assert store.data.populate_status["cloudhammer_candidate_count"] == 1
+
+
+def test_review_routes_reject_invalid_status_and_external_redirect(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+    store = WorkspaceStore(workspace_copy).load()
+    item = next(item for item in store.data.change_items if item.status == "pending")
+
+    response = client.post(
+        f"/changes/{item.id}/review",
+        data={
+            "status_override": "surprise",
+            "reviewer_text": item.raw_text,
+            "reviewer_notes": "",
+            "redirect_to": "https://example.com/owned",
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith(f"/changes/{item.id}")
+    refreshed = WorkspaceStore(workspace_copy).load()
+    assert refreshed.get_change_item(item.id).status == "pending"
+
+    bulk = client.post(
+        "/changes/bulk-review",
+        data={"change_ids": [item.id], "status": "approved", "redirect_to": "https://example.com/owned"},
+    )
+    assert bulk.status_code == 302
+    assert bulk.headers["Location"].endswith("/changes")
+
+
+def test_project_asset_route_blocks_non_generated_files(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+
+    response = client.get("/project-assets/docs/CURRENT_STATE.md")
+
+    assert response.status_code == 404
 
 
 def test_change_detail_uses_previous_current_comparison_asset(tmp_path: Path):

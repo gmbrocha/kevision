@@ -96,3 +96,45 @@ Consequences:
   `Revision #...` child as a separate package in the new workspace.
 - CloudHammer_v2 diagnostic/training artifacts remain internal and are not
   treated as client product data.
+
+## 2026-05-09 - Populate Runs Live CloudHammer Pipeline
+
+Decision: Client-facing Populate Workspace runs the local CloudHammer
+full-page pipeline before the ScopeLedger scanner imports review data.
+
+Reason: The handoff product needs the best current cloud-detection behavior,
+not the older scanner-only path or a pre-seeded demo manifest.
+
+Consequences:
+
+- Populate catalogs the selected project input folder, renders CloudHammer
+  300-DPI page images, runs the current continuity checkpoint model, groups
+  fragments with `review_v1`, exports whole-cloud candidates, and scans the
+  generated manifest into normal review surfaces.
+- Generated inference artifacts stay under the app project workspace at
+  `outputs/cloudhammer_live/`.
+- CloudHammer detections enter the UI as review items; they are not
+  auto-approved for export.
+- This does not mutate `revision_sets/`, CloudHammer_v2 eval/training
+  artifacts, frozen pages, labels, datasets, or model checkpoints.
+
+## 2026-05-09 - Handoff Webapp Hardening
+
+Decision: Before client handoff, keep the app local-first but harden the routes
+most likely to cause visible problems during review.
+
+Reason: The app handles server-local paths and generated visual assets. A few
+loose route behaviors were acceptable during internal iteration but risky for a
+client-facing demo.
+
+Consequences:
+
+- Review writes only accept `pending`, `approved`, or `rejected`.
+- Form-provided redirects must stay local to the app.
+- `/project-assets/` serves only generated image assets from known CloudHammer
+  artifact roots; active workspace outputs use `/outputs/`.
+- Manual folder import copies PDF files only and rejects folders with no PDFs.
+- CloudHammer subprocess failures are compacted before they reach Populate
+  status or flash messages.
+- `pytest.ini` keeps the legacy `CloudHammer/` package importable during a
+  plain repo-level test run.

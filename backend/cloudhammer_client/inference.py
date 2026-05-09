@@ -30,6 +30,7 @@ class NullCloudInferenceClient:
     """Default placeholder until the local CloudHammer model is wired in."""
 
     name = "disabled"
+    cache_key = "disabled"
 
     def detect(self, *, page: fitz.Page, sheet: SheetVersion) -> list[CloudDetection]:
         return []
@@ -189,6 +190,8 @@ class ManifestCloudInferenceClient:
 
     def __init__(self, manifest_path: Path | str):
         self.manifest_path = Path(manifest_path).resolve()
+        stat = self.manifest_path.stat()
+        self.cache_key = f"{self.name}:{self.manifest_path}:{stat.st_size}:{stat.st_mtime_ns}"
         self.rows = _read_jsonl(self.manifest_path)
         self._by_pdf_page: dict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
         self.stats: dict[str, int] = {
