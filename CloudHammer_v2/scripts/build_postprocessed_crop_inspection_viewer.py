@@ -62,10 +62,7 @@ def project_relative(path: Path | None, output_html: Path) -> str:
     try:
         return Path(path).resolve().relative_to(output_html.parent.resolve()).as_posix()
     except ValueError:
-        try:
-            return Path(path).resolve().relative_to(PROJECT_ROOT).as_posix()
-        except ValueError:
-            return Path(path).resolve().as_posix()
+        return Path(path).resolve().as_uri()
 
 
 def inspection_item_id(row: dict[str, Any]) -> str:
