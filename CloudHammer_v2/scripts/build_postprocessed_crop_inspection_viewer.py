@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -77,6 +78,17 @@ def overlay_image_path(api_input_dir: Path, row_number: int) -> Path | None:
     return matches[0] if matches else None
 
 
+def copy_visual_asset(source_path: Path | None, asset_dir: Path | None, row_number: int, kind: str) -> Path | None:
+    if source_path is None or asset_dir is None or not source_path.exists():
+        return source_path
+    target_dir = asset_dir / kind
+    target_dir.mkdir(parents=True, exist_ok=True)
+    suffix = source_path.suffix.lower() or ".jpg"
+    target = target_dir / f"row_{row_number:03d}_{kind}{suffix}"
+    shutil.copy2(source_path, target)
+    return target
+
+
 def default_inspection_row(row: dict[str, Any], row_number: int, saved: dict[str, str] | None = None) -> dict[str, Any]:
     saved = saved or {}
     return {
@@ -100,17 +112,21 @@ def build_view_rows(
     review_rows: list[dict[str, Any]],
     output_html: Path,
     api_input_dir: Path,
+    asset_dir: Path | None,
 ) -> list[dict[str, Any]]:
     review_by_id = {str(row["inspection_item_id"]): row for row in review_rows}
     view_rows: list[dict[str, Any]] = []
     for index, row in enumerate(manifest_rows, start=1):
         crop_path = project_path(row.get("crop_image_path"))
+        crop_path = copy_visual_asset(crop_path, asset_dir, index, "raw_crop")
+        overlay_path = overlay_image_path(api_input_dir, index)
+        overlay_path = copy_visual_asset(overlay_path, asset_dir, index, "overlay")
         render_path = project_path(row.get("render_path"))
         view = dict(row)
         view["row_number"] = index
         view["inspection_item_id"] = inspection_item_id(row)
         view["crop_href"] = project_relative(crop_path, output_html)
-        view["overlay_href"] = project_relative(overlay_image_path(api_input_dir, index), output_html)
+        view["overlay_href"] = project_relative(overlay_path, output_html)
         view["render_href"] = project_relative(render_path, output_html)
         view["inspection_defaults"] = review_by_id.get(view["inspection_item_id"], {})
         view_rows.append(view)
@@ -396,19 +412,21 @@ def main() -> int:
     parser.add_argument("--inspection-csv", type=Path, default=None)
     parser.add_argument("--output-html", type=Path, default=None)
     parser.add_argument("--api-input-dir", type=Path, default=None)
+    parser.add_argument("--asset-dir", type=Path, default=None)
     args = parser.parse_args()
 
     output_dir = args.output_dir
     inspection_csv = args.inspection_csv or output_dir / "postprocessed_crop_inspection.csv"
     output_html = args.output_html or output_dir / "postprocessed_crop_inspection_viewer.html"
     api_input_dir = args.api_input_dir or output_dir / "gpt55_crop_inspection_prefill" / "api_inputs"
+    asset_dir = args.asset_dir
     manifest_rows = read_jsonl(args.manifest)
     saved_rows = read_csv_by_id(inspection_csv)
     inspection_rows = [
         default_inspection_row(row, index, saved_rows.get(inspection_item_id(row)))
         for index, row in enumerate(manifest_rows, start=1)
     ]
-    view_rows = build_view_rows(manifest_rows, inspection_rows, output_html, api_input_dir)
+    view_rows = build_view_rows(manifest_rows, inspection_rows, output_html, api_input_dir, asset_dir)
     summary = summarize(view_rows, inspection_rows)
 
     output_dir.mkdir(parents=True, exist_ok=True)

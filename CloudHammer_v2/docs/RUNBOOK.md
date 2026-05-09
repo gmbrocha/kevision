@@ -634,6 +634,23 @@ Expected artifact:
 
 - `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`
 
+Build the short-path browser copy with short local asset paths:
+
+```powershell
+.\.venv\Scripts\python.exe CloudHammer_v2\scripts\build_postprocessed_crop_inspection_viewer.py --inspection-csv CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\postprocessing_apply_non_frozen_20260505\crop_regeneration_20260508\crop_inspection_20260508\postprocessed_crop_inspection.gpt55_prefill.csv --output-html CloudHammer_v2\outputs\postprocessed_crop_inspection.gpt55_prefill.html --asset-dir CloudHammer_v2\outputs\postprocessed_crop_inspection_assets
+```
+
+Expected artifacts:
+
+- `CloudHammer_v2/outputs/postprocessed_crop_inspection.gpt55_prefill.html`
+- `CloudHammer_v2/outputs/postprocessed_crop_inspection_assets/overlay/`
+- `CloudHammer_v2/outputs/postprocessed_crop_inspection_assets/raw_crop/`
+
+Current short viewer asset status:
+
+- overlay images: `32`
+- raw crop images: `32`
+
 Safety: GPT-5.5 crop precheck is provisional inspection metadata only. It must
 not edit the legacy source candidate manifest, truth labels, eval manifests,
 predictions, model files, datasets, training data, or threshold-tuning inputs.

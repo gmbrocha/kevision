@@ -6,7 +6,7 @@ Safety: inspection metadata only. This does not edit source manifests, labels, e
 
 - manifest: `F:\Desktop\m\projects\scopeLedger\CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\postprocessing_apply_non_frozen_20260505\crop_regeneration_20260508\postprocessed_non_frozen_candidates_manifest.regenerated_crops.jsonl`
 - inspection CSV: `CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\postprocessing_apply_non_frozen_20260505\crop_regeneration_20260508\crop_inspection_20260508\postprocessed_crop_inspection.gpt55_prefill.csv`
-- viewer: `CloudHammer_v2\outputs\postprocessed_crop_inspection.gpt55_prefill.html`
+- viewer: `CloudHammer_v2\outputs\postprocessing_diagnostic_non_frozen_20260504\dry_run_postprocessor_20260505\postprocessing_apply_non_frozen_20260505\crop_regeneration_20260508\crop_inspection_20260508\postprocessed_crop_inspection.gpt55_prefill.html`
 
 ## Counts
 

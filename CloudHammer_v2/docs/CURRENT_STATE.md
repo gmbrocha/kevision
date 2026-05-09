@@ -141,7 +141,10 @@ comparison. New diagnostic queues require stoplight classification first.
   and `2` `reject_no_visible_cloud`. Companion viewer:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.html`.
   The viewer renders the GPT precheck red-bbox overlay images as the primary
-  visual evidence for all `32` rows.
+  visual evidence for all `32` rows. The short browser copy is:
+  `CloudHammer_v2/outputs/postprocessed_crop_inspection.gpt55_prefill.html`
+  with short local overlay/raw-crop assets under
+  `CloudHammer_v2/outputs/postprocessed_crop_inspection_assets/`.
   This is provisional inspection metadata only and does not mutate labels,
   eval manifests, predictions, model files, datasets, training data, source
   candidate manifests, or threshold-tuning inputs.
