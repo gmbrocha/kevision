@@ -27,7 +27,8 @@ existing Cloudflare Tunnel and Cloudflare Access application at
 
 - Waitress serves the Flask app locally.
 - Cloudflare Tunnel publishes `ledger.nezcoupe.net`.
-- Cloudflare Access allowed-user policy must be confirmed before sharing.
+- Cloudflare Access allowed-user policy for `ledger.nezcoupe.net` is confirmed
+  for the current private handoff.
 - Production POSTs require CSRF tokens.
 - Session cookies are secure, HTTP-only, and `SameSite=Lax`.
 - Release headers include `X-Content-Type-Options`, `X-Frame-Options`,

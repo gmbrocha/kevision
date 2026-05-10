@@ -213,8 +213,8 @@ Consequences:
   fallback secret is not allowed when `--production` is used.
 - Manual server-path imports in production are limited to
   `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`; browser uploads remain available.
-- Cloudflare Access allowed-user policy must be confirmed in the Cloudflare
-  dashboard before sharing the link.
+- Cloudflare Access allowed-user policy for `ledger.nezcoupe.net` was
+  confirmed before sharing the link.
 - Populate remains synchronous for this handoff. Background jobs and app-level
   auth remain follow-up work if this becomes a longer-lived deployment.
 - Production serve mode refuses non-loopback hosts. The Cloudflare Tunnel is

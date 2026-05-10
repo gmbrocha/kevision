@@ -48,8 +48,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   Waitress, requires `SCOPELEDGER_WEBAPP_SECRET`, and restricts manual
   server-path imports to `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`. It also requires
   loopback binding, secure session cookies, production CSRF tokens on POST
-  requests, and release security headers. Cloudflare Access remains the
-  authentication gate; this is not a public SaaS deployment.
+  requests, and release security headers. Cloudflare Access is confirmed as
+  the authentication gate for `ledger.nezcoupe.net`; this is not a public SaaS
+  deployment.
 - Remote browser PDF intake now uses chunked upload endpoints for selected
   files/folders, with 8 MiB chunks reconstructed inside the active project
   workspace before Populate runs. This avoids Cloudflare request-body 413s for
@@ -253,8 +254,6 @@ human confirmation/correction before training use.
 
 ## Immediate Next Steps
 
-- Confirm Cloudflare Access allowed-user policy for `ledger.nezcoupe.net`
-  before sharing the client link.
 - Create the next real project from `/projects`, stage PDFs through browser
   upload or the allowed `revision_sets/` import root, and run Populate.
 - During the next populate/review, verify that index pages do not create review

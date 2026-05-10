@@ -5,8 +5,8 @@ Status: operational queue as of 2026-05-10.
 ## Now
 
 1. Finish the private client handoff pass.
-   - Confirm Cloudflare Access allowed-user policy on `ledger.nezcoupe.net`
-     from a fresh/incognito browser session before sharing the link.
+   - Cloudflare Access gating on `ledger.nezcoupe.net` is confirmed from a
+     fresh/incognito browser session.
    - Start from the intentionally empty app registry, create the next real
      project in `/projects`, stage package PDFs, and run Populate.
    - Verify Overview, Drawings, Latest Set, Review Changes, Diagnostics,
@@ -131,8 +131,8 @@ Status: operational queue as of 2026-05-10.
 
 ## Current Blockers
 
-- Private handoff readiness now depends on Cloudflare Access confirmation and
-  a clean fresh-project populate/review smoke, not on seeded demo data.
+- Private handoff readiness now depends on a clean fresh-project
+  populate/review smoke, not on seeded demo data.
 - CloudHammer_v2 training remains paused at the crop-precheck return point.
   Baseline overlay mismatch review is complete; first non-frozen
   postprocessing diagnostic review, geometry review, apply preview, derived
