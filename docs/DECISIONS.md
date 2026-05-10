@@ -118,6 +118,24 @@ Consequences:
 - This does not mutate `revision_sets/`, CloudHammer_v2 eval/training
   artifacts, frozen pages, labels, datasets, or model checkpoints.
 
+## 2026-05-10 - Populate Status Polling
+
+Decision: Keep Populate synchronous for the private handoff, but make the
+Overview page poll `/workspace/populate/status` while the request is running.
+
+Reason: Full CloudHammer inference can take minutes, and a disabled button plus
+stale zero-count status looks broken even when subprocesses are actively
+writing artifacts.
+
+Consequences / follow-up:
+
+- The browser now shows staged PDF count and live artifact count while the
+  backend run is in progress.
+- The status endpoint also reports inferred CloudHammer page/candidate rows
+  when those manifests exist.
+- Background jobs and resumable server-side run supervision remain follow-up
+  work after the immediate handoff.
+
 ## 2026-05-09 - Handoff Webapp Hardening
 
 Decision: Before client handoff, keep the app local-first but harden the routes

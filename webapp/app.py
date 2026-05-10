@@ -386,6 +386,49 @@ def create_app(
             "preview_pdf": missing_output_dir / "conformed_preview.pdf",
         }
 
+    def count_jsonl_rows(path: Path) -> int:
+        if not path.exists():
+            return 0
+        with path.open("r", encoding="utf-8") as handle:
+            return sum(1 for line in handle if line.strip())
+
+    def summarize_populate_artifacts(project: ProjectRecord, store: WorkspaceStore) -> dict[str, object]:
+        input_dir = Path(store.data.input_dir)
+        staged_pdfs = sorted(input_dir.rglob("*.pdf")) if input_dir.exists() else []
+        package_dirs = {pdf.parent for pdf in staged_pdfs}
+        status = dict(store.data.populate_status or {})
+        run_dir_text = status.get("cloudhammer_run_dir")
+        run_dir = Path(str(run_dir_text)) if run_dir_text else None
+        live_root = Path(project.workspace_dir) / "outputs" / "cloudhammer_live"
+        if run_dir is None and live_root.exists():
+            run_dirs = [path for path in live_root.iterdir() if path.is_dir()]
+            run_dir = max(run_dirs, key=lambda path: path.stat().st_mtime, default=None)
+
+        live_artifact_count = 0
+        live_last_write = ""
+        live_run_dir = ""
+        inferred_pages = 0
+        inferred_candidates = 0
+        if run_dir and run_dir.exists():
+            live_run_dir = str(run_dir)
+            artifacts = [path for path in run_dir.rglob("*") if path.is_file()]
+            live_artifact_count = len(artifacts)
+            if artifacts:
+                latest = max(path.stat().st_mtime for path in artifacts)
+                live_last_write = datetime.fromtimestamp(latest, timezone.utc).isoformat()
+            inferred_pages = count_jsonl_rows(run_dir / "pages_manifest.jsonl")
+            inferred_candidates = count_jsonl_rows(run_dir / "whole_cloud_candidates" / "whole_cloud_candidates_manifest.jsonl")
+
+        return {
+            "staged_package_count": len(package_dirs),
+            "staged_pdf_count": len(staged_pdfs),
+            "live_run_dir": live_run_dir,
+            "live_artifact_count": live_artifact_count,
+            "live_last_write": live_last_write,
+            "inferred_cloudhammer_page_count": inferred_pages,
+            "inferred_cloudhammer_candidate_count": inferred_candidates,
+        }
+
     def copy_package_source(source_path: Path, destination_dir: Path) -> int:
         destination_dir.mkdir(parents=True, exist_ok=True)
         if source_path.is_dir():
@@ -952,6 +995,14 @@ def create_app(
             populate_status=store.data.populate_status or {},
         )
 
+    @app.get("/workspace/populate/status")
+    def populate_status():
+        project = active_project()
+        current = load_project_store(project)
+        status = dict(current.data.populate_status or {})
+        status.update(summarize_populate_artifacts(project, current))
+        return jsonify(status)
+
     @app.post("/packages/import")
     def import_package():
         current = load_project_store()
@@ -1182,8 +1233,8 @@ def create_app(
         current = load_project_store()
         current.update_populate_status(
             state="running",
-            stage="cloudhammer_inference",
-            message="Running CloudHammer live inference for staged drawing packages.",
+            stage="drawing_analysis",
+            message="Analyzing staged drawing packages.",
             started_at=utc_timestamp(),
             finished_at="",
             package_count=0,
@@ -1205,7 +1256,7 @@ def create_app(
             current.update_populate_status(
                 state="running",
                 stage="scan",
-                message="Scanning staged packages with live CloudHammer whole-cloud candidates.",
+                message="Scanning staged packages with detected revision regions.",
                 **cloudhammer_result.to_status(),
             )
             cloud_client = ManifestCloudInferenceClient(cloudhammer_result.candidate_manifest)
@@ -1226,7 +1277,7 @@ def create_app(
             refreshed.update_populate_status(
                 state="done",
                 stage="complete",
-                message="Workspace is populated with live CloudHammer detections and ready for review.",
+                message="Workspace is populated with detected revision regions and ready for review.",
                 finished_at=utc_timestamp(),
                 package_count=len(refreshed.data.revision_sets),
                 document_count=len(refreshed.data.documents),

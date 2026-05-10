@@ -63,7 +63,12 @@
         <div class="panel-header">
           <span class="panel-title">Project Files and Packages</span>
           {% if active_project %}
-            <form class="js-generate-form" method="post" action="{{ url_for('populate_workspace') }}">
+            <form
+              class="js-generate-form js-populate-form"
+              method="post"
+              action="{{ url_for('populate_workspace') }}"
+              data-status-url="{{ url_for('populate_status') }}"
+            >
               {{ csrf_field()|safe }}
               <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating...">Populate Workspace</button>
             </form>
@@ -72,38 +77,41 @@
           {% endif %}
         </div>
         <div class="panel-body package-panel-body">
-          {% if populate_status %}
+          {% if active_project %}
             {% set populate_state = populate_status.get("state", "idle") %}
-            <div class="populate-status populate-status-{{ populate_state }}">
+            <div class="populate-status populate-status-{{ populate_state }}" data-populate-status-url="{{ url_for('populate_status') }}">
               <div class="populate-status-main">
                 <div>
                   <span class="form-label">Populate status</span>
-                  <div class="populate-status-title">{{ populate_status.get("message", "Workspace population has not run yet.") }}</div>
+                  <div class="populate-status-title" data-populate-message>{{ populate_status.get("message", "Workspace population has not run yet.") }}</div>
+                  <div class="populate-status-detail" data-populate-detail></div>
                 </div>
                 <span class="badge badge-{{ 'accepted' if populate_state == 'done' else 'rejected' if populate_state == 'failed' else 'pending' }}">
-                  <span class="badge-dot"></span>{{ populate_state|replace("_", " ")|title }}
+                  <span class="badge-dot"></span><span data-populate-state>{{ populate_state|replace("_", " ")|title }}</span>
                 </span>
               </div>
-              {% if populate_state == "running" %}
-                <div class="progress-bar-track populate-progress">
-                  <div class="progress-bar-fill progress-bar-indeterminate"></div>
-                </div>
-              {% endif %}
+              <div class="progress-bar-track populate-progress" data-populate-progress-wrap {% if populate_state != "running" %}hidden{% endif %}>
+                <div class="progress-bar-fill progress-bar-indeterminate"></div>
+              </div>
               <div class="populate-status-grid">
-                <span>Stage <strong>{{ populate_status.get("stage", "n/a")|replace("_", " ")|title }}</strong></span>
-                <span>Packages <strong>{{ populate_status.get("package_count", 0) }}</strong></span>
-                <span>Documents <strong>{{ populate_status.get("document_count", 0) }}</strong></span>
-                <span>Sheets <strong>{{ populate_status.get("sheet_count", 0) }}</strong></span>
-                <span>Clouds <strong>{{ populate_status.get("cloud_count", 0) }}</strong></span>
-                <span>Changes <strong>{{ populate_status.get("change_item_count", 0) }}</strong></span>
-                <span>Cache hits <strong>{{ populate_status.get("cache_hits", 0) }}</strong></span>
+                <span>Stage <strong data-populate-field="stage">{{ populate_status.get("stage", "n/a")|replace("_", " ")|title }}</strong></span>
+                <span>Packages <strong data-populate-field="package_count">{{ populate_status.get("package_count", 0) }}</strong></span>
+                <span>Documents <strong data-populate-field="document_count">{{ populate_status.get("document_count", 0) }}</strong></span>
+                <span>Sheets <strong data-populate-field="sheet_count">{{ populate_status.get("sheet_count", 0) }}</strong></span>
+                <span>Clouds <strong data-populate-field="cloud_count">{{ populate_status.get("cloud_count", 0) }}</strong></span>
+                <span>Changes <strong data-populate-field="change_item_count">{{ populate_status.get("change_item_count", 0) }}</strong></span>
+                <span>Cache hits <strong data-populate-field="cache_hits">{{ populate_status.get("cache_hits", 0) }}</strong></span>
                 {% if populate_status.get("cloudhammer_page_count") is not none %}
-                  <span>CloudHammer pages <strong>{{ populate_status.get("cloudhammer_page_count", 0) }}</strong></span>
-                  <span>CloudHammer candidates <strong>{{ populate_status.get("cloudhammer_candidate_count", 0) }}</strong></span>
+                  <span>Analyzed pages <strong>{{ populate_status.get("cloudhammer_page_count", 0) }}</strong></span>
+                  <span>Detected regions <strong>{{ populate_status.get("cloudhammer_candidate_count", 0) }}</strong></span>
                 {% endif %}
+                <span>Staged PDFs <strong data-populate-field="staged_pdf_count">0</strong></span>
+                <span>Live artifacts <strong data-populate-field="live_artifact_count">0</strong></span>
               </div>
               {% if populate_status.get("error") %}
-                <div class="populate-status-error">{{ populate_status.get("error") }}</div>
+                <div class="populate-status-error" data-populate-error>{{ populate_status.get("error") }}</div>
+              {% else %}
+                <div class="populate-status-error" data-populate-error hidden></div>
               {% endif %}
             </div>
           {% endif %}

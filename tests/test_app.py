@@ -1682,6 +1682,56 @@ def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
     assert store.data.populate_status["cloudhammer_candidate_count"] == 1
 
 
+def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Path):
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    input_dir = workspace_dir / "input"
+    write_minimal_drawing_pdf(input_dir / "Revision #1 - Test" / "drawing.pdf")
+    run_dir = workspace_dir / "outputs" / "cloudhammer_live" / "run_test"
+    run_dir.mkdir(parents=True)
+    (run_dir / "pages_manifest.jsonl").write_text(json.dumps({"page_kind": "drawing"}) + "\n", encoding="utf-8")
+    candidates_dir = run_dir / "whole_cloud_candidates"
+    candidates_dir.mkdir()
+    (candidates_dir / "whole_cloud_candidates_manifest.jsonl").write_text(json.dumps({"candidate_id": "c1"}) + "\n", encoding="utf-8")
+    store = WorkspaceStore(workspace_dir).load()
+    store.update_populate_status(
+        state="running",
+        stage="drawing_analysis",
+        message="Analyzing staged drawing packages.",
+    )
+
+    response = client.get("/workspace/populate/status")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["state"] == "running"
+    assert payload["staged_pdf_count"] == 1
+    assert payload["staged_package_count"] == 1
+    assert payload["live_artifact_count"] == 2
+    assert payload["inferred_cloudhammer_page_count"] == 1
+    assert payload["inferred_cloudhammer_candidate_count"] == 1
+
+
+def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):
+    app = create_app(tmp_path / "seed-workspace")
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    response = client.get("/overview")
+
+    assert response.status_code == 200
+    assert b"js-populate-form" in response.data
+    assert b'data-status-url="/workspace/populate/status"' in response.data
+    assert b'data-populate-status-url="/workspace/populate/status"' in response.data
+    assert b"Staged PDFs" in response.data
+    assert b"Live artifacts" in response.data
+
+
 def test_review_routes_reject_invalid_status_and_external_redirect(workspace_copy):
     app = create_app(workspace_copy)
     client = app.test_client()

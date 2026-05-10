@@ -148,7 +148,9 @@ Fresh client project flow with live CloudHammer Populate:
 - Expected output/artifact: Populate writes CloudHammer live artifacts under
   the selected project workspace at `outputs/cloudhammer_live/run_*/`, then
   imports the generated `whole_cloud_candidates_manifest.jsonl` into normal
-  app review items.
+  app review items. While Populate is running, Overview polls
+  `/workspace/populate/status` and should show staged PDF count plus live
+  artifact count before final package/sheet/change counts appear.
 - Safety: local inference/product workflow. Browser-selected PDF files upload
   in 8 MiB chunks and are reconstructed in the selected app workspace. Manual
   folder import copies PDF files, not arbitrary sidecar files. It writes

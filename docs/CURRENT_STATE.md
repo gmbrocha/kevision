@@ -27,6 +27,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   `CloudHammer/runs/cloudhammer_roi-symbol-text-fp-hn-20260502/weights/best.pt`,
   grouping profile `review_v1`, and whole-cloud export into the selected app
   project's `outputs/cloudhammer_live/` folder.
+- The Overview page now polls `/workspace/populate/status` during Populate so
+  the browser shows staged PDF count, live artifact count, and completion/fail
+  state while CloudHammer runs inside long synchronous backend work.
 - Handoff hardening pass is complete for the current web app surface: review
   status writes are validated, form redirects are constrained to local paths,
   project-root asset serving is limited to generated image assets, manual

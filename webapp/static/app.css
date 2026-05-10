@@ -660,6 +660,13 @@ input, textarea, select { font-family: inherit; }
   font-weight: var(--weight-medium);
 }
 
+.populate-status-detail {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
 .populate-status-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(90px, 1fr));

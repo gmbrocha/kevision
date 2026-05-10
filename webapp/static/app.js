@@ -94,11 +94,132 @@ function bindReviewShortcuts() {
 function bindGenerateForms() {
   document.querySelectorAll(".js-generate-form").forEach((form) => {
     if (form.classList.contains("js-chunked-upload-form")) return;
+    if (form.classList.contains("js-populate-form")) return;
     form.addEventListener("submit", () => {
       const button = form.querySelector(".js-generate-button");
       if (!button) return;
       button.disabled = true;
       button.textContent = button.dataset.loadingText || "Working...";
+    });
+  });
+}
+
+function bindPopulateWorkspace() {
+  const statusPanel = document.querySelector("[data-populate-status-url]");
+  const statusUrl = statusPanel?.dataset.populateStatusUrl || document.querySelector(".js-populate-form")?.dataset.statusUrl;
+  let pollTimer = null;
+
+  const titleCase = (value) =>
+    String(value || "n/a")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+  const setText = (selector, value) => {
+    const node = document.querySelector(selector);
+    if (node) node.textContent = value;
+  };
+
+  const setField = (name, value) => {
+    const node = document.querySelector(`[data-populate-field="${name}"]`);
+    if (node) node.textContent = value ?? 0;
+  };
+
+  const renderStatus = (payload) => {
+    if (!statusPanel || !payload) return;
+    const state = payload.state || "idle";
+    statusPanel.className = `populate-status populate-status-${state}`;
+    setText("[data-populate-message]", payload.message || "Workspace population has not run yet.");
+    setText("[data-populate-state]", titleCase(state));
+    setField("stage", titleCase(payload.stage || "n/a"));
+    setField("package_count", payload.package_count || 0);
+    setField("document_count", payload.document_count || 0);
+    setField("sheet_count", payload.sheet_count || 0);
+    setField("cloud_count", payload.cloud_count || 0);
+    setField("change_item_count", payload.change_item_count || 0);
+    setField("cache_hits", payload.cache_hits || 0);
+    setField("staged_pdf_count", payload.staged_pdf_count || 0);
+    setField("live_artifact_count", payload.live_artifact_count || 0);
+
+    const progress = document.querySelector("[data-populate-progress-wrap]");
+    if (progress) progress.hidden = state !== "running";
+
+    const detail = document.querySelector("[data-populate-detail]");
+    if (detail) {
+      const parts = [];
+      if (payload.staged_pdf_count) parts.push(`${payload.staged_pdf_count} staged PDF${payload.staged_pdf_count === 1 ? "" : "s"}`);
+      if (payload.live_artifact_count) parts.push(`${payload.live_artifact_count} live artifact${payload.live_artifact_count === 1 ? "" : "s"} written`);
+      if (payload.inferred_cloudhammer_page_count) parts.push(`${payload.inferred_cloudhammer_page_count} cataloged page rows`);
+      if (payload.inferred_cloudhammer_candidate_count) parts.push(`${payload.inferred_cloudhammer_candidate_count} candidate rows`);
+      detail.textContent = parts.join(" | ");
+    }
+
+    const error = document.querySelector("[data-populate-error]");
+    if (error) {
+      error.hidden = !payload.error;
+      error.textContent = payload.error || "";
+    }
+  };
+
+  const pollStatus = async ({ reloadWhenFinished = false } = {}) => {
+    if (!statusUrl) return null;
+    const response = await fetch(statusUrl, { headers: { Accept: "application/json" } });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    renderStatus(payload);
+    if (reloadWhenFinished && (payload.state === "done" || payload.state === "failed")) {
+      window.location.reload();
+    }
+    return payload;
+  };
+
+  const startPolling = ({ reloadWhenFinished = false } = {}) => {
+    if (pollTimer || !statusUrl) return;
+    pollStatus({ reloadWhenFinished }).catch(() => {});
+    pollTimer = window.setInterval(() => {
+      pollStatus({ reloadWhenFinished }).catch(() => {});
+    }, 3000);
+  };
+
+  if (statusPanel && statusUrl) {
+    const state = document.querySelector("[data-populate-state]")?.textContent?.trim().toLowerCase();
+    if (state === "running") startPolling({ reloadWhenFinished: true });
+  }
+
+  document.querySelectorAll(".js-populate-form").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector(".js-generate-button");
+      const originalButtonText = button ? button.textContent : "";
+      if (button) {
+        button.disabled = true;
+        button.textContent = button.dataset.loadingText || "Populating...";
+      }
+      renderStatus({
+        state: "running",
+        stage: "request_started",
+        message: "Populate request sent. Keeping this page updated while drawing analysis runs.",
+      });
+      startPolling({ reloadWhenFinished: true });
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "text/html" },
+        });
+        if (!response.ok) throw new Error("Populate failed to start.");
+        window.location.reload();
+      } catch (error) {
+        renderStatus({
+          state: "failed",
+          stage: "request_failed",
+          message: error.message || "Populate request failed.",
+          error: error.message || "Populate request failed.",
+        });
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalButtonText;
+        }
+      }
     });
   });
 }
@@ -482,6 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindQueueSelection();
   bindReviewShortcuts();
   bindChunkedUploadForms();
+  bindPopulateWorkspace();
   bindGenerateForms();
   bindFilePickerSummaries();
   bindFolderDialogs();
