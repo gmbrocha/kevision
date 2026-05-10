@@ -1,16 +1,20 @@
 # ScopeLedger Roadmap
 
-Status: canonical application roadmap as of 2026-05-02.
+Status: canonical application roadmap as of 2026-05-10.
 
 Detailed application docs live in `docs/`. Cloud detection details live in
 `CloudHammer_v2/`.
 
 ## Active Pivot
 
-The active blocker is the CloudHammer v2 eval pivot: use the human-audited
-`page_disjoint_real` baseline and reviewed mismatch buckets to run
-postprocessing diagnostics and prepare guarded candidate pools before more
-detector training or synthetic data generation.
+The active application priority is the private client handoff: keep the app
+registry clean, create a real project from `/projects`, stage drawing packages
+through browser upload or allowed server-local import, run Populate, and verify
+the review/export surfaces behind Cloudflare Access.
+
+CloudHammer_v2 training/eval work is paused only for this handoff pass. Resume
+afterward at the crop-inspection return point documented in
+`docs/CURRENT_STATE.md` and `FINDINGS_FIRST_REAL_RUN.md`.
 
 Completed foundation:
 
@@ -23,7 +27,7 @@ Completed foundation:
    human-audited labels.
 6. Bucket the `77` baseline mismatch rows in a durable review log.
 
-Current priority:
+CloudHammer return priority:
 
 1. Resolve or accept the `4` non-accepted GPT-5.5 crop-precheck rows, then use
    the `28` GPT-accepted crop-ready postprocessed candidates for crop-based
@@ -40,11 +44,13 @@ Current priority:
 
 ## Product Sequence
 
-1. **Demo-grade workbook path:** already proven as a rough end-to-end flow from
-   CloudHammer candidates into backend/export workbook output.
+1. **Private handoff app path:** current work; empty app registry, project
+   creation, chunked PDF upload/import, live Populate, review surfaces, and
+   workbook/review packet export are the near-term product flow.
 2. **First-pass text/OCR extraction:** exists as review scaffolding, but not as
-   solved scope understanding.
-3. **CloudHammer_v2 eval/reliability pivot:** current work; use the
+   solved scope understanding. First real-run observations show broad OCR
+   context and symbol/legend interpretation still need work.
+3. **CloudHammer_v2 eval/reliability pivot:** paused during handoff; use the
    human-audited full-page eval to clarify model-vs-pipeline behavior and create
    guarded next-loop candidate pools.
 4. **CloudHammer_v2 training improvement:** resume only after the frozen real

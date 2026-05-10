@@ -1,6 +1,6 @@
 # ScopeLedger Runbook
 
-Status: application-level runbook stub as of 2026-05-02.
+Status: application-level runbook as of 2026-05-10.
 
 Use this file for verified application-level commands only. Do not invent
 commands here.

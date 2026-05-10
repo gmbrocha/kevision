@@ -1,6 +1,6 @@
 # Security Policy
 
-Status: project-level security policy summary as of 2026-05-02.
+Status: project-level security policy summary as of 2026-05-10.
 
 ## Current Project Exception
 
@@ -20,6 +20,17 @@ Security assumptions should be revisited when:
 - the project data changes
 - live sensitive documents are introduced under different terms
 - deployment shifts from local/dev usage to a broader operating workflow
+
+## Current Private Handoff Posture
+
+The current remote handoff route is `ledger.nezcoupe.net` behind Cloudflare
+Access and a local loopback Waitress server. Cloudflare Access is the
+authentication gate for this pass; the app is not a public SaaS deployment.
+
+Production mode requires `SCOPELEDGER_WEBAPP_SECRET`, restricts manual
+server-path imports to `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`, requires CSRF tokens
+for POST requests, and sets secure session cookies plus release security
+headers.
 
 ## Handling Rules
 

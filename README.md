@@ -19,12 +19,15 @@ folder is legacy/reference only unless code is explicitly audited and imported.
 2. `ROADMAP.md`
 3. `docs/ARCHITECTURE.md`
 4. `docs/MODULES.md`
-5. `CloudHammer_v2/README.md`
+5. `docs/DECISIONS.md`
+6. `CloudHammer_v2/README.md`
 
 ## Canonical Docs
 
 - `PRODUCT_AND_DELIVERY.md`: product and deliverable intent
 - `ROADMAP.md`: current sequence and milestones
+- `FINDINGS_FIRST_REAL_RUN.md`: first real app-run observations and follow-up
+  triage; not reviewed labels or training data
 - `docs/`: application architecture, data flow, security, runbook, decisions,
   deployment, and client workflow
 - `docs/references/`: non-canonical reference artifacts such as walkthroughs,

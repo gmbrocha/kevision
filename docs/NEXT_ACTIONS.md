@@ -1,43 +1,28 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-08.
+Status: operational queue as of 2026-05-10.
 
 ## Now
 
-1. Finish docs/root cleanup if not complete.
-   - Current status: substantially complete. Root canonical docs are reduced to
-     `README.md`, `AGENTS.md`, `PRODUCT_AND_DELIVERY.md`, `ROADMAP.md`, and
-     `docs/`. `docs/SECURITY_PRIVACY_POLICY.md` remains as a compatibility stub.
-2. Add/verify AGENTS.md and Cursor rules.
-   - Current status: verified by project owner on 2026-05-02.
-3. Run report-only experiments retention review.
-   - Current status: completed at
-     `docs/archive_cleanup_audits/experiments_retention_review_2026_05_02.md`.
-     Approved lessons were promoted to CloudHammer_v2 docs.
-4. Run model-vs-pipeline audit.
-   - Current status: completed at
-     `CloudHammer_v2/docs/MODEL_VS_PIPELINE_AUDIT_REPORT_2026_05_02.md`.
-5. Build touched-page registry dry run.
-   - Current status: completed at
-     `CloudHammer_v2/outputs/touched_page_registry_20260502/touched_page_registry_summary.md`.
-6. Select `page_disjoint_real` candidates.
-   - Current status: completed. `17` untouched eligible pages were frozen at
-     `CloudHammer_v2/eval/page_disjoint_real/page_disjoint_real_manifest.jsonl`.
-7. Correct GPT-provisional full-page label handling.
-   - Current status: corrected. GPT full-page labels are provisional only.
-     `page_disjoint_real` eval truth should be confirmed directly.
-   - Accidental GPT-5.5 full-page outputs are scratch/do-not-score at
-     `CloudHammer_v2/eval/page_disjoint_real_gpt55/DO_NOT_SCORE.md`.
-8. Run baseline eval: `model_only_tiled` vs `pipeline_full`.
-   - Current status: completed against human-audited `page_disjoint_real`
-     truth. Current report:
-     `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_04.md`.
-   - Prior GPT-provisional report:
-     `CloudHammer_v2/docs/BASELINE_EVAL_REPORT_2026_05_02.md`.
-9. Only after real baseline exists, implement `synthetic_diagnostic`.
-   - Current status: grammar/spec exists; keep generation deferred until the
-     reviewed baseline mismatch summary, postprocessing diagnostics, and
-     candidate pools are trustworthy enough to steer diagnostics.
+1. Finish the private client handoff pass.
+   - Confirm Cloudflare Access allowed-user policy on `ledger.nezcoupe.net`
+     from a fresh/incognito browser session before sharing the link.
+   - Start from the intentionally empty app registry, create the next real
+     project in `/projects`, stage package PDFs, and run Populate.
+   - Verify Overview, Drawings, Latest Set, Review Changes, Diagnostics,
+     Export Workbook, and Review Packet after Populate completes.
+2. Watch the fixes made after the first real exploratory run.
+   - Index pages must stay context-only.
+   - Previous/current comparison must match the same sheet from a strictly
+     earlier real revision set.
+   - The exploratory project was reset; observations live in
+     `FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or training data.
+3. After the handoff pass, resume CloudHammer_v2 where it was paused:
+   - Return point:
+     `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
+   - Next task: resolve or accept rows `20`, `23`, `24`, and `29`, then decide
+     the next internal pipeline-consumption/training step from that existing
+     path.
 
 ## Immediate Review Queues
 
@@ -132,6 +117,11 @@ Status: operational queue as of 2026-05-08.
 
 ## Later
 
+- Polish first-run product findings from `FINDINGS_FIRST_REAL_RUN.md`,
+  especially OCR/context extraction, symbol/legend lookup, geometry split/merge
+  behavior, review UI controls, and zoom legibility.
+- Add background Populate jobs and durable process supervision if the handoff
+  becomes a longer-lived deployment.
 - Import approved legacy code into CloudHammer_v2 after audit.
 - Archive runtime noise.
 - Decide old experiment retention.
@@ -141,10 +131,13 @@ Status: operational queue as of 2026-05-08.
 
 ## Current Blockers
 
-- Baseline overlay mismatch review is complete; first non-frozen
+- Private handoff readiness now depends on Cloudflare Access confirmation and
+  a clean fresh-project populate/review smoke, not on seeded demo data.
+- CloudHammer_v2 training remains paused at the crop-precheck return point.
+  Baseline overlay mismatch review is complete; first non-frozen
   postprocessing diagnostic review, geometry review, apply preview, derived
   manifest, behavior comparison, crop regeneration, and GPT-5.5 crop precheck
-  are complete. The next blocker is resolving or accepting the `4`
+  are complete. The next CloudHammer blocker is resolving or accepting the `4`
   non-accepted crop-precheck rows before choosing whether the `28` accepted
   crop-ready candidates should feed crop-based inspection/export wiring or
   another contained pipeline-consumption comparison.

@@ -1,6 +1,6 @@
 # Product And Delivery
 
-Status: canonical product/deliverable summary as of 2026-05-02. Historical
+Status: canonical product/deliverable summary as of 2026-05-10. Historical
 source content is archived under `docs/archive/docs_archive_2026_05_02/`.
 
 ## Product Goal
@@ -25,10 +25,24 @@ Expected deliverables include:
 
 ## Current Delivery State
 
-- A rough demo-grade workbook path has been proven.
-- First-pass local text/OCR extraction exists as review scaffolding.
-- Cloud detection reliability is the active blocker.
-- `CloudHammer_v2` is now the active detection/eval subsystem.
+- A private client-handoff app path is active at `ledger.nezcoupe.net` behind
+  Cloudflare Access and a local Waitress server.
+- The app project registry intentionally starts empty; a real project should
+  be created in `/projects`, then populated from uploaded PDFs or allowed
+  server-local revision packages.
+- Populate runs the current local drawing-analysis pipeline and writes normal
+  review items into the app. These detections are evidence for human review,
+  not automatic scope approval.
+- Large remote PDF uploads use chunked browser upload, then reconstruction
+  inside the active app project workspace.
+- First-pass text/OCR extraction exists as review scaffolding, but broad OCR
+  context and symbol/legend interpretation remain active quality risks.
+- First real app-run findings are captured in `FINDINGS_FIRST_REAL_RUN.md`;
+  those notes are observational only and are not training labels or reviewed
+  client scope.
+- `CloudHammer_v2` remains the active detection/eval/training policy
+  workspace. Training/eval work resumes after handoff at the documented
+  crop-inspection return point.
 
 ## Trust Principle
 

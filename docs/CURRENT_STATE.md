@@ -11,6 +11,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 
 ## Application Project Registry Status
 
+- Current app registry state is intentionally empty after clearing the
+  throwaway first real-run project. `/projects` is the expected first screen
+  before creating the next real client/handoff project.
 - The web app no longer seeds a `Demo Project` automatically when the project
   registry is missing or empty.
 - Empty app registry state is valid: `/projects` and the main read-only
@@ -59,6 +62,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   has no remaining actionable findings after documenting controlled
   subprocess calls and non-security stable IDs. Uploaded unreadable PDFs now
   become high-severity diagnostics instead of crashing scans.
+- First real app-run observations are captured in
+  `FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then reset; its
+  notes are not reviewed labels, training data, or client-approved scope.
 - CloudHammer_v2 training/eval work remains paused for client handoff work and
   should resume afterward at the existing crop-precheck blocker:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
@@ -247,24 +253,19 @@ human confirmation/correction before training use.
 
 ## Immediate Next Steps
 
-- AGENTS.md and Cursor rules were manually verified against the current docs.
-- Resolve or accept the `4` non-accepted GPT-5.5 crop-precheck rows, then use
-  the `28` GPT-accepted crop-ready candidates for crop-based inspection/export
-  wiring if appropriate; keep frozen `page_disjoint_real` pages as
-  measurement-only.
-- Triage the two `truth_followup` rows as a separate frozen-truth recheck task.
-- Do not create new CloudHammer diagnostic queues unless they pass the
-  stoplight rule in the diagnostic scope reset.
-- Define and generate the next candidate pools without treating them as eval
-  subsets:
-  `full_page_review_candidates_from_touched`,
-  `mining_safe_hard_negative_candidates`,
-  `synthetic_background_candidates`, and
-  `future_training_expansion_candidates`.
-- Apply the review fatigue guardrail before asking for any remaining
-  style-balance diagnostic touched-real review; the queued set has `12` pages,
-  so GPT-5.5 sample or full prefill should be considered first.
-- Human-confirm/correct the GPT-5.5 cropped supplement prelabels.
-- Preserve frozen `page_disjoint_real` pages as eval-only.
-- Decide the next CloudHammer training cycle only after postprocessing
-  diagnostics and candidate-pool review clarify the remaining training signal.
+- Confirm Cloudflare Access allowed-user policy for `ledger.nezcoupe.net`
+  before sharing the client link.
+- Create the next real project from `/projects`, stage PDFs through browser
+  upload or the allowed `revision_sets/` import root, and run Populate.
+- During the next populate/review, verify that index pages do not create review
+  items and that previous/current comparison only matches the same sheet from
+  a strictly earlier revision set.
+- Use `FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI polish,
+  OCR/context extraction, geometry split/merge work, symbol/legend handling,
+  and zoom legibility. Do not treat it as training ground truth.
+- After client handoff work, resume CloudHammer_v2 at the crop-precheck return
+  point above: resolve or accept rows `20`, `23`, `24`, and `29`, then decide
+  the next pipeline-consumption/training step from that existing path.
+- Preserve frozen `page_disjoint_real` pages as eval-only and do not create
+  new CloudHammer diagnostic queues unless they pass the stoplight rule in the
+  diagnostic scope reset.

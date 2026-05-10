@@ -1,16 +1,19 @@
 # Client Workflow
 
-Status: client workflow summary as of 2026-05-02.
+Status: client workflow summary as of 2026-05-10.
 
 ## Workflow
 
-1. Intake drawing/revision package.
-2. Run detection/eval workflow to identify candidate revision-cloud regions.
-3. Verify uncertain detections and labels with GPT-prefilled provisional review
-   plus human confirmation/correction when queues are repetitive.
-4. Preserve crop/full-page evidence and relevant sheet context.
-5. Feed accepted evidence into backend/export workflow.
-6. Review workbook/app output before treating it as client-facing.
+1. Create or select an app project from `/projects`.
+2. Stage drawing/revision packages through browser PDF upload, browser folder
+   selection, or an allowed server-local import root.
+3. Run Populate to perform drawing analysis and create reviewable detected
+   revision regions.
+4. Review detected regions, visual evidence, sheet context, OCR/context text,
+   and previous/current comparisons.
+5. Accept or reject review items before using them as deliverable evidence.
+6. Generate and review workbook/review-packet output before treating it as
+   client-facing.
 
 ## Trust-But-Verify Principle
 
@@ -24,6 +27,8 @@ manual review. GPT-prefilled decisions are provisional until human accepted.
 ## References
 
 - Walkthrough exports live in `docs/references/`.
+- First real-run observations live in `FINDINGS_FIRST_REAL_RUN.md` and are
+  triage notes, not review labels.
 - Benchmark templates and response tracker files live in `docs/references/`
   unless later promoted into a specific runbook.
 - Meeting notes remain under `docs/meetings/` and are historical context, not

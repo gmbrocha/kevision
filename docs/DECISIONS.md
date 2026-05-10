@@ -157,6 +157,25 @@ Consequences / follow-up:
 - Existing project workspaces should be rescanned or repopulated to remove
   already-generated index-page review items.
 
+## 2026-05-10 - First Real App Run Findings Are Observational
+
+Decision: Preserve first real app-run notes in `FINDINGS_FIRST_REAL_RUN.md`,
+but do not treat that exploratory run as reviewed scope, training data, or
+CloudHammer_v2 label input.
+
+Reason: the throwaway project was used to check whether the handoff app could
+surface useful clouds and visible failure modes, not to create durable review
+decisions.
+
+Consequences / follow-up:
+
+- The project registry can stay empty for the next clean handoff project.
+- `FINDINGS_FIRST_REAL_RUN.md` is product triage input for UI polish,
+  OCR/context extraction, symbol/legend handling, split/merge behavior, and
+  zoom legibility.
+- CloudHammer_v2 work resumes from the existing crop-precheck return point
+  instead of starting a new mining pass from exploratory app output.
+
 ## 2026-05-09 - Handoff Webapp Hardening
 
 Decision: Before client handoff, keep the app local-first but harden the routes
