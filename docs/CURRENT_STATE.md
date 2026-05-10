@@ -30,6 +30,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - The Overview page now polls `/workspace/populate/status` during Populate so
   the browser shows staged PDF count, live artifact count, and completion/fail
   state while CloudHammer runs inside long synchronous backend work.
+- Drawing index pages are context only. The scanner keeps them available as
+  sheet metadata/context, but they are not eligible for detected-region review
+  items, and previous/current comparisons now require the same sheet number
+  from a strictly earlier real revision set.
 - Handoff hardening pass is complete for the current web app surface: review
   status writes are validated, form redirects are constrained to local paths,
   project-root asset serving is limited to generated image assets, manual

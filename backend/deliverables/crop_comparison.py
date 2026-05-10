@@ -7,6 +7,7 @@ import fitz
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from ..revision_state.models import CloudCandidate, RevisionSet, SheetVersion
+from ..revision_state.page_classification import sheet_is_index_like
 from ..utils import parse_mmddyyyy
 from ..workspace import WorkspaceStore
 
@@ -32,17 +33,34 @@ def find_previous_sheet_version(
     sheets: list[SheetVersion],
     revision_sets_by_id: dict[str, RevisionSet],
 ) -> SheetVersion | None:
-    current_rank = _sheet_rank(sheet, revision_sets_by_id)
+    if sheet_is_index_like(sheet):
+        return None
+    current_revision = revision_sets_by_id.get(sheet.revision_set_id)
+    current_set_number = current_revision.set_number if current_revision else 0
+    if current_set_number <= 1:
+        return None
     candidates = [
         candidate
         for candidate in sheets
         if candidate.id != sheet.id
         and candidate.sheet_id == sheet.sheet_id
-        and _sheet_rank(candidate, revision_sets_by_id) < current_rank
+        and not sheet_is_index_like(candidate)
+        and _is_prior_revision_set(candidate, current_set_number, revision_sets_by_id)
     ]
     if not candidates:
         return None
     return max(candidates, key=lambda candidate: _sheet_rank(candidate, revision_sets_by_id))
+
+
+def _is_prior_revision_set(
+    sheet: SheetVersion,
+    current_set_number: int,
+    revision_sets_by_id: dict[str, RevisionSet],
+) -> bool:
+    revision_set = revision_sets_by_id.get(sheet.revision_set_id)
+    if not revision_set or revision_set.set_number <= 0:
+        return False
+    return revision_set.set_number < current_set_number
 
 
 def build_cloud_comparison_image(

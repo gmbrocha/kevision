@@ -136,6 +136,27 @@ Consequences / follow-up:
 - Background jobs and resumable server-side run supervision remain follow-up
   work after the immediate handoff.
 
+## 2026-05-10 - Index Pages Are Context Only
+
+Decision: Drawing index pages remain available as context, but they are not
+eligible for detected-region review items or previous/current comparison
+matches.
+
+Reason: Index tables can contain real sheet numbers and revision-cloud symbols,
+which can make an index row masquerade as a drawing page. This produced bogus
+review crops and a false "previous" page inside a Revision 1 package.
+
+Consequences / follow-up:
+
+- Uploaded folders named `Revision Set 1` are parsed as revision set number
+  `1`, not `0`.
+- Scanner detection is skipped on index-like pages.
+- Previous/current comparison requires the same sheet number from a strictly
+  earlier real revision set; pages from the same package are not treated as
+  previous revisions.
+- Existing project workspaces should be rescanned or repopulated to remove
+  already-generated index-page review items.
+
 ## 2026-05-09 - Handoff Webapp Hardening
 
 Decision: Before client handoff, keep the app local-first but harden the routes

@@ -24,6 +24,7 @@ from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.projects import ProjectRecord, ProjectRegistry
 from backend.review import change_item_needs_attention
+from backend.revision_state.page_classification import sheet_is_index_like
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text
 from backend.workspace import WorkspaceStore
@@ -103,15 +104,6 @@ def compact_sheet_title(title: str) -> str:
     if len(normalized) > 120:
         return f"{normalized[:117].rstrip()}..."
     return normalized
-
-
-def sheet_is_index_like(sheet) -> bool:
-    title = " ".join((sheet.sheet_title or "").split()).upper()
-    excerpt = " ".join((getattr(sheet, "page_text_excerpt", "") or "").split()).upper()
-    combined = f"{title} {excerpt[:500]}"
-    if any(token in combined for token in ("SHEET INDEX", "CONFORMED SET", "PAGE NO. SHEET NO.", "SHEET NO. SHEET NAME")):
-        return True
-    return len(title) > 220 and title.count(" X ") >= 6
 
 
 def latest_real_sheet_version(sheet, all_sheets: list, revision_sets_by_id: dict) -> object | None:
@@ -790,6 +782,11 @@ def create_app(
         if previous_sheet:
             source_paths.append(store.resolve_path(previous_sheet.source_pdf))
         source_mtime = max((path.stat().st_mtime for path in source_paths if path.exists()), default=0)
+        comparison_code_mtime = max(
+            (project_root / "backend" / "deliverables" / "crop_comparison.py").stat().st_mtime,
+            (project_root / "backend" / "revision_state" / "page_classification.py").stat().st_mtime,
+        )
+        source_mtime = max(source_mtime, comparison_code_mtime)
         if output_path.exists() and output_path.stat().st_mtime >= source_mtime:
             return output_path
         generated = build_cloud_comparison_image(

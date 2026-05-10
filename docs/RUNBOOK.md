@@ -150,7 +150,9 @@ Fresh client project flow with live CloudHammer Populate:
   imports the generated `whole_cloud_candidates_manifest.jsonl` into normal
   app review items. While Populate is running, Overview polls
   `/workspace/populate/status` and should show staged PDF count plus live
-  artifact count before final package/sheet/change counts appear.
+  artifact count before final package/sheet/change counts appear. Drawing
+  index pages remain context only; they should not create review items or be
+  used as previous/current comparison sheets.
 - Safety: local inference/product workflow. Browser-selected PDF files upload
   in 8 MiB chunks and are reconstructed in the selected app workspace. Manual
   folder import copies PDF files, not arbitrary sidecar files. It writes

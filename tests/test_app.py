@@ -15,10 +15,12 @@ import backend.cli as cli_module
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult
+from backend.cloudhammer_client.schemas import CloudDetection
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.projects import ProjectRecord, ProjectRegistry
 from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
+from backend.revision_state.page_classification import sheet_is_index_like
 from backend.review import change_item_needs_attention
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
@@ -901,6 +903,101 @@ def test_crop_comparison_uses_previous_sheet_area(tmp_path: Path):
         right_mean = ImageStat.Stat(image.crop((image.width // 2 + 20, 60, image.width - 20, image.height - 20))).mean
     assert left_mean[0] > left_mean[2], "previous panel should use the red previous PDF"
     assert right_mean[2] > right_mean[0], "current panel should use the blue current PDF"
+
+
+def test_crop_comparison_requires_prior_real_revision_set():
+    from backend.deliverables.crop_comparison import find_previous_sheet_version
+
+    current_rev1 = SheetVersion(
+        id="current-rev1",
+        revision_set_id="rev-1",
+        source_pdf="current.pdf",
+        page_number=4,
+        sheet_id="AE102",
+        sheet_title="Second Floor Plan",
+        issue_date="10/10/2025",
+    )
+    same_package_index = SheetVersion(
+        id="index-rev1",
+        revision_set_id="rev-1",
+        source_pdf="current.pdf",
+        page_number=1,
+        sheet_id="AE102",
+        sheet_title="SHEET INDEX - CONFORMED SET PAGE NO. SHEET NO. SHEET NAME AE102 2ND FLOOR PLAN X",
+        issue_date="10/10/2025",
+    )
+    previous_real = SheetVersion(
+        id="real-rev1",
+        revision_set_id="rev-1",
+        source_pdf="previous.pdf",
+        page_number=4,
+        sheet_id="AE102",
+        sheet_title="Second Floor Plan",
+        issue_date="08/15/2025",
+    )
+    current_rev2 = SheetVersion(
+        id="current-rev2",
+        revision_set_id="rev-2",
+        source_pdf="current-rev2.pdf",
+        page_number=4,
+        sheet_id="AE102",
+        sheet_title="Second Floor Plan",
+        issue_date="10/10/2025",
+    )
+    revision_sets = {
+        "rev-1": RevisionSet(id="rev-1", label="Revision #1", source_dir="", set_number=1, set_date="10/10/2025"),
+        "rev-2": RevisionSet(id="rev-2", label="Revision #2", source_dir="", set_number=2, set_date="10/17/2025"),
+    }
+
+    assert find_previous_sheet_version(current_rev1, [same_package_index, current_rev1], revision_sets) is None
+
+    previous = find_previous_sheet_version(current_rev2, [same_package_index, previous_real, current_rev2], revision_sets)
+
+    assert previous == previous_real
+
+
+def test_scanner_treats_revision_set_upload_as_rev1_and_skips_index_clouds(tmp_path: Path):
+    class FakeCloudClient:
+        name = "fake_clouds"
+        cache_key = "fake_clouds"
+
+        def detect(self, *, page, sheet):
+            return [
+                CloudDetection(
+                    bbox=[60, 60, 120, 80],
+                    confidence=0.95,
+                    extraction_method="cloudhammer_manifest",
+                    nearby_text="Detected revision region",
+                )
+            ]
+
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision Set 1" / "package.pdf"
+    pdf_path.parent.mkdir(parents=True)
+    document = fitz.open()
+    index_page = document.new_page(width=600, height=800)
+    index_page.insert_text((60, 80), "SHEET INDEX - CONFORMED SET PAGE NO. SHEET NO. SHEET NAME AE102 2ND FLOOR PLAN X", fontsize=10)
+    index_page.insert_text((430, 720), "AE102", fontsize=14)
+    real_page = document.new_page(width=600, height=800)
+    real_page.insert_text((60, 80), "AE102 SECOND FLOOR PLAN PROVIDE NEW WALL PATCHING", fontsize=12)
+    real_page.insert_text((430, 720), "AE102", fontsize=14)
+    real_page.insert_text((430, 742), "SECOND FLOOR PLAN", fontsize=10)
+    document.save(pdf_path)
+    document.close()
+
+    store = RevisionScanner(input_dir, workspace_dir, cloud_inference_client=FakeCloudClient()).scan()
+
+    assert store.data.revision_sets[0].label == "Revision Set 1"
+    assert store.data.revision_sets[0].set_number == 1
+    assert len(store.data.sheets) == 2
+    index_sheet = next(sheet for sheet in store.data.sheets if sheet_is_index_like(sheet))
+    real_sheet = next(sheet for sheet in store.data.sheets if sheet.id != index_sheet.id)
+    assert index_sheet.status == "superseded"
+    assert real_sheet.status == "active"
+    assert len(store.data.clouds) == 1
+    assert store.data.clouds[0].sheet_version_id == real_sheet.id
+    assert {item.sheet_version_id for item in store.data.change_items} == {real_sheet.id}
 
 
 def test_revision_changelog_stacks_multiple_items_in_same_cloud(tmp_path: Path):

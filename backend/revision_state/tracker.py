@@ -12,9 +12,10 @@ from ..scope_extraction import extract_cloud_scope_text
 from ..workspace import WorkspaceStore
 from ..utils import DATE_PATTERN, choose_best_sheet_id, clean_display_text, normalize_text, parse_detail_ref, parse_mmddyyyy, stable_id
 from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, RevisionSet, SheetVersion, SourceDocument
+from .page_classification import sheet_is_index_like
 
-REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*#(?P<number>\d+)", re.IGNORECASE)
-SCOPE_EXTRACTION_CACHE_VERSION = 1
+REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*(?:#|Set)?\s*(?P<number>\d+)", re.IGNORECASE)
+SCOPE_EXTRACTION_CACHE_VERSION = 2
 
 
 def _preferred_sheet_prefixes(pdf_path: Path | None) -> tuple[str, ...]:
@@ -507,6 +508,12 @@ class RevisionScanner:
 
         updated: list[SheetVersion] = []
         for versions in grouped.values():
+            index_like_versions = [version for version in versions if sheet_is_index_like(version)]
+            real_versions = [version for version in versions if not sheet_is_index_like(version)]
+            if real_versions:
+                for version in index_like_versions:
+                    updated.append(replace(version, status="superseded"))
+                versions = real_versions
             ranked = sorted(
                 versions,
                 key=lambda item: (
@@ -551,6 +558,9 @@ class RevisionScanner:
         default client returns no detections and the scanner relies on
         narrative/index-derived change records only.
         """
+
+        if sheet_is_index_like(sheet):
+            return []
 
         detections = self.cloud_inference_client.detect(page=page, sheet=sheet)
         candidates: list[CloudCandidate] = []
