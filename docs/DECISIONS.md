@@ -17,6 +17,9 @@ Consequences / follow-up:
 - `ChangeItem` now carries explicit queue order and supersession metadata.
 - Superseded parents are hidden from normal queue, export, pricing, bulk
   review, and review packet surfaces but remain in `workspace.json`.
+- Direct superseded-parent URLs redirect to the first replacement item when
+  possible, and review/crop/correction mutation endpoints reject superseded
+  parents.
 - `Correct overmerge` records an internal `split` event and inserts multiple
   pending child items at the parent queue position.
 - `Correct partial` records an internal `resize` event and inserts one pending
@@ -36,8 +39,9 @@ PowerShell environment each time.
 Consequences / follow-up:
 
 - Process environment values still take precedence over local env files.
-- The loader is intentionally narrow: only known ScopeLedger/OpenAI keys are
-  accepted, and values are not printed or exposed in the UI.
+- The loader is intentionally narrow: only known ScopeLedger/OpenAI/live
+  CloudHammer runtime keys are accepted, and values are not printed or exposed
+  in the UI.
 - Root and nested `.env` files are ignored by Git; `.env.example` files remain
   allowed if a sample is needed later.
 

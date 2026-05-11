@@ -48,8 +48,8 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - At app startup, ScopeLedger loads allowlisted local environment defaults from
   repo-root `.env` and the existing legacy `CloudHammer/.env` if present.
   Already-set process environment variables still win. This supports the
-  server-side `OPENAI_API_KEY` and handoff app settings without exposing values
-  in the UI or committing secrets.
+  server-side `OPENAI_API_KEY`, handoff app settings, and live CloudHammer
+  runtime keys without exposing values in the UI or committing secrets.
 - Review actions now append internal `review_events` records to the active
   project `workspace.json`. These events preserve the original detected
   candidate, optional Pre Review metadata, and the human final result for
@@ -64,7 +64,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Review items now have explicit queue ordering and soft supersession fields.
   Superseded parent items remain in `workspace.json` for audit/review-event
   history but are hidden from the normal queue, counts, bulk review, workbook
-  export, pricing candidates, and review packet.
+  export, pricing candidates, and review packet. Direct parent URLs redirect
+  to replacement items when possible, and mutation endpoints reject superseded
+  parents.
 - The review page now supports `Correct overmerge` and `Correct partial` from
   the current crop image. Overmerge correction creates multiple pending child
   review items in the same queue position and records an internal `split`
@@ -103,10 +105,13 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   possible and by automatic stale cleanup under `.chunked_uploads/`. Uploads
   are capped by `SCOPELEDGER_MAX_UPLOAD_BYTES`, defaulting to `2 GiB`.
 - Pre-release app audit is complete for the private handoff surface. Declared
-  dependencies and the current runtime environment pass `pip-audit`; Bandit
-  has no remaining actionable findings after documenting controlled
-  subprocess calls and non-security stable IDs. Uploaded unreadable PDFs now
-  become high-severity diagnostics instead of crashing scans.
+  dependencies and the current runtime environment pass `pip-audit` after
+  pinning `urllib3>=2.7.0`; the local CUDA `torch` wheels are skipped by
+  `pip-audit` because they are not PyPI distributions. Bandit has no remaining
+  actionable findings after documenting controlled subprocess calls,
+  non-security stable IDs, and explicit usage-parsing fallback behavior.
+  Uploaded unreadable PDFs now become high-severity diagnostics instead of
+  crashing scans.
 - First real app-run observations are captured in
   `FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then reset; its
   notes are not reviewed labels, training data, or client-approved scope.

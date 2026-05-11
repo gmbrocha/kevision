@@ -34,7 +34,9 @@ headers.
 
 At startup, the app loads only allowlisted local environment defaults from
 repo-root `.env` and `CloudHammer/.env`; process environment values take
-precedence. Local env files are operator secrets and must remain uncommitted.
+precedence. The allowlist includes OpenAI, handoff serve settings, and live
+CloudHammer runtime override keys. Local env files are operator secrets and
+must remain uncommitted.
 
 Server-side Pre Review is active only when explicitly configured with
 `SCOPELEDGER_PREREVIEW_ENABLED=1` and `OPENAI_API_KEY`. In that mode, detected
@@ -50,6 +52,11 @@ operational records: they can include candidate geometry, OCR/context text,
 reviewer notes, reviewer identity from Cloudflare Access headers, and
 provisional AI metadata. They must not be committed or shared as client-facing
 deliverables.
+
+The current audit baseline requires `urllib3>=2.7.0`. Local CUDA `torch`,
+`torchaudio`, and `torchvision` wheels may be skipped by `pip-audit` because
+they are not PyPI distributions; treat those as separately managed runtime
+dependencies.
 
 ## Handling Rules
 

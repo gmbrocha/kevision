@@ -82,7 +82,7 @@ class LiveCloudHammerPipeline:
         if not raw_model_path.is_absolute():
             raw_model_path = self.repo_root / raw_model_path
         self.model_path = raw_model_path.resolve()
-        self.timeout_seconds = timeout_seconds or int(os.getenv("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS", str(DEFAULT_TIMEOUT_SECONDS)))
+        self.timeout_seconds = timeout_seconds or _configured_timeout_seconds()
 
     def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
         input_dir = input_dir.resolve()
@@ -282,6 +282,17 @@ def _count_drawing_page_rows(path: Path) -> int:
 def _write_empty_jsonl(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("", encoding="utf-8")
+
+
+def _configured_timeout_seconds() -> int:
+    raw_value = os.getenv("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS", str(DEFAULT_TIMEOUT_SECONDS)).strip()
+    try:
+        value = int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS must be an integer second count.") from exc
+    if value <= 0:
+        raise RuntimeError("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS must be greater than zero.")
+    return value
 
 
 def _decode_subprocess_output(value: str | bytes | None) -> str:

@@ -15,7 +15,7 @@ import pytest
 import backend.cli as cli_module
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
-from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult
+from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult, LiveCloudHammerPipeline
 from backend.cloudhammer_client.schemas import CloudDetection
 from backend.crop_adjustments import CROP_ADJUSTMENT_KEY, crop_box_to_page_box, crop_adjustment_payload, selected_review_page_boxes
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
@@ -850,9 +850,11 @@ def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path
     assert parent.superseded_reason == "partial_correction"
     assert len(parent.superseded_by_change_item_ids) == 1
     child = loaded.get_change_item(parent.superseded_by_change_item_ids[0])
+    child_cloud = loaded.get_cloud(child.cloud_candidate_id)
     assert child.parent_change_item_id == "change-1"
     assert child.queue_order > parent.queue_order
     assert GEOMETRY_CORRECTION_KEY in child.provenance
+    assert selected_review_page_boxes(child, child_cloud) == child.provenance[GEOMETRY_CORRECTION_KEY]["page_boxes"]
     assert loaded.data.review_events[0].action == "resize"
 
 
@@ -900,6 +902,89 @@ def test_geometry_correction_children_export_as_normal_review_items(tmp_path: Pa
     assert [row["change_id"] for row in approved_rows] == [child.id]
     assert approved_rows[0]["text"] == "Corrected child scope"
     assert packet.item_count == 1
+
+
+def test_superseded_parent_detail_redirects_and_review_actions_are_blocked(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    result = apply_geometry_correction(
+        store,
+        store.data.change_items[0],
+        store.data.clouds[0],
+        store.data.sheets[0],
+        mode="partial",
+        crop_boxes=[[30, 20, 70, 50]],
+        project_id="test-project",
+        reviewer_id=None,
+        review_session_id=None,
+    )
+    child_id = result.child_items[0].id
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    detail = client.get("/changes/change-1?queue=pending")
+    review = client.post(
+        "/changes/change-1/review",
+        data={
+            "status": "approved",
+            "queue_status": "pending",
+            "search_query": "",
+            "attention_only": "0",
+        },
+    )
+    crop_adjustment = client.post("/changes/change-1/crop-adjustment", json={"crop_box": [20, 20, 40, 40]})
+    geometry = client.post("/changes/change-1/geometry-correction", json={"mode": "partial", "crop_boxes": [[20, 20, 40, 40]]})
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert detail.status_code == 302
+    assert f"/changes/{child_id}".encode("utf-8") in detail.headers["Location"].encode("utf-8")
+    assert review.status_code == 302
+    assert f"/changes/{child_id}".encode("utf-8") in review.headers["Location"].encode("utf-8")
+    assert crop_adjustment.status_code == 400
+    assert geometry.status_code == 400
+    assert loaded.get_change_item("change-1").status == "pending"
+    assert len(loaded.data.review_events) == 1
+
+
+def test_cli_approve_cloudhammer_detections_skips_superseded_items(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.data.change_items = [
+        replace(
+            store.data.change_items[0],
+            superseded_by_change_item_ids=["change-2"],
+            superseded_reason="partial_correction",
+            superseded_at="2026-05-11T00:00:00+00:00",
+        ),
+        store.data.change_items[1],
+    ]
+    store.save()
+
+    changed = approve_cloudhammer_detections(store)
+
+    assert changed == 1
+    assert store.get_change_item("change-1").status == "pending"
+    assert store.get_change_item("change-2").status == "approved"
+
+
+def test_scope_enrichment_skips_superseded_parent_items(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    parent = replace(
+        store.data.change_items[0],
+        raw_text="Keep parent text",
+        normalized_text="keep parent text",
+        reviewer_text="Keep parent text",
+        superseded_by_change_item_ids=["change-child"],
+        superseded_reason="partial_correction",
+        superseded_at="2026-05-11T00:00:00+00:00",
+    )
+    store.data.change_items = [parent]
+    store.save()
+
+    enrich_workspace_scope_text(store, force=True)
+
+    assert store.get_change_item("change-1").raw_text == "Keep parent text"
+    assert store.get_change_item("change-1").reviewer_text == "Keep parent text"
 
 
 def test_geometry_correction_controls_do_not_expose_internal_language(tmp_path: Path):
@@ -2481,6 +2566,8 @@ def test_empty_project_registry_starts_without_demo(tmp_path: Path):
 def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_CLOUDHAMMER_MODEL", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS", raising=False)
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_ENABLED", raising=False)
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_MODEL", raising=False)
 
@@ -2491,6 +2578,8 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
         "\n".join(
             [
                 "OPENAI_API_KEY=test-local-key",
+                "SCOPELEDGER_CLOUDHAMMER_MODEL=CloudHammer/runs/test/weights/best.pt",
+                "SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS=120",
                 "SCOPELEDGER_PREREVIEW_ENABLED=1",
                 'SCOPELEDGER_PREREVIEW_MODEL="test-model"',
                 "UNRELATED_SECRET=do-not-load",
@@ -2502,6 +2591,8 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
     app = create_app(tmp_path / "app-data")
 
     assert os.environ["OPENAI_API_KEY"] == "test-local-key"
+    assert os.environ["SCOPELEDGER_CLOUDHAMMER_MODEL"] == "CloudHammer/runs/test/weights/best.pt"
+    assert os.environ["SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS"] == "120"
     assert os.environ["SCOPELEDGER_PREREVIEW_ENABLED"] == "1"
     assert os.environ["SCOPELEDGER_PREREVIEW_MODEL"] == "test-model"
     assert "UNRELATED_SECRET" not in os.environ
@@ -2534,6 +2625,13 @@ def test_create_app_does_not_override_existing_env_values(tmp_path: Path, monkey
 
     assert os.environ["OPENAI_API_KEY"] == "already-set-key"
     assert os.environ["SCOPELEDGER_PREREVIEW_ENABLED"] == "1"
+
+
+def test_live_cloudhammer_timeout_env_validation(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS", "not-a-number")
+
+    with pytest.raises(RuntimeError, match="SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS"):
+        LiveCloudHammerPipeline()
 
 
 def test_production_app_can_load_secret_from_root_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

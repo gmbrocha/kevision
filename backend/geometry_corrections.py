@@ -50,6 +50,8 @@ def apply_geometry_correction(
 
     store.data.change_items, _ = ensure_queue_order(store.data.change_items)
     parent_item = store.get_change_item(parent_item.id)
+    if is_superseded(parent_item):
+        raise GeometryCorrectionError("This review item has already been corrected.")
     context = build_crop_adjustment_context(store, parent_item, parent_cloud, sheet)
     if not context.enabled or not context.source_page_box:
         raise GeometryCorrectionError(context.reason or "This crop cannot be corrected.")
@@ -156,12 +158,13 @@ def apply_geometry_correction(
 def _replace_parent_and_insert_children(store: WorkspaceStore, parent: ChangeItem, children: list[ChangeItem]) -> None:
     updated: list[ChangeItem] = []
     inserted = False
+    child_ids = {child.id for child in children}
     for item in store.data.change_items:
         if item.id == parent.id:
             updated.append(parent)
             updated.extend(children)
             inserted = True
-        elif item.id not in {child.id for child in children}:
+        elif item.id not in child_ids:
             updated.append(item)
     if not inserted:
         updated.append(parent)
@@ -231,7 +234,7 @@ def _replacement_item(
             "source": PRE_REVIEW_1,
             "label": "Pre Review 1",
             "geometry_decision": "same_box",
-            "boxes": [[float(value) for value in child_cloud.bbox]],
+            "boxes": payload.get("page_boxes") or [[float(value) for value in child_cloud.bbox]],
             "crop_boxes": payload.get("crop_boxes", []),
             "text": starter_text,
             "reason": "reviewer corrected region",

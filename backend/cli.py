@@ -7,6 +7,7 @@ from .cloudhammer_client.inference import ManifestCloudInferenceClient
 from .deliverables.excel_exporter import ExportBlockedError, Exporter
 from .deliverables.review_packet import build_review_packet
 from .projects import ProjectRegistry, default_app_data_dir
+from .review_queue import is_superseded
 from .review_events import export_review_events_jsonl
 from .revision_state.tracker import RevisionScanner
 from .workspace import WorkspaceStore
@@ -222,6 +223,9 @@ def approve_cloudhammer_detections(store: WorkspaceStore) -> int:
     changed = 0
     updated = []
     for item in store.data.change_items:
+        if is_superseded(item):
+            updated.append(item)
+            continue
         if item.provenance.get("source") == "visual-region" and item.provenance.get("extraction_method") == "cloudhammer_manifest":
             item.status = "approved"
             item.reviewer_text = item.reviewer_text or item.raw_text

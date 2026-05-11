@@ -376,6 +376,18 @@ def create_app(
             return default
         return target
 
+    def replacement_redirect_target(item, *, queue_status: str = "pending", search_query: str = "", attention_only: bool = False) -> str:
+        for replacement_id in item.superseded_by_change_item_ids:
+            try:
+                store.get_change_item(replacement_id)
+            except KeyError:
+                continue
+            kwargs = {"change_id": replacement_id, "queue": queue_status, "q": search_query}
+            if attention_only:
+                kwargs["attention"] = "1"
+            return url_for("change_detail", **kwargs)
+        return url_for("changes", status=queue_status, q=search_query, attention="1" if attention_only else "0")
+
     def current_review_session_id() -> str:
         value = session.get("review_session_id")
         if not value:
@@ -1614,12 +1626,14 @@ def create_app(
             item = store.get_change_item(change_id)
         except KeyError:
             abort(404)
-        sheet = store.get_sheet(item.sheet_version_id)
-        cloud = store.get_cloud(item.cloud_candidate_id) if item.cloud_candidate_id else None
-        verifications = store.change_verifications(change_id)
         queue_status = request.args.get("queue", "pending")
         search_query = request.args.get("q", "")
         attention_only = request.args.get("attention", "0") == "1"
+        if is_superseded(item):
+            return redirect(replacement_redirect_target(item, queue_status=queue_status, search_query=search_query, attention_only=attention_only))
+        sheet = store.get_sheet(item.sheet_version_id)
+        cloud = store.get_cloud(item.cloud_candidate_id) if item.cloud_candidate_id else None
+        verifications = store.change_verifications(change_id)
         queue_items = filter_change_items(store, queue_status, search_query)
         if attention_only:
             queue_items = [queued_item for queued_item in queue_items if queued_item.status == "pending" and change_item_needs_attention(queued_item)]
@@ -1647,6 +1661,8 @@ def create_app(
             item = store.get_change_item(change_id)
         except KeyError:
             abort(404)
+        if is_superseded(item):
+            return jsonify({"error": "This review item has already been corrected."}), 400
         if not item.cloud_candidate_id:
             return jsonify({"error": "This review item does not have an adjustable crop."}), 400
         project = active_project()
@@ -1689,6 +1705,8 @@ def create_app(
             item = store.get_change_item(change_id)
         except KeyError:
             abort(404)
+        if is_superseded(item):
+            return jsonify({"error": "This review item has already been corrected."}), 400
         if not item.cloud_candidate_id:
             return jsonify({"error": "This review item does not have a correctable crop."}), 400
         project = active_project()
@@ -1731,6 +1749,11 @@ def create_app(
         except KeyError:
             abort(404)
         project = active_project()
+        if is_superseded(item):
+            queue_status = request.form.get("queue_status", "pending")
+            search_query = request.form.get("search_query", "")
+            attention_only = request.form.get("attention_only", "0") == "1"
+            return redirect(replacement_redirect_target(item, queue_status=queue_status, search_query=search_query, attention_only=attention_only))
         status = request.form.get("status_override") or request.form.get("status", item.status)
         default_redirect = url_for("change_detail", change_id=change_id)
         if status not in VALID_REVIEW_STATUSES:

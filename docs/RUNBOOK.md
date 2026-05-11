@@ -75,6 +75,9 @@ $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
 $env:SCOPELEDGER_PREREVIEW_ENABLED = "1"
 $env:SCOPELEDGER_PREREVIEW_MODEL = "gpt-5.5"
 $env:SCOPELEDGER_PREREVIEW_BATCH_SIZE = "5"
+# Optional live inference override values, also supported from repo-root .env:
+$env:SCOPELEDGER_CLOUDHAMMER_MODEL = "CloudHammer\runs\cloudhammer_roi-symbol-text-fp-hn-20260502\weights\best.pt"
+$env:SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS = "3600"
 # Optional if already present in repo-root .env or CloudHammer\.env:
 $env:OPENAI_API_KEY = "<server-side-api-key>"
 .\.venv\Scripts\python.exe -m backend serve --host 127.0.0.1 --port 5000 --production

@@ -11,6 +11,7 @@ from typing import Any
 import fitz
 
 from .revision_state.models import CloudCandidate, SheetVersion
+from .review_queue import is_superseded
 from .utils import clean_display_text, normalize_text, parse_detail_ref
 from .workspace import WorkspaceStore
 
@@ -306,6 +307,9 @@ def enrich_workspace_scope_text(store: WorkspaceStore, *, force: bool = False) -
 
     updated_items = []
     for item in store.data.change_items:
+        if is_superseded(item):
+            updated_items.append(item)
+            continue
         cloud = clouds_by_id.get(item.cloud_candidate_id or "")
         if not cloud or item.provenance.get("source") != "visual-region":
             updated_items.append(item)

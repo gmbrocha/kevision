@@ -1079,20 +1079,25 @@ def _usage_dict(value: Any) -> dict[str, Any]:
         return {str(key): _usage_dict(item) if not isinstance(item, (str, int, float, bool, type(None))) else item for key, item in value.items()}
     model_dump = getattr(value, "model_dump", None)
     if callable(model_dump):
-        try:
-            return _usage_dict(model_dump())
-        except Exception:
-            pass
+        serialized = _call_usage_serializer(model_dump)
+        if serialized is not None:
+            return _usage_dict(serialized)
     to_dict = getattr(value, "to_dict", None)
     if callable(to_dict):
-        try:
-            return _usage_dict(to_dict())
-        except Exception:
-            pass
+        serialized = _call_usage_serializer(to_dict)
+        if serialized is not None:
+            return _usage_dict(serialized)
     raw = getattr(value, "__dict__", None)
     if isinstance(raw, dict):
         return _usage_dict({key: item for key, item in raw.items() if not key.startswith("_")})
     return {}
+
+
+def _call_usage_serializer(serializer) -> Any:
+    try:
+        return serializer()
+    except Exception:
+        return None
 
 
 def _request_meta(started_at: float, retry_count: int) -> dict[str, Any]:
