@@ -23,6 +23,13 @@ from backend.crop_adjustments import CROP_ADJUSTMENT_KEY, crop_box_to_page_box, 
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.geometry_corrections import GEOMETRY_CORRECTION_KEY, apply_geometry_correction
+from backend.legend_context import (
+    LEGEND_CONTEXT_KEY,
+    classify_legend_context,
+    enrich_workspace_legend_context,
+    extract_symbol_definitions,
+    legend_context_payload,
+)
 from backend.pre_review import (
     PRE_REVIEW_1,
     PRE_REVIEW_2,
@@ -1607,6 +1614,86 @@ def test_review_route_persists_pre_review_selection_without_internal_labels(tmp_
     assert item.reviewer_text == "Provide new roof curb."
 
 
+def test_probable_legend_item_shows_accept_as_legend_button(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.clouds[0] = replace(
+        store.data.clouds[0],
+        nearby_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL",
+        scope_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL",
+    )
+    store.data.change_items[0] = replace(
+        store.data.change_items[0],
+        raw_text=store.data.clouds[0].scope_text,
+        normalized_text=store.data.clouds[0].scope_text.lower(),
+    )
+    store.save()
+    enrich_workspace_legend_context(store)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    page = client.get("/changes/change-1")
+
+    assert page.status_code == 200
+    assert b"Accept as legend" in page.data
+    assert b"training" not in page.data.lower()
+    assert b"eval" not in page.data.lower()
+
+
+def test_non_probable_review_item_does_not_show_accept_as_legend(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    page = client.get("/changes/change-1")
+
+    assert page.status_code == 200
+    assert b"Accept as legend" not in page.data
+
+
+def test_accept_as_legend_confirms_soft_hides_records_event_and_advances(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.data.clouds[0] = replace(
+        store.data.clouds[0],
+        nearby_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL",
+        scope_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL",
+    )
+    store.data.change_items[0] = replace(
+        store.data.change_items[0],
+        raw_text=store.data.clouds[0].scope_text,
+        normalized_text=store.data.clouds[0].scope_text.lower(),
+    )
+    store.save()
+    enrich_workspace_legend_context(store)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/change-1/accept-legend",
+        data={"queue_status": "pending", "search_query": "", "attention_only": "0"},
+        headers={"Cf-Access-Authenticated-User-Email": "reviewer@example.com"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/changes/change-2?queue=pending&q=")
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    item = next(row for row in loaded.data.change_items if row.id == "change-1")
+    payload = legend_context_payload(item)
+    assert payload["confirmed"] is True
+    assert item.superseded_reason == "legend_context"
+    assert [row.id for row in visible_change_items(loaded.data.change_items)] == ["change-2"]
+    assert loaded.data.review_events[-1].action == "relabel"
+    assert loaded.data.review_events[-1].human_result_json["final_label"] == "legend_context"
+    changes_page = client.get("/changes?status=all")
+    sheet_page = client.get("/sheets/sheet-1")
+    assert b'change-1' not in changes_page.data
+    assert b'data-change-id="change-1"' not in sheet_page.data
+    assert b'data-change-id="change-2"' in sheet_page.data
+
+
 def test_exports_use_selected_pre_review_text_and_keep_multiple_boxes_one_item(tmp_path: Path):
     from openpyxl import load_workbook
 
@@ -1641,6 +1728,36 @@ def test_exports_use_selected_pre_review_text_and_keep_multiple_boxes_one_item(t
     assert "Provide two roof curb updates." in packet.html_path.read_text(encoding="utf-8")
     wb = load_workbook(outputs["revision_changelog_xlsx"])
     assert "Provide two roof curb updates" in wb["Sheet1"].cell(row=2, column=5).value
+
+
+def test_confirmed_legend_item_is_excluded_from_export_and_review_packet(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    item = store.data.change_items[0]
+    store.data.change_items[0] = replace(
+        item,
+        status="approved",
+        provenance={
+            **item.provenance,
+            LEGEND_CONTEXT_KEY: {
+                "schema": "scopeledger.legend_context.v1",
+                "probable": True,
+                "confirmed": True,
+                "symbol_definitions": [{"token": "X", "description": "REMOVE EXISTING WALL"}],
+            },
+        },
+        superseded_reason="legend_context",
+        superseded_at="2026-05-11T00:00:00+00:00",
+    )
+    store.save()
+
+    outputs = Exporter(store).export(force_attention=True)
+    packet = build_review_packet(store)
+    approved_rows = json.loads(Path(outputs["approved_changes_json"]).read_text(encoding="utf-8"))
+    pricing_rows = json.loads(Path(outputs["pricing_change_candidates_json"]).read_text(encoding="utf-8"))
+
+    assert approved_rows == []
+    assert pricing_rows == []
+    assert packet.item_count == 0
 
 
 def test_sheet_detail_hides_orphan_cloud_candidates(tmp_path: Path):
@@ -2107,6 +2224,152 @@ def test_enrich_workspace_scope_text_updates_existing_cloud_items(tmp_path: Path
     assert "PROVIDE NEW GRAB BAR BLOCKING" in store.data.change_items[0].raw_text
     assert store.data.change_items[0].reviewer_text == store.data.change_items[0].raw_text
     assert store.data.change_items[0].provenance["cloudhammer_candidate_id"] == "cand-1"
+
+
+def test_legend_context_classifier_extracts_symbol_definitions():
+    text = "DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL\nZ.9 PROVIDE ROOF INFILL"
+
+    definitions = extract_symbol_definitions(text)
+    classification = classify_legend_context(text)
+
+    assert classification.probable is True
+    assert {definition["token"] for definition in definitions} == {"X", "Z.9"}
+    assert any(definition["description"] == "REMOVE EXISTING WALL" for definition in definitions)
+
+
+def test_legend_context_classifier_does_not_flag_text_heavy_scope():
+    text = (
+        "Cloud Only - PROVIDE EXHAUST ANTENNA AND CABLING GUARD RAIL, "
+        "PAINT NEW BOOT FOR EXISTING VENT AND EXTEND LAUNDRY CHUTE THROUGH ROOF."
+    )
+
+    classification = classify_legend_context(text)
+
+    assert classification.probable is False
+
+
+def test_legend_context_enrichment_flags_probable_and_resolves_same_sheet(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    legend_text = "DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL\nZ.9 PROVIDE ROOF INFILL"
+    scope_text = "Cloud Only - X"
+    store.data.clouds[0] = replace(store.data.clouds[0], nearby_text=legend_text, scope_text=legend_text)
+    store.data.change_items[0] = replace(
+        store.data.change_items[0],
+        raw_text=legend_text,
+        normalized_text=legend_text.lower(),
+    )
+    store.data.clouds[1] = replace(store.data.clouds[1], nearby_text=scope_text, scope_text=scope_text)
+    store.data.change_items[1] = replace(
+        store.data.change_items[1],
+        raw_text=scope_text,
+        normalized_text=scope_text.lower(),
+    )
+    store.save()
+
+    changed = enrich_workspace_legend_context(store)
+
+    assert changed == 2
+    legend_payload = legend_context_payload(store.data.change_items[0])
+    scope_payload = legend_context_payload(store.data.change_items[1])
+    assert legend_payload["probable"] is True
+    assert legend_payload["confirmed"] is False
+    assert any(definition["token"] == "X" for definition in legend_payload["symbol_definitions"])
+    assert scope_payload["resolved_references"] == [
+        {
+            "token": "X",
+            "description": "REMOVE EXISTING WALL",
+            "legend_item_id": "change-1",
+            "source": "same_sheet",
+        }
+    ]
+
+
+def test_legend_context_ambiguous_package_fallback_is_not_attached(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    base_sheet = store.data.sheets[0]
+    base_cloud = store.data.clouds[0]
+    base_item = store.data.change_items[0]
+    sheet_2 = replace(base_sheet, id="sheet-2", sheet_id="AE102")
+    sheet_3 = replace(base_sheet, id="sheet-3", sheet_id="AE103")
+    cloud_2 = replace(base_cloud, id="cloud-2", sheet_version_id=sheet_2.id)
+    cloud_3 = replace(base_cloud, id="cloud-3", sheet_version_id=sheet_3.id, nearby_text="Cloud Only - X", scope_text="Cloud Only - X")
+    store.data.sheets.extend([sheet_2, sheet_3])
+    store.data.clouds = [
+        replace(base_cloud, nearby_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL", scope_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL"),
+        replace(cloud_2, nearby_text="DEMOLITION PLAN LEGEND\nX PATCH FLOOR OPENING", scope_text="DEMOLITION PLAN LEGEND\nX PATCH FLOOR OPENING"),
+        cloud_3,
+    ]
+    store.data.change_items = [
+        replace(base_item, raw_text=store.data.clouds[0].scope_text, normalized_text=store.data.clouds[0].scope_text.lower()),
+        replace(
+            base_item,
+            id="change-2",
+            sheet_version_id=sheet_2.id,
+            cloud_candidate_id=cloud_2.id,
+            sheet_id=sheet_2.sheet_id,
+            raw_text=store.data.clouds[1].scope_text,
+            normalized_text=store.data.clouds[1].scope_text.lower(),
+        ),
+        replace(
+            base_item,
+            id="change-3",
+            sheet_version_id=sheet_3.id,
+            cloud_candidate_id=cloud_3.id,
+            sheet_id=sheet_3.sheet_id,
+            raw_text="Cloud Only - X",
+            normalized_text="cloud only - x",
+        ),
+    ]
+    store.save()
+
+    enrich_workspace_legend_context(store)
+
+    assert legend_context_payload(store.data.change_items[2]) == {}
+
+
+def test_superseded_unconfirmed_probable_legend_is_not_used_as_context(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    legend_text = "DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL"
+    store.data.clouds[0] = replace(store.data.clouds[0], nearby_text=legend_text, scope_text=legend_text)
+    store.data.change_items[0] = replace(
+        store.data.change_items[0],
+        raw_text=legend_text,
+        normalized_text=legend_text.lower(),
+        superseded_reason="overmerge_split",
+        superseded_at="2026-05-11T00:00:00+00:00",
+    )
+    store.data.clouds[1] = replace(store.data.clouds[1], nearby_text="Cloud Only - X", scope_text="Cloud Only - X")
+    store.data.change_items[1] = replace(
+        store.data.change_items[1],
+        raw_text="Cloud Only - X",
+        normalized_text="cloud only - x",
+    )
+    store.save()
+
+    changed = enrich_workspace_legend_context(store)
+
+    assert changed == 0
+    assert legend_context_payload(store.data.change_items[0]) == {}
+    assert legend_context_payload(store.data.change_items[1]) == {}
+
+
+def test_pre_review_one_carries_resolved_legend_context(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.data.clouds[0] = replace(store.data.clouds[0], nearby_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL", scope_text="DEMOLITION PLAN LEGEND\nX REMOVE EXISTING WALL")
+    store.data.change_items[0] = replace(store.data.change_items[0], raw_text=store.data.clouds[0].scope_text, normalized_text=store.data.clouds[0].scope_text.lower())
+    store.data.clouds[1] = replace(store.data.clouds[1], nearby_text="Cloud Only - X", scope_text="Cloud Only - X")
+    store.data.change_items[1] = replace(store.data.change_items[1], raw_text="Cloud Only - X", normalized_text="cloud only - x")
+    store.save()
+    enrich_workspace_legend_context(store)
+
+    ensure_workspace_pre_review(store)
+
+    payload = pre_review_payload(WorkspaceStore(store.workspace_dir).load().data.change_items[1])
+    assert payload[PRE_REVIEW_1]["text"] == "Cloud Only - X"
+    assert payload[PRE_REVIEW_1]["legend_context"] == "X: REMOVE EXISTING WALL"
 
 
 def test_export_refreshes_ocr_scope_text_before_workbook(tmp_path: Path):

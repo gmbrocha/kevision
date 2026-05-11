@@ -107,6 +107,7 @@
                   <td>
                     <span class="badge badge-{{ item.status|badge_class }}"><span class="badge-dot"></span>{{ item.status|status_label }}</span>
                     {% if show_attention %}<span class="badge badge-check"><span class="badge-dot"></span>Needs check</span>{% endif %}
+                    {% if legend_context_payload(item).get("probable") %}<span class="badge badge-check"><span class="badge-dot"></span>Possible legend</span>{% endif %}
                   </td>
                   <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0') }}">Review →</a></td>
                 </tr>

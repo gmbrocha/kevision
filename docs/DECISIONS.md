@@ -2,6 +2,30 @@
 
 Status: canonical application decision log.
 
+## 2026-05-11 - Legend Context Is Confirmed Separately From Scope Changes
+
+Decision: Probable legend/keynote regions remain reviewable until a reviewer
+chooses `Accept as legend`. That action confirms the row as legend context,
+records an internal `relabel` review event, and soft-hides the item from normal
+queues and deliverables without deleting the original candidate.
+
+Reason: Legend clouds can contain useful symbol definitions that should help
+real scope-change review items, but automatically suppressing them would risk
+hiding real changes. Confirmation keeps the reviewer in control while allowing
+confirmed legend rows to stop inflating scope counts.
+
+Consequences / follow-up:
+
+- Populate extracts provisional symbol definitions from conservative
+  legend/keynote text heuristics and resolves references on same-sheet review
+  items first, then same package/discipline only when unambiguous.
+- Resolved legend definitions are available as separate context for Pre Review
+  and the review detail page; they do not replace the original OCR text.
+- Confirmed legend rows are excluded from normal Review Changes counts,
+  Drawings overlays, workbook export, pricing candidates, and review packets.
+- Shape-level symbol detection for hexagons/circles and any public confirmed
+  legend filter remain later work.
+
 ## 2026-05-11 - Bulk Review Runs As An In-Memory Background Job
 
 Decision: Bulk accept/reject actions run as one in-memory background job per

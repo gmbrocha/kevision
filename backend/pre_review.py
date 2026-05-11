@@ -11,6 +11,7 @@ from typing import Any, Callable, Protocol
 
 from PIL import Image, ImageDraw, ImageFont
 
+from .legend_context import legend_context_payload, legend_context_text
 from .revision_state.models import ChangeItem, CloudCandidate, SheetVersion
 from .review_queue import is_superseded
 from .utils import clean_display_text, json_dumps, normalize_text, stable_id
@@ -81,6 +82,7 @@ BATCH_RESPONSE_SCHEMA: dict[str, Any] = {
 PROMPT = """You are reviewing one detected drawing revision region before a human reviewer sees it.
 
 You receive one large crop image. The colored rectangle on the image is Pre Review 1, the initial detected region. You also receive OCR text extracted near that region.
+You may also receive separate legend context resolved from the same sheet or drawing package. Use that context only when the detected region visibly references the listed symbol token.
 
 Tasks:
 - Decide whether Pre Review 1 covers the whole visible revision cloud.
@@ -409,6 +411,8 @@ class OpenAIPreReviewProvider:
                 "pre_review_1_crop_boxes": context.pre_review_1.get("crop_boxes", []),
                 "pre_review_1_ocr_text": context.pre_review_1.get("text", ""),
                 "pre_review_1_reason": context.pre_review_1.get("reason", ""),
+                "legend_context": context.pre_review_1.get("legend_context", ""),
+                "legend_references": context.pre_review_1.get("legend_references", []),
                 "confidence": context.cloud.confidence,
             },
             ensure_ascii=False,
@@ -793,6 +797,8 @@ def _build_pre_review_1(
         "boxes": [[float(value) for value in cloud.bbox]],
         "crop_boxes": crop_boxes,
         "text": clean_display_text(item.raw_text or cloud.scope_text or cloud.nearby_text),
+        "legend_context": legend_context_text(item),
+        "legend_references": legend_context_payload(item).get("resolved_references", []),
         "reason": clean_display_text(cloud.scope_reason or "initial detected region"),
         "confidence": round(float(cloud.confidence or 0.0), 3),
         "tags": [],
@@ -808,6 +814,8 @@ def _fallback_pre_review_1(item: ChangeItem, cloud: CloudCandidate) -> dict[str,
         "boxes": [[float(value) for value in cloud.bbox]],
         "crop_boxes": [],
         "text": clean_display_text(item.raw_text or cloud.scope_text or cloud.nearby_text),
+        "legend_context": legend_context_text(item),
+        "legend_references": legend_context_payload(item).get("resolved_references", []),
         "reason": clean_display_text(cloud.scope_reason or "initial detected region"),
         "confidence": round(float(cloud.confidence or 0.0), 3),
         "tags": [],
@@ -1012,7 +1020,7 @@ def _positive_float(value: Any, fallback: Any) -> float:
 
 def _cache_key(model: str, context: PreReviewContext, *, prompt_version: str = PROMPT_VERSION) -> str:
     crop_hash = hashlib.sha256(context.crop_path.read_bytes()).hexdigest()
-    return stable_id(
+    parts: list[Any] = [
         prompt_version,
         model,
         context.item.id,
@@ -1020,7 +1028,12 @@ def _cache_key(model: str, context: PreReviewContext, *, prompt_version: str = P
         crop_hash,
         context.pre_review_1.get("crop_boxes", []),
         normalize_text(str(context.pre_review_1.get("text") or "")),
-    )
+    ]
+    legend_context = normalize_text(str(context.pre_review_1.get("legend_context") or ""))
+    legend_references = context.pre_review_1.get("legend_references", [])
+    if legend_context or legend_references:
+        parts.extend([legend_context, legend_references])
+    return stable_id(*parts)
 
 
 def _prompt_context(context: PreReviewContext) -> dict[str, Any]:
@@ -1032,6 +1045,8 @@ def _prompt_context(context: PreReviewContext) -> dict[str, Any]:
         "pre_review_1_crop_boxes": context.pre_review_1.get("crop_boxes", []),
         "pre_review_1_ocr_text": context.pre_review_1.get("text", ""),
         "pre_review_1_reason": context.pre_review_1.get("reason", ""),
+        "legend_context": context.pre_review_1.get("legend_context", ""),
+        "legend_references": context.pre_review_1.get("legend_references", []),
         "confidence": context.cloud.confidence,
     }
 

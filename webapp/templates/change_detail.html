@@ -14,6 +14,7 @@
       </span>
       <span class="badge badge-{{ item.status|badge_class }}"><span class="badge-dot"></span>{{ item.status|status_label }}</span>
       {% if item_needs_attention %}<span class="badge badge-check"><span class="badge-dot"></span>Needs check</span>{% endif %}
+      {% if legend_context.get("probable") %}<span class="badge badge-check"><span class="badge-dot"></span>Possible legend</span>{% endif %}
     </div>
 
     <nav class="cockpit-nav">
@@ -176,6 +177,15 @@
           </div>
         </div>
 
+        {% if resolved_legend_context %}
+          <div class="pre-review-panel">
+            <div class="pre-review-choice-head">
+              <span>Legend context</span>
+            </div>
+            <textarea class="pre-review-textarea" rows="3" readonly>{{ resolved_legend_context }}</textarea>
+          </div>
+        {% endif %}
+
         <div>
           <label class="cockpit-scope-label" for="reviewer_text">Scope of change</label>
           <textarea id="reviewer_text" name="reviewer_text" class="scope-textarea" rows="5">{{ item.reviewer_text or item.raw_text }}</textarea>
@@ -188,6 +198,11 @@
       </div>
 
       <div class="cockpit-actions">
+        {% if legend_context.get("probable") %}
+          <button class="btn btn-secondary btn-lg" type="submit" formaction="{{ url_for('accept_legend_context', change_id=item.id) }}" formmethod="post" {% if bulk_review_job_running %}disabled{% endif %}>
+            Accept as legend
+          </button>
+        {% endif %}
         <button class="btn-accept-full" type="submit" name="status_override" value="approved" onclick="this.form.elements.advance.value='next';" {% if bulk_review_job_running %}disabled{% endif %}>
           Accept + Next <span class="kbd">A</span>
         </button>

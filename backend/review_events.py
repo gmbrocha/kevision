@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .crop_adjustments import CROP_ADJUSTMENT_KEY, crop_adjustment_payload, selected_review_page_boxes
+from .legend_context import LEGEND_CONTEXT_KEY, legend_context_payload
 from .pre_review import PRE_REVIEW_KEY, pre_review_payload
 from .revision_state.models import ChangeItem, CloudCandidate, ReviewEvent, RevisionSet, SheetVersion
 from .utils import clean_display_text, json_dumps, normalize_text
@@ -257,6 +258,7 @@ def _original_candidate_snapshot(
     provenance = dict(item_payload.get("provenance") or {})
     provenance.pop(PRE_REVIEW_KEY, None)
     provenance.pop(CROP_ADJUSTMENT_KEY, None)
+    provenance.pop(LEGEND_CONTEXT_KEY, None)
     item_payload["provenance"] = provenance
     return {
         "schema": REVIEW_EVENT_SCHEMA,
@@ -320,6 +322,7 @@ def _ocr_context_snapshot(item: ChangeItem, cloud: CloudCandidate | None) -> dic
         "scope_text_reason": provenance.get("scope_text_reason", ""),
         "scope_text_method": provenance.get("scope_text_method", ""),
         "scope_text_word_count": provenance.get("scope_text_word_count", ""),
+        "legend_context": legend_context_payload(item),
     }
 
 

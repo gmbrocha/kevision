@@ -21,6 +21,7 @@ REVIEW_SIDE_PROVENANCE_KEYS = {
     "scopeledger.pre_review.v1",
     "scopeledger.crop_adjustment.v1",
     "scopeledger.geometry_correction.v1",
+    "scopeledger.legend_context.v1",
 }
 
 
@@ -422,7 +423,12 @@ class RevisionScanner:
 
     def _is_review_managed_item(self, item: ChangeItem) -> bool:
         provenance = item.provenance or {}
-        return bool(item.parent_change_item_id or provenance.get("scopeledger.geometry_correction.v1"))
+        legend_payload = provenance.get("scopeledger.legend_context.v1")
+        return bool(
+            item.parent_change_item_id
+            or provenance.get("scopeledger.geometry_correction.v1")
+            or (isinstance(legend_payload, dict) and legend_payload.get("confirmed"))
+        )
 
     def _is_narrative_page(self, text: str) -> bool:
         if not text:

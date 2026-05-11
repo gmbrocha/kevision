@@ -31,6 +31,14 @@ from backend.deliverables.crop_comparison import build_cloud_comparison_image, f
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.geometry_corrections import GeometryCorrectionError, apply_geometry_correction
+from backend.legend_context import (
+    confirm_legend_context_item,
+    enrich_workspace_legend_context,
+    is_probable_legend_context,
+    legend_context_human_result,
+    legend_context_payload,
+    legend_context_text,
+)
 from backend.local_env import load_local_env_defaults
 from backend.projects import ProjectRecord, ProjectRegistry, default_app_data_dir
 from backend.pre_review import (
@@ -281,6 +289,7 @@ def create_app(
         "populate_workspace",
         "update_crop_adjustment",
         "update_geometry_correction",
+        "accept_legend_context",
         "review_change",
         "export_run",
         "review_packet_run",
@@ -431,6 +440,24 @@ def create_app(
                 kwargs["attention"] = "1"
             return url_for("change_detail", **kwargs)
         return url_for("changes", status=queue_status, q=search_query, attention="1" if attention_only else "0")
+
+    def next_pending_change_id_after(change_id: str, *, search_query: str = "", attention_only: bool = False) -> str | None:
+        queue_items = filter_change_items(store, "pending", search_query)
+        if attention_only:
+            queue_items = [item for item in queue_items if item.status == "pending" and change_item_needs_attention(item)]
+        ids = [item.id for item in queue_items]
+        if change_id in ids:
+            index = ids.index(change_id)
+            for candidate_id in ids[index + 1 :]:
+                return candidate_id
+        for candidate_id in ids:
+            if candidate_id != change_id:
+                return candidate_id
+        if search_query or attention_only:
+            for item in filter_change_items(store, "pending", ""):
+                if item.id != change_id:
+                    return item.id
+        return None
 
     def current_review_session_id() -> str:
         value = session.get("review_session_id")
@@ -809,6 +836,8 @@ def create_app(
             "diagnostic_summary": diagnostic_summary,
             "needs_attention": change_item_needs_attention,
             "pre_review_payload": pre_review_payload,
+            "legend_context_payload": legend_context_payload,
+            "legend_context_text": legend_context_text,
             "pre_review_1": PRE_REVIEW_1,
             "pre_review_2": PRE_REVIEW_2,
             "drive_review_folder_url": DRIVE_REVIEW_FOLDER_URL,
@@ -1419,6 +1448,19 @@ def create_app(
             enrich_workspace_scope_text(refreshed)
             refreshed.update_populate_status(
                 state="running",
+                stage="legend_context",
+                message="Resolving legend context for detected regions.",
+                package_count=len(refreshed.data.revision_sets),
+                document_count=len(refreshed.data.documents),
+                sheet_count=len(refreshed.data.sheets),
+                cloud_count=len(refreshed.data.clouds),
+                change_item_count=len(visible_change_items(refreshed.data.change_items)),
+                cache_hits=cache_hits,
+                **(cloudhammer_result.to_status() if cloudhammer_result else {}),
+            )
+            enrich_workspace_legend_context(refreshed)
+            refreshed.update_populate_status(
+                state="running",
                 stage="pre_review",
                 message="Running pre-review on detected regions.",
                 package_count=len(refreshed.data.revision_sets),
@@ -1693,6 +1735,8 @@ def create_app(
             cloud=cloud,
             crop_adjustment=crop_adjustment_template_context(store, item, cloud, sheet),
             pre_review=pre_review_payload(item),
+            legend_context=legend_context_payload(item),
+            resolved_legend_context=legend_context_text(item),
             verifications=verifications,
             provider_name=provider.name,
             queue_status=queue_status,
@@ -1789,6 +1833,53 @@ def create_app(
                 "redirect_url": url_for("change_detail", **redirect_kwargs),
             }
         )
+
+    @app.post("/changes/<change_id>/accept-legend")
+    def accept_legend_context(change_id: str):
+        try:
+            item = store.get_change_item(change_id)
+        except KeyError:
+            abort(404)
+        queue_status = request.form.get("queue_status", "pending")
+        search_query = request.form.get("search_query", "")
+        attention_only = request.form.get("attention_only", "0") == "1"
+        if is_superseded(item):
+            return redirect(replacement_redirect_target(item, queue_status=queue_status, search_query=search_query, attention_only=attention_only))
+        if not is_probable_legend_context(item):
+            flash("This item is not marked as probable legend context.", "warning")
+            return redirect(url_for("change_detail", change_id=change_id, queue=queue_status, q=search_query, attention="1" if attention_only else "0"))
+
+        project = active_project()
+        confirmed_at = utc_timestamp()
+        reviewer_id = current_reviewer_id()
+        review_session_id = current_review_session_id()
+        updated = confirm_legend_context_item(
+            item,
+            reviewer_id=reviewer_id,
+            review_session_id=review_session_id,
+            confirmed_at=confirmed_at,
+        )
+        record_review_update(
+            store,
+            project_id=project.id,
+            change_id=change_id,
+            changes={
+                "provenance": updated.provenance,
+                "superseded_reason": updated.superseded_reason,
+                "superseded_at": updated.superseded_at,
+            },
+            reviewer_id=reviewer_id,
+            review_session_id=review_session_id,
+            action="relabel",
+            human_result_overrides=legend_context_human_result(updated),
+        )
+        next_change_id = next_pending_change_id_after(change_id, search_query=search_query, attention_only=attention_only)
+        if next_change_id:
+            redirect_kwargs = {"change_id": next_change_id, "queue": "pending", "q": search_query}
+            if attention_only:
+                redirect_kwargs["attention"] = "1"
+            return redirect(url_for("change_detail", **redirect_kwargs))
+        return redirect(url_for("changes", status="pending", q=search_query, attention="1" if attention_only else "0"))
 
     @app.post("/changes/<change_id>/review")
     def review_change(change_id: str):

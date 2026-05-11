@@ -45,6 +45,13 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, while
   preserving per-item cache files and writing per-call usage JSONL under the
   active project `outputs/pre_review/usage/` folder.
+- Populate now adds a conservative legend-context pass between OCR extraction
+  and Pre Review. Probable legend/keynote regions remain visible in the review
+  queue until the reviewer clicks `Accept as legend`; confirmed legend context
+  is soft-hidden from normal queues, counts, workbook export, pricing
+  candidates, review packet, and Drawings overlays while staying preserved in
+  `workspace.json` and review-event JSONL. The post-implementation audit is
+  documented in `docs/APP_AUDIT_2026_05_11_LEGEND_CONTEXT.md`.
 - At app startup, ScopeLedger loads allowlisted local environment defaults from
   repo-root `.env` and the existing legacy `CloudHammer/.env` if present.
   Already-set process environment variables still win. This supports the
@@ -80,8 +87,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   state while CloudHammer runs inside long synchronous backend work.
 - OCR extraction is now intentionally tighter around detected boxes, with
   isolated numeric clutter filtered unless it looks like a tag/callout/keynote
-  reference. Symbol/legend lookup and split/merge quality remain follow-up
-  work.
+  reference. Legend symbol lookup is available as provisional context from
+  probable legend/keynote regions; image-shape detection for hexagons/circles
+  and split/merge quality remain follow-up work.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number
@@ -318,6 +326,9 @@ human confirmation/correction before training use.
 - During the next review smoke, resize one oversized crop with `Adjust crop`,
   confirm the regenerated crop stays on the same review item, and verify the
   JSONL review-event export contains a `resize` event.
+- During the next review smoke, confirm one probable legend/keynote item with
+  `Accept as legend`, verify it disappears from the normal queue, and verify a
+  linked real scope item shows the resolved legend context.
 - Use `FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI polish,
   OCR/context extraction, geometry split/merge work, symbol/legend handling,
   and zoom legibility. Do not treat it as training ground truth.
