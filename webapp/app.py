@@ -55,6 +55,15 @@ from backend.review_queue import ensure_queue_order, is_superseded, ordered_chan
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text
+from backend.staged_packages import (
+    infer_revision_number_from_name,
+    parse_revision_number,
+    reconcile_staged_packages,
+    register_staged_package,
+    staged_package_sort_key,
+    update_revision_numbers,
+    validate_staged_packages,
+)
 from backend.workspace import WorkspaceStore
 
 
@@ -283,6 +292,7 @@ def create_app(
     bulk_review_locked_post_endpoints = {
         "import_package",
         "append_package_file",
+        "save_package_order",
         "init_chunked_upload",
         "receive_chunked_upload_chunk",
         "complete_chunked_upload",
@@ -619,6 +629,37 @@ def create_app(
     def safe_package_dir_name(value: str) -> str:
         return safe_path_part(value) if value.strip() else ""
 
+    def require_revision_number(value: object) -> int:
+        revision_number = parse_revision_number(value)
+        if revision_number is None:
+            raise ValueError("Assign a positive revision number before importing a package.")
+        return revision_number
+
+    def register_package_folder(store: WorkspaceStore, folder: Path, label: str, revision_number: int | None) -> None:
+        register_staged_package(
+            store,
+            folder,
+            label=label or folder.name,
+            revision_number=revision_number,
+            save=True,
+        )
+
+    def set_package_setup_status(store: WorkspaceStore, *, error: str = "") -> None:
+        if error:
+            store.update_populate_status(
+                state="blocked",
+                stage="package_setup",
+                message="Package setup needs attention.",
+                error=error,
+            )
+            return
+        store.update_populate_status(
+            state="idle",
+            stage="package_setup",
+            message="Package staged. Confirm package order, then populate workspace.",
+            error="",
+        )
+
     def has_uploaded_files(field_name: str) -> bool:
         return any(item and item.filename for item in request.files.getlist(field_name))
 
@@ -660,12 +701,27 @@ def create_app(
             raise ValueError(f"Only PDF files can be uploaded: {filename or relative_path}")
         return Path(*parts)
 
-    def stage_uploaded_package(field_name: str, input_dir: Path, package_label: str) -> tuple[str, list[Path]]:
+    def stage_uploaded_package(
+        field_name: str,
+        current: WorkspaceStore,
+        package_label: str,
+        revision_number: int,
+    ) -> tuple[str, list[Path]]:
+        input_dir = Path(current.data.input_dir)
         destination_name = safe_package_dir_name(package_label) or infer_package_name_from_uploads(field_name)
         destination_dir = input_dir / destination_name
-        return destination_name, save_uploaded_pdfs(field_name, destination_dir, preserve_relative=True)
+        saved = save_uploaded_pdfs(field_name, destination_dir, preserve_relative=True)
+        if saved:
+            register_package_folder(current, destination_dir, destination_name, revision_number)
+        return destination_name, saved
 
-    def stage_manual_package(source_text: str, input_dir: Path, package_label: str) -> tuple[str, Path]:
+    def stage_manual_package(
+        source_text: str,
+        current: WorkspaceStore,
+        package_label: str,
+        revision_number: int | None,
+    ) -> tuple[str, Path]:
+        input_dir = Path(current.data.input_dir)
         source_path = Path(source_text).expanduser().resolve()
         require_manual_source_allowed(source_path)
         if not source_path.exists():
@@ -676,14 +732,23 @@ def create_app(
                 destination_dir = input_dir / safe_package_dir_name(package_dir.name)
                 if copy_package_source(package_dir, destination_dir):
                     copied.append(destination_dir)
+                    register_package_folder(
+                        current,
+                        destination_dir,
+                        destination_dir.name,
+                        infer_revision_number_from_name(package_dir.name),
+                    )
             if not copied:
                 raise ValueError(f"No PDF files found under revision package root: {source_path}")
             return f"{len(copied)} packages from {source_path.name}", input_dir
+        if revision_number is None:
+            raise ValueError("Assign a positive revision number before importing a package.")
         destination_name = safe_package_dir_name(package_label) or source_path.stem
         destination_dir = input_dir / destination_name
         copied_count = copy_package_source(source_path, destination_dir)
         if copied_count == 0:
             raise ValueError(f"No PDF files found under {source_path}")
+        register_package_folder(current, destination_dir, destination_name, revision_number)
         return destination_name, destination_dir
 
     def _revision_package_children(source_path: Path) -> list[Path]:
@@ -772,6 +837,7 @@ def create_app(
             return revision_set.label, len(assembled_paths)
 
         package_label = metadata.get("package_label", "")
+        revision_number = require_revision_number(metadata.get("revision_number"))
         destination_name = safe_package_dir_name(package_label) or infer_package_name_from_upload_records(files)
         destination_dir = Path(current.data.input_dir) / destination_name
         destination_dir.mkdir(parents=True, exist_ok=True)
@@ -782,6 +848,7 @@ def create_app(
             target = destination_dir / relative_path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(assembled_path, target)
+        register_package_folder(current, destination_dir, destination_name, revision_number)
         return destination_name, len(assembled_paths)
 
     def assemble_chunked_upload(metadata: dict, upload_dir: Path) -> list[Path]:
@@ -1131,6 +1198,9 @@ def create_app(
             return render_template(
                 "dashboard.html",
                 revision_rows=[],
+                staged_package_rows=[],
+                package_setup_errors=[],
+                can_populate=False,
                 pricing_summary=empty_pricing_summary(),
                 pending_review_count=0,
                 first_pending=None,
@@ -1138,27 +1208,44 @@ def create_app(
                 populate_status={},
             )
         cleanup_stale_chunked_uploads(project)
+        active_store = load_project_store()
+        reconcile_staged_packages(active_store, save=True)
+        package_setup_errors = validate_staged_packages(active_store)
+        revision_sets_by_folder = {Path(revision_set.source_dir).name.lower(): revision_set for revision_set in active_store.data.revision_sets}
         rows = []
-        for revision_set in store.data.revision_sets:
-            set_sheets = [sheet for sheet in store.data.sheets if sheet.revision_set_id == revision_set.id]
-            set_change_items = [item for item in visible_change_items(store.data.change_items) if any(sheet.id == item.sheet_version_id for sheet in set_sheets)]
+        for package in sorted(active_store.data.staged_packages, key=staged_package_sort_key):
+            revision_set = revision_sets_by_folder.get(package.folder_name.lower())
+            set_sheets = [sheet for sheet in active_store.data.sheets if revision_set and sheet.revision_set_id == revision_set.id]
+            set_change_items = [
+                item
+                for item in visible_change_items(active_store.data.change_items)
+                if any(sheet.id == item.sheet_version_id for sheet in set_sheets)
+            ]
+            package_dir = Path(package.source_dir)
+            pdf_files = sorted(package_dir.rglob("*.pdf")) if package_dir.exists() else []
             rows.append(
                 {
+                    "package": package,
                     "revision_set": revision_set,
+                    "pdf_count": len(pdf_files),
+                    "staged_files": [pdf.relative_to(package_dir).as_posix() for pdf in pdf_files],
                     "sheet_count": len(set_sheets),
                     "active_count": len([sheet for sheet in set_sheets if sheet.status == "active"]),
                     "superseded_count": len([sheet for sheet in set_sheets if sheet.status == "superseded"]),
-                    "narrative_count": len([entry for entry in store.data.narrative_entries if entry.revision_set_id == revision_set.id]),
+                    "narrative_count": len([entry for entry in active_store.data.narrative_entries if revision_set and entry.revision_set_id == revision_set.id]),
                     "change_count": len(set_change_items),
                     "discipline": ", ".join(sorted({discipline_for_sheet(sheet.sheet_id) for sheet in set_sheets if sheet.sheet_id})[:3]) or "Drawings",
                 }
             )
-        pricing_summary = Exporter(store).pricing_summary()
-        pending_review_count = len([item for item in visible_change_items(store.data.change_items) if item.status == "pending"])
-        first_pending = next((item for item in filter_change_items(store, "pending", "")), None)
+        pricing_summary = Exporter(active_store).pricing_summary()
+        pending_review_count = len([item for item in visible_change_items(active_store.data.change_items) if item.status == "pending"])
+        first_pending = next((item for item in filter_change_items(active_store, "pending", "")), None)
         return render_template(
             "dashboard.html",
             revision_rows=rows,
+            staged_package_rows=[row for row in rows if row["revision_set"] is None],
+            package_setup_errors=package_setup_errors,
+            can_populate=bool(rows) and not package_setup_errors,
             pricing_summary=pricing_summary,
             pending_review_count=pending_review_count,
             first_pending=first_pending,
@@ -1171,23 +1258,44 @@ def create_app(
         project = active_project()
         current = load_project_store(project)
         status = dict(current.data.populate_status or {})
+        status["package_setup_errors"] = validate_staged_packages(current)
         status.update(summarize_populate_artifacts(project, current))
         return jsonify(status)
+
+    @app.post("/packages/order")
+    def save_package_order():
+        current = load_project_store()
+        values = {
+            package.id: request.form.get(f"revision_number_{package.id}", "")
+            for package in reconcile_staged_packages(current, save=False)[0]
+        }
+        update_revision_numbers(current, values)
+        current.save()
+        return redirect(url_for("dashboard"))
 
     @app.post("/packages/import")
     def import_package():
         current = load_project_store()
         source_text = request.form.get("source_path", "").strip()
         package_label = request.form.get("package_label", "").strip()
+        revision_number = parse_revision_number(request.form.get("revision_number"))
         if has_uploaded_files("package_files"):
             try:
-                destination_name, saved = stage_uploaded_package("package_files", Path(current.data.input_dir), package_label)
+                destination_name, saved = stage_uploaded_package(
+                    "package_files",
+                    current,
+                    package_label,
+                    require_revision_number(request.form.get("revision_number")),
+                )
                 if not saved:
+                    set_package_setup_status(current, error="No PDF files were selected for import.")
                     flash("No PDF files were selected for import.", "warning")
                     return redirect(url_for("dashboard"))
             except Exception as exc:
+                set_package_setup_status(current, error=f"Package import failed: {exc}")
                 flash(f"Package import failed: {exc}", "warning")
                 return redirect(url_for("dashboard"))
+            set_package_setup_status(current)
             flash(
                 f"Staged package {destination_name} with {len(saved)} PDF file(s). Populate the workspace to generate review data.",
                 "success",
@@ -1196,16 +1304,23 @@ def create_app(
 
         if source_text:
             try:
-                destination_name, _ = stage_manual_package(source_text, Path(current.data.input_dir), package_label)
+                destination_name, _ = stage_manual_package(source_text, current, package_label, revision_number)
+            except PermissionError:
+                set_package_setup_status(current, error="Manual server path is outside the allowed import location.")
+                flash("Package import failed.", "warning")
+                return redirect(url_for("dashboard"))
             except Exception as exc:
+                set_package_setup_status(current, error=f"Package import failed: {exc}")
                 flash(f"Package import failed: {exc}", "warning")
                 return redirect(url_for("dashboard"))
+            set_package_setup_status(current)
             flash(
                 f"Staged package {destination_name}. Populate the workspace to generate review data.",
                 "success",
             )
             return redirect(url_for("dashboard"))
 
+        set_package_setup_status(current, error="Choose PDF files or a folder from your computer, or enter a manual server path.")
         flash(
             "Choose PDF files or a folder from your computer, or enter a manual server path.",
             "warning",
@@ -1283,8 +1398,12 @@ def create_app(
             revision_set_id = str(payload.get("revision_set_id", "")).strip()
             if not any(item.id == revision_set_id for item in current.data.revision_sets):
                 return jsonify({"error": "Choose a target package."}), 400
+            revision_number = None
         else:
             revision_set_id = ""
+            revision_number = parse_revision_number(payload.get("revision_number"))
+            if revision_number is None:
+                return jsonify({"error": "Assign a positive revision number before importing a package."}), 400
 
         raw_files = payload.get("files") or []
         if not raw_files:
@@ -1327,6 +1446,7 @@ def create_app(
             "upload_id": upload_id,
             "purpose": purpose,
             "package_label": str(payload.get("package_label", "")).strip(),
+            "revision_number": revision_number,
             "revision_set_id": revision_set_id,
             "created_at": utc_timestamp(),
             "files": files,
@@ -1402,6 +1522,16 @@ def create_app(
     def populate_workspace():
         project = active_project()
         current = load_project_store()
+        reconcile_staged_packages(current, save=True)
+        package_setup_errors = validate_staged_packages(current)
+        if package_setup_errors:
+            current.update_populate_status(
+                state="blocked",
+                stage="package_setup",
+                message="Package revision numbers need attention before Populate can run.",
+                error=" ".join(package_setup_errors),
+            )
+            return redirect(url_for("dashboard"))
         current.update_populate_status(
             state="running",
             stage="drawing_analysis",

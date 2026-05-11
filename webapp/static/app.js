@@ -445,6 +445,7 @@ function bindChunkedUploadForms() {
           body: JSON.stringify({
             purpose: form.dataset.uploadPurpose,
             package_label: formData.get("package_label") || "",
+            revision_number: formData.get("revision_number") || "",
             revision_set_id: formData.get("revision_set_id") || "",
             csrf_token: csrfTokenForForm(form),
             files: entries.map(({ file, relativePath }) => ({

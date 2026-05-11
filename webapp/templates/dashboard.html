@@ -70,7 +70,7 @@
               data-status-url="{{ url_for('populate_status') }}"
             >
               {{ csrf_field()|safe }}
-              <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating..." {% if bulk_review_job_running %}disabled{% endif %}>Populate Workspace</button>
+              <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating..." {% if bulk_review_job_running or not can_populate %}disabled{% endif %}>Populate Workspace</button>
             </form>
           {% else %}
             <a class="btn btn-primary btn-sm" href="{{ url_for('projects') }}">Create project</a>
@@ -117,6 +117,12 @@
                 <div class="populate-status-error" data-populate-error hidden></div>
               {% endif %}
             </div>
+            {% if package_setup_errors %}
+              <div class="populate-status-error">
+                <strong>Package setup needs attention.</strong>
+                {{ package_setup_errors|join(" ") }}
+              </div>
+            {% endif %}
           {% endif %}
 
           {% if active_project %}
@@ -143,6 +149,10 @@
                 <label>
                   <span class="form-label">Optional package name</span>
                   <input class="form-input" name="package_label" placeholder="Package name">
+                </label>
+                <label>
+                  <span class="form-label">Revision number</span>
+                  <input class="form-input" name="revision_number" type="number" min="1" step="1" placeholder="1">
                 </label>
                 <div class="file-picker">
                   <span class="form-label">File dialog</span>
@@ -227,48 +237,103 @@
         </div>
       </section>
 
+      {% if staged_package_rows %}
+        <section class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Staged for population</span>
+          </div>
+          <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Package</th>
+                  <th>Revision</th>
+                  <th class="col-right">PDFs</th>
+                  <th>Imported files</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in staged_package_rows %}
+                  <tr>
+                    <td class="cell-mono">{{ row.package.label }}</td>
+                    <td class="cell-mono">{{ row.package.revision_number or "Needs number" }}</td>
+                    <td class="col-right cell-mono">{{ row.pdf_count }}</td>
+                    <td class="cell-secondary">
+                      {% for filename in row.staged_files[:12] %}
+                        <span class="badge badge-pending" style="margin: 0 4px 4px 0;">{{ filename }}</span>
+                      {% endfor %}
+                      {% if row.staged_files|length > 12 %}
+                        <span class="badge badge-superseded">+{{ row.staged_files|length - 12 }} more</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {% endif %}
+
       <section class="panel">
         <div class="panel-header">
           <span class="panel-title">Revision packages</span>
-          <a class="btn btn-ghost btn-sm" href="{{ url_for('sheets') }}">All drawings</a>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            {% if revision_rows %}
+              <button class="btn btn-secondary btn-sm" type="submit" form="package-order-form" {% if bulk_review_job_running %}disabled{% endif %}>Save package order</button>
+            {% endif %}
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('sheets') }}">All drawings</a>
+          </div>
         </div>
-        <div class="data-table-wrap" style="border: 0; border-radius: 0;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Package</th>
-                <th>Date</th>
-                <th>Disciplines</th>
-                <th class="col-right">Sheets</th>
-                <th class="col-right">Changes</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for row in revision_rows %}
+        <form id="package-order-form" method="post" action="{{ url_for('save_package_order') }}">
+          {{ csrf_field()|safe }}
+          <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+            <table class="data-table">
+              <thead>
                 <tr>
-                  <td class="cell-mono">
-                    {% if row.revision_set.label == current_package_label %}<span class="nav-pkg-dot"></span>{% endif %}
-                    {{ row.revision_set.label }}
-                  </td>
-                  <td class="cell-secondary">{{ row.revision_set.set_date or "n/a" }}</td>
-                  <td class="cell-secondary">{{ row.discipline }}</td>
-                  <td class="col-right cell-mono">{{ row.sheet_count }}</td>
-                  <td class="col-right cell-mono">{{ row.change_count }}</td>
-                  <td>
-                    <span class="badge badge-{{ 'active' if row.revision_set.label == current_package_label else 'superseded' }}">
-                      <span class="badge-dot"></span>{{ "Active" if row.revision_set.label == current_package_label else "Indexed" }}
-                    </span>
-                  </td>
-                  <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all') }}">Review queue</a></td>
+                  <th>Package</th>
+                  <th>Revision</th>
+                  <th>Date</th>
+                  <th>Disciplines</th>
+                  <th class="col-right">PDFs</th>
+                  <th class="col-right">Sheets</th>
+                  <th class="col-right">Changes</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
-              {% else %}
-                <tr><td colspan="7" class="data-table-empty">No revision packages have been loaded.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {% for row in revision_rows %}
+                  <tr>
+                    <td class="cell-mono">
+                      {% if row.revision_set and row.revision_set.label == current_package_label %}<span class="nav-pkg-dot"></span>{% endif %}
+                      {{ row.package.label }}
+                    </td>
+                    <td style="max-width: 110px;">
+                      <input class="form-input" name="revision_number_{{ row.package.id }}" type="number" min="1" step="1" required value="{{ row.package.revision_number or '' }}" aria-label="Revision number for {{ row.package.label }}">
+                    </td>
+                    <td class="cell-secondary">{{ row.revision_set.set_date if row.revision_set else "n/a" }}</td>
+                    <td class="cell-secondary">{{ row.discipline }}</td>
+                    <td class="col-right cell-mono">{{ row.pdf_count }}</td>
+                    <td class="col-right cell-mono">{{ row.sheet_count }}</td>
+                    <td class="col-right cell-mono">{{ row.change_count }}</td>
+                    <td>
+                      {% if row.revision_set %}
+                        <span class="badge badge-{{ 'active' if row.revision_set.label == current_package_label else 'superseded' }}">
+                          <span class="badge-dot"></span>{{ "Active" if row.revision_set.label == current_package_label else "Indexed" }}
+                        </span>
+                      {% else %}
+                        <span class="badge badge-pending"><span class="badge-dot"></span>Staged</span>
+                      {% endif %}
+                    </td>
+                    <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all') }}">Review queue</a></td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="9" class="data-table-empty">No revision packages have been loaded.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </form>
       </section>
 
       <section class="panel">

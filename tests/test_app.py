@@ -41,7 +41,7 @@ from backend.pre_review import (
     select_pre_review_source,
 )
 from backend.projects import ProjectRecord, ProjectRegistry
-from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
+from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion, StagedPackage
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.review import change_item_needs_attention
 from backend.review_events import record_bulk_review_updates, record_internal_review_event, record_review_update
@@ -2775,6 +2775,47 @@ def test_crop_comparison_requires_prior_real_revision_set():
     assert previous == previous_real
 
 
+def test_crop_comparison_uses_nearest_prior_revision_with_matching_sheet():
+    from backend.deliverables.crop_comparison import find_previous_sheet_version
+
+    rev1_sheet = SheetVersion(
+        id="rev1-ae102",
+        revision_set_id="rev-1",
+        source_pdf="rev1.pdf",
+        page_number=4,
+        sheet_id="AE102",
+        sheet_title="Second Floor Plan",
+        issue_date="01/01/2026",
+    )
+    rev2_other_sheet = SheetVersion(
+        id="rev2-ae103",
+        revision_set_id="rev-2",
+        source_pdf="rev2.pdf",
+        page_number=5,
+        sheet_id="AE103",
+        sheet_title="Third Floor Plan",
+        issue_date="01/08/2026",
+    )
+    rev3_sheet = SheetVersion(
+        id="rev3-ae102",
+        revision_set_id="rev-3",
+        source_pdf="rev3.pdf",
+        page_number=4,
+        sheet_id="AE102",
+        sheet_title="Second Floor Plan",
+        issue_date="01/15/2026",
+    )
+    revision_sets = {
+        "rev-1": RevisionSet(id="rev-1", label="Revision #1", source_dir="", set_number=1, set_date="01/01/2026"),
+        "rev-2": RevisionSet(id="rev-2", label="Revision #2", source_dir="", set_number=2, set_date="01/08/2026"),
+        "rev-3": RevisionSet(id="rev-3", label="Revision #3", source_dir="", set_number=3, set_date="01/15/2026"),
+    }
+
+    previous = find_previous_sheet_version(rev3_sheet, [rev1_sheet, rev2_other_sheet, rev3_sheet], revision_sets)
+
+    assert previous == rev1_sheet
+
+
 def test_scanner_treats_revision_set_upload_as_rev1_and_skips_index_clouds(tmp_path: Path):
     class FakeCloudClient:
         name = "fake_clouds"
@@ -3400,6 +3441,100 @@ def test_import_revision_sets_root_preserves_child_packages(tmp_path: Path):
     assert (input_dir / "Revision #1 - Alpha" / "alpha.pdf").exists()
     assert (input_dir / "Revision #2 - Beta" / "beta.pdf").exists()
     assert not (input_dir / "revision_sets" / "Revision #1 - Alpha" / "alpha.pdf").exists()
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert {package.label: package.revision_number for package in store.data.staged_packages} == {
+        "Revision #1 - Alpha": 1,
+        "Revision #2 - Beta": 2,
+    }
+    overview = client.get("/overview")
+    assert overview.status_code == 200
+    assert b"Staged for population" in overview.data
+    assert b"alpha.pdf" in overview.data
+    assert b"beta.pdf" in overview.data
+    assert str(input_dir).encode("utf-8") not in overview.data
+
+
+def test_legacy_package_folders_reconcile_into_staged_package_metadata(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    write_minimal_drawing_pdf(input_dir / "Revision #2 - Existing" / "drawing.pdf")
+    WorkspaceStore(workspace_dir).create(input_dir)
+    register_workspace_project(workspace_dir)
+
+    app = create_app(workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/overview")
+
+    assert response.status_code == 200
+    store = WorkspaceStore(workspace_dir).load()
+    assert len(store.data.staged_packages) == 1
+    assert store.data.staged_packages[0].label == "Revision #2 - Existing"
+    assert store.data.staged_packages[0].revision_number == 2
+
+
+def test_manual_single_package_import_persists_revision_number(tmp_path: Path):
+    source_pdf = tmp_path / "incoming.pdf"
+    write_minimal_drawing_pdf(source_pdf)
+    app = create_app(tmp_path)
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    imported = client.post(
+        "/packages/import",
+        data={"source_path": str(source_pdf), "package_label": "ASI 3", "revision_number": "3"},
+    )
+
+    assert imported.status_code == 302
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert len(store.data.staged_packages) == 1
+    assert store.data.staged_packages[0].label == "ASI 3"
+    assert store.data.staged_packages[0].revision_number == 3
+
+
+def test_single_package_import_without_revision_number_sets_inline_setup_error(tmp_path: Path):
+    source_pdf = tmp_path / "incoming.pdf"
+    write_minimal_drawing_pdf(source_pdf)
+    app = create_app(tmp_path)
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    imported = client.post(
+        "/packages/import",
+        data={"source_path": str(source_pdf), "package_label": "Missing Number"},
+    )
+
+    assert imported.status_code == 302
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert store.data.staged_packages == []
+    assert store.data.populate_status["state"] == "blocked"
+    assert "positive revision number" in store.data.populate_status["error"]
+
+
+def test_browser_upload_import_persists_revision_number(tmp_path: Path):
+    source_pdf = tmp_path / "upload.pdf"
+    write_minimal_drawing_pdf(source_pdf)
+    app = create_app(tmp_path)
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    imported = client.post(
+        "/packages/import",
+        data={
+            "package_label": "Upload Package",
+            "revision_number": "4",
+            "package_files": (io.BytesIO(source_pdf.read_bytes()), "upload.pdf"),
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert imported.status_code == 302
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert store.data.staged_packages[0].label == "Upload Package"
+    assert store.data.staged_packages[0].revision_number == 4
 
 
 def test_production_manual_import_allows_configured_root(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
@@ -3462,6 +3597,7 @@ def test_chunked_browser_import_reconstructs_pdf_package(tmp_path: Path):
         json={
             "purpose": "import_package",
             "package_label": "Chunked Package",
+            "revision_number": 1,
             "files": [{"name": "large_package.pdf", "relative_path": "large_package.pdf", "size": len(payload)}],
         },
     )
@@ -3489,6 +3625,9 @@ def test_chunked_browser_import_reconstructs_pdf_package(tmp_path: Path):
     input_dir = tmp_path / "projects" / "fresh-project" / "input"
     assert (input_dir / "Chunked Package" / "large_package.pdf").read_bytes() == payload
     assert not (tmp_path / "projects" / "fresh-project" / ".chunked_uploads" / upload_id).exists()
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert store.data.staged_packages[0].label == "Chunked Package"
+    assert store.data.staged_packages[0].revision_number == 1
 
 
 def test_chunked_upload_rejects_non_pdf(tmp_path: Path):
@@ -3501,6 +3640,7 @@ def test_chunked_upload_rejects_non_pdf(tmp_path: Path):
         "/uploads/chunked/init",
         json={
             "purpose": "import_package",
+            "revision_number": 1,
             "files": [{"name": "notes.txt", "relative_path": "notes.txt", "size": 10}],
         },
     )
@@ -3540,6 +3680,7 @@ def test_chunked_upload_respects_configured_size_limit(monkeypatch: pytest.Monke
         "/uploads/chunked/init",
         json={
             "purpose": "import_package",
+            "revision_number": 1,
             "files": [{"name": "huge.pdf", "relative_path": "huge.pdf", "size": 21 * 1024 * 1024}],
         },
     )
@@ -3570,6 +3711,7 @@ def test_chunked_upload_abort_removes_temp_session(tmp_path: Path):
         "/uploads/chunked/init",
         json={
             "purpose": "import_package",
+            "revision_number": 1,
             "files": [{"name": "cancel_me.pdf", "relative_path": "cancel_me.pdf", "size": len(payload)}],
         },
     )
@@ -3615,6 +3757,7 @@ def test_chunked_upload_init_cleans_stale_temp_sessions(tmp_path: Path):
         "/uploads/chunked/init",
         json={
             "purpose": "import_package",
+            "revision_number": 1,
             "files": [{"name": "fresh.pdf", "relative_path": "fresh.pdf", "size": 12}],
         },
     )
@@ -3758,6 +3901,97 @@ def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
     assert any(item.provenance.get("extraction_method") == "cloudhammer_manifest" for item in store.data.change_items)
     assert store.data.populate_status["cloudhammer_page_count"] == 1
     assert store.data.populate_status["cloudhammer_candidate_count"] == 1
+
+
+def test_package_order_edit_survives_rescan(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    write_minimal_drawing_pdf(input_dir / "Revision #1 - Test" / "drawing.pdf")
+    WorkspaceStore(workspace_dir).create(input_dir)
+    register_workspace_project(workspace_dir)
+
+    app = create_app(workspace_dir)
+    client = app.test_client()
+    overview = client.get("/overview")
+    assert overview.status_code == 200
+    store = WorkspaceStore(workspace_dir).load()
+    package = store.data.staged_packages[0]
+
+    updated = client.post("/packages/order", data={f"revision_number_{package.id}": "5"})
+    assert updated.status_code == 302
+    scanned = RevisionScanner(input_dir, workspace_dir).scan()
+
+    assert WorkspaceStore(workspace_dir).load().data.staged_packages[0].revision_number == 5
+    assert scanned.data.revision_sets[0].set_number == 5
+
+
+def test_scanner_does_not_infer_revision_number_over_existing_blank_metadata(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    package_dir = input_dir / "Revision #2 - Needs Setup"
+    write_minimal_drawing_pdf(package_dir / "drawing.pdf")
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.staged_packages = [
+        StagedPackage(
+            id="package-1",
+            folder_name=package_dir.name,
+            source_dir=str(package_dir),
+            label=package_dir.name,
+            revision_number=None,
+        )
+    ]
+    store.save()
+
+    scanned = RevisionScanner(input_dir, workspace_dir).scan()
+
+    assert scanned.data.staged_packages[0].revision_number is None
+    assert scanned.data.revision_sets[0].set_number == 0
+
+
+def test_populate_blocks_missing_revision_number(tmp_path: Path):
+    class FailingRunner:
+        def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
+            raise AssertionError("Populate should not run before package setup is complete.")
+
+    app = create_app(tmp_path, cloudhammer_runner=FailingRunner())
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    write_minimal_drawing_pdf(input_dir / "Unnumbered Package" / "drawing.pdf")
+
+    populated = client.post("/workspace/populate")
+
+    assert populated.status_code == 302
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert store.data.populate_status["state"] == "blocked"
+    assert "assign a positive revision number" in store.data.populate_status["error"]
+
+
+def test_populate_blocks_duplicate_revision_numbers(tmp_path: Path):
+    class FailingRunner:
+        def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
+            raise AssertionError("Populate should not run with duplicate revision numbers.")
+
+    app = create_app(tmp_path, cloudhammer_runner=FailingRunner())
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    input_dir = workspace_dir / "input"
+    write_minimal_drawing_pdf(input_dir / "Revision #1 - A" / "a.pdf")
+    write_minimal_drawing_pdf(input_dir / "Revision #2 - B" / "b.pdf")
+    assert client.get("/overview").status_code == 200
+    store = WorkspaceStore(workspace_dir).load()
+    payload = {f"revision_number_{package.id}": "1" for package in store.data.staged_packages}
+    assert client.post("/packages/order", data=payload).status_code == 302
+
+    populated = client.post("/workspace/populate")
+
+    assert populated.status_code == 302
+    store = WorkspaceStore(workspace_dir).load()
+    assert store.data.populate_status["state"] == "blocked"
+    assert "assigned to multiple packages" in store.data.populate_status["error"]
 
 
 def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Path):

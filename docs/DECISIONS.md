@@ -2,6 +2,29 @@
 
 Status: canonical application decision log.
 
+## 2026-05-11 - Revision Package Order Is Explicit Project State
+
+Decision: Staged drawing packages carry an explicit user-managed positive
+integer revision number in the project workspace. Populate uses that number as
+the authoritative package order; folder-name parsing is only a convenience
+fallback when reconciling legacy or newly staged folders.
+
+Reason: Previous/current comparison must compare a sheet against the same sheet
+from an earlier issued revision package. Relying on upload order or casual
+folder names can make a package scan as revision `0` or compare against the
+wrong prior context.
+
+Consequences / follow-up:
+
+- Overview exposes editable revision numbers for staged packages and blocks
+  Populate when numbers are missing or duplicated.
+- Manual imports of a `Revision #...` root auto-fill child package numbers;
+  single-package imports and browser uploads require the user to provide the
+  package revision number.
+- Previous/current comparison continues to require the same sheet number from
+  a strictly lower real revision set, preferring the nearest prior package that
+  contains that sheet.
+
 ## 2026-05-11 - Legend Context Is Confirmed Separately From Scope Changes
 
 Decision: Probable legend/keynote regions remain reviewable until a reviewer

@@ -10,12 +10,18 @@ from ..cloudhammer_client.inference import CloudInferenceClient, NullCloudInfere
 from ..diagnostics import capture_preflight_issues, configure_mupdf, summarize_documents
 from ..review_queue import ensure_queue_order, legacy_review_sort_key, review_queue_sort_key
 from ..scope_extraction import extract_cloud_scope_text
+from ..staged_packages import (
+    infer_revision_number_from_name,
+    label_for_folder,
+    reconcile_staged_packages,
+    revision_number_for_folder,
+    staged_package_for_folder,
+)
 from ..workspace import WorkspaceStore
 from ..utils import DATE_PATTERN, choose_best_sheet_id, clean_display_text, normalize_text, parse_detail_ref, parse_mmddyyyy, stable_id
 from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, RevisionSet, SheetVersion, SourceDocument
 from .page_classification import sheet_is_index_like
 
-REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*(?:#|Set)?\s*(?P<number>\d+)", re.IGNORECASE)
 SCOPE_EXTRACTION_CACHE_VERSION = 3
 REVIEW_SIDE_PROVENANCE_KEYS = {
     "scopeledger.pre_review.v1",
@@ -76,6 +82,7 @@ class RevisionScanner:
         sheets: list[SheetVersion] = []
         clouds: list[CloudCandidate] = []
         next_scan_cache: dict[str, dict[str, object]] = {}
+        reconcile_staged_packages(self.store, save=False)
 
         for folder in sorted(path for path in self.input_dir.iterdir() if path.is_dir()):
             revision_set = self._build_revision_set(folder)
@@ -275,11 +282,14 @@ class RevisionScanner:
         return source_document, preflight_issues, narratives, sheets, clouds
 
     def _build_revision_set(self, folder: Path) -> RevisionSet:
-        match = REVISION_FOLDER_PATTERN.search(folder.name)
-        set_number = int(match.group("number")) if match else 0
+        staged_package = staged_package_for_folder(self.store, folder)
+        if staged_package is not None:
+            set_number = staged_package.revision_number or 0
+        else:
+            set_number = revision_number_for_folder(self.store, folder) or infer_revision_number_from_name(folder.name) or 0
         return RevisionSet(
             id=stable_id(folder.resolve()),
-            label=folder.name,
+            label=label_for_folder(self.store, folder),
             source_dir=str(folder.resolve()),
             set_number=set_number,
             set_date=None,

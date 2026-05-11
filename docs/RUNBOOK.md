@@ -185,8 +185,15 @@ Fresh client project flow with live Populate and optional Pre Review:
   3. On Overview, import packages by either selecting PDFs/folders in the
      browser or entering manual server path:
      `F:\Desktop\m\projects\scopeLedger\revision_sets`.
-  4. Click Populate Workspace.
-  5. Review Overview, Drawings, Latest Set, Review Changes, Diagnostics,
+     For a single uploaded package, enter its revision number before import;
+     importing the repo-level `revision_sets` root auto-fills each
+     `Revision #...` child package number.
+  4. Confirm the Revision packages table shows a positive integer revision
+     number for every staged package. Edit numbers and click Save package
+     order if needed. Before Populate, the staged-for-population card should
+     list the imported packages and PDF filenames.
+  5. Click Populate Workspace.
+  6. Review Overview, Drawings, Latest Set, Review Changes, Diagnostics,
      Export Workbook, and Review Packet.
 - Expected output/artifact: Populate writes live detection artifacts under
   the selected project workspace at `outputs/cloudhammer_live/run_*/`, then
@@ -201,6 +208,8 @@ Fresh client project flow with live Populate and optional Pre Review:
   staged PDF count plus live artifact count before final package/sheet/change
   counts appear. Drawing index pages remain context only; they should not
   create review items or be used as previous/current comparison sheets.
+  Populate is blocked until staged package revision numbers are complete and
+  unique.
 - Safety: local inference/product workflow. Browser-selected PDF files upload
   in 8 MiB chunks and are reconstructed in the selected app workspace. Manual
   folder import copies PDF files, not arbitrary sidecar files. It writes
@@ -217,10 +226,11 @@ Large remote browser uploads:
   1. Open the project Overview page.
   2. Under Import new package, choose a PDF or folder from the browser file
      dialog.
-  3. Click Import package.
-  4. Wait for the chunked upload progress bar to finish and redirect back to
+  3. Enter the package revision number.
+  4. Click Import package.
+  5. Wait for the chunked upload progress bar to finish and redirect back to
      Overview.
-  5. Click Populate Workspace.
+  6. Confirm package order and click Populate Workspace.
 - Expected output/artifact: selected PDFs appear under the active project's
   `input/` folder; temporary chunks are created under `.chunked_uploads/` and
   removed after successful reconstruction, browser aborts, or stale cleanup.

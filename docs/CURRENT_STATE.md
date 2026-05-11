@@ -30,6 +30,13 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Fresh projects can import the repo-level `revision_sets/` folder; each
   `Revision #...` child folder is copied as its own package into the selected
   project input folder before Populate Workspace runs.
+- Revision package order is now explicit app state. Overview shows each staged
+  package with an editable positive integer revision number; Populate is
+  blocked until every staged package with PDFs has a revision number and no two
+  packages share the same number. Folder-name parsing is only a convenience
+  fallback for newly reconciled legacy/staged folders. Before Populate,
+  Overview also shows a staged-for-population package/file summary so imported
+  PDFs are visible without exposing local workspace paths.
 - Populate Workspace now runs the local CloudHammer full-page pipeline before
   the app scanner consumes review data. The live handoff path uses the current
   continuity checkpoint

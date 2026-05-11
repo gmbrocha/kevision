@@ -52,6 +52,17 @@ class RevisionSet:
 
 
 @dataclass
+class StagedPackage:
+    id: str
+    folder_name: str
+    source_dir: str
+    label: str
+    revision_number: int | None = None
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
 class SheetVersion:
     id: str
     revision_set_id: str
@@ -149,6 +160,7 @@ class WorkspaceData:
     created_at: str = ""
     documents: list[SourceDocument] = field(default_factory=list)
     preflight_issues: list[PreflightIssue] = field(default_factory=list)
+    staged_packages: list[StagedPackage] = field(default_factory=list)
     revision_sets: list[RevisionSet] = field(default_factory=list)
     narrative_entries: list[NarrativeEntry] = field(default_factory=list)
     sheets: list[SheetVersion] = field(default_factory=list)
@@ -174,6 +186,7 @@ class WorkspaceData:
             created_at=payload.get("created_at", ""),
             documents=load_many("documents", SourceDocument),
             preflight_issues=load_many("preflight_issues", PreflightIssue),
+            staged_packages=load_many("staged_packages", StagedPackage),
             revision_sets=load_many("revision_sets", RevisionSet),
             narrative_entries=load_many("narrative_entries", NarrativeEntry),
             sheets=load_many("sheets", SheetVersion),
