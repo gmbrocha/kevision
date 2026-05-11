@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,6 +27,13 @@ VALID_REVIEW_EVENT_ACTIONS = {
     "undo",
     "comment",
 }
+
+
+@dataclass(frozen=True)
+class BulkReviewUpdateResult:
+    updated_count: int
+    events: list[ReviewEvent]
+    updated_items: list[ChangeItem]
 
 
 def record_review_update(
@@ -68,6 +75,63 @@ def record_review_update(
         store.data.review_events.append(event)
     store.save()
     return after, event
+
+
+def record_bulk_review_updates(
+    store: WorkspaceStore,
+    *,
+    project_id: str,
+    item_changes: dict[str, dict[str, Any]],
+    reviewer_id: str | None,
+    review_session_id: str | None,
+    action: str | None = None,
+    notes: str | None = None,
+) -> BulkReviewUpdateResult:
+    if not item_changes:
+        return BulkReviewUpdateResult(updated_count=0, events=[], updated_items=[])
+
+    requested_changes = {change_id: changes for change_id, changes in item_changes.items() if changes}
+    if not requested_changes:
+        return BulkReviewUpdateResult(updated_count=0, events=[], updated_items=[])
+
+    events: list[ReviewEvent] = []
+    updated_items: list[ChangeItem] = []
+    new_items: list[ChangeItem] = []
+    explicit_action = _valid_action(action)
+    for before in store.data.change_items:
+        changes = requested_changes.get(before.id)
+        if changes is None:
+            new_items.append(before)
+            continue
+        after = replace(before, **changes)
+        if after == before:
+            new_items.append(before)
+            continue
+        inferred_action = explicit_action or classify_review_action(before, after)
+        if inferred_action:
+            events.append(
+                build_review_event(
+                    store,
+                    project_id=project_id,
+                    before_item=before,
+                    after_item=after,
+                    action=inferred_action,
+                    reviewer_id=reviewer_id,
+                    review_session_id=review_session_id,
+                    notes=notes,
+                )
+            )
+        new_items.append(after)
+        updated_items.append(after)
+
+    if not updated_items:
+        return BulkReviewUpdateResult(updated_count=0, events=[], updated_items=[])
+
+    store.data.change_items = new_items
+    if events:
+        store.data.review_events.extend(events)
+    store.save()
+    return BulkReviewUpdateResult(updated_count=len(updated_items), events=events, updated_items=updated_items)
 
 
 def record_internal_review_event(

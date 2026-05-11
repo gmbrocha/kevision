@@ -2,6 +2,23 @@
 
 Status: canonical application decision log.
 
+## 2026-05-11 - Bulk Review Writes Are Batched
+
+Decision: Bulk accept/reject actions update selected review items and append
+their internal review events in one workspace save.
+
+Reason: Large select-all review actions can touch hundreds of items. Saving
+`workspace.json` once per item is slow enough to trigger browser or tunnel
+timeouts even when the backend eventually finishes.
+
+Consequences / follow-up:
+
+- The normal review-event audit trail is preserved: each changed item still
+  gets its own `accept` or `reject` event.
+- Superseded parent items are still skipped by bulk review.
+- This reduces write overhead but the action is still synchronous; background
+  review jobs remain a later option if very large queues continue to feel slow.
+
 ## 2026-05-11 - Reviewer Geometry Corrections Supersede Parents
 
 Decision: Reviewers can correct overmerged or partial detected regions inside

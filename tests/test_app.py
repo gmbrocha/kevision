@@ -35,7 +35,7 @@ from backend.projects import ProjectRecord, ProjectRegistry
 from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.review import change_item_needs_attention
-from backend.review_events import record_internal_review_event, record_review_update
+from backend.review_events import record_bulk_review_updates, record_internal_review_event, record_review_update
 from backend.review_queue import ensure_queue_order, ordered_change_items, visible_change_items
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
@@ -702,6 +702,76 @@ def test_bulk_review_ignores_superseded_parents(tmp_path: Path):
     assert parent.status == "pending"
     assert child.status == "approved"
     assert [event.change_item_id for event in loaded.data.review_events] == ["change-2"]
+
+
+def test_record_bulk_review_updates_saves_once_and_creates_review_events(tmp_path: Path, monkeypatch):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    append_pre_review_test_item(store, 3)
+    store.save()
+    save_count = 0
+    original_save = store.save
+
+    def counted_save():
+        nonlocal save_count
+        save_count += 1
+        original_save()
+
+    monkeypatch.setattr(store, "save", counted_save)
+
+    result = record_bulk_review_updates(
+        store,
+        project_id="test-project",
+        item_changes={
+            "change-1": {"status": "approved", "reviewer_text": "Scope 1"},
+            "change-2": {"status": "approved", "reviewer_text": "Scope 2"},
+            "change-3": {"status": "approved", "reviewer_text": "Scope 3"},
+        },
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+        action="accept",
+    )
+
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert result.updated_count == 3
+    assert save_count == 1
+    assert [item.status for item in loaded.data.change_items] == ["approved", "approved", "approved"]
+    assert [event.change_item_id for event in loaded.data.review_events] == ["change-1", "change-2", "change-3"]
+    assert all(event.action == "accept" for event in loaded.data.review_events)
+
+
+def test_bulk_review_route_accept_all_writes_workspace_once(tmp_path: Path, monkeypatch):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    append_pre_review_test_item(store, 3)
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+    save_count = 0
+    original_save = WorkspaceStore.save
+
+    def counted_save(self):
+        nonlocal save_count
+        save_count += 1
+        return original_save(self)
+
+    monkeypatch.setattr(WorkspaceStore, "save", counted_save)
+
+    response = client.post(
+        "/changes/bulk-review",
+        data={
+            "change_ids": ["change-1", "change-2", "change-3"],
+            "status": "approved",
+            "redirect_to": "/changes",
+        },
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert response.status_code == 302
+    assert save_count == 1
+    assert [item.status for item in loaded.data.change_items] == ["approved", "approved", "approved"]
+    assert [event.change_item_id for event in loaded.data.review_events] == ["change-1", "change-2", "change-3"]
 
 
 def test_superseded_parents_are_hidden_from_exports_and_packet(tmp_path: Path):

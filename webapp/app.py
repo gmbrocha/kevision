@@ -41,7 +41,7 @@ from backend.pre_review import (
     select_pre_review_source,
 )
 from backend.review import change_item_needs_attention
-from backend.review_events import record_review_update
+from backend.review_events import record_bulk_review_updates, record_review_update
 from backend.review_queue import ensure_queue_order, is_superseded, ordered_change_items, review_queue_counts, visible_change_items
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.revision_state.tracker import RevisionScanner
@@ -1819,27 +1819,31 @@ def create_app(
         if status not in VALID_REVIEW_STATUSES:
             flash("Choose a valid bulk action.", "warning")
             return redirect(redirect_to)
-        count = 0
-        for change_id in selected_ids:
-            try:
-                item = store.get_change_item(change_id)
-            except KeyError:
+        selected_once = list(dict.fromkeys(selected_ids))
+        items_by_id = {item.id: item for item in store.data.change_items}
+        item_changes: dict[str, dict[str, str]] = {}
+        for change_id in selected_once:
+            item = items_by_id.get(change_id)
+            if item is None:
                 continue
             if is_superseded(item):
                 continue
             reviewer_text = item.reviewer_text or item.raw_text
             if item.status == status and item.reviewer_text == reviewer_text:
                 continue
-            record_review_update(
+            item_changes[change_id] = {"status": status, "reviewer_text": reviewer_text}
+        if item_changes:
+            result = record_bulk_review_updates(
                 store,
                 project_id=project.id,
-                change_id=change_id,
-                changes={"status": status, "reviewer_text": reviewer_text},
+                item_changes=item_changes,
                 reviewer_id=current_reviewer_id(),
                 review_session_id=current_review_session_id(),
                 action="accept" if status == "approved" else "reject" if status == "rejected" else None,
             )
-            count += 1
+            count = result.updated_count
+        else:
+            count = 0
         flash(f"Updated {count} queue items to {status}.", "success")
         return redirect(redirect_to)
 

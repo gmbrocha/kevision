@@ -55,7 +55,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   candidate, optional Pre Review metadata, and the human final result for
   future internal QA, audit, and pipeline analysis. They are not exposed in the
   normal UI or client-facing exports; use the CLI-only JSONL export when
-  needed.
+  needed. Bulk accept/reject now batches review state changes and event
+  creation into one workspace save so large select-all actions are less likely
+  to hit browser/proxy timeouts.
 - The review page now supports client-facing crop adjustment for individual
   detected regions. Adjustments regenerate a derived crop asset, make
   review/export surfaces use the adjusted geometry, and append an internal
