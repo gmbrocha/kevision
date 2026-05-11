@@ -9,6 +9,7 @@ from pathlib import Path
 import fitz
 
 from ..diagnostics import configure_mupdf
+from ..review_queue import visible_change_items
 from .revision_changelog_excel import write_revision_changelog
 from ..revision_state.models import ChangeItem, SheetVersion
 from ..review import change_item_needs_attention
@@ -69,14 +70,15 @@ class Exporter:
 
     def export(self, force_attention: bool = False) -> dict[str, str]:
         self.last_scope_enrichment_count = enrich_workspace_scope_text(self.store)
+        change_items = visible_change_items(self.store.data.change_items)
         pending_attention = [
-            item for item in self.store.data.change_items if item.status == "pending" and change_item_needs_attention(item)
+            item for item in change_items if item.status == "pending" and change_item_needs_attention(item)
         ]
         if pending_attention and not force_attention:
             raise ExportBlockedError(
                 f"Export blocked: {len(pending_attention)} attention item(s) are still pending review. Resolve them or force the export."
             )
-        approved = [item for item in self.store.data.change_items if item.status == "approved"]
+        approved = [item for item in change_items if item.status == "approved"]
         outputs = {
             "approved_changes_csv": str(self._write_approved_csv(approved)),
             "approved_changes_json": str(self._write_approved_json(approved)),
@@ -100,7 +102,7 @@ class Exporter:
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "outputs": outputs,
                 "approved_count": len(approved),
-                "pending_count": len([item for item in self.store.data.change_items if item.status == "pending"]),
+                "pending_count": len([item for item in change_items if item.status == "pending"]),
                 "attention_pending_count": len(pending_attention),
                 "forced_attention": force_attention,
                 "summary": summary,
@@ -111,7 +113,7 @@ class Exporter:
 
     def pricing_summary(self) -> dict[str, object]:
         """Read-only snapshot of the same metrics export() produces, without writing files."""
-        change_items = self.store.data.change_items
+        change_items = visible_change_items(self.store.data.change_items)
         approved = [item for item in change_items if item.status == "approved"]
         pending_attention = [
             item for item in change_items if item.status == "pending" and change_item_needs_attention(item)
@@ -128,7 +130,7 @@ class Exporter:
         candidate_rows = [row for row in all_rows if row["pricing_relevance"]]
         log_rows = [row for row in candidate_rows if row["pricing_status"] == "approved" and row["latest_for_pricing"]]
         sheets = self.store.data.sheets
-        change_items = self.store.data.change_items
+        change_items = visible_change_items(self.store.data.change_items)
         filtered_by_reason: dict[str, int] = {}
         for row in all_rows:
             if not row["pricing_relevance"]:
@@ -247,7 +249,7 @@ class Exporter:
     def _all_pricing_rows(self) -> list[dict[str, object]]:
         return [
             self._build_pricing_change_row(item)
-            for item in self.store.data.change_items
+            for item in visible_change_items(self.store.data.change_items)
             if item.status != "rejected"
         ]
 

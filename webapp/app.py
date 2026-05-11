@@ -41,6 +41,7 @@ from backend.pre_review import (
 )
 from backend.review import change_item_needs_attention
 from backend.review_events import record_review_update
+from backend.review_queue import ensure_queue_order, is_superseded, ordered_change_items, review_queue_counts, visible_change_items
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text
@@ -55,7 +56,8 @@ class DisabledReviewAssistProvider:
 
 
 def filter_change_items(store: WorkspaceStore, filter_status: str, search_query: str) -> list:
-    items = store.data.change_items
+    ensure_review_queue_state(store)
+    items = visible_change_items(store.data.change_items)
     if filter_status != "all":
         items = [item for item in items if item.status == filter_status]
     query = search_query.strip().lower()
@@ -73,7 +75,23 @@ def filter_change_items(store: WorkspaceStore, filter_status: str, search_query:
                 ]
             ).lower()
         ]
-    return sorted(items, key=lambda item: (item.status != "pending", item.sheet_id, item.detail_ref or "", item.id))
+    return ordered_change_items(items)
+
+
+def ensure_review_queue_state(store: WorkspaceStore) -> bool:
+    updated_items, changed = ensure_queue_order(store.data.change_items)
+    if changed:
+        store.data.change_items = updated_items
+        store.save()
+    return changed
+
+
+def visible_review_counts(store: WorkspaceStore) -> dict[str, int]:
+    ensure_review_queue_state(store)
+    counts = review_queue_counts(store.data.change_items)
+    visible = visible_change_items(store.data.change_items)
+    counts["needs_check"] = len([item for item in visible if item.status == "pending" and change_item_needs_attention(item)])
+    return counts
 
 
 def build_change_navigation(items: list, current_id: str) -> dict[str, object]:
@@ -704,7 +722,7 @@ def create_app(
     def inject_globals() -> dict[str, object]:
         project = active_project_or_none()
         active_store = load_project_store(project) if project else None
-        change_items = active_store.data.change_items if active_store else []
+        change_items = visible_change_items(active_store.data.change_items) if active_store else []
         total_changes = len(change_items)
         reviewed_count = len([item for item in change_items if item.status in {"approved", "rejected"}])
         current_package = max(active_store.data.revision_sets, key=lambda item: item.set_number, default=None) if active_store else None
@@ -916,13 +934,15 @@ def create_app(
         for project in registry.projects:
             try:
                 project_store = WorkspaceStore(Path(project.workspace_dir)).load()
+                ensure_review_queue_state(project_store)
+                project_items = visible_change_items(project_store.data.change_items)
                 rows.append(
                     {
                         "project": project,
                         "revision_set_count": len(project_store.data.revision_sets),
                         "sheet_count": len([sheet for sheet in project_store.data.sheets if sheet.status == "active"]),
-                        "pending_count": len([item for item in project_store.data.change_items if item.status == "pending"]),
-                        "approved_count": len([item for item in project_store.data.change_items if item.status == "approved"]),
+                        "pending_count": len([item for item in project_items if item.status == "pending"]),
+                        "approved_count": len([item for item in project_items if item.status == "approved"]),
                     }
                 )
             except FileNotFoundError:
@@ -1031,7 +1051,7 @@ def create_app(
         rows = []
         for revision_set in store.data.revision_sets:
             set_sheets = [sheet for sheet in store.data.sheets if sheet.revision_set_id == revision_set.id]
-            set_change_items = [item for item in store.data.change_items if any(sheet.id == item.sheet_version_id for sheet in set_sheets)]
+            set_change_items = [item for item in visible_change_items(store.data.change_items) if any(sheet.id == item.sheet_version_id for sheet in set_sheets)]
             rows.append(
                 {
                     "revision_set": revision_set,
@@ -1044,7 +1064,7 @@ def create_app(
                 }
             )
         pricing_summary = Exporter(store).pricing_summary()
-        pending_review_count = len([item for item in store.data.change_items if item.status == "pending"])
+        pending_review_count = len([item for item in visible_change_items(store.data.change_items) if item.status == "pending"])
         first_pending = next((item for item in filter_change_items(store, "pending", "")), None)
         return render_template(
             "dashboard.html",
@@ -1331,7 +1351,7 @@ def create_app(
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
                 cloud_count=len(refreshed.data.clouds),
-                change_item_count=len(refreshed.data.change_items),
+                change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
@@ -1344,7 +1364,7 @@ def create_app(
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
                 cloud_count=len(refreshed.data.clouds),
-                change_item_count=len(refreshed.data.change_items),
+                change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
@@ -1358,7 +1378,7 @@ def create_app(
                     document_count=len(refreshed.data.documents),
                     sheet_count=len(refreshed.data.sheets),
                     cloud_count=len(refreshed.data.clouds),
-                    change_item_count=len(refreshed.data.change_items),
+                    change_item_count=len(visible_change_items(refreshed.data.change_items)),
                     cache_hits=cache_hits,
                     **summary.to_status(),
                     **(cloudhammer_result.to_status() if cloudhammer_result else {}),
@@ -1378,7 +1398,7 @@ def create_app(
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
                 cloud_count=len(refreshed.data.clouds),
-                change_item_count=len(refreshed.data.change_items),
+                change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
                 error="",
                 **pre_review_summary.to_status(),
@@ -1399,7 +1419,7 @@ def create_app(
             flash(f"Workspace population failed: {exc}", "warning")
             return redirect(url_for("dashboard"))
         flash(
-            f"Workspace populated: {len(refreshed.data.revision_sets)} package(s), {len(refreshed.data.sheets)} sheet version(s), {len(refreshed.data.change_items)} change item(s).",
+            f"Workspace populated: {len(refreshed.data.revision_sets)} package(s), {len(refreshed.data.sheets)} sheet version(s), {len(visible_change_items(refreshed.data.change_items))} change item(s).",
             "success",
         )
         if pre_review_summary and (
@@ -1500,7 +1520,7 @@ def create_app(
                 if query in " ".join([sheet.sheet_id, sheet.sheet_title, discipline_for_sheet(sheet.sheet_id)]).lower()
             ]
         changes_by_sheet = {}
-        for item in store.data.change_items:
+        for item in visible_change_items(store.data.change_items):
             changes_by_sheet[item.sheet_version_id] = changes_by_sheet.get(item.sheet_version_id, 0) + 1
         return render_template(
             "sheets.html",
@@ -1526,7 +1546,7 @@ def create_app(
             if replacement:
                 return redirect(url_for("sheet_detail", sheet_version_id=replacement.id))
         chain = sorted([item for item in store.data.sheets if item.sheet_id == sheet.sheet_id], key=lambda item: (item.status != "active", item.page_number))
-        changes = store.sheet_changes(sheet.id)
+        changes = visible_change_items(store.sheet_changes(sheet.id))
         clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
         review_overlays = []
         for item in changes:
@@ -1575,13 +1595,7 @@ def create_app(
         items = filter_change_items(store, filter_status, search_query)
         if attention_only:
             items = [item for item in items if item.status == "pending" and change_item_needs_attention(item)]
-        counts = {
-            "all": len(store.data.change_items),
-            "pending": len([item for item in store.data.change_items if item.status == "pending"]),
-            "approved": len([item for item in store.data.change_items if item.status == "approved"]),
-            "rejected": len([item for item in store.data.change_items if item.status == "rejected"]),
-            "needs_check": len([item for item in store.data.change_items if item.status == "pending" and change_item_needs_attention(item)]),
-        }
+        counts = visible_review_counts(store)
         first_pending = next((item for item in filter_change_items(store, "pending", "")), None)
         return render_template(
             "changes.html",
@@ -1746,6 +1760,8 @@ def create_app(
                 item = store.get_change_item(change_id)
             except KeyError:
                 continue
+            if is_superseded(item):
+                continue
             reviewer_text = item.reviewer_text or item.raw_text
             if item.status == status and item.reviewer_text == reviewer_text:
                 continue
@@ -1786,7 +1802,7 @@ def create_app(
             )
         export_history = list(reversed(store.data.exports))
         attention_pending_count = len(
-            [item for item in store.data.change_items if item.status == "pending" and change_item_needs_attention(item)]
+            [item for item in visible_change_items(store.data.change_items) if item.status == "pending" and change_item_needs_attention(item)]
         )
         return render_template(
             "export.html",

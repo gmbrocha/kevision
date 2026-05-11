@@ -35,6 +35,7 @@ from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeE
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.review import change_item_needs_attention
 from backend.review_events import record_internal_review_event, record_review_update
+from backend.review_queue import ensure_queue_order, ordered_change_items, visible_change_items
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
 from backend.utils import choose_best_sheet_id, parse_detail_ref
@@ -617,6 +618,173 @@ def append_pre_review_test_item(store: WorkspaceStore, index: int) -> None:
     item = replace(base_item, id=f"change-{index}", cloud_candidate_id=cloud.id)
     store.data.clouds.append(cloud)
     store.data.change_items.append(item)
+
+
+def test_old_change_items_load_with_queue_defaults(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    payload = json.loads(store.data_path.read_text(encoding="utf-8"))
+    for item in payload["change_items"]:
+        item.pop("queue_order", None)
+        item.pop("parent_change_item_id", None)
+        item.pop("superseded_by_change_item_ids", None)
+        item.pop("superseded_reason", None)
+        item.pop("superseded_at", None)
+    store.data_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert loaded.data.change_items[0].queue_order == 0.0
+    assert loaded.data.change_items[0].parent_change_item_id is None
+    assert loaded.data.change_items[0].superseded_by_change_item_ids == []
+    ordered, changed = ensure_queue_order(loaded.data.change_items)
+    assert changed is True
+    assert ordered[0].queue_order > 0
+
+
+def test_review_queue_order_and_superseded_items_are_hidden(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    append_pre_review_test_item(store, 3)
+    store.data.change_items = [
+        replace(store.data.change_items[0], queue_order=3000),
+        replace(
+            store.data.change_items[1],
+            queue_order=1000,
+            superseded_by_change_item_ids=["change-3"],
+            superseded_reason="overmerge_split",
+            superseded_at="2026-05-11T00:00:00+00:00",
+        ),
+        replace(store.data.change_items[2], queue_order=2000),
+    ]
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    queue = client.get("/changes?status=all")
+    detail = client.get("/changes/change-3?queue=all")
+
+    assert queue.status_code == 200
+    assert b"change-2" not in queue.data
+    assert queue.data.find(b"change-3") < queue.data.find(b"change-1")
+    assert detail.status_code == 200
+    assert b"1 / 2" in detail.data
+
+
+def test_bulk_review_ignores_superseded_parents(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.data.change_items = [
+        replace(
+            store.data.change_items[0],
+            queue_order=1000,
+            superseded_by_change_item_ids=["change-2"],
+            superseded_reason="partial_correction",
+            superseded_at="2026-05-11T00:00:00+00:00",
+        ),
+        replace(store.data.change_items[1], queue_order=1000.001),
+    ]
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/bulk-review",
+        data={"change_ids": ["change-1", "change-2"], "status": "approved", "redirect_to": "/changes"},
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert response.status_code == 302
+    parent = loaded.get_change_item("change-1")
+    child = loaded.get_change_item("change-2")
+    assert parent.status == "pending"
+    assert child.status == "approved"
+    assert [event.change_item_id for event in loaded.data.review_events] == ["change-2"]
+
+
+def test_superseded_parents_are_hidden_from_exports_and_packet(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.data.change_items = [
+        replace(
+            store.data.change_items[0],
+            status="approved",
+            reviewer_text="Hidden parent",
+            queue_order=1000,
+            superseded_by_change_item_ids=["change-2"],
+            superseded_reason="overmerge_split",
+            superseded_at="2026-05-11T00:00:00+00:00",
+        ),
+        replace(store.data.change_items[1], status="approved", reviewer_text="Visible child", queue_order=1000.001),
+    ]
+    store.save()
+
+    outputs = Exporter(store).export(force_attention=True)
+    approved_rows = json.loads(Path(outputs["approved_changes_json"]).read_text(encoding="utf-8"))
+    candidates = json.loads((store.output_dir / "pricing_change_candidates.json").read_text(encoding="utf-8"))
+    packet = build_review_packet(store)
+
+    assert [row["change_id"] for row in approved_rows] == ["change-2"]
+    assert all(row["change_id"] != "change-1" for row in candidates)
+    assert packet.item_count == 1
+
+
+def test_queue_supersession_metadata_survives_rescan(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1 - Test" / "drawing.pdf"
+    write_minimal_drawing_pdf(pdf_path)
+    crop_path = tmp_path / "crop.png"
+    crop_path.write_bytes(b"png")
+    manifest = tmp_path / "manifest.jsonl"
+    manifest.write_text(
+        json.dumps(
+            {
+                "candidate_id": "live-1",
+                "pdf_path": str(pdf_path),
+                "page_number": 1,
+                "bbox_page_xywh": [70, 70, 120, 80],
+                "whole_cloud_confidence": 0.93,
+                "policy_bucket": "auto_deliverable_candidate",
+                "crop_image_path": str(crop_path),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    initial = RevisionScanner(input_dir, workspace_dir, cloud_inference_client=ManifestCloudInferenceClient(manifest)).scan()
+    parent = replace(
+        initial.data.change_items[0],
+        queue_order=1000,
+        superseded_by_change_item_ids=["change-child"],
+        superseded_reason="partial_correction",
+        superseded_at="2026-05-11T00:00:00+00:00",
+    )
+    child_cloud = replace(initial.data.clouds[0], id="cloud-child", bbox=[75, 75, 100, 60])
+    child = replace(
+        parent,
+        id="change-child",
+        cloud_candidate_id=child_cloud.id,
+        parent_change_item_id=parent.id,
+        superseded_by_change_item_ids=[],
+        superseded_reason=None,
+        superseded_at=None,
+        queue_order=1000.001,
+        provenance={**parent.provenance, "scopeledger.geometry_correction.v1": {"mode": "partial"}},
+    )
+    initial.data.clouds.append(child_cloud)
+    initial.data.change_items = [parent, child]
+    initial.save()
+
+    rescanned = RevisionScanner(input_dir, workspace_dir, cloud_inference_client=ManifestCloudInferenceClient(manifest)).scan()
+
+    restored_parent = next(item for item in rescanned.data.change_items if item.id == parent.id)
+    restored_child = next(item for item in rescanned.data.change_items if item.id == child.id)
+    assert restored_parent.superseded_by_change_item_ids == ["change-child"]
+    assert restored_parent.queue_order == 1000
+    assert restored_child.parent_change_item_id == parent.id
+    assert any(cloud.id == "cloud-child" for cloud in rescanned.data.clouds)
 
 
 class FakePreReviewProvider:

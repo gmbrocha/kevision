@@ -100,6 +100,11 @@ class ChangeItem:
     status: str = "pending"
     reviewer_text: str = ""
     reviewer_notes: str = ""
+    queue_order: float = 0.0
+    parent_change_item_id: str | None = None
+    superseded_by_change_item_ids: list[str] = field(default_factory=list)
+    superseded_reason: str | None = None
+    superseded_at: str | None = None
 
 
 @dataclass

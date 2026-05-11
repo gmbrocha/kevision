@@ -12,6 +12,7 @@ from typing import Any, Callable, Protocol
 from PIL import Image, ImageDraw, ImageFont
 
 from .revision_state.models import ChangeItem, CloudCandidate, SheetVersion
+from .review_queue import is_superseded
 from .utils import clean_display_text, json_dumps, normalize_text, stable_id
 from .workspace import WorkspaceStore
 
@@ -523,7 +524,7 @@ def ensure_workspace_pre_review(
     for index, item in enumerate(store.data.change_items):
         cloud = clouds_by_id.get(item.cloud_candidate_id or "")
         sheet = sheets_by_id.get(item.sheet_version_id)
-        if not cloud or not sheet or item.provenance.get("source") != "visual-region":
+        if is_superseded(item) or not cloud or not sheet or item.provenance.get("source") != "visual-region":
             continue
         entries.append(
             {
@@ -580,6 +581,11 @@ def ensure_workspace_pre_review(
             status=item.status,
             reviewer_text=reviewer_text,
             reviewer_notes=item.reviewer_notes,
+            queue_order=item.queue_order,
+            parent_change_item_id=item.parent_change_item_id,
+            superseded_by_change_item_ids=list(item.superseded_by_change_item_ids),
+            superseded_reason=item.superseded_reason,
+            superseded_at=item.superseded_at,
         )
         if updated != updated_items[entry["index"]]:
             changed = True

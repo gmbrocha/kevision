@@ -8,6 +8,7 @@ import fitz
 
 from ..cloudhammer_client.inference import CloudInferenceClient, NullCloudInferenceClient
 from ..diagnostics import capture_preflight_issues, configure_mupdf, summarize_documents
+from ..review_queue import ensure_queue_order, legacy_review_sort_key, review_queue_sort_key
 from ..scope_extraction import extract_cloud_scope_text
 from ..workspace import WorkspaceStore
 from ..utils import DATE_PATTERN, choose_best_sheet_id, clean_display_text, normalize_text, parse_detail_ref, parse_mmddyyyy, stable_id
@@ -16,6 +17,11 @@ from .page_classification import sheet_is_index_like
 
 REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*(?:#|Set)?\s*(?P<number>\d+)", re.IGNORECASE)
 SCOPE_EXTRACTION_CACHE_VERSION = 3
+REVIEW_SIDE_PROVENANCE_KEYS = {
+    "scopeledger.pre_review.v1",
+    "scopeledger.crop_adjustment.v1",
+    "scopeledger.geometry_correction.v1",
+}
 
 
 def _preferred_sheet_prefixes(pdf_path: Path | None) -> tuple[str, ...]:
@@ -45,6 +51,7 @@ class RevisionScanner:
                 self.store.create(self.input_dir)
         else:
             self.store.create(self.input_dir)
+        self.previous_clouds = list(self.store.data.clouds)
         self.previous_change_items = list(self.store.data.change_items)
         self.previous_verifications = list(self.store.data.verifications)
         self.previous_review_events = list(self.store.data.review_events)
@@ -124,6 +131,8 @@ class RevisionScanner:
 
         sheets = self._apply_supersedence(revision_sets, sheets)
         change_items = self._restore_review_state(self._generate_change_items(narratives, sheets, clouds))
+        change_items, _ = ensure_queue_order(change_items)
+        clouds = self._restore_review_managed_clouds(clouds, change_items)
         documents = summarize_documents(documents, preflight_issues)
 
         self.store.data.documents = documents
@@ -354,6 +363,8 @@ class RevisionScanner:
         previous_by_key = {(item.sheet_id, item.detail_ref, item.normalized_text): item for item in self.previous_change_items}
         previous_by_cloud = {item.cloud_candidate_id: item for item in self.previous_change_items if item.cloud_candidate_id}
         restored: list[ChangeItem] = []
+        restored_ids: set[str] = set()
+        current_sheet_version_ids = {item.sheet_version_id for item in items}
         for item in items:
             previous = (
                 previous_by_id.get(item.id)
@@ -361,17 +372,57 @@ class RevisionScanner:
                 or previous_by_cloud.get(item.cloud_candidate_id or "")
             )
             if previous:
-                restored.append(
-                    replace(
-                        item,
-                        status=previous.status,
-                        reviewer_text=previous.reviewer_text,
-                        reviewer_notes=previous.reviewer_notes,
-                    )
+                item = replace(
+                    item,
+                    status=previous.status,
+                    reviewer_text=previous.reviewer_text,
+                    reviewer_notes=previous.reviewer_notes,
+                    provenance=self._preserve_review_side_provenance(item, previous),
+                    queue_order=previous.queue_order or item.queue_order,
+                    parent_change_item_id=previous.parent_change_item_id,
+                    superseded_by_change_item_ids=list(previous.superseded_by_change_item_ids),
+                    superseded_reason=previous.superseded_reason,
+                    superseded_at=previous.superseded_at,
                 )
-            else:
-                restored.append(item)
+            restored.append(item)
+            restored_ids.add(item.id)
+
+        for previous in sorted(self.previous_change_items, key=review_queue_sort_key):
+            if previous.id in restored_ids or previous.sheet_version_id not in current_sheet_version_ids:
+                continue
+            if not self._is_review_managed_item(previous):
+                continue
+            restored.append(previous)
+            restored_ids.add(previous.id)
+        return sorted(restored, key=review_queue_sort_key)
+
+    def _preserve_review_side_provenance(self, item: ChangeItem, previous: ChangeItem) -> dict[str, object]:
+        provenance = dict(item.provenance)
+        previous_provenance = previous.provenance or {}
+        for key in REVIEW_SIDE_PROVENANCE_KEYS:
+            if key in previous_provenance:
+                provenance[key] = previous_provenance[key]
+        return provenance
+
+    def _restore_review_managed_clouds(self, clouds: list[CloudCandidate], change_items: list[ChangeItem]) -> list[CloudCandidate]:
+        clouds_by_id = {cloud.id: cloud for cloud in clouds}
+        previous_clouds_by_id = {cloud.id: cloud for cloud in self.previous_clouds}
+        restored = list(clouds)
+        for item in change_items:
+            if not item.cloud_candidate_id or item.cloud_candidate_id in clouds_by_id:
+                continue
+            if not self._is_review_managed_item(item):
+                continue
+            previous_cloud = previous_clouds_by_id.get(item.cloud_candidate_id)
+            if previous_cloud is None:
+                continue
+            restored.append(previous_cloud)
+            clouds_by_id[previous_cloud.id] = previous_cloud
         return restored
+
+    def _is_review_managed_item(self, item: ChangeItem) -> bool:
+        provenance = item.provenance or {}
+        return bool(item.parent_change_item_id or provenance.get("scopeledger.geometry_correction.v1"))
 
     def _is_narrative_page(self, text: str) -> bool:
         if not text:
@@ -693,5 +744,5 @@ class RevisionScanner:
                 )
                 unique[dedupe_key] = item
 
-        return sorted(unique.values(), key=lambda item: (item.sheet_id, item.detail_ref or "", item.id))
+        return sorted(unique.values(), key=legacy_review_sort_key)
 

@@ -26,6 +26,7 @@ from PIL import Image as PILImage
 
 from ..crop_adjustments import build_selected_review_overlay_image, selected_review_page_boxes
 from ..review import change_item_needs_attention
+from ..review_queue import ordered_change_items, visible_change_items
 from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..utils import clean_display_text
 from ..workspace import WorkspaceStore
@@ -85,7 +86,7 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
     sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
     clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
 
-    approved = [item for item in store.data.change_items if item.status == "approved"]
+    approved = [item for item in visible_change_items(store.data.change_items) if item.status == "approved"]
     groups: dict[tuple[str, str, str], list[ChangeItem]] = {}
     for item in approved:
         key = _group_key(item)
@@ -206,7 +207,7 @@ def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], out
     revision_sets_by_id = {rs.id: rs for rs in store.data.revision_sets}
     sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
     clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
-    items_by_id = {item.id: item for item in store.data.change_items}
+    items_by_id = {item.id: item for item in visible_change_items(store.data.change_items)}
     comparison_dir = output_path.parent / f"{output_path.stem}_comparison_images"
 
     wb = Workbook()
@@ -364,9 +365,10 @@ def _write_summary_sheet(ws, store: WorkspaceStore, rows: list[RevisionChangelog
     subtitle.font = subtitle_font
     subtitle.alignment = Alignment(horizontal="left", vertical="center")
 
-    approved = [item for item in store.data.change_items if item.status == "approved"]
-    pending = [item for item in store.data.change_items if item.status == "pending"]
-    rejected = [item for item in store.data.change_items if item.status == "rejected"]
+    change_items = visible_change_items(store.data.change_items)
+    approved = [item for item in change_items if item.status == "approved"]
+    pending = [item for item in change_items if item.status == "pending"]
+    rejected = [item for item in change_items if item.status == "rejected"]
     active_sheets = [sheet for sheet in store.data.sheets if sheet.status == "active"]
     superseded_sheets = [sheet for sheet in store.data.sheets if sheet.status == "superseded"]
     crop_rows = [row for row in rows if row.crop_path or row.cloud_id]
@@ -509,10 +511,10 @@ def _write_review_flags_sheet(
 
     rows = [
         item
-        for item in store.data.change_items
+        for item in visible_change_items(store.data.change_items)
         if item.status != "rejected"
     ]
-    rows.sort(key=lambda item: (item.status != "pending", item.sheet_id, item.detail_ref or "", item.id))
+    rows = ordered_change_items(rows)
     for row_index, item in enumerate(rows, 2):
         sheet = sheets_by_id.get(item.sheet_version_id)
         revision_set = revision_sets_by_id.get(sheet.revision_set_id) if sheet else None

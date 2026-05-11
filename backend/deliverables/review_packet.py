@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 from ..crop_adjustments import build_selected_review_overlay_image, selected_review_page_boxes
+from ..review_queue import visible_change_items
 from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..workspace import WorkspaceStore
 from .crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
@@ -40,7 +41,7 @@ def build_review_packet(store: WorkspaceStore, output_path: Path | None = None) 
 
     items = [
         item
-        for item in store.data.change_items
+        for item in visible_change_items(store.data.change_items)
         if item.cloud_candidate_id
         and item.status == "approved"
         and item.provenance.get("extraction_method") == "cloudhammer_manifest"
