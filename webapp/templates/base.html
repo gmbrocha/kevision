@@ -68,14 +68,6 @@
       {% endblock %}
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <section class="flash-stack" aria-live="polite" aria-atomic="true">
-          {% for category, message in messages %}
-            <div class="flash flash-{{ 'success' if category == 'success' else 'warning' }}">{{ message }}</div>
-          {% endfor %}
-        </section>
-      {% endif %}
-    {% endwith %}
+    {% set _discarded_flashes = get_flashed_messages(with_categories=true) %}
   </body>
 </html>

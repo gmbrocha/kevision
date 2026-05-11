@@ -1897,54 +1897,6 @@ input, textarea, select { font-family: inherit; }
 
 .callout-info .callout-icon { color: var(--status-pending); flex-shrink: 0; margin-top: 1px; }
 
-/* --- Flash message --------------------------------------- */
-.flash {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 10px var(--sp-4);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--text-primary);
-  background: var(--surface-base);
-  border: 1px solid var(--rule-hairline);
-  border-left-width: 3px;
-  box-shadow: var(--shadow-md);
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 180ms ease, transform 180ms ease;
-}
-
-.flash.is-dismissing {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-.flash-stack {
-  position: fixed;
-  top: var(--sp-4);
-  left: calc(var(--nav-width) + var(--sp-4));
-  right: var(--sp-4);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  pointer-events: none;
-}
-
-.flash-success {
-  background: oklch(0.18 0.018 145);
-  border-color: var(--rule-hairline);
-  border-left-color: var(--status-accepted);
-}
-
-.flash-warning {
-  background: oklch(0.18 0.018 68);
-  border-color: var(--rule-hairline);
-  border-left-color: var(--status-check);
-}
-
 /* --- Scrollbar ------------------------------------------ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

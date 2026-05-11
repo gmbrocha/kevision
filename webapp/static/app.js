@@ -798,17 +798,6 @@ function bindCropAdjustment() {
   });
 }
 
-function bindFlashDismissal() {
-  document.querySelectorAll(".flash").forEach((flash) => {
-    window.setTimeout(() => {
-      flash.classList.add("is-dismissing");
-      window.setTimeout(() => {
-        flash.remove();
-      }, 220);
-    }, 2600);
-  });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   applyBoundingBoxes();
   bindQueueSelection();
@@ -820,5 +809,4 @@ document.addEventListener("DOMContentLoaded", () => {
   bindFolderDialogs();
   bindPanZoomViewers();
   bindCropAdjustment();
-  bindFlashDismissal();
 });

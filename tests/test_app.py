@@ -1937,7 +1937,8 @@ def test_project_creation_rejects_custom_workspace_paths(monkeypatch: pytest.Mon
     )
 
     assert response.status_code == 200
-    assert b"Project storage is managed by ScopeLedger" in response.data
+    assert b"Project storage is managed by ScopeLedger" not in response.data
+    assert b"flash-stack" not in response.data
     assert ProjectRegistry(tmp_path).load().projects == []
 
 
@@ -1952,8 +1953,21 @@ def test_dev_project_creation_also_rejects_custom_workspace_paths(tmp_path: Path
     )
 
     assert response.status_code == 200
-    assert b"Project storage is managed by ScopeLedger" in response.data
+    assert b"Project storage is managed by ScopeLedger" not in response.data
+    assert b"flash-stack" not in response.data
     assert ProjectRegistry(tmp_path).load().projects == []
+
+
+def test_project_creation_does_not_render_flash_notifications(tmp_path: Path):
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post("/projects", data={"name": "Fresh Project"}, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Created Fresh Project" not in response.data
+    assert b"flash-stack" not in response.data
+    assert ProjectRegistry(tmp_path).load().projects[0].name == "Fresh Project"
 
 
 def test_project_creation_uses_managed_app_project_root(tmp_path: Path):
@@ -2101,7 +2115,8 @@ def test_production_manual_import_rejects_outside_allowed_root(monkeypatch: pyte
     )
 
     assert imported.status_code == 200
-    assert b"outside the configured production import allowlist" in imported.data
+    assert b"outside the configured production import allowlist" not in imported.data
+    assert b"flash-stack" not in imported.data
     input_dir = tmp_path / "projects" / "fresh-project" / "input"
     assert not (input_dir / "Revision #1 - Outside" / "outside.pdf").exists()
 
