@@ -63,7 +63,7 @@ function bindReviewShortcuts() {
     if (tagName === "TEXTAREA" || tagName === "INPUT" || tagName === "SELECT") {
       return;
     }
-    if (document.querySelector(".js-crop-adjust-wrap.is-adjusting")) {
+    if (document.querySelector(".js-crop-adjust-wrap.is-adjusting, .js-crop-adjust-wrap.is-geometry-correcting")) {
       return;
     }
     const key = event.key.toLowerCase();
@@ -803,6 +803,251 @@ function bindCropAdjustment() {
   });
 }
 
+function bindGeometryCorrection() {
+  const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  document.querySelectorAll(".js-crop-adjust-wrap[data-geometry-correction-url]").forEach((wrap) => {
+    const image = wrap.querySelector(".js-crop-adjust-image");
+    const layer = wrap.querySelector(".js-geometry-correct-layer");
+    const controls = wrap.closest(".cockpit-layout")?.querySelector(".js-geometry-correct-controls");
+    if (!image || !layer || !controls) return;
+
+    const startButtons = controls.querySelectorAll("[data-geometry-start]");
+    const saveButtons = controls.querySelectorAll("[data-geometry-save]");
+    const deleteButton = controls.querySelector("[data-geometry-delete]");
+    const cancelButton = controls.querySelector("[data-geometry-cancel]");
+    const status = controls.querySelector("[data-geometry-status]");
+    const minSize = 8;
+    let activeMode = "";
+    let boxes = [];
+    let selectedIndex = -1;
+    let drag = null;
+
+    const setStatus = (text = "") => {
+      if (status) status.textContent = text;
+    };
+
+    const naturalSize = () => ({
+      width: image.naturalWidth || 1,
+      height: image.naturalHeight || 1,
+    });
+
+    const displayScale = () => {
+      const size = naturalSize();
+      return {
+        x: image.clientWidth / Math.max(size.width, 1),
+        y: image.clientHeight / Math.max(size.height, 1),
+      };
+    };
+
+    const pointerScale = () => {
+      const rect = image.getBoundingClientRect();
+      const size = naturalSize();
+      return {
+        x: rect.width / Math.max(size.width, 1),
+        y: rect.height / Math.max(size.height, 1),
+        left: rect.left,
+        top: rect.top,
+      };
+    };
+
+    const pointFromEvent = (event) => {
+      const scale = pointerScale();
+      return {
+        x: (event.clientX - scale.left) / Math.max(scale.x, 0.001),
+        y: (event.clientY - scale.top) / Math.max(scale.y, 0.001),
+      };
+    };
+
+    const normalizeBox = (box) => {
+      let { x, y, w, h } = box;
+      if (w < 0) {
+        x += w;
+        w = Math.abs(w);
+      }
+      if (h < 0) {
+        y += h;
+        h = Math.abs(h);
+      }
+      const size = naturalSize();
+      x = clamp(x, 0, Math.max(size.width - minSize, 0));
+      y = clamp(y, 0, Math.max(size.height - minSize, 0));
+      w = clamp(w, minSize, size.width - x);
+      h = clamp(h, minSize, size.height - y);
+      return { x, y, w, h };
+    };
+
+    const startDrag = (event, index, handle) => {
+      if (!activeMode || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      selectedIndex = index;
+      const point = pointFromEvent(event);
+      drag = {
+        type: handle === "draw" ? "draw" : handle === "move" ? "move" : "resize",
+        handle,
+        index,
+        startPoint: point,
+        startBox: boxes[index] ? { ...boxes[index] } : { x: point.x, y: point.y, w: 0, h: 0 },
+      };
+      if (handle === "draw") {
+        boxes.push({ ...drag.startBox });
+        drag.index = boxes.length - 1;
+        selectedIndex = drag.index;
+      }
+      render();
+    };
+
+    const render = () => {
+      const scale = displayScale();
+      layer.innerHTML = "";
+      boxes = boxes.map(normalizeBox);
+      boxes.forEach((box, index) => {
+        const rect = document.createElement("div");
+        rect.className = `geometry-correct-rect${index === selectedIndex ? " selected" : ""}`;
+        rect.style.left = `${box.x * scale.x}px`;
+        rect.style.top = `${box.y * scale.y}px`;
+        rect.style.width = `${box.w * scale.x}px`;
+        rect.style.height = `${box.h * scale.y}px`;
+        rect.dataset.geometryIndex = String(index);
+        rect.innerHTML = `
+          <span class="geometry-correct-label">${index + 1}</span>
+          <span class="geometry-correct-handle geometry-correct-handle-nw" data-geometry-handle="nw"></span>
+          <span class="geometry-correct-handle geometry-correct-handle-ne" data-geometry-handle="ne"></span>
+          <span class="geometry-correct-handle geometry-correct-handle-sw" data-geometry-handle="sw"></span>
+          <span class="geometry-correct-handle geometry-correct-handle-se" data-geometry-handle="se"></span>
+        `;
+        rect.addEventListener("pointerdown", (event) => {
+          const handle = event.target?.dataset?.geometryHandle || "move";
+          startDrag(event, index, handle);
+        });
+        layer.appendChild(rect);
+      });
+      if (deleteButton) deleteButton.hidden = !activeMode || selectedIndex < 0;
+    };
+
+    const setMode = (mode) => {
+      activeMode = mode;
+      boxes = [];
+      selectedIndex = -1;
+      layer.hidden = !activeMode;
+      wrap.classList.toggle("is-geometry-correcting", Boolean(activeMode));
+      startButtons.forEach((button) => { button.hidden = Boolean(activeMode); });
+      saveButtons.forEach((button) => { button.hidden = !activeMode || button.dataset.geometrySave !== activeMode; });
+      if (cancelButton) cancelButton.hidden = !activeMode;
+      if (deleteButton) deleteButton.hidden = true;
+      setStatus(activeMode ? "Draw boxes on the crop." : "");
+      render();
+    };
+
+    const updateDrag = (event) => {
+      if (!drag) return;
+      event.preventDefault();
+      const point = pointFromEvent(event);
+      const dx = point.x - drag.startPoint.x;
+      const dy = point.y - drag.startPoint.y;
+      const start = drag.startBox;
+      let next = { ...start };
+      if (drag.type === "draw") {
+        next = { x: start.x, y: start.y, w: dx, h: dy };
+      } else if (drag.type === "move") {
+        next = { ...start, x: start.x + dx, y: start.y + dy };
+      } else {
+        const left = start.x;
+        const top = start.y;
+        const right = start.x + start.w;
+        const bottom = start.y + start.h;
+        next = {
+          x: drag.handle.includes("w") ? left + dx : left,
+          y: drag.handle.includes("n") ? top + dy : top,
+          w: (drag.handle.includes("e") ? right + dx : right) - (drag.handle.includes("w") ? left + dx : left),
+          h: (drag.handle.includes("s") ? bottom + dy : bottom) - (drag.handle.includes("n") ? top + dy : top),
+        };
+      }
+      boxes[drag.index] = normalizeBox(next);
+      render();
+    };
+
+    const endDrag = () => {
+      if (!drag) return;
+      boxes = boxes.filter((box) => box.w >= minSize && box.h >= minSize);
+      selectedIndex = Math.min(selectedIndex, boxes.length - 1);
+      drag = null;
+      render();
+    };
+
+    layer.addEventListener("pointerdown", (event) => {
+      if (!activeMode || event.button !== 0 || event.target !== layer) return;
+      startDrag(event, boxes.length, "draw");
+    });
+    window.addEventListener("pointermove", updateDrag);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+
+    startButtons.forEach((button) => {
+      button.addEventListener("click", () => setMode(button.dataset.geometryStart || ""));
+    });
+    if (cancelButton) {
+      cancelButton.addEventListener("click", () => setMode(""));
+    }
+    if (deleteButton) {
+      deleteButton.addEventListener("click", () => {
+        if (selectedIndex < 0) return;
+        boxes.splice(selectedIndex, 1);
+        selectedIndex = Math.min(selectedIndex, boxes.length - 1);
+        render();
+      });
+    }
+    saveButtons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const mode = button.dataset.geometrySave || activeMode;
+        if (mode === "overmerge" && boxes.length < 2) {
+          setStatus("Draw at least two boxes.");
+          return;
+        }
+        if (mode === "partial" && boxes.length !== 1) {
+          setStatus("Draw one box.");
+          return;
+        }
+        button.disabled = true;
+        setStatus("Saving...");
+        try {
+          const response = await fetch(wrap.dataset.geometryCorrectionUrl, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              csrf_token: csrfToken(),
+              mode,
+              crop_boxes: boxes.map((box) => [box.x, box.y, box.w, box.h]),
+              queue_status: controls.dataset.queueStatus || "pending",
+              search_query: controls.dataset.searchQuery || "",
+              attention_only: controls.dataset.attentionOnly || "0",
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || payload.error) {
+            throw new Error(payload.error || "Correction failed.");
+          }
+          if (payload.redirect_url) {
+            window.location.href = payload.redirect_url;
+          }
+        } catch (error) {
+          setStatus(error.message || "Correction failed.");
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+    if (image.complete) render();
+    image.addEventListener("load", render);
+    window.addEventListener("resize", render);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   applyBoundingBoxes();
   bindQueueSelection();
@@ -814,4 +1059,5 @@ document.addEventListener("DOMContentLoaded", () => {
   bindFolderDialogs();
   bindPanZoomViewers();
   bindCropAdjustment();
+  bindGeometryCorrection();
 });

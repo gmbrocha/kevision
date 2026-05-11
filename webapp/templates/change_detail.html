@@ -58,6 +58,7 @@
             class="cockpit-image-wrap js-crop-adjust-wrap"
             {% if crop_adjustment.enabled %}
               data-crop-adjust-url="{{ url_for('update_crop_adjustment', change_id=item.id) }}"
+              data-geometry-correction-url="{{ url_for('update_geometry_correction', change_id=item.id) }}"
               data-crop-x="{{ crop_adjustment.crop_box[0] }}"
               data-crop-y="{{ crop_adjustment.crop_box[1] }}"
               data-crop-w="{{ crop_adjustment.crop_box[2] }}"
@@ -75,6 +76,7 @@
                     <span class="crop-adjust-handle crop-adjust-handle-se" data-crop-handle="se"></span>
                   </div>
                 </div>
+                <div class="geometry-correct-layer js-geometry-correct-layer" hidden></div>
               {% endif %}
             {% elif sheet.render_path %}
               <img src="{{ sheet|sheet_viewer_image }}" alt="{{ item.sheet_id }} sheet">
@@ -93,6 +95,20 @@
             <button class="btn btn-primary btn-sm" type="button" data-crop-adjust-save hidden>Update crop</button>
             <button class="btn btn-ghost btn-sm" type="button" data-crop-adjust-cancel hidden>Cancel</button>
             <span class="crop-adjust-status" data-crop-adjust-status></span>
+          </div>
+          <div
+            class="crop-adjust-controls geometry-correct-controls js-geometry-correct-controls"
+            data-queue-status="{{ queue_status }}"
+            data-search-query="{{ search_query }}"
+            data-attention-only="{{ '1' if attention_only else '0' }}"
+          >
+            <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="overmerge">Correct overmerge</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="partial">Correct partial</button>
+            <button class="btn btn-primary btn-sm" type="button" data-geometry-save="overmerge" hidden>Save split</button>
+            <button class="btn btn-primary btn-sm" type="button" data-geometry-save="partial" hidden>Save correction</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-geometry-delete hidden>Delete box</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-geometry-cancel hidden>Cancel</button>
+            <span class="crop-adjust-status" data-geometry-status></span>
           </div>
         {% endif %}
         <a class="btn btn-ghost btn-sm" href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">Full sheet</a>

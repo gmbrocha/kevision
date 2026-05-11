@@ -5,7 +5,7 @@ import hashlib
 import json
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
@@ -569,24 +569,7 @@ def ensure_workspace_pre_review(
             payload["error"] = error
         provenance = {**item.provenance, PRE_REVIEW_KEY: payload}
         reviewer_text = item.reviewer_text or selected_pre_review_text(payload) or item.raw_text
-        updated = ChangeItem(
-            id=item.id,
-            sheet_version_id=item.sheet_version_id,
-            cloud_candidate_id=item.cloud_candidate_id,
-            sheet_id=item.sheet_id,
-            detail_ref=item.detail_ref,
-            raw_text=item.raw_text,
-            normalized_text=item.normalized_text,
-            provenance=provenance,
-            status=item.status,
-            reviewer_text=reviewer_text,
-            reviewer_notes=item.reviewer_notes,
-            queue_order=item.queue_order,
-            parent_change_item_id=item.parent_change_item_id,
-            superseded_by_change_item_ids=list(item.superseded_by_change_item_ids),
-            superseded_reason=item.superseded_reason,
-            superseded_at=item.superseded_at,
-        )
+        updated = replace(item, provenance=provenance, reviewer_text=reviewer_text)
         if updated != updated_items[entry["index"]]:
             changed = True
         updated_items[entry["index"]] = updated
@@ -730,19 +713,7 @@ def select_pre_review_source(item: ChangeItem, source: str) -> ChangeItem:
         return item
     updated_payload = {**payload, "selected": source}
     text = str(entry.get("text") or item.raw_text)
-    return ChangeItem(
-        id=item.id,
-        sheet_version_id=item.sheet_version_id,
-        cloud_candidate_id=item.cloud_candidate_id,
-        sheet_id=item.sheet_id,
-        detail_ref=item.detail_ref,
-        raw_text=item.raw_text,
-        normalized_text=item.normalized_text,
-        provenance={**item.provenance, PRE_REVIEW_KEY: updated_payload},
-        status=item.status,
-        reviewer_text=text,
-        reviewer_notes=item.reviewer_notes,
-    )
+    return replace(item, provenance={**item.provenance, PRE_REVIEW_KEY: updated_payload}, reviewer_text=text)
 
 
 def build_pre_review_overlay_image(

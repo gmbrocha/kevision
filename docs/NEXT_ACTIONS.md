@@ -18,12 +18,17 @@ Status: operational queue as of 2026-05-10.
      Export Workbook, and Review Packet after Populate completes.
    - In Review Changes, confirm `Pre Review 1`/`Pre Review 2` selection writes
      the reviewer text and that exports use the selected source.
+   - When a crop is visibly overmerged or partial but the needed geometry is
+     inside the current crop, use `Correct overmerge` or `Correct partial` and
+     confirm the replacement item appears next in the queue.
 2. Watch the fixes made after the first real exploratory run.
    - Index pages must stay context-only.
    - Previous/current comparison must match the same sheet from a strictly
      earlier real revision set.
    - The exploratory project was reset; observations live in
      `FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or training data.
+   - Full-sheet correction remains pinned for later partials where the missing
+     cloud is outside the current crop image.
 3. After the handoff pass, resume CloudHammer_v2 where it was paused:
    - Return point:
      `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.

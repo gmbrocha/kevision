@@ -20,6 +20,7 @@ from backend.cloudhammer_client.schemas import CloudDetection
 from backend.crop_adjustments import CROP_ADJUSTMENT_KEY, crop_box_to_page_box, crop_adjustment_payload, selected_review_page_boxes
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
+from backend.geometry_corrections import GEOMETRY_CORRECTION_KEY, apply_geometry_correction
 from backend.pre_review import (
     PRE_REVIEW_1,
     PRE_REVIEW_2,
@@ -785,6 +786,136 @@ def test_queue_supersession_metadata_survives_rescan(tmp_path: Path):
     assert restored_parent.queue_order == 1000
     assert restored_child.parent_change_item_id == parent.id
     assert any(cloud.id == "cloud-child" for cloud in rescanned.data.clouds)
+
+
+def test_overmerge_split_creates_child_items_and_review_event(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.change_items = [replace(store.data.change_items[0], queue_order=1000)]
+    store.save()
+    parent = store.data.change_items[0]
+    parent_cloud = store.data.clouds[0]
+    sheet = store.data.sheets[0]
+
+    result = apply_geometry_correction(
+        store,
+        parent,
+        parent_cloud,
+        sheet,
+        mode="overmerge",
+        crop_boxes=[[10, 10, 40, 30], [80, 40, 50, 35]],
+        project_id="test-project",
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    loaded_parent = loaded.get_change_item(parent.id)
+    assert loaded_parent.superseded_reason == "overmerge_split"
+    assert loaded_parent.superseded_by_change_item_ids == [item.id for item in result.child_items]
+    assert [item.id for item in visible_change_items(loaded.data.change_items)] == [item.id for item in result.child_items]
+    assert all(item.parent_change_item_id == parent.id and item.status == "pending" for item in result.child_items)
+    assert all(Path(cloud.image_path).exists() for cloud in result.child_clouds)
+    assert loaded.get_cloud(parent_cloud.id).bbox == [80, 40, 120, 80]
+    assert len(loaded.data.review_events) == 1
+    event = loaded.data.review_events[0]
+    assert event.action == "split"
+    assert event.original_candidate_json["cloud_candidate"]["bbox"] == [80, 40, 120, 80]
+    assert len(event.human_result_json["split_child_geometries"]) == 2
+
+
+def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.change_items = [replace(store.data.change_items[0], queue_order=1000)]
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/change-1/geometry-correction",
+        json={
+            "mode": "partial",
+            "crop_boxes": [[30, 20, 70, 50]],
+            "queue_status": "pending",
+            "search_query": "",
+            "attention_only": "0",
+        },
+    )
+    payload = response.get_json()
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert response.status_code == 200
+    assert payload["redirect_url"].startswith("/changes/")
+    parent = loaded.get_change_item("change-1")
+    assert parent.superseded_reason == "partial_correction"
+    assert len(parent.superseded_by_change_item_ids) == 1
+    child = loaded.get_change_item(parent.superseded_by_change_item_ids[0])
+    assert child.parent_change_item_id == "change-1"
+    assert child.queue_order > parent.queue_order
+    assert GEOMETRY_CORRECTION_KEY in child.provenance
+    assert loaded.data.review_events[0].action == "resize"
+
+
+def test_geometry_correction_route_rejects_invalid_payload_without_mutation(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/change-1/geometry-correction",
+        json={"mode": "overmerge", "crop_boxes": [[30, 20, 70, 50]]},
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert response.status_code == 400
+    assert loaded.get_change_item("change-1").superseded_by_change_item_ids == []
+    assert loaded.data.review_events == []
+    assert len(loaded.data.change_items) == 1
+
+
+def test_geometry_correction_children_export_as_normal_review_items(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    parent = replace(store.data.change_items[0], queue_order=1000)
+    store.data.change_items = [parent]
+    store.save()
+    result = apply_geometry_correction(
+        store,
+        parent,
+        store.data.clouds[0],
+        store.data.sheets[0],
+        mode="partial",
+        crop_boxes=[[30, 20, 70, 50]],
+        project_id="test-project",
+        reviewer_id=None,
+        review_session_id=None,
+    )
+    child = replace(result.child_items[0], status="approved", reviewer_text="Corrected child scope")
+    store.update_change_item(child.id, status=child.status, reviewer_text=child.reviewer_text)
+
+    outputs = Exporter(store).export(force_attention=True)
+    approved_rows = json.loads(Path(outputs["approved_changes_json"]).read_text(encoding="utf-8"))
+    packet = build_review_packet(store)
+
+    assert [row["change_id"] for row in approved_rows] == [child.id]
+    assert approved_rows[0]["text"] == "Corrected child scope"
+    assert packet.item_count == 1
+
+
+def test_geometry_correction_controls_do_not_expose_internal_language(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/changes/change-1")
+    body = response.data.decode("utf-8").lower()
+
+    assert response.status_code == 200
+    assert "correct overmerge" in body
+    assert "correct partial" in body
+    for forbidden in ("training", "labeling", "mining", "eval", "cloudhammer", "gpt"):
+        assert forbidden not in body
 
 
 class FakePreReviewProvider:

@@ -29,6 +29,7 @@ from backend.diagnostics import build_diagnostic_summary, configure_mupdf, forma
 from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
+from backend.geometry_corrections import GeometryCorrectionError, apply_geometry_correction
 from backend.local_env import load_local_env_defaults
 from backend.projects import ProjectRecord, ProjectRegistry, default_app_data_dir
 from backend.pre_review import (
@@ -1679,6 +1680,47 @@ def create_app(
                 "image_url": url_for("pre_review_overlay_asset", change_id=change_id),
                 "crop_box": result.crop_box,
                 "page_box": result.page_box,
+            }
+        )
+
+    @app.post("/changes/<change_id>/geometry-correction")
+    def update_geometry_correction(change_id: str):
+        try:
+            item = store.get_change_item(change_id)
+        except KeyError:
+            abort(404)
+        if not item.cloud_candidate_id:
+            return jsonify({"error": "This review item does not have a correctable crop."}), 400
+        project = active_project()
+        sheet = store.get_sheet(item.sheet_version_id)
+        cloud = store.get_cloud(item.cloud_candidate_id)
+        payload = request.get_json(silent=True) or {}
+        try:
+            result = apply_geometry_correction(
+                store,
+                item,
+                cloud,
+                sheet,
+                mode=str(payload.get("mode") or ""),
+                crop_boxes=payload.get("crop_boxes", []),
+                project_id=project.id,
+                reviewer_id=current_reviewer_id(),
+                review_session_id=current_review_session_id(),
+            )
+        except GeometryCorrectionError as exc:
+            return jsonify({"error": str(exc)}), 400
+        redirect_kwargs = {
+            "change_id": result.child_items[0].id,
+            "queue": str(payload.get("queue_status") or "pending"),
+            "q": str(payload.get("search_query") or ""),
+        }
+        if str(payload.get("attention_only") or "0") == "1":
+            redirect_kwargs["attention"] = "1"
+        return jsonify(
+            {
+                "ok": True,
+                "replacement_change_ids": [child.id for child in result.child_items],
+                "redirect_url": url_for("change_detail", **redirect_kwargs),
             }
         )
 

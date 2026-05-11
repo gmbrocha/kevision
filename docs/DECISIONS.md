@@ -2,6 +2,28 @@
 
 Status: canonical application decision log.
 
+## 2026-05-11 - Reviewer Geometry Corrections Supersede Parents
+
+Decision: Reviewers can correct overmerged or partial detected regions inside
+the current crop. Corrections create replacement review items and soft-hide the
+original parent instead of deleting or mutating it.
+
+Reason: The client workflow needs a practical way to recover from overmerge and
+partial-region failures while keeping the original machine output available for
+internal audit and future detector analysis.
+
+Consequences / follow-up:
+
+- `ChangeItem` now carries explicit queue order and supersession metadata.
+- Superseded parents are hidden from normal queue, export, pricing, bulk
+  review, and review packet surfaces but remain in `workspace.json`.
+- `Correct overmerge` records an internal `split` event and inserts multiple
+  pending child items at the parent queue position.
+- `Correct partial` records an internal `resize` event and inserts one pending
+  replacement item at the parent queue position.
+- The first correction UI is crop-local only; full-sheet correction remains a
+  later follow-up for partials whose missing geometry lies outside the crop.
+
 ## 2026-05-11 - Startup Loads Allowlisted Local Env Defaults
 
 Decision: ScopeLedger loads allowlisted environment defaults from repo-root

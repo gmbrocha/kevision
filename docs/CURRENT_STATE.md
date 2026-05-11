@@ -61,6 +61,15 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   review/export surfaces use the adjusted geometry, and append an internal
   `resize` review event while leaving the original machine candidate
   unchanged.
+- Review items now have explicit queue ordering and soft supersession fields.
+  Superseded parent items remain in `workspace.json` for audit/review-event
+  history but are hidden from the normal queue, counts, bulk review, workbook
+  export, pricing candidates, and review packet.
+- The review page now supports `Correct overmerge` and `Correct partial` from
+  the current crop image. Overmerge correction creates multiple pending child
+  review items in the same queue position and records an internal `split`
+  event. Partial correction creates one replacement review item and records an
+  internal `resize` event. Full-sheet correction remains a later follow-up.
 - The Overview page now polls `/workspace/populate/status` during Populate so
   the browser shows staged PDF count, live artifact count, and completion/fail
   state while CloudHammer runs inside long synchronous backend work.

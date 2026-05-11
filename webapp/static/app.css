@@ -1118,6 +1118,70 @@ input, textarea, select { font-family: inherit; }
   pointer-events: auto;
 }
 
+.geometry-correct-layer {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  pointer-events: none;
+}
+
+.js-crop-adjust-wrap.is-geometry-correcting .geometry-correct-layer {
+  pointer-events: auto;
+}
+
+.geometry-correct-rect {
+  position: absolute;
+  border: 2px solid var(--status-check);
+  background: oklch(0.78 0.13 82 / 0.14);
+  box-shadow: 0 0 0 1px oklch(0 0 0 / 0.6);
+  cursor: move;
+}
+
+.geometry-correct-rect.selected {
+  border-color: var(--accent);
+  background: oklch(0.72 0.13 170 / 0.16);
+}
+
+.geometry-correct-label {
+  position: absolute;
+  top: -20px;
+  left: -2px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--status-check);
+  color: var(--surface-base);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.geometry-correct-rect.selected .geometry-correct-label {
+  background: var(--accent);
+}
+
+.geometry-correct-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--surface-base);
+  background: var(--status-check);
+  border-radius: 2px;
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
+}
+
+.geometry-correct-rect.selected .geometry-correct-handle {
+  background: var(--accent);
+}
+
+.geometry-correct-handle-nw { left: -7px; top: -7px; cursor: nwse-resize; }
+.geometry-correct-handle-ne { right: -7px; top: -7px; cursor: nesw-resize; }
+.geometry-correct-handle-sw { left: -7px; bottom: -7px; cursor: nesw-resize; }
+.geometry-correct-handle-se { right: -7px; bottom: -7px; cursor: nwse-resize; }
+
+.geometry-correct-controls {
+  margin-left: 0;
+}
+
 .cockpit-image-label {
   position: absolute;
   top: var(--sp-4);
