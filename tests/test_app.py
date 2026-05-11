@@ -1007,6 +1007,117 @@ def test_exports_use_selected_pre_review_text_and_keep_multiple_boxes_one_item(t
     assert "Provide two roof curb updates" in wb["Sheet1"].cell(row=2, column=5).value
 
 
+def test_sheet_detail_hides_orphan_cloud_candidates(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    orphan = replace(store.data.clouds[0], id="cloud-orphan", bbox=[10, 10, 20, 20])
+    store.data.clouds.append(orphan)
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/sheets/sheet-1")
+
+    assert response.status_code == 200
+    assert response.data.count(b'class="bbox ') == 1
+    assert b'data-change-id="change-1"' in response.data
+    assert b"cloud-orphan" not in response.data
+
+
+def test_sheet_detail_uses_selected_pre_review_geometry(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    selected = select_pre_review_source(store.data.change_items[0], PRE_REVIEW_2)
+    store.update_change_item(selected.id, provenance=selected.provenance, reviewer_text=selected.reviewer_text)
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    item = loaded.data.change_items[0]
+    cloud = loaded.data.clouds[0]
+    selected_box = selected_review_page_boxes(item, cloud)[0]
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/sheets/sheet-1")
+
+    assert response.status_code == 200
+    assert f'data-x="{selected_box[0]}"'.encode("utf-8") in response.data
+    assert f'data-y="{selected_box[1]}"'.encode("utf-8") in response.data
+    assert f'data-w="{selected_box[2]}"'.encode("utf-8") in response.data
+    assert f'data-h="{selected_box[3]}"'.encode("utf-8") in response.data
+    assert b'data-x="80"' not in response.data
+
+
+def test_sheet_detail_uses_crop_adjusted_geometry(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    adjusted = client.post("/changes/change-1/crop-adjustment", json={"crop_box": [50, 20, 80, 40]})
+    assert adjusted.status_code == 200
+    payload = adjusted.get_json()
+    response = client.get("/sheets/sheet-1")
+
+    assert response.status_code == 200
+    assert f'data-x="{payload["page_box"][0]}"'.encode("utf-8") in response.data
+    assert f'data-y="{payload["page_box"][1]}"'.encode("utf-8") in response.data
+    assert f'data-w="{payload["page_box"][2]}"'.encode("utf-8") in response.data
+    assert f'data-h="{payload["page_box"][3]}"'.encode("utf-8") in response.data
+
+
+def test_sheet_detail_renders_multiple_selected_boxes_for_one_review_item(tmp_path: Path):
+    class MultiBoxProvider(FakePreReviewProvider):
+        def review(self, context):
+            return normalize_pre_review_2(
+                {
+                    "geometry_decision": "overmerged",
+                    "boxes": [[45, 25, 60, 40], [115, 25, 45, 40]],
+                    "refined_text": "Provide two roof curb updates.",
+                    "reason": "Two visible clouded areas are inside the same review crop.",
+                    "confidence": 0.77,
+                    "tags": ["overmerge"],
+                },
+                context,
+            )
+
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, MultiBoxProvider())
+    selected = select_pre_review_source(store.data.change_items[0], PRE_REVIEW_2)
+    store.update_change_item(selected.id, provenance=selected.provenance, reviewer_text=selected.reviewer_text)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/sheets/sheet-1")
+
+    assert response.status_code == 200
+    assert response.data.count(b'class="bbox ') == 2
+    assert response.data.count(b'data-change-id="change-1"') == 2
+    assert response.data.count(b'class="sheet-change-card"') == 1
+
+
+def test_sheet_detail_overlay_classes_follow_review_status(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    append_pre_review_test_item(store, 3)
+    store.data.change_items = [
+        replace(store.data.change_items[0], status="pending"),
+        replace(store.data.change_items[1], status="approved"),
+        replace(store.data.change_items[2], status="rejected"),
+    ]
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/sheets/sheet-1")
+
+    assert response.status_code == 200
+    assert b"bbox-pending" in response.data
+    assert b"bbox-accepted" in response.data
+    assert b"bbox-rejected" in response.data
+
+
 def test_workspace_loads_without_review_events_and_preserves_events_through_rescan(tmp_path: Path):
     store = build_pre_review_test_store(tmp_path)
     record_review_update(
@@ -2068,7 +2179,76 @@ def test_empty_project_registry_starts_without_demo(tmp_path: Path):
     assert populate.headers["Location"].endswith("/projects")
 
 
+def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_PREREVIEW_ENABLED", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_PREREVIEW_MODEL", raising=False)
+
+    env_dir = tmp_path / "CloudHammer"
+    env_dir.mkdir()
+    env_path = env_dir / ".env"
+    env_path.write_text(
+        "\n".join(
+            [
+                "OPENAI_API_KEY=test-local-key",
+                "SCOPELEDGER_PREREVIEW_ENABLED=1",
+                'SCOPELEDGER_PREREVIEW_MODEL="test-model"',
+                "UNRELATED_SECRET=do-not-load",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    app = create_app(tmp_path / "app-data")
+
+    assert os.environ["OPENAI_API_KEY"] == "test-local-key"
+    assert os.environ["SCOPELEDGER_PREREVIEW_ENABLED"] == "1"
+    assert os.environ["SCOPELEDGER_PREREVIEW_MODEL"] == "test-model"
+    assert "UNRELATED_SECRET" not in os.environ
+    assert app.config["SCOPELEDGER_LOADED_ENV_FILES"] == (env_path.resolve(),)
+    provider = app.config["PRE_REVIEW_PROVIDER"]
+    assert isinstance(provider, OpenAIPreReviewProvider)
+    assert provider.enabled is True
+    assert provider.model == "test-model"
+
+
+def test_create_app_does_not_override_existing_env_values(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("OPENAI_API_KEY", "already-set-key")
+    monkeypatch.delenv("SCOPELEDGER_PREREVIEW_ENABLED", raising=False)
+
+    env_dir = tmp_path / "CloudHammer"
+    env_dir.mkdir()
+    env_path = env_dir / ".env"
+    env_path.write_text(
+        "\n".join(
+            [
+                "OPENAI_API_KEY=file-key",
+                "SCOPELEDGER_PREREVIEW_ENABLED=1",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    create_app(tmp_path / "app-data")
+
+    assert os.environ["OPENAI_API_KEY"] == "already-set-key"
+    assert os.environ["SCOPELEDGER_PREREVIEW_ENABLED"] == "1"
+
+
+def test_production_app_can_load_secret_from_root_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
+    (tmp_path / ".env").write_text("SCOPELEDGER_WEBAPP_SECRET=local-production-secret\n", encoding="utf-8")
+
+    app = create_app(tmp_path / "app-data", production=True)
+
+    assert app.secret_key == "local-production-secret"
+
+
 def test_production_app_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
 
     with pytest.raises(RuntimeError, match="SCOPELEDGER_WEBAPP_SECRET"):
@@ -2076,6 +2256,7 @@ def test_production_app_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_pat
 
 
 def test_cli_production_serve_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
 
     result = cli_main(["serve", str(tmp_path / "app-data"), "--production"])

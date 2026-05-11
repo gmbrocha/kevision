@@ -5,6 +5,9 @@ workspace_demo/
 workspace_demo_accuracy/
 app_workspaces/
 logs/
+**/.env
+**/.env.*
+!**/.env.example
 
 # IDE / local agent state
 .cursor/

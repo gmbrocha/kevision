@@ -23,11 +23,13 @@ from backend.crop_adjustments import (
     apply_crop_adjustment,
     build_selected_review_overlay_image,
     crop_adjustment_template_context,
+    selected_review_page_boxes,
 )
 from backend.diagnostics import build_diagnostic_summary, configure_mupdf, format_pdf_label
 from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
+from backend.local_env import load_local_env_defaults
 from backend.projects import ProjectRecord, ProjectRegistry, default_app_data_dir
 from backend.pre_review import (
     PRE_REVIEW_1,
@@ -201,13 +203,14 @@ def create_app(
     production: bool = False,
 ) -> Flask:
     configure_mupdf()
+    project_root = Path.cwd().resolve()
+    loaded_env_files = load_local_env_defaults(project_root)
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.secret_key = _load_secret_key(production=production)
     registry = ProjectRegistry(Path(app_data_dir) if app_data_dir else default_app_data_dir()).load()
     provider = verification_provider or DisabledReviewAssistProvider()
     cloudhammer_runner = cloudhammer_runner or LiveCloudHammerPipeline()
     pre_review_provider = pre_review_provider or build_pre_review_provider_from_env()
-    project_root = Path.cwd().resolve()
     allowed_import_roots = _configured_allowed_import_roots()
     max_chunked_upload_bytes = _configured_max_chunked_upload_bytes()
     app.config["STORE"] = None
@@ -215,6 +218,7 @@ def create_app(
     app.config["REVIEW_ASSIST_PROVIDER"] = provider
     app.config["CLOUDHAMMER_RUNNER"] = cloudhammer_runner
     app.config["PRE_REVIEW_PROVIDER"] = pre_review_provider
+    app.config["SCOPELEDGER_LOADED_ENV_FILES"] = loaded_env_files
     app.config["SCOPELEDGER_PRODUCTION"] = production
     app.config["SCOPELEDGER_ALLOWED_IMPORT_ROOTS"] = allowed_import_roots
     app.config["SCOPELEDGER_MAX_CHUNKED_UPLOAD_BYTES"] = max_chunked_upload_bytes
@@ -1522,18 +1526,35 @@ def create_app(
             if replacement:
                 return redirect(url_for("sheet_detail", sheet_version_id=replacement.id))
         chain = sorted([item for item in store.data.sheets if item.sheet_id == sheet.sheet_id], key=lambda item: (item.status != "active", item.page_number))
-        clouds = store.sheet_clouds(sheet.id)
         changes = store.sheet_changes(sheet.id)
+        clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
+        review_overlays = []
+        for item in changes:
+            cloud = clouds_by_id.get(item.cloud_candidate_id or "")
+            if not cloud:
+                continue
+            boxes = selected_review_page_boxes(item, cloud)
+            status_class = {"approved": "accepted", "rejected": "rejected", "pending": "pending"}.get(item.status, "pending")
+            for box_index, box in enumerate(boxes, start=1):
+                if len(box) != 4 or box[2] <= 0 or box[3] <= 0:
+                    continue
+                label = item.detail_ref or ("Cloud" if len(boxes) == 1 else f"Cloud {box_index}")
+                review_overlays.append(
+                    {
+                        "item": item,
+                        "box": box,
+                        "label": label,
+                        "status_class": status_class,
+                    }
+                )
         narratives = [entry for entry in store.data.narrative_entries if entry.id in sheet.narrative_entry_ids]
-        change_by_cloud = {item.cloud_candidate_id: item.id for item in changes if item.cloud_candidate_id}
         return render_template(
             "sheet_detail.html",
             sheet=sheet,
             chain=chain,
-            clouds=clouds,
             changes=changes,
             narratives=narratives,
-            change_by_cloud=change_by_cloud,
+            review_overlays=review_overlays,
         )
 
     @app.route("/changes")

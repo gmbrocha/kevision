@@ -12,7 +12,8 @@ Status: operational queue as of 2026-05-10.
      Populate.
    - If using API enrichment, confirm `SCOPELEDGER_PREREVIEW_ENABLED`,
      `SCOPELEDGER_PREREVIEW_MODEL`, and the server-side `OPENAI_API_KEY` are
-     set before starting the production server.
+     set in the process environment or present in the allowlisted local `.env`
+     files before starting the production server.
    - Verify Overview, Drawings, Latest Set, Review Changes, Diagnostics,
      Export Workbook, and Review Packet after Populate completes.
    - In Review Changes, confirm `Pre Review 1`/`Pre Review 2` selection writes

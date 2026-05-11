@@ -45,6 +45,11 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, while
   preserving per-item cache files and writing per-call usage JSONL under the
   active project `outputs/pre_review/usage/` folder.
+- At app startup, ScopeLedger loads allowlisted local environment defaults from
+  repo-root `.env` and the existing legacy `CloudHammer/.env` if present.
+  Already-set process environment variables still win. This supports the
+  server-side `OPENAI_API_KEY` and handoff app settings without exposing values
+  in the UI or committing secrets.
 - Review actions now append internal `review_events` records to the active
   project `workspace.json`. These events preserve the original detected
   candidate, optional Pre Review metadata, and the human final result for

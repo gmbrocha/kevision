@@ -63,6 +63,9 @@ route:
   - Cloudflare Access has an allowed-users policy for `ledger.nezcoupe.net`.
   - `cloudflared` tunnel `nez-dev-projects` is connected.
   - The Windows host stays awake and online.
+  - ScopeLedger auto-loads allowlisted defaults from repo-root `.env` and
+    `CloudHammer/.env` at startup. Process environment values still override
+    local files. Keep API keys and secrets out of Git.
 - Command:
 
 ```powershell
@@ -72,6 +75,7 @@ $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
 $env:SCOPELEDGER_PREREVIEW_ENABLED = "1"
 $env:SCOPELEDGER_PREREVIEW_MODEL = "gpt-5.5"
 $env:SCOPELEDGER_PREREVIEW_BATCH_SIZE = "5"
+# Optional if already present in repo-root .env or CloudHammer\.env:
 $env:OPENAI_API_KEY = "<server-side-api-key>"
 .\.venv\Scripts\python.exe -m backend serve --host 127.0.0.1 --port 5000 --production
 ```

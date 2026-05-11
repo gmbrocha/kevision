@@ -2,6 +2,23 @@
 
 Status: canonical application decision log.
 
+## 2026-05-11 - Startup Loads Allowlisted Local Env Defaults
+
+Decision: ScopeLedger loads allowlisted environment defaults from repo-root
+`.env` and the existing legacy `CloudHammer/.env` during app startup.
+
+Reason: The private handoff app needs to reliably find the server-side API key
+and production settings after restarts without relying on a manually rebuilt
+PowerShell environment each time.
+
+Consequences / follow-up:
+
+- Process environment values still take precedence over local env files.
+- The loader is intentionally narrow: only known ScopeLedger/OpenAI keys are
+  accepted, and values are not printed or exposed in the UI.
+- Root and nested `.env` files are ignored by Git; `.env.example` files remain
+  allowed if a sample is needed later.
+
 ## 2026-05-11 - Pre Review API Calls Are Batched
 
 Decision: Batch app-layer Pre Review API calls by default while preserving

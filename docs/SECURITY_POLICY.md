@@ -32,6 +32,10 @@ server-path imports to `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`, requires CSRF tokens
 for POST requests, and sets secure session cookies plus release security
 headers.
 
+At startup, the app loads only allowlisted local environment defaults from
+repo-root `.env` and `CloudHammer/.env`; process environment values take
+precedence. Local env files are operator secrets and must remain uncommitted.
+
 Server-side Pre Review is active only when explicitly configured with
 `SCOPELEDGER_PREREVIEW_ENABLED=1` and `OPENAI_API_KEY`. In that mode, detected
 region crop images and nearby OCR/context text are sent to the configured

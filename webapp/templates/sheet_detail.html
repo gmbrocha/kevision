@@ -28,21 +28,14 @@
           {% if sheet.render_path %}
             <img src="{{ sheet|sheet_viewer_image }}" alt="{{ sheet.sheet_id }}">
           {% endif %}
-          {% for cloud in clouds %}
-            {% set linked_change_id = change_by_cloud.get(cloud.id) %}
-            {% if linked_change_id %}
-              <a class="bbox" href="{{ url_for('change_detail', change_id=linked_change_id, queue='all') }}"
-                 data-x="{{ cloud.bbox[0] }}" data-y="{{ cloud.bbox[1] }}" data-w="{{ cloud.bbox[2] }}" data-h="{{ cloud.bbox[3] }}"
-                 title="{{ cloud.detail_ref or 'Cloud' }}">
-                <span class="bbox-label">{{ cloud.detail_ref or "Cloud" }}</span>
-              </a>
-            {% else %}
-              <span class="bbox"
-                 data-x="{{ cloud.bbox[0] }}" data-y="{{ cloud.bbox[1] }}" data-w="{{ cloud.bbox[2] }}" data-h="{{ cloud.bbox[3] }}"
-                 title="{{ cloud.detail_ref or 'Cloud' }}">
-                <span class="bbox-label">{{ cloud.detail_ref or "Cloud" }}</span>
-              </span>
-            {% endif %}
+          {% for overlay in review_overlays %}
+            <a class="bbox bbox-{{ overlay.status_class }}" href="{{ url_for('change_detail', change_id=overlay.item.id, queue='all') }}"
+               data-change-id="{{ overlay.item.id }}"
+               data-review-status="{{ overlay.item.status }}"
+               data-x="{{ overlay.box[0] }}" data-y="{{ overlay.box[1] }}" data-w="{{ overlay.box[2] }}" data-h="{{ overlay.box[3] }}"
+               title="{{ overlay.label }}">
+              <span class="bbox-label">{{ overlay.label }}</span>
+            </a>
           {% endfor %}
         </div>
       </div>

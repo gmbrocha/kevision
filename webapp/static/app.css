@@ -1480,6 +1480,26 @@ input, textarea, select { font-family: inherit; }
 
 .bbox:hover { background: var(--accent-dim); }
 
+.bbox-accepted {
+  border-color: var(--status-accepted);
+  background: var(--status-accepted-bg);
+}
+
+.bbox-accepted .bbox-label { background: var(--status-accepted); }
+
+.bbox-rejected {
+  border-color: var(--status-rejected);
+  background: var(--status-rejected-bg);
+  opacity: 0.55;
+}
+
+.bbox-rejected .bbox-label { background: var(--status-rejected); }
+
+.bbox-pending {
+  border-color: var(--accent);
+  background: var(--accent-quiet);
+}
+
 .bbox-label {
   position: absolute;
   top: -18px;
