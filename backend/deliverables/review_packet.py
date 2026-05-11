@@ -8,6 +8,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from ..crop_adjustments import build_selected_review_overlay_image, selected_review_page_boxes
 from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..workspace import WorkspaceStore
 from .crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
@@ -21,7 +22,7 @@ class ReviewPacketResult:
 
 
 def build_review_packet(store: WorkspaceStore, output_path: Path | None = None) -> ReviewPacketResult:
-    """Build a local browser packet for reviewing CloudHammer workbook rows.
+    """Build a local browser packet for reviewing detected-region workbook rows.
 
     The workbook is still the canonical deliverable. This packet is a speed aid:
     it places each exported cloud crop next to a marked source-page context crop
@@ -54,9 +55,9 @@ def build_review_packet(store: WorkspaceStore, output_path: Path | None = None) 
         if not cloud or not sheet:
             continue
 
-        crop_asset = _copy_crop_asset(cloud, asset_dir, index)
-        comparison_asset = _write_comparison_asset(store, cloud, sheet, sheets_by_id, revision_sets_by_id, asset_dir, index)
-        context_asset = _write_context_asset(cloud, sheet, asset_dir, index)
+        crop_asset = _write_selected_crop_asset(store, item, cloud, asset_dir, index)
+        comparison_asset = _write_comparison_asset(store, item, cloud, sheet, sheets_by_id, revision_sets_by_id, asset_dir, index)
+        context_asset = _write_context_asset(item, cloud, sheet, asset_dir, index)
         asset_count += int(crop_asset is not None) + int(comparison_asset is not None) + int(context_asset is not None)
 
         revision_set = revision_sets_by_id.get(sheet.revision_set_id)
@@ -98,17 +99,24 @@ def _sort_key(
     return (revision_set_number, sheet_id, page_number, item.id)
 
 
-def _copy_crop_asset(cloud: CloudCandidate, asset_dir: Path, index: int) -> Path | None:
-    source = Path(cloud.image_path)
+def _write_selected_crop_asset(store: WorkspaceStore, item: ChangeItem, cloud: CloudCandidate, asset_dir: Path, index: int) -> Path | None:
+    destination = asset_dir / f"{index:04d}_{cloud.id}_selected.png"
+    generated = build_selected_review_overlay_image(store, item, cloud, destination, include_all=False)
+    if generated:
+        if generated.resolve() != destination.resolve():
+            shutil.copyfile(generated, destination)
+            return destination
+        return generated
+    source = store.resolve_path(cloud.image_path)
     if not source.exists():
         return None
-    destination = asset_dir / f"{index:04d}_{cloud.id}_crop{source.suffix.lower() or '.png'}"
     shutil.copyfile(source, destination)
     return destination
 
 
 def _write_comparison_asset(
     store: WorkspaceStore,
+    item: ChangeItem,
     cloud: CloudCandidate,
     sheet: SheetVersion,
     sheets_by_id: dict[str, SheetVersion],
@@ -118,23 +126,32 @@ def _write_comparison_asset(
 ) -> Path | None:
     previous_sheet = find_previous_sheet_version(sheet, list(sheets_by_id.values()), revision_sets_by_id)
     destination = asset_dir / f"{index:04d}_{cloud.id}_comparison.png"
+    selected_boxes = selected_review_page_boxes(item, cloud)
     return build_cloud_comparison_image(
         store,
         cloud=cloud,
         current_sheet=sheet,
         previous_sheet=previous_sheet,
         output_path=destination,
+        highlight_bboxes=selected_boxes or None,
     )
 
 
-def _write_context_asset(cloud: CloudCandidate, sheet: SheetVersion, asset_dir: Path, index: int) -> Path | None:
+def _write_context_asset(item: ChangeItem, cloud: CloudCandidate, sheet: SheetVersion, asset_dir: Path, index: int) -> Path | None:
     source = Path(cloud.page_image_path or sheet.render_path)
     if not source.exists():
         return None
 
     with Image.open(source) as page:
         page = page.convert("RGB")
-        x, y, width, height = _normalized_bbox(cloud.bbox)
+        selected_boxes = selected_review_page_boxes(item, cloud)
+        normalized_boxes = [_normalized_bbox(box) for box in selected_boxes]
+        x = min(box[0] for box in normalized_boxes)
+        y = min(box[1] for box in normalized_boxes)
+        right_box = max(box[0] + box[2] for box in normalized_boxes)
+        bottom_box = max(box[1] + box[3] for box in normalized_boxes)
+        width = right_box - x
+        height = bottom_box - y
         if width <= 0 or height <= 0:
             return None
 
@@ -146,18 +163,19 @@ def _write_context_asset(cloud: CloudCandidate, sheet: SheetVersion, asset_dir: 
         context = page.crop((left, top, right, bottom))
 
         draw = ImageDraw.Draw(context)
-        rect = (x - left, y - top, x + width - left, y + height - top)
         line_width = max(4, round(max(context.width, context.height) / 180))
-        for offset in range(line_width):
-            draw.rectangle(
-                (
-                    rect[0] - offset,
-                    rect[1] - offset,
-                    rect[2] + offset,
-                    rect[3] + offset,
-                ),
-                outline=(0, 180, 70),
-            )
+        for box in normalized_boxes:
+            rect = (box[0] - left, box[1] - top, box[0] + box[2] - left, box[1] + box[3] - top)
+            for offset in range(line_width):
+                draw.rectangle(
+                    (
+                        rect[0] - offset,
+                        rect[1] - offset,
+                        rect[2] + offset,
+                        rect[3] + offset,
+                    ),
+                    outline=(0, 180, 70),
+                )
 
         destination = asset_dir / f"{index:04d}_{cloud.id}_context.png"
         context.save(destination, optimize=True)
@@ -307,7 +325,7 @@ def _render_page(cards: list[str], *, item_count: int) -> str:
 <body>
 <header>
   <h1>ScopeLedger Review Packet</h1>
-  <div class="subhead">{item_count} CloudHammer rows. Each item shows the exported crop, previous/current comparison, and marked source-page context crop.</div>
+  <div class="subhead">{item_count} detected rows. Each item shows selected visual evidence, previous/current comparison, and marked source-page context.</div>
 </header>
 <main>
 {''.join(cards)}
@@ -355,7 +373,7 @@ def _render_card(
   </div>
   <div class="images">
     <figure>
-      <figcaption>Workbook Crop</figcaption>
+      <figcaption>Selected Evidence</figcaption>
       {crop_img}
     </figure>
     <figure>

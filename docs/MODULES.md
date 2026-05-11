@@ -13,6 +13,8 @@ Status: canonical module map as of 2026-05-02.
 - `resources/`: durable project resources and source-like inputs intended to be
   reusable.
 - `revision_sets/`: current source drawing packages.
+- `app_workspaces/`: ignored local application data root for the project
+  registry and user-created project workspaces.
 - `runs/` and `outputs/`: generated application artifacts.
 - `experiments/`: exploratory work and prototypes.
 - `docs/`: canonical application docs, references, meetings, history, and docs

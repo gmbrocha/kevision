@@ -54,9 +54,28 @@
             <span style="color: var(--rule-hairline);">/</span>
             <span class="cloud-id">{{ item.detail_ref or "Cloud" }}</span>
           </div>
-          <div class="cockpit-image-wrap">
+          <div
+            class="cockpit-image-wrap js-crop-adjust-wrap"
+            {% if crop_adjustment.enabled %}
+              data-crop-adjust-url="{{ url_for('update_crop_adjustment', change_id=item.id) }}"
+              data-crop-x="{{ crop_adjustment.crop_box[0] }}"
+              data-crop-y="{{ crop_adjustment.crop_box[1] }}"
+              data-crop-w="{{ crop_adjustment.crop_box[2] }}"
+              data-crop-h="{{ crop_adjustment.crop_box[3] }}"
+            {% endif %}
+          >
             {% if cloud %}
-              <img src="{{ cloud|cloud_comparison_image }}" alt="{{ item.sheet_id }} previous and current crop comparison">
+              <img class="js-crop-adjust-image" src="{{ url_for('pre_review_overlay_asset', change_id=item.id) }}" alt="{{ item.sheet_id }} review crop">
+              {% if crop_adjustment.enabled %}
+                <div class="crop-adjust-layer js-crop-adjust-layer" hidden>
+                  <div class="crop-adjust-rect js-crop-adjust-rect">
+                    <span class="crop-adjust-handle crop-adjust-handle-nw" data-crop-handle="nw"></span>
+                    <span class="crop-adjust-handle crop-adjust-handle-ne" data-crop-handle="ne"></span>
+                    <span class="crop-adjust-handle crop-adjust-handle-sw" data-crop-handle="sw"></span>
+                    <span class="crop-adjust-handle crop-adjust-handle-se" data-crop-handle="se"></span>
+                  </div>
+                </div>
+              {% endif %}
             {% elif sheet.render_path %}
               <img src="{{ sheet|sheet_viewer_image }}" alt="{{ item.sheet_id }} sheet">
             {% endif %}
@@ -68,6 +87,14 @@
         <span class="stat-label">Sheet context</span>
         <span>{{ sheet.sheet_title }}</span>
         <span class="cell-mono cell-dim">{{ item.sheet_id|discipline }}</span>
+        {% if crop_adjustment.enabled %}
+          <div class="crop-adjust-controls js-crop-adjust-controls">
+            <button class="btn btn-secondary btn-sm" type="button" data-crop-adjust-start>Adjust crop</button>
+            <button class="btn btn-primary btn-sm" type="button" data-crop-adjust-save hidden>Update crop</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-crop-adjust-cancel hidden>Cancel</button>
+            <span class="crop-adjust-status" data-crop-adjust-status></span>
+          </div>
+        {% endif %}
         <a class="btn btn-ghost btn-sm" href="{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}">Full sheet</a>
       </div>
     </section>
@@ -95,19 +122,43 @@
             <span class="meta-key">Sheet title</span>
             <span class="meta-val">{{ sheet.sheet_title }}</span>
           </div>
-          <div class="meta-pair span-2">
-            <span class="meta-key">Detected text</span>
-            <span class="meta-val">{{ item.raw_text }}</span>
-          </div>
-          {% if item.provenance.get("scope_text_reason") %}
-            <div class="meta-pair span-2">
-              <span class="meta-key">Extraction reason</span>
-              <span class="meta-val">{{ item.provenance.get("scope_text_reason") }}</span>
-            </div>
-          {% endif %}
         </div>
 
         <div class="cockpit-divider"></div>
+
+        {% set selected_pre_review = pre_review.get("selected", pre_review_1) if pre_review else pre_review_1 %}
+        {% set pr1 = pre_review.get(pre_review_1, {}) if pre_review else {} %}
+        {% set pr2 = pre_review.get(pre_review_2, {}) if pre_review else {} %}
+        <div class="pre-review-panel">
+          <div class="pre-review-legend">
+            <span class="pre-review-key pre-review-key-1"></span>
+            <span>Pre Review 1</span>
+            <span class="pre-review-key pre-review-key-2"></span>
+            <span>Pre Review 2</span>
+          </div>
+          {% if pr2.get("reason") %}
+            <div class="pre-review-reason">{{ pr2.get("reason") }}</div>
+          {% endif %}
+        </div>
+
+        <div class="pre-review-grid">
+          <div class="pre-review-choice {{ 'selected' if selected_pre_review == pre_review_1 else '' }}">
+            <div class="pre-review-choice-head">
+              <span>Pre Review 1</span>
+              {% if selected_pre_review == pre_review_1 %}<span class="badge badge-active">Selected</span>{% endif %}
+            </div>
+            <textarea class="pre-review-textarea" rows="4" readonly>{{ pr1.get("text", item.raw_text) }}</textarea>
+            <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_1 }}">Use Pre Review 1</button>
+          </div>
+          <div class="pre-review-choice {{ 'selected' if selected_pre_review == pre_review_2 else '' }}">
+            <div class="pre-review-choice-head">
+              <span>Pre Review 2</span>
+              {% if selected_pre_review == pre_review_2 %}<span class="badge badge-active">Selected</span>{% endif %}
+            </div>
+            <textarea class="pre-review-textarea" rows="4" readonly>{{ pr2.get("text", "") }}</textarea>
+            <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_2 }}" {% if not pr2.get("available") %}disabled{% endif %}>Use Pre Review 2</button>
+          </div>
+        </div>
 
         <div>
           <label class="cockpit-scope-label" for="reviewer_text">Scope of change</label>
@@ -117,19 +168,6 @@
         <div>
           <label class="cockpit-scope-label" for="reviewer_notes">Reviewer notes</label>
           <textarea id="reviewer_notes" name="reviewer_notes" class="notes-textarea" rows="3" placeholder="Optional field conditions, cross-references, RFI numbers...">{{ item.reviewer_notes }}</textarea>
-        </div>
-
-        {% if cloud and cloud.nearby_text %}
-          <div class="callout callout-info">
-            <span>{{ cloud.nearby_text }}</span>
-          </div>
-        {% endif %}
-
-        <div style="display: flex; gap: var(--sp-2);">
-          <button class="btn btn-secondary btn-sm" type="submit">Save</button>
-          {% if navigation.next_change_id %}
-            <button class="btn btn-secondary btn-sm" type="submit" onclick="this.form.elements.advance.value='next';">Save + Next</button>
-          {% endif %}
         </div>
       </div>
 
@@ -147,7 +185,6 @@
   <footer class="cockpit-footer">
     <span class="kbd-hint"><span class="kbd">A</span>Accept + next</span>
     <span class="kbd-hint"><span class="kbd">R</span>Reject + next</span>
-    <span class="kbd-hint"><span class="kbd">S</span>Save</span>
     <span class="kbd-hint"><span class="kbd">[</span><span class="kbd">]</span>Navigate</span>
     <span style="flex: 1;"></span>
     <span class="cell-mono cell-dim">{{ pending_count }} pending in queue</span>

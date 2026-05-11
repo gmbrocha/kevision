@@ -15,7 +15,7 @@ from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, 
 from .page_classification import sheet_is_index_like
 
 REVISION_FOLDER_PATTERN = re.compile(r"Revision\s*(?:#|Set)?\s*(?P<number>\d+)", re.IGNORECASE)
-SCOPE_EXTRACTION_CACHE_VERSION = 2
+SCOPE_EXTRACTION_CACHE_VERSION = 3
 
 
 def _preferred_sheet_prefixes(pdf_path: Path | None) -> tuple[str, ...]:
@@ -47,6 +47,7 @@ class RevisionScanner:
             self.store.create(self.input_dir)
         self.previous_change_items = list(self.store.data.change_items)
         self.previous_verifications = list(self.store.data.verifications)
+        self.previous_review_events = list(self.store.data.review_events)
         self.previous_scan_cache = dict(self.store.data.scan_cache.get("documents", {}))
         self.cache_hits = 0
 
@@ -133,6 +134,7 @@ class RevisionScanner:
         self.store.data.clouds = clouds
         self.store.data.change_items = change_items
         self.store.data.verifications = [record for record in self.previous_verifications if record.change_item_id in {item.id for item in change_items}]
+        self.store.data.review_events = self.previous_review_events
         self.store.data.scan_cache = {"documents": next_scan_cache}
         self.store.save()
         return self.store
@@ -598,7 +600,7 @@ class RevisionScanner:
         text = normalize_text(raw_text)
         if not text:
             return 0.1
-        if "cloudhammer detected revision cloud" in text:
+        if "cloudhammer detected revision cloud" in text or "detected revision region" in text:
             return 0.65
         if text.startswith("possible revision region"):
             return 0.25 if sheet.sheet_id.lower() in text else 0.2

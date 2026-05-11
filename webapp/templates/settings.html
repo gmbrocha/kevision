@@ -1,20 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Settings{% endblock %}
 {% block page_heading %}Settings and Audit{% endblock %}
-{% block page_lead %}The active web workflow is local-first. Populate Workspace runs local drawing analysis; the old API verification helper is archived for now.{% endblock %}
+{% block page_lead %}The active web workflow is local-first. Populate Workspace runs drawing analysis and optional server-side pre-review before human review.{% endblock %}
 {% block content %}
   <section class="split">
     <article class="panel">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Review Assist</p>
+          <p class="eyebrow">Pre Review</p>
           <h2>Current Integration Status</h2>
         </div>
-        <span class="status pending">archived</span>
+        <span class="status {{ 'active' if pre_review_provider.enabled else 'pending' }}">{{ 'active' if pre_review_provider.enabled else 'disabled' }}</span>
       </div>
       <div class="stack">
-        <div><strong>Provider:</strong> {{ provider.name }}</div>
+        <div><strong>Provider:</strong> {{ pre_review_provider.name }}</div>
         <div>Populate Workspace runs local drawing analysis before review data is scanned into the app.</div>
+        <div>When enabled, server-side pre-review adds a second provisional geometry/text pass for the reviewer to select from.</div>
         <div>Human review remains the source of truth for text corrections and export approval.</div>
         <div><strong>Preflight:</strong> {{ diagnostic_summary.affected_document_count }} of {{ diagnostic_summary.document_count }} documents produced warnings during scan.</div>
       </div>
@@ -30,7 +31,7 @@
       <ul class="flat-list">
         <li class="list-card">Malformed PDF warnings are captured during scan and exported as diagnostics.</li>
         <li class="list-card">Detected revision regions are imported as review items; they are not auto-approved for export.</li>
-        <li class="list-card">Historical review-assist records are preserved for audit, but no new API verification calls are made from the web app.</li>
+        <li class="list-card">Pre-review suggestions are provisional until the reviewer selects one in the review screen.</li>
       </ul>
     </article>
   </section>

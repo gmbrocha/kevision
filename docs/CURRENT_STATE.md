@@ -16,6 +16,12 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   before creating the next real client/handoff project.
 - The web app no longer seeds a `Demo Project` automatically when the project
   registry is missing or empty.
+- The app registry and managed project workspaces now live under the
+  application data root, defaulting to repo-local `app_workspaces/`. The app is
+  not launched from a project workspace; user-created projects define their own
+  workspaces under `app_workspaces/projects/`.
+- The Projects UI intentionally does not expose local workspace filesystem
+  paths. Custom project workspace paths are not accepted from the UI.
 - Empty app registry state is valid: `/projects` and the main read-only
   workspace pages should render with no active project and prompt explicit
   project creation. Mutating workspace actions still require an active project.
@@ -30,9 +36,30 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   `CloudHammer/runs/cloudhammer_roi-symbol-text-fp-hn-20260502/weights/best.pt`,
   grouping profile `review_v1`, and whole-cloud export into the selected app
   project's `outputs/cloudhammer_live/` folder.
+- Populate then runs app-layer Pre Review enrichment when
+  `SCOPELEDGER_PREREVIEW_ENABLED=1` and `OPENAI_API_KEY` are configured. The
+  app keeps every detected candidate visible, stores raw `Pre Review 1` plus a
+  provisional `Pre Review 2`, and makes the reviewer choose which text/geometry
+  becomes export truth. Missing, disabled, rate-limited, or failed API calls do
+  not block Populate.
+- Review actions now append internal `review_events` records to the active
+  project `workspace.json`. These events preserve the original detected
+  candidate, optional Pre Review metadata, and the human final result for
+  future internal QA, audit, and pipeline analysis. They are not exposed in the
+  normal UI or client-facing exports; use the CLI-only JSONL export when
+  needed.
+- The review page now supports client-facing crop adjustment for individual
+  detected regions. Adjustments regenerate a derived crop asset, make
+  review/export surfaces use the adjusted geometry, and append an internal
+  `resize` review event while leaving the original machine candidate
+  unchanged.
 - The Overview page now polls `/workspace/populate/status` during Populate so
   the browser shows staged PDF count, live artifact count, and completion/fail
   state while CloudHammer runs inside long synchronous backend work.
+- OCR extraction is now intentionally tighter around detected boxes, with
+  isolated numeric clutter filtered unless it looks like a tag/callout/keynote
+  reference. Symbol/legend lookup and split/merge quality remain follow-up
+  work.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number
@@ -255,10 +282,17 @@ human confirmation/correction before training use.
 ## Immediate Next Steps
 
 - Create the next real project from `/projects`, stage PDFs through browser
-  upload or the allowed `revision_sets/` import root, and run Populate.
+  upload or the allowed `revision_sets/` import root, configure server-side
+  Pre Review if using API enrichment, and run Populate.
 - During the next populate/review, verify that index pages do not create review
   items and that previous/current comparison only matches the same sheet from
   a strictly earlier revision set.
+- During the next review smoke, confirm normal accept/reject and Pre Review
+  selection create internal review events, then export them with the CLI-only
+  `export-review-events` command if analysis is needed.
+- During the next review smoke, resize one oversized crop with `Adjust crop`,
+  confirm the regenerated crop stays on the same review item, and verify the
+  JSONL review-event export contains a `resize` event.
 - Use `FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI polish,
   OCR/context extraction, geometry split/merge work, symbol/legend handling,
   and zoom legibility. Do not treat it as training ground truth.

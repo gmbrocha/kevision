@@ -6,7 +6,8 @@ from pathlib import Path
 from .cloudhammer_client.inference import ManifestCloudInferenceClient
 from .deliverables.excel_exporter import ExportBlockedError, Exporter
 from .deliverables.review_packet import build_review_packet
-from .projects import ProjectRegistry
+from .projects import ProjectRegistry, default_app_data_dir
+from .review_events import export_review_events_jsonl
 from .revision_state.tracker import RevisionScanner
 from .workspace import WorkspaceStore
 from webapp.app import create_app
@@ -53,7 +54,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     serve_parser = subparsers.add_parser("serve", help="Run the local review app.")
-    serve_parser.add_argument("workspace_dir", type=Path)
+    serve_parser.add_argument(
+        "app_data_dir",
+        type=Path,
+        nargs="?",
+        default=None,
+        help="Optional app data root. Defaults to ./app_workspaces under this repo.",
+    )
     serve_parser.add_argument("--host", default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=5000)
     serve_parser.add_argument("--debug", action="store_true")
@@ -68,7 +75,18 @@ def build_parser() -> argparse.ArgumentParser:
     packet_parser.add_argument("--output", type=Path, default=None, help="Optional HTML output path.")
 
     reset_parser = subparsers.add_parser("reset-projects", help="Clear the app project registry without deleting workspaces or source packages.")
-    reset_parser.add_argument("workspace_dir", type=Path, help="Any workspace path under the app registry root.")
+    reset_parser.add_argument(
+        "app_data_dir",
+        type=Path,
+        nargs="?",
+        default=None,
+        help="Optional app data root. Defaults to ./app_workspaces under this repo.",
+    )
+
+    review_events_parser = subparsers.add_parser("export-review-events", help="Export internal review event records as JSONL.")
+    review_events_parser.add_argument("registry_or_workspace_dir", type=Path)
+    review_events_parser.add_argument("--project-id", required=True, help="Project id whose internal review events should be exported.")
+    review_events_parser.add_argument("--out", type=Path, default=None, help="Optional JSONL output path.")
     return parser
 
 
@@ -103,8 +121,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.production and not _is_loopback_host(args.host):
             print("--production must bind to a loopback host such as 127.0.0.1 or localhost.")
             return 1
+        if _is_project_workspace_path(args.app_data_dir):
+            print("serve expects an app data root, not a project workspace. Use no path for app_workspaces or pass a dedicated app data folder.")
+            return 1
         try:
-            app = create_app(args.workspace_dir, production=args.production)
+            app = create_app(args.app_data_dir, production=args.production)
         except RuntimeError as exc:
             print(str(exc))
             return 1
@@ -127,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
             print(str(exc))
             print("")
             print("Tip: open the GUI and clear the attention queue first, or re-run with --force-attention.")
-            print(f"  python -m backend serve {args.workspace_dir}")
+            print("  python -m backend serve")
             return 1
         print(format_export_summary(exporter.last_summary, outputs, args.workspace_dir))
         return 0
@@ -142,11 +163,24 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "reset-projects":
-        registry = ProjectRegistry(args.workspace_dir).load()
+        if _is_project_workspace_path(args.app_data_dir):
+            print("reset-projects expects an app data root, not a project workspace. Use no path for app_workspaces or pass a dedicated app data folder.")
+            return 1
+        registry = ProjectRegistry(args.app_data_dir or default_app_data_dir()).load()
         count = registry.clear()
         print(f"Cleared {count} app project registration(s).")
         print(f"  Registry: {registry.data_path}")
         print("  Workspace folders and revision_sets were not deleted.")
+        return 0
+
+    if args.command == "export-review-events":
+        store = resolve_review_event_store(args.registry_or_workspace_dir, args.project_id)
+        output = export_review_events_jsonl(store, project_id=args.project_id, output_path=args.out)
+        count = len([event for event in store.data.review_events if event.project_id == args.project_id])
+        print("Review events export complete.")
+        print(f"  Project: {args.project_id}")
+        print(f"  Events: {count}")
+        print(f"  JSONL: {output}")
         return 0
 
     parser.error(f"Unsupported command: {args.command}")
@@ -158,6 +192,10 @@ def _is_loopback_host(host: str) -> bool:
     return normalized in {"127.0.0.1", "localhost", "::1"}
 
 
+def _is_project_workspace_path(path: Path | None) -> bool:
+    return bool(path and (path.resolve() / "workspace.json").exists())
+
+
 def serve_production_app(app, *, host: str, port: int) -> None:
     try:
         from waitress import serve
@@ -165,6 +203,19 @@ def serve_production_app(app, *, host: str, port: int) -> None:
         raise RuntimeError("Waitress is required for --production. Install dependencies with requirements.txt.") from exc
     print(f"Serving ScopeLedger with Waitress at http://{host}:{port}")
     serve(app, host=host, port=port)
+
+
+def resolve_review_event_store(registry_or_workspace_dir: Path, project_id: str) -> WorkspaceStore:
+    base = registry_or_workspace_dir.resolve()
+    if (base / "workspace.json").exists():
+        return WorkspaceStore(base).load()
+    registry_dir = base.parent if base.name == "projects.json" else base
+    registry = ProjectRegistry(registry_dir).load()
+    try:
+        project = registry.get(project_id)
+        return WorkspaceStore(project.workspace_dir).load()
+    except KeyError:
+        return WorkspaceStore(base).load()
 
 
 def approve_cloudhammer_detections(store: WorkspaceStore) -> int:
@@ -217,7 +268,7 @@ def format_export_summary(summary: dict, outputs: dict[str, str], workspace_dir:
     lines.append(f"  approved: {approved}   rejected: {rejected}   still pending: {pending}")
     if attention_pending:
         lines.append(f"  WARNING: {attention_pending} item(s) flagged for attention are still pending.")
-        lines.append(f"  -> Review them in the GUI:  python -m backend serve {workspace_dir}")
+        lines.append("  -> Review them in the GUI:  python -m backend serve")
 
     if filtered_by_reason:
         lines.append("")

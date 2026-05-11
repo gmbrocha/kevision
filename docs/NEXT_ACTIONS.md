@@ -7,10 +7,16 @@ Status: operational queue as of 2026-05-10.
 1. Finish the private client handoff pass.
    - Cloudflare Access gating on `ledger.nezcoupe.net` is confirmed from a
      fresh/incognito browser session.
-   - Start from the intentionally empty app registry, create the next real
-     project in `/projects`, stage package PDFs, and run Populate.
+   - Start from the intentionally empty app registry under `app_workspaces/`,
+     create the next real project in `/projects`, stage package PDFs, and run
+     Populate.
+   - If using API enrichment, confirm `SCOPELEDGER_PREREVIEW_ENABLED`,
+     `SCOPELEDGER_PREREVIEW_MODEL`, and the server-side `OPENAI_API_KEY` are
+     set before starting the production server.
    - Verify Overview, Drawings, Latest Set, Review Changes, Diagnostics,
      Export Workbook, and Review Packet after Populate completes.
+   - In Review Changes, confirm `Pre Review 1`/`Pre Review 2` selection writes
+     the reviewer text and that exports use the selected source.
 2. Watch the fixes made after the first real exploratory run.
    - Index pages must stay context-only.
    - Previous/current comparison must match the same sheet from a strictly

@@ -30,9 +30,15 @@ Expected deliverables include:
 - The app project registry intentionally starts empty; a real project should
   be created in `/projects`, then populated from uploaded PDFs or allowed
   server-local revision packages.
+- Project workspaces are created in the app-owned local data root
+  `app_workspaces/projects/`; the client workflow does not expose server-local
+  workspace paths.
 - Populate runs the current local drawing-analysis pipeline and writes normal
   review items into the app. These detections are evidence for human review,
   not automatic scope approval.
+- Optional server-side Pre Review can add a provisional second text/geometry
+  suggestion for each detected region. The reviewer explicitly chooses
+  `Pre Review 1` or `Pre Review 2`; exports use that selected truth.
 - Large remote PDF uploads use chunked browser upload, then reconstruction
   inside the active app project workspace.
 - First-pass text/OCR extraction exists as review scaffolding, but broad OCR

@@ -23,28 +23,31 @@ packages:
 - Command:
 
 ```powershell
-.\.venv\Scripts\python.exe -m backend reset-projects runs\cloudhammer_real_export_corrected_split_v1_20260428_171246
+.\.venv\Scripts\python.exe -m backend reset-projects
 ```
 
 - Expected output: reports the number of cleared app project registrations and
-  the registry path, usually `runs\projects.json`.
+  the registry path, usually `app_workspaces\projects.json`.
 - Safety: safe registry-only cleanup. It does not delete workspace folders,
   generated runs, `revision_sets/`, CloudHammer artifacts, model runs, or
   outputs.
 
-Serve the local review app after creating or selecting a project registry root:
+Serve the local review app:
 
 - Purpose: run the browser review surface.
 - Working directory: repo root.
 - Command:
 
 ```powershell
-.\.venv\Scripts\python.exe -m backend serve runs\cloudhammer_real_export_corrected_split_v1_20260428_171246 --host 127.0.0.1 --port 5000
+.\.venv\Scripts\python.exe -m backend serve --host 127.0.0.1 --port 5000
 ```
 
 - Expected output/artifact: Flask serves the app at
   `http://127.0.0.1:5000`; if the registry is empty, `/projects` shows no
-  active projects and allows project creation.
+  active projects and allows project creation. By default, app registry and
+  project workspaces live under repo-local `app_workspaces/`.
+- Note: `serve` expects an app data root. Do not pass a project workspace path
+  such as an old `runs\...\workspace.json` folder; the CLI rejects that shape.
 - Safety: local development server; it does not expose the app externally by
   itself.
 
@@ -66,7 +69,10 @@ route:
 $env:SCOPELEDGER_WEBAPP_SECRET = "<generated-long-random-secret>"
 $env:SCOPELEDGER_ALLOWED_IMPORT_ROOTS = "F:\Desktop\m\projects\scopeLedger\revision_sets"
 $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
-.\.venv\Scripts\python.exe -m backend serve runs\cloudhammer_real_export_corrected_split_v1_20260428_171246 --host 127.0.0.1 --port 5000 --production
+$env:SCOPELEDGER_PREREVIEW_ENABLED = "1"
+$env:SCOPELEDGER_PREREVIEW_MODEL = "gpt-5.5"
+$env:OPENAI_API_KEY = "<server-side-api-key>"
+.\.venv\Scripts\python.exe -m backend serve --host 127.0.0.1 --port 5000 --production
 ```
 
 - Expected output/artifact: Waitress serves ScopeLedger at
@@ -76,8 +82,12 @@ $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
 - Safety: private handoff mode. Cloudflare Access is the auth gate. The app
   must bind only to loopback in `--production`; POST requests require CSRF
   tokens; session cookies are secure/HttpOnly/Lax; manual server-path imports
-  are restricted to the configured import root; custom project workspace paths
-  are disabled. This does not make the app public-hosting ready without
+  are restricted to the configured import root; project workspaces are managed
+  under the app-owned `app_workspaces/projects/` root. When Pre Review is
+  enabled, crop images and local OCR context are sent through the server-side
+  OpenAI API key and cached under the active project `outputs/pre_review/`
+  folder. This does not make the app
+  public-hosting ready without
   additional background jobs, durable process supervision, retention policy,
   and app-level user/session management.
 
@@ -125,15 +135,39 @@ Run the repo test suite:
 - Safety: local test run; no source packages, eval artifacts, model
   checkpoints, or project registries are modified.
 
-Fresh client project flow with live CloudHammer Populate:
+Export internal review events:
 
-- Purpose: create an empty app project, import durable source revision sets,
-  run live CloudHammer inference, and populate review/export surfaces.
+- Purpose: write the hidden review-event audit/truth records for one app
+  project as JSONL.
 - Working directory: repo root.
 - Command:
 
 ```powershell
-.\.venv\Scripts\python.exe -m backend serve runs\cloudhammer_real_export_corrected_split_v1_20260428_171246 --host 127.0.0.1 --port 5000
+.\.venv\Scripts\python.exe -m backend export-review-events app_workspaces --project-id <project-id>
+```
+
+- Optional explicit output:
+
+```powershell
+.\.venv\Scripts\python.exe -m backend export-review-events app_workspaces --project-id <project-id> --out exports\review_events_<project-id>.jsonl
+```
+
+- Expected output/artifact: one JSON object per review event. If `--out` is
+  omitted, the file is written to the project's `outputs/` folder as
+  `review_events_<project-id>.jsonl`.
+- Safety: internal export only. It reads the project `workspace.json` and does
+  not appear in the client UI or normal workbook/review-packet exports.
+
+Fresh client project flow with live Populate and optional Pre Review:
+
+- Purpose: create an empty app project, import durable source revision sets,
+  run live drawing analysis, optionally run server-side Pre Review, and
+  populate review/export surfaces.
+- Working directory: repo root.
+- Command:
+
+```powershell
+.\.venv\Scripts\python.exe -m backend serve --host 127.0.0.1 --port 5000
 ```
 
 - Browser steps:
@@ -145,10 +179,13 @@ Fresh client project flow with live CloudHammer Populate:
   4. Click Populate Workspace.
   5. Review Overview, Drawings, Latest Set, Review Changes, Diagnostics,
      Export Workbook, and Review Packet.
-- Expected output/artifact: Populate writes CloudHammer live artifacts under
+- Expected output/artifact: Populate writes live detection artifacts under
   the selected project workspace at `outputs/cloudhammer_live/run_*/`, then
   imports the generated `whole_cloud_candidates_manifest.jsonl` into normal
-  app review items. While Populate is running, Overview polls
+  app review items. If Pre Review is enabled and `OPENAI_API_KEY` is present,
+  provisional second-pass metadata is cached under `outputs/pre_review/` and
+  appears in the review screen as `Pre Review 2`; otherwise review items keep
+  raw `Pre Review 1`. While Populate is running, Overview polls
   `/workspace/populate/status` and should show staged PDF count plus live
   artifact count before final package/sheet/change counts appear. Drawing
   index pages remain context only; they should not create review items or be

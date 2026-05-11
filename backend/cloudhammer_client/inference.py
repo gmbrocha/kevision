@@ -155,8 +155,8 @@ def _nearby_text(row: dict[str, Any]) -> str:
     review = str(row.get("review_status") or "unreviewed")
     confidence = row.get("whole_cloud_confidence", row.get("confidence", ""))
     return (
-        "Cloud Only - CloudHammer detected revision cloud. "
-        "OCR/scope extraction is not wired yet. "
+        "Cloud Only - Detected revision region. "
+        "Scope extraction pending. "
         f"candidate={candidate_id}; policy={policy}; review={review}; confidence={confidence}"
     )
 
@@ -253,6 +253,14 @@ class ManifestCloudInferenceClient:
                         "review_status": row.get("review_status"),
                         "cloudhammer_quality_policy": "included",
                         "cloudhammer_crop_missing": bool(crop_path and not Path(crop_path).exists()),
+                        "bbox_page_xywh": row.get("bbox_page_xywh"),
+                        "bbox_page_xyxy": row.get("bbox_page_xyxy"),
+                        "crop_box_page_xywh": row.get("crop_box_page_xywh"),
+                        "crop_box_page_xyxy": row.get("crop_box_page_xyxy"),
+                        "page_width": row.get("page_width"),
+                        "page_height": row.get("page_height"),
+                        "tight_crop_image_path": row.get("tight_crop_image_path"),
+                        "source_crop_image_path": row.get("source_crop_image_path"),
                         "manifest_path": str(self.manifest_path),
                     },
                 )

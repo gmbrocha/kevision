@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .revision_state.models import ChangeItem, CloudCandidate, PreflightIssue, SheetVersion, SourceDocument, VerificationRecord, WorkspaceData
+from .revision_state.models import ChangeItem, CloudCandidate, PreflightIssue, ReviewEvent, SheetVersion, SourceDocument, VerificationRecord, WorkspaceData
 from .utils import ensure_dir, json_dumps
 
 
@@ -90,6 +90,9 @@ class WorkspaceStore:
 
     def change_verifications(self, change_id: str) -> list[VerificationRecord]:
         return [record for record in self.data.verifications if record.change_item_id == change_id]
+
+    def change_review_events(self, change_id: str) -> list[ReviewEvent]:
+        return [record for record in self.data.review_events if record.change_item_id == change_id]
 
     def get_document(self, document_id: str) -> SourceDocument:
         for document in self.data.documents:
@@ -183,7 +186,9 @@ class WorkspaceStore:
         if isinstance(value, dict):
             mapped = {}
             for key, item in value.items():
-                if key in path_keys:
+                if key == "review_events":
+                    mapped[key] = item
+                elif key in path_keys:
                     mapped[key] = cls._map_path_value(item, transform)
                 else:
                     mapped[key] = cls._map_path_fields(item, transform)
@@ -195,6 +200,8 @@ class WorkspaceStore:
     @classmethod
     def _map_path_value(cls, value: Any, transform) -> Any:
         if isinstance(value, str):
+            if not value:
+                return value
             return transform(value)
         if isinstance(value, list):
             return [cls._map_path_value(item, transform) for item in value]

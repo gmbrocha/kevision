@@ -18,12 +18,27 @@ from flask import Flask, abort, flash, g, has_request_context, jsonify, redirect
 
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult, CloudHammerRunner, LiveCloudHammerPipeline
+from backend.crop_adjustments import (
+    CropAdjustmentError,
+    apply_crop_adjustment,
+    build_selected_review_overlay_image,
+    crop_adjustment_template_context,
+)
 from backend.diagnostics import build_diagnostic_summary, configure_mupdf, format_pdf_label
 from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
-from backend.projects import ProjectRecord, ProjectRegistry
+from backend.projects import ProjectRecord, ProjectRegistry, default_app_data_dir
+from backend.pre_review import (
+    PRE_REVIEW_1,
+    PRE_REVIEW_2,
+    build_pre_review_provider_from_env,
+    ensure_workspace_pre_review,
+    pre_review_payload,
+    select_pre_review_source,
+)
 from backend.review import change_item_needs_attention
+from backend.review_events import record_review_update
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text
@@ -178,18 +193,20 @@ def _configured_max_chunked_upload_bytes() -> int:
 
 
 def create_app(
-    workspace_dir: Path,
+    app_data_dir: Path | None = None,
     verification_provider=None,
     cloudhammer_runner: CloudHammerRunner | None = None,
+    pre_review_provider=None,
     *,
     production: bool = False,
 ) -> Flask:
     configure_mupdf()
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.secret_key = _load_secret_key(production=production)
-    registry = ProjectRegistry(Path(workspace_dir)).load()
+    registry = ProjectRegistry(Path(app_data_dir) if app_data_dir else default_app_data_dir()).load()
     provider = verification_provider or DisabledReviewAssistProvider()
     cloudhammer_runner = cloudhammer_runner or LiveCloudHammerPipeline()
+    pre_review_provider = pre_review_provider or build_pre_review_provider_from_env()
     project_root = Path.cwd().resolve()
     allowed_import_roots = _configured_allowed_import_roots()
     max_chunked_upload_bytes = _configured_max_chunked_upload_bytes()
@@ -197,6 +214,7 @@ def create_app(
     app.config["PROJECT_REGISTRY"] = registry
     app.config["REVIEW_ASSIST_PROVIDER"] = provider
     app.config["CLOUDHAMMER_RUNNER"] = cloudhammer_runner
+    app.config["PRE_REVIEW_PROVIDER"] = pre_review_provider
     app.config["SCOPELEDGER_PRODUCTION"] = production
     app.config["SCOPELEDGER_ALLOWED_IMPORT_ROOTS"] = allowed_import_roots
     app.config["SCOPELEDGER_MAX_CHUNKED_UPLOAD_BYTES"] = max_chunked_upload_bytes
@@ -335,6 +353,32 @@ def create_app(
             return default
         return target
 
+    def current_review_session_id() -> str:
+        value = session.get("review_session_id")
+        if not value:
+            value = uuid.uuid4().hex
+            session["review_session_id"] = value
+        return str(value)
+
+    def current_reviewer_id() -> str:
+        email = (
+            request.headers.get("Cf-Access-Authenticated-User-Email")
+            or request.headers.get("CF-Access-Authenticated-User-Email")
+        )
+        if email:
+            return email.strip().lower()
+        name = (
+            request.headers.get("Cf-Access-Authenticated-User-Name")
+            or request.headers.get("CF-Access-Authenticated-User-Name")
+        )
+        if name:
+            return name.strip()
+        value = session.get("reviewer_id")
+        if not value:
+            value = f"anonymous:{uuid.uuid4().hex}"
+            session["reviewer_id"] = value
+        return str(value)
+
     def is_safe_project_asset(path: Path) -> bool:
         if path.suffix.lower() not in SAFE_PROJECT_ASSET_SUFFIXES:
             return False
@@ -371,7 +415,7 @@ def create_app(
         return {"all": 0, "pending": 0, "approved": 0, "rejected": 0, "needs_check": 0}
 
     def empty_output_files() -> dict[str, Path]:
-        missing_output_dir = Path(workspace_dir) / "__no_active_project_outputs__"
+        missing_output_dir = registry.app_data_dir / "__no_active_project_outputs__"
         return {
             "workbook": missing_output_dir / "revision_changelog.xlsx",
             "review_packet": missing_output_dir / "revision_changelog_review_packet.html",
@@ -678,8 +722,12 @@ def create_app(
             "review_progress": round((reviewed_count / total_changes) * 100) if total_changes else 100,
             "current_package_label": current_package.label if current_package else "No package loaded",
             "ai_enabled": provider.enabled,
+            "pre_review_provider": pre_review_provider,
             "diagnostic_summary": diagnostic_summary,
             "needs_attention": change_item_needs_attention,
+            "pre_review_payload": pre_review_payload,
+            "pre_review_1": PRE_REVIEW_1,
+            "pre_review_2": PRE_REVIEW_2,
             "drive_review_folder_url": DRIVE_REVIEW_FOLDER_URL,
             "is_production": app.config["SCOPELEDGER_PRODUCTION"],
             "csrf_token": csrf_token,
@@ -727,6 +775,11 @@ def create_app(
         comparison_dir = store.assets_dir / "comparisons"
         comparison_dir.mkdir(parents=True, exist_ok=True)
         return comparison_dir / f"{cloud.id}_comparison.png"
+
+    def pre_review_overlay_path(item) -> Path:
+        overlay_dir = store.assets_dir / "pre_review"
+        overlay_dir.mkdir(parents=True, exist_ok=True)
+        return overlay_dir / f"{item.id}_pre_review.png"
 
     def ensure_high_res_sheet(sheet) -> Path:
         output_path = high_res_sheet_path(sheet)
@@ -796,6 +849,16 @@ def create_app(
             previous_sheet=previous_sheet,
             output_path=output_path,
         )
+        if generated:
+            return generated
+        return ensure_high_res_cloud(cloud)
+
+    def ensure_pre_review_overlay(item) -> Path:
+        if not item.cloud_candidate_id:
+            raise KeyError(item.id)
+        cloud = store.get_cloud(item.cloud_candidate_id)
+        output_path = pre_review_overlay_path(item)
+        generated = build_selected_review_overlay_image(store, item, cloud, output_path, include_all=True)
         if generated:
             return generated
         return ensure_high_res_cloud(cloud)
@@ -877,14 +940,11 @@ def create_app(
         if not name:
             flash("Project name is required.", "warning")
             return redirect(url_for("projects"))
-        if app.config["SCOPELEDGER_PRODUCTION"] and workspace_dir:
-            flash("Custom workspace paths are disabled in production handoff mode.", "warning")
+        if workspace_dir:
+            flash("Project storage is managed by ScopeLedger. Create the project, then add packages from Overview.", "warning")
             return redirect(url_for("projects"))
         try:
-            project = registry.create_project(
-                name=name,
-                workspace_dir=Path(workspace_dir) if workspace_dir else None,
-            )
+            project = registry.create_project(name=name)
         except Exception as exc:
             flash(f"Project creation failed: {exc}", "warning")
             return redirect(url_for("projects"))
@@ -1244,6 +1304,7 @@ def create_app(
         )
         refreshed: WorkspaceStore | None = None
         cloudhammer_result: CloudHammerRunResult | None = None
+        pre_review_summary = None
         try:
             runner = app.config["CLOUDHAMMER_RUNNER"]
             cloudhammer_result = runner.run(
@@ -1272,6 +1333,19 @@ def create_app(
             )
             enrich_workspace_scope_text(refreshed)
             refreshed.update_populate_status(
+                state="running",
+                stage="pre_review",
+                message="Running pre-review on detected regions.",
+                package_count=len(refreshed.data.revision_sets),
+                document_count=len(refreshed.data.documents),
+                sheet_count=len(refreshed.data.sheets),
+                cloud_count=len(refreshed.data.clouds),
+                change_item_count=len(refreshed.data.change_items),
+                cache_hits=cache_hits,
+                **(cloudhammer_result.to_status() if cloudhammer_result else {}),
+            )
+            pre_review_summary = ensure_workspace_pre_review(refreshed, app.config["PRE_REVIEW_PROVIDER"])
+            refreshed.update_populate_status(
                 state="done",
                 stage="complete",
                 message="Workspace is populated with detected revision regions and ready for review.",
@@ -1283,6 +1357,7 @@ def create_app(
                 change_item_count=len(refreshed.data.change_items),
                 cache_hits=cache_hits,
                 error="",
+                **pre_review_summary.to_status(),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             g.active_store = refreshed
@@ -1294,6 +1369,7 @@ def create_app(
                 message="Workspace population failed.",
                 finished_at=utc_timestamp(),
                 error=str(exc),
+                **(pre_review_summary.to_status() if pre_review_summary else {}),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             flash(f"Workspace population failed: {exc}", "warning")
@@ -1302,6 +1378,11 @@ def create_app(
             f"Workspace populated: {len(refreshed.data.revision_sets)} package(s), {len(refreshed.data.sheets)} sheet version(s), {len(refreshed.data.change_items)} change item(s).",
             "success",
         )
+        if pre_review_summary and (
+            pre_review_summary.failed_count
+            or pre_review_summary.disabled_reason not in {"", "disabled"}
+        ):
+            flash("Pre-review enrichment was skipped or incomplete; detected regions are still available for review.", "warning")
         return redirect(url_for("dashboard"))
 
     @app.route("/conformed")
@@ -1492,6 +1573,8 @@ def create_app(
             item=item,
             sheet=sheet,
             cloud=cloud,
+            crop_adjustment=crop_adjustment_template_context(store, item, cloud, sheet),
+            pre_review=pre_review_payload(item),
             verifications=verifications,
             provider_name=provider.name,
             queue_status=queue_status,
@@ -1502,20 +1585,80 @@ def create_app(
             sheet_revision_set=next((revision_set for revision_set in store.data.revision_sets if revision_set.id == sheet.revision_set_id), None),
         )
 
+    @app.post("/changes/<change_id>/crop-adjustment")
+    def update_crop_adjustment(change_id: str):
+        try:
+            item = store.get_change_item(change_id)
+        except KeyError:
+            abort(404)
+        if not item.cloud_candidate_id:
+            return jsonify({"error": "This review item does not have an adjustable crop."}), 400
+        project = active_project()
+        sheet = store.get_sheet(item.sheet_version_id)
+        cloud = store.get_cloud(item.cloud_candidate_id)
+        payload = request.get_json(silent=True) or {}
+        try:
+            result = apply_crop_adjustment(
+                store,
+                item,
+                cloud,
+                sheet,
+                payload.get("crop_box", []),
+                reviewer_id=current_reviewer_id(),
+                review_session_id=current_review_session_id(),
+            )
+            record_review_update(
+                store,
+                project_id=project.id,
+                change_id=change_id,
+                changes={"provenance": result.item.provenance},
+                reviewer_id=current_reviewer_id(),
+                review_session_id=current_review_session_id(),
+                action="resize",
+                human_result_overrides=result.human_result_overrides,
+            )
+        except CropAdjustmentError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify(
+            {
+                "image_url": url_for("pre_review_overlay_asset", change_id=change_id),
+                "crop_box": result.crop_box,
+                "page_box": result.page_box,
+            }
+        )
+
     @app.post("/changes/<change_id>/review")
     def review_change(change_id: str):
         try:
             item = store.get_change_item(change_id)
         except KeyError:
             abort(404)
+        project = active_project()
         status = request.form.get("status_override") or request.form.get("status", item.status)
         default_redirect = url_for("change_detail", change_id=change_id)
         if status not in VALID_REVIEW_STATUSES:
             flash("Choose a valid review status.", "warning")
             return redirect(safe_redirect_target(request.form.get("redirect_to"), default_redirect))
+        selected_pre_review = request.form.get("selected_pre_review", "")
+        if selected_pre_review:
+            item = select_pre_review_source(item, selected_pre_review)
         reviewer_text = request.form.get("reviewer_text", item.reviewer_text or item.raw_text)
+        if selected_pre_review:
+            reviewer_text = item.reviewer_text or reviewer_text
         reviewer_notes = request.form.get("reviewer_notes", item.reviewer_notes)
-        store.update_change_item(change_id, status=status, reviewer_text=reviewer_text, reviewer_notes=reviewer_notes)
+        record_review_update(
+            store,
+            project_id=project.id,
+            change_id=change_id,
+            changes={
+                "status": status,
+                "reviewer_text": reviewer_text,
+                "reviewer_notes": reviewer_notes,
+                "provenance": item.provenance,
+            },
+            reviewer_id=current_reviewer_id(),
+            review_session_id=current_review_session_id(),
+        )
         flash(f"Updated {change_id} to {status}.", "success")
         attention_param = request.form.get("attention_only", "0")
         if request.form.get("advance") == "next" and request.form.get("next_change_id"):
@@ -1546,6 +1689,7 @@ def create_app(
 
     @app.post("/changes/bulk-review")
     def bulk_review():
+        project = active_project()
         selected_ids = request.form.getlist("change_ids")
         redirect_to = safe_redirect_target(request.form.get("redirect_to"), url_for("changes"))
         if not selected_ids:
@@ -1562,7 +1706,17 @@ def create_app(
             except KeyError:
                 continue
             reviewer_text = item.reviewer_text or item.raw_text
-            store.update_change_item(change_id, status=status, reviewer_text=reviewer_text)
+            if item.status == status and item.reviewer_text == reviewer_text:
+                continue
+            record_review_update(
+                store,
+                project_id=project.id,
+                change_id=change_id,
+                changes={"status": status, "reviewer_text": reviewer_text},
+                reviewer_id=current_reviewer_id(),
+                review_session_id=current_review_session_id(),
+                action="accept" if status == "approved" else "reject" if status == "rejected" else None,
+            )
             count += 1
         flash(f"Updated {count} queue items to {status}.", "success")
         return redirect(redirect_to)
@@ -1573,7 +1727,7 @@ def create_app(
             store.get_change_item(change_id)
         except KeyError:
             abort(404)
-        return jsonify({"error": "Review assist is currently disabled while CloudHammer model integration is in progress."}), 400
+        return jsonify({"error": "Review assist is currently disabled for this item."}), 400
 
     @app.post("/changes/<change_id>/apply-verification/<verification_id>")
     def apply_verification(change_id: str, verification_id: str):
@@ -1621,9 +1775,9 @@ def create_app(
     @app.route("/settings")
     def settings():
         if active_project_or_none() is None:
-            return render_template("settings.html", provider=provider, verification_history=[])
+            return render_template("settings.html", provider=provider, pre_review_provider=pre_review_provider, verification_history=[])
         verification_history = list(reversed(store.data.verifications))
-        return render_template("settings.html", provider=provider, verification_history=verification_history)
+        return render_template("settings.html", provider=provider, pre_review_provider=pre_review_provider, verification_history=verification_history)
 
     @app.route("/diagnostics")
     def diagnostics():
@@ -1691,6 +1845,15 @@ def create_app(
             abort(404)
         comparison_path = ensure_cloud_comparison(cloud)
         return send_from_directory(comparison_path.parent.resolve(), comparison_path.name)
+
+    @app.route("/workspace-assets/pre-review/<change_id>.png")
+    def pre_review_overlay_asset(change_id: str):
+        try:
+            item = store.get_change_item(change_id)
+        except KeyError:
+            abort(404)
+        overlay_path = ensure_pre_review_overlay(item)
+        return send_from_directory(overlay_path.parent.resolve(), overlay_path.name)
 
     @app.route("/project-assets/<path:asset_path>")
     def project_asset(asset_path: str):

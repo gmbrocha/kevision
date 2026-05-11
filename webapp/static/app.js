@@ -63,6 +63,9 @@ function bindReviewShortcuts() {
     if (tagName === "TEXTAREA" || tagName === "INPUT" || tagName === "SELECT") {
       return;
     }
+    if (document.querySelector(".js-crop-adjust-wrap.is-adjusting")) {
+      return;
+    }
     const key = event.key.toLowerCase();
     if (key === "a") {
       event.preventDefault();
@@ -72,11 +75,6 @@ function bindReviewShortcuts() {
     if (key === "r") {
       event.preventDefault();
       submitWith({ advance: "next", statusOverride: "rejected" });
-      return;
-    }
-    if (key === "s") {
-      event.preventDefault();
-      submitWith();
       return;
     }
     if (event.key === "[" && queueHeader.dataset.prevUrl) {
@@ -598,6 +596,219 @@ function bindPanZoomViewers() {
   });
 }
 
+function bindCropAdjustment() {
+  const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  document.querySelectorAll(".js-crop-adjust-wrap[data-crop-adjust-url]").forEach((wrap) => {
+    const image = wrap.querySelector(".js-crop-adjust-image");
+    const layer = wrap.querySelector(".js-crop-adjust-layer");
+    const rect = wrap.querySelector(".js-crop-adjust-rect");
+    const controls = wrap.closest(".cockpit-layout")?.querySelector(".js-crop-adjust-controls") || document.querySelector(".js-crop-adjust-controls");
+    if (!image || !layer || !rect || !controls) return;
+
+    const startButton = controls.querySelector("[data-crop-adjust-start]");
+    const saveButton = controls.querySelector("[data-crop-adjust-save]");
+    const cancelButton = controls.querySelector("[data-crop-adjust-cancel]");
+    const status = controls.querySelector("[data-crop-adjust-status]");
+    const minSize = 8;
+    let active = false;
+    let box = {
+      x: Number(wrap.dataset.cropX || 0),
+      y: Number(wrap.dataset.cropY || 0),
+      w: Number(wrap.dataset.cropW || 0),
+      h: Number(wrap.dataset.cropH || 0),
+    };
+    let savedBox = { ...box };
+    let drag = null;
+
+    const setStatus = (text = "") => {
+      if (status) status.textContent = text;
+    };
+
+    const displayScale = () => ({
+      x: image.clientWidth / Math.max(image.naturalWidth || 1, 1),
+      y: image.clientHeight / Math.max(image.naturalHeight || 1, 1),
+    });
+
+    const pointerScale = () => {
+      const imageRect = image.getBoundingClientRect();
+      return {
+        x: imageRect.width / Math.max(image.naturalWidth || 1, 1),
+        y: imageRect.height / Math.max(image.naturalHeight || 1, 1),
+      };
+    };
+
+    const normalizeBox = (nextBox) => {
+      let { x, y, w, h } = nextBox;
+      if (w < 0) {
+        x += w;
+        w = Math.abs(w);
+      }
+      if (h < 0) {
+        y += h;
+        h = Math.abs(h);
+      }
+      const naturalWidth = image.naturalWidth || Number(wrap.dataset.imageWidth || 0) || 1;
+      const naturalHeight = image.naturalHeight || Number(wrap.dataset.imageHeight || 0) || 1;
+      x = clamp(x, 0, naturalWidth - minSize);
+      y = clamp(y, 0, naturalHeight - minSize);
+      w = clamp(w, minSize, naturalWidth - x);
+      h = clamp(h, minSize, naturalHeight - y);
+      return { x, y, w, h };
+    };
+
+    const render = () => {
+      const scale = displayScale();
+      box = normalizeBox(box);
+      rect.style.left = `${box.x * scale.x}px`;
+      rect.style.top = `${box.y * scale.y}px`;
+      rect.style.width = `${box.w * scale.x}px`;
+      rect.style.height = `${box.h * scale.y}px`;
+    };
+
+    const setMode = (isActive) => {
+      active = isActive;
+      layer.hidden = !active;
+      wrap.classList.toggle("is-adjusting", active);
+      if (startButton) startButton.hidden = active;
+      if (saveButton) saveButton.hidden = !active;
+      if (cancelButton) cancelButton.hidden = !active;
+      if (active) {
+        savedBox = { ...box };
+        render();
+        setStatus("");
+      }
+    };
+
+    const updateFromPointer = (event) => {
+      if (!drag) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const scale = pointerScale();
+      const dx = (event.clientX - drag.startClientX) / Math.max(scale.x, 0.001);
+      const dy = (event.clientY - drag.startClientY) / Math.max(scale.y, 0.001);
+      const start = drag.startBox;
+      let next = { ...start };
+      if (drag.handle === "move") {
+        next.x = start.x + dx;
+        next.y = start.y + dy;
+      } else {
+        const left = start.x;
+        const top = start.y;
+        const right = start.x + start.w;
+        const bottom = start.y + start.h;
+        const nextLeft = drag.handle.includes("w") ? left + dx : left;
+        const nextRight = drag.handle.includes("e") ? right + dx : right;
+        const nextTop = drag.handle.includes("n") ? top + dy : top;
+        const nextBottom = drag.handle.includes("s") ? bottom + dy : bottom;
+        next = {
+          x: nextLeft,
+          y: nextTop,
+          w: nextRight - nextLeft,
+          h: nextBottom - nextTop,
+        };
+      }
+      box = normalizeBox(next);
+      render();
+    };
+
+    const endDrag = (event) => {
+      if (!drag) return;
+      if (rect.hasPointerCapture(event.pointerId)) {
+        rect.releasePointerCapture(event.pointerId);
+      }
+      drag = null;
+      render();
+    };
+
+    rect.addEventListener("pointerdown", (event) => {
+      if (!active || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      drag = {
+        handle: event.target?.dataset?.cropHandle || "move",
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startBox: { ...box },
+      };
+      rect.setPointerCapture(event.pointerId);
+    });
+    rect.addEventListener("pointermove", updateFromPointer);
+    rect.addEventListener("pointerup", endDrag);
+    rect.addEventListener("pointercancel", endDrag);
+
+    if (startButton) {
+      startButton.addEventListener("click", () => setMode(true));
+    }
+    if (cancelButton) {
+      cancelButton.addEventListener("click", () => {
+        box = { ...savedBox };
+        setMode(false);
+        render();
+        setStatus("");
+      });
+    }
+    if (saveButton) {
+      saveButton.addEventListener("click", async () => {
+        saveButton.disabled = true;
+        setStatus("Updating...");
+        try {
+          const response = await fetch(wrap.dataset.cropAdjustUrl, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              csrf_token: csrfToken(),
+              crop_box: [box.x, box.y, box.w, box.h],
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || payload.error) {
+            throw new Error(payload.error || "Crop update failed.");
+          }
+          if (Array.isArray(payload.crop_box) && payload.crop_box.length === 4) {
+            box = {
+              x: Number(payload.crop_box[0]),
+              y: Number(payload.crop_box[1]),
+              w: Number(payload.crop_box[2]),
+              h: Number(payload.crop_box[3]),
+            };
+            savedBox = { ...box };
+          }
+          if (payload.image_url) {
+            image.addEventListener("load", render, { once: true });
+            image.src = `${payload.image_url}${payload.image_url.includes("?") ? "&" : "?"}t=${Date.now()}`;
+          }
+          setMode(false);
+          setStatus("Crop updated.");
+          window.setTimeout(() => setStatus(""), 2200);
+        } catch (error) {
+          setStatus(error.message || "Crop update failed.");
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
+    }
+    if (image.complete) render();
+    image.addEventListener("load", render);
+    window.addEventListener("resize", render);
+  });
+}
+
+function bindFlashDismissal() {
+  document.querySelectorAll(".flash").forEach((flash) => {
+    window.setTimeout(() => {
+      flash.classList.add("is-dismissing");
+      window.setTimeout(() => {
+        flash.remove();
+      }, 220);
+    }, 2600);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   applyBoundingBoxes();
   bindQueueSelection();
@@ -608,4 +819,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bindFilePickerSummaries();
   bindFolderDialogs();
   bindPanZoomViewers();
+  bindCropAdjustment();
+  bindFlashDismissal();
 });

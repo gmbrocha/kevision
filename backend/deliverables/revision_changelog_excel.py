@@ -24,6 +24,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from PIL import Image as PILImage
 
+from ..crop_adjustments import build_selected_review_overlay_image, selected_review_page_boxes
 from ..review import change_item_needs_attention
 from ..revision_state.models import ChangeItem, CloudCandidate, RevisionSet, SheetVersion
 from ..utils import clean_display_text
@@ -205,6 +206,7 @@ def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], out
     revision_sets_by_id = {rs.id: rs for rs in store.data.revision_sets}
     sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
     clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
+    items_by_id = {item.id: item for item in store.data.change_items}
     comparison_dir = output_path.parent / f"{output_path.stem}_comparison_images"
 
     wb = Workbook()
@@ -285,6 +287,7 @@ def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], out
             revision_row,
             sheets_by_id=sheets_by_id,
             clouds_by_id=clouds_by_id,
+            items_by_id=items_by_id,
             revision_sets_by_id=revision_sets_by_id,
             comparison_dir=comparison_dir,
             row_index=row_index,
@@ -449,7 +452,7 @@ def _write_summary_sheet(ws, store: WorkspaceStore, rows: list[RevisionChangelog
 
     ws.merge_cells("A31:G31")
     footer = ws["A31"]
-    footer.value = f"Cloud-backed accepted rows: {len(cloud_rows)}"
+    footer.value = f"Detected-region accepted rows: {len(cloud_rows)}"
     footer.font = Font(bold=True, color=ACCENT_COLOR)
     footer.alignment = left
 
@@ -577,6 +580,7 @@ def _detail_view_image_path(
     *,
     sheets_by_id: dict[str, SheetVersion],
     clouds_by_id: dict[str, CloudCandidate],
+    items_by_id: dict[str, ChangeItem],
     revision_sets_by_id: dict[str, RevisionSet],
     comparison_dir: Path,
     row_index: int,
@@ -585,15 +589,29 @@ def _detail_view_image_path(
     sheet = sheets_by_id.get(revision_row.sheet_version_id or "")
     if cloud is None or sheet is None:
         return revision_row.crop_path
+    selected_item = next((items_by_id[item_id] for item_id in revision_row.item_ids if item_id in items_by_id), None)
+    if selected_item:
+        selected_overlay = comparison_dir / f"{row_index + 1:04d}_{cloud.id}_selected.png"
+        generated_overlay = build_selected_review_overlay_image(
+            store,
+            selected_item,
+            cloud,
+            selected_overlay,
+            include_all=False,
+        )
+        if generated_overlay:
+            return str(generated_overlay)
 
     previous_sheet = find_previous_sheet_version(sheet, list(sheets_by_id.values()), revision_sets_by_id)
     comparison_path = comparison_dir / f"{row_index + 1:04d}_{cloud.id}.png"
+    selected_boxes = selected_review_page_boxes(selected_item, cloud) if selected_item else []
     generated = build_cloud_comparison_image(
         store,
         cloud=cloud,
         current_sheet=sheet,
         previous_sheet=previous_sheet,
         output_path=comparison_path,
+        highlight_bboxes=selected_boxes or None,
     )
     if generated:
         return str(generated)

@@ -114,6 +114,30 @@ class VerificationRecord:
 
 
 @dataclass
+class ReviewEvent:
+    id: str = ""
+    project_id: str = ""
+    sheet_id: str = ""
+    revision_id: str | None = None
+    candidate_id: str = ""
+    change_item_id: str = ""
+    review_session_id: str | None = None
+    reviewer_id: str | None = None
+    created_at: str = ""
+    action: str = ""
+    original_candidate_json: dict[str, Any] = field(default_factory=dict)
+    ai_suggestion_json: dict[str, Any] | None = None
+    human_result_json: dict[str, Any] | None = None
+    ocr_context_json: dict[str, Any] | None = None
+    detector_name: str | None = None
+    detector_version: str | None = None
+    pipeline_version: str | None = None
+    model_version: str | None = None
+    app_version: str | None = None
+    notes: str | None = None
+
+
+@dataclass
 class WorkspaceData:
     workspace_version: int = 2
     input_dir: str = ""
@@ -126,6 +150,7 @@ class WorkspaceData:
     clouds: list[CloudCandidate] = field(default_factory=list)
     change_items: list[ChangeItem] = field(default_factory=list)
     verifications: list[VerificationRecord] = field(default_factory=list)
+    review_events: list[ReviewEvent] = field(default_factory=list)
     exports: list[dict[str, Any]] = field(default_factory=list)
     scan_cache: dict[str, Any] = field(default_factory=dict)
     populate_status: dict[str, Any] = field(default_factory=dict)
@@ -150,6 +175,7 @@ class WorkspaceData:
             clouds=load_many("clouds", CloudCandidate),
             change_items=load_many("change_items", ChangeItem),
             verifications=load_many("verifications", VerificationRecord),
+            review_events=load_many("review_events", ReviewEvent),
             exports=payload.get("exports", []),
             scan_cache=payload.get("scan_cache", {}),
             populate_status=payload.get("populate_status", {}),

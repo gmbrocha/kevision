@@ -9,6 +9,13 @@ from .utils import ensure_dir, json_dumps
 from .workspace import WorkspaceStore
 
 
+DEFAULT_APP_DATA_DIRNAME = "app_workspaces"
+
+
+def default_app_data_dir() -> Path:
+    return Path(__file__).resolve().parents[1] / DEFAULT_APP_DATA_DIRNAME
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -42,11 +49,11 @@ class ProjectRecord:
 
 
 class ProjectRegistry:
-    def __init__(self, seed_workspace_dir: Path | str):
-        self.seed_workspace_dir = Path(seed_workspace_dir).resolve()
-        self.root_dir = self.seed_workspace_dir.parent
-        self.projects_dir = ensure_dir(self.root_dir / "projects")
-        self.data_path = self.root_dir / "projects.json"
+    def __init__(self, app_data_dir: Path | str | None = None):
+        self.app_data_dir = ensure_dir(Path(app_data_dir).resolve() if app_data_dir else default_app_data_dir().resolve())
+        self.root_dir = self.app_data_dir
+        self.projects_dir = ensure_dir(self.app_data_dir / "projects")
+        self.data_path = self.app_data_dir / "projects.json"
         self.projects: list[ProjectRecord] = []
 
     def load(self) -> "ProjectRegistry":

@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 workspace_demo/
 workspace_demo_accuracy/
+app_workspaces/
+logs/
 
 # IDE / local agent state
 .cursor/

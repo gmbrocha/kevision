@@ -44,13 +44,20 @@ INDEX_NOISE_TERMS = (
     "revision #",
 )
 
-CONTEXT_PAD_Y_MIN = 24.0
-CONTEXT_PAD_Y_MAX = 120.0
-CONTEXT_PAD_Y_FACTOR = 0.22
-CONTEXT_PAD_X_MIN = 72.0
-CONTEXT_PAD_X_MAX = 220.0
-CONTEXT_PAD_X_FACTOR = 0.85
-MAX_LOCAL_WORDS = 48
+CONTEXT_PAD_MIN = 18.0
+CONTEXT_PAD_MAX = 90.0
+CONTEXT_PAD_FACTOR = 0.12
+MAX_LOCAL_WORDS = 36
+TAG_OR_CALLOUT_PATTERN = re.compile(
+    r"^(?:"
+    r"[A-Z]{1,3}\d{2,4}(?:\.\d+)?|"
+    r"[A-Z]\.\d+(?:\.\d+)?|"
+    r"\d+[A-Z]?/[A-Z]{1,3}\d{2,4}(?:\.\d+)?|"
+    r"\d+[A-Z]|"
+    r"[A-Z]{1,3}-?\d+[A-Z]?"
+    r")$",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -115,12 +122,11 @@ def _expanded_context(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> 
     x, y, width, height = [float(value) for value in bbox]
     sheet_width = float(sheet.width or page.rect.width)
     sheet_height = float(sheet.height or page.rect.height)
-    pad_x = max(CONTEXT_PAD_X_MIN, min(max(width, height) * CONTEXT_PAD_X_FACTOR, CONTEXT_PAD_X_MAX))
-    pad_y = max(CONTEXT_PAD_Y_MIN, min(max(width, height) * CONTEXT_PAD_Y_FACTOR, CONTEXT_PAD_Y_MAX))
-    left = max(0.0, x - pad_x)
-    top = max(0.0, y - pad_y)
-    right = min(sheet_width, x + width + pad_x)
-    bottom = min(sheet_height, y + height + pad_y)
+    pad = max(CONTEXT_PAD_MIN, min(max(width, height) * CONTEXT_PAD_FACTOR, CONTEXT_PAD_MAX))
+    left = max(0.0, x - pad)
+    top = max(0.0, y - pad)
+    right = min(sheet_width, x + width + pad)
+    bottom = min(sheet_height, y + height + pad)
     scale_x = page.rect.width / sheet_width if sheet_width else 1.0
     scale_y = page.rect.height / sheet_height if sheet_height else 1.0
     cloud_rect = fitz.Rect(x * scale_x, y * scale_y, (x + width) * scale_x, (y + height) * scale_y)
@@ -132,15 +138,45 @@ def _expanded_context(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> 
 
 
 def _words_in_rect(page: fitz.Page, rect: fitz.Rect, *, cloud_rect: fitz.Rect) -> list[tuple]:
-    hits = []
-    for word in page.get_text("words"):
+    page_words = list(page.get_text("words"))
+    direct_hits = []
+    direct_line_keys: set[tuple[int, int]] = set()
+    for word in page_words:
         word_rect = fitz.Rect(word[:4])
         center = ((word_rect.x0 + word_rect.x1) / 2.0, (word_rect.y0 + word_rect.y1) / 2.0)
-        if rect.contains(center):
-            hits.append(word)
+        if rect.contains(center) and not _is_context_noise_word(str(word[4])):
+            direct_hits.append(word)
+            direct_line_keys.add((int(word[5]), int(word[6])))
+
+    hits_by_index: dict[int, tuple] = {id(word): word for word in direct_hits}
+    for word in page_words:
+        line_key = (int(word[5]), int(word[6]))
+        if line_key not in direct_line_keys or _is_context_noise_word(str(word[4])):
+            continue
+        word_rect = fitz.Rect(word[:4])
+        if _horizontal_gap(word_rect, cloud_rect) <= CONTEXT_PAD_MAX and _vertical_gap(word_rect, cloud_rect) <= CONTEXT_PAD_MIN:
+            hits_by_index[id(word)] = word
+
+    hits = list(hits_by_index.values())
     if len(hits) > MAX_LOCAL_WORDS:
         hits = sorted(hits, key=lambda item: (_distance_to_rect_center(fitz.Rect(item[:4]), cloud_rect), item[1], item[0]))[:MAX_LOCAL_WORDS]
     return sorted(hits, key=lambda item: (int(item[5]), int(item[6]), item[1], item[0]))
+
+
+def _horizontal_gap(word_rect: fitz.Rect, cloud_rect: fitz.Rect) -> float:
+    if word_rect.x1 < cloud_rect.x0:
+        return cloud_rect.x0 - word_rect.x1
+    if word_rect.x0 > cloud_rect.x1:
+        return word_rect.x0 - cloud_rect.x1
+    return 0.0
+
+
+def _vertical_gap(word_rect: fitz.Rect, cloud_rect: fitz.Rect) -> float:
+    if word_rect.y1 < cloud_rect.y0:
+        return cloud_rect.y0 - word_rect.y1
+    if word_rect.y0 > cloud_rect.y1:
+        return word_rect.y0 - cloud_rect.y1
+    return 0.0
 
 
 def _distance_to_rect_center(word_rect: fitz.Rect, cloud_rect: fitz.Rect) -> float:
@@ -149,6 +185,19 @@ def _distance_to_rect_center(word_rect: fitz.Rect, cloud_rect: fitz.Rect) -> flo
     cloud_center_x = (cloud_rect.x0 + cloud_rect.x1) / 2.0
     cloud_center_y = (cloud_rect.y0 + cloud_rect.y1) / 2.0
     return ((word_center_x - cloud_center_x) ** 2 + (word_center_y - cloud_center_y) ** 2) ** 0.5
+
+
+def _is_context_noise_word(text: str) -> bool:
+    token = text.strip(" \t\r\n,;:()[]{}")
+    if not token:
+        return True
+    if TAG_OR_CALLOUT_PATTERN.fullmatch(token):
+        return False
+    if re.fullmatch(r"\d+(?:\.\d+)?", token):
+        return True
+    if re.fullmatch(r"\d+['\"-]?", token):
+        return True
+    return False
 
 
 def _line_text(words: list[tuple]) -> str:

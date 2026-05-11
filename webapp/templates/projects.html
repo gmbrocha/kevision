@@ -4,7 +4,7 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Projects</h1>
-      <p class="page-subtitle">Select active work, create projects, or restore archived project workspaces.</p>
+      <p class="page-subtitle">Select active work, create projects, or restore archived projects.</p>
     </div>
   </header>
 
@@ -23,7 +23,6 @@
                 <th class="col-right">Latest sheets</th>
                 <th class="col-right">Pending</th>
                 <th class="col-right">Accepted</th>
-                <th>Workspace</th>
                 <th></th>
               </tr>
             </thead>
@@ -40,7 +39,6 @@
                   <td class="col-right cell-mono">{{ row.sheet_count }}</td>
                   <td class="col-right cell-mono">{{ row.pending_count }}</td>
                   <td class="col-right cell-mono">{{ row.approved_count }}</td>
-                  <td class="cell-dim">{{ row.project.workspace_dir }}</td>
                   <td class="col-right">
                     <form method="post" action="{{ url_for('select_project', project_id=row.project.id) }}" style="display: inline;">
                       {{ csrf_field()|safe }}
@@ -53,7 +51,7 @@
                   </td>
                 </tr>
               {% else %}
-                <tr><td colspan="7" class="data-table-empty">No active projects.</td></tr>
+                <tr><td colspan="6" class="data-table-empty">No active projects.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -69,7 +67,7 @@
           <div class="package-card-head">
             <div>
               <span class="panel-title">Create project</span>
-              <p class="form-help">Create the project workspace first. Add revision packages and PDFs from Overview after selecting the project.</p>
+              <p class="form-help">Create the project first. Add revision packages and PDFs from Overview after selecting the project.</p>
             </div>
             <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Creating...">Create project</button>
           </div>
@@ -78,15 +76,6 @@
               <span class="form-label">Project name</span>
               <input class="form-input" name="name" placeholder="Project name" required>
             </label>
-            {% if not is_production %}
-              <div>
-                <span class="form-label">Workspace folder</span>
-                <div class="path-picker">
-                  <input id="workspace-dir-input" class="form-input" name="workspace_dir" placeholder="Optional workspace path">
-                  <button class="btn btn-secondary js-folder-dialog" type="button" data-target="#workspace-dir-input" data-dialog-url="{{ url_for('workspace_folder_dialog') }}">Browse folder</button>
-                </div>
-              </div>
-            {% endif %}
           </div>
         </form>
       </section>
@@ -96,7 +85,7 @@
           <span class="panel-title">Project archive</span>
         </div>
         <div class="panel-body" style="padding-bottom: 0;">
-          <p class="form-help">Archiving hides a project from active workflow tracking. It does not delete the workspace, source files, review decisions, or exports. Restore brings it back to the active project list.</p>
+          <p class="form-help">Archiving hides a project from active workflow tracking. It does not delete project files, review decisions, or exports. Restore brings it back to the active project list.</p>
         </div>
         <div class="data-table-wrap" style="border: 0; border-radius: 0;">
           <table class="data-table">
@@ -104,7 +93,6 @@
               <tr>
                 <th>Project</th>
                 <th>Archived</th>
-                <th>Workspace</th>
                 <th></th>
               </tr>
             </thead>
@@ -113,7 +101,6 @@
                 <tr>
                   <td class="cell-mono">{{ row.project.name }}</td>
                   <td class="cell-dim">{{ row.project.archived_at or "n/a" }}</td>
-                  <td class="cell-dim">{{ row.project.workspace_dir }}</td>
                   <td class="col-right">
                     <form method="post" action="{{ url_for('restore_project', project_id=row.project.id) }}">
                       {{ csrf_field()|safe }}
@@ -122,7 +109,7 @@
                   </td>
                 </tr>
               {% else %}
-                <tr><td colspan="4" class="data-table-empty">No archived projects.</td></tr>
+                <tr><td colspan="3" class="data-table-empty">No archived projects.</td></tr>
               {% endfor %}
             </tbody>
           </table>

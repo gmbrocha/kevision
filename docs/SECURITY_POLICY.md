@@ -32,11 +32,30 @@ server-path imports to `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`, requires CSRF tokens
 for POST requests, and sets secure session cookies plus release security
 headers.
 
+Server-side Pre Review is active only when explicitly configured with
+`SCOPELEDGER_PREREVIEW_ENABLED=1` and `OPENAI_API_KEY`. In that mode, detected
+region crop images and nearby OCR/context text are sent to the configured
+OpenAI model from the server, cached inside the active project workspace, and
+shown as provisional suggestions. API output does not approve, reject, hide, or
+split review items; the reviewer-selected text/geometry remains final for
+export.
+
+Internal review events are stored in each project `workspace.json` and may be
+exported as JSONL through the CLI. Treat those files as project-sensitive
+operational records: they can include candidate geometry, OCR/context text,
+reviewer notes, reviewer identity from Cloudflare Access headers, and
+provisional AI metadata. They must not be committed or shared as client-facing
+deliverables.
+
 ## Handling Rules
 
 - Record whether labels are GPT-provisional, human-audited, or
   human-corrected.
 - Keep auditability for external API-assisted steps.
+- Keep API keys server-side only; never commit tunnel credentials, API keys, or
+  generated project caches containing client document crops.
+- Keep review-event exports internal unless a separate explicit release
+  decision says otherwise.
 - Do not imply future GPT approval from the current exception.
 - Preserve historical security notes in the docs archive.
 

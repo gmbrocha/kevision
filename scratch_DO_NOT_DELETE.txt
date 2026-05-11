@@ -11,3 +11,8 @@ Candidate pools:
 - mining_safe_hard_negative_candidates
 - synthetic_background_candidates
 - future_training_expansion_candidates
+
+
+*Need a way to easily subset clouds that are found as overmerged after the GPT second pass in Populate
+
+

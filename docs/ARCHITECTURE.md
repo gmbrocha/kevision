@@ -30,6 +30,8 @@ and imported into `CloudHammer_v2`.
 ## Data And Artifacts
 
 - `revision_sets/` and `resources/`: source drawing packages and durable inputs
+- `app_workspaces/`: default app-owned registry and project workspace root for
+  locally served client work
 - `CloudHammer_v2/`: active eval-pivot detection workspace
 - `backend/`: application scan/export services
 - `webapp/`: application UI/review surface

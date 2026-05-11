@@ -16,12 +16,23 @@ from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult
 from backend.cloudhammer_client.schemas import CloudDetection
+from backend.crop_adjustments import CROP_ADJUSTMENT_KEY, crop_box_to_page_box, crop_adjustment_payload, selected_review_page_boxes
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
+from backend.pre_review import (
+    PRE_REVIEW_1,
+    PRE_REVIEW_2,
+    OpenAIPreReviewProvider,
+    ensure_workspace_pre_review,
+    normalize_pre_review_2,
+    pre_review_payload,
+    select_pre_review_source,
+)
 from backend.projects import ProjectRecord, ProjectRegistry
 from backend.revision_state.models import ChangeItem, CloudCandidate, NarrativeEntry, RevisionSet, SheetVersion
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.review import change_item_needs_attention
+from backend.review_events import record_internal_review_event, record_review_update
 from backend.revision_state.tracker import RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
 from backend.utils import choose_best_sheet_id, parse_detail_ref
@@ -470,6 +481,30 @@ def test_scope_extraction_keeps_nearby_text_local_to_cloud():
     assert result.context_bbox[3] < 130
 
 
+def test_scope_extraction_filters_isolated_numeric_noise_but_keeps_tags():
+    document = fitz.open()
+    page = document.new_page(width=300, height=220)
+    page.insert_text((82, 95), "7 Z.8 PROVIDE NEW EXHAUST FAN", fontsize=10)
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf="revision.pdf",
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        width=300,
+        height=220,
+    )
+
+    result = extract_cloud_scope_text(page, sheet, [70, 70, 95, 55])
+
+    document.close()
+    assert "PROVIDE NEW EXHAUST FAN" in result.text
+    assert "Z.8" in result.text
+    assert " 7 " not in f" {result.text} "
+
+
 def test_scope_extraction_flags_cloud_without_readable_text():
     document = fitz.open()
     page = document.new_page(width=300, height=200)
@@ -491,6 +526,544 @@ def test_scope_extraction_flags_cloud_without_readable_text():
     assert result.reason == "no-readable-text"
     assert result.signal < 0.3
     assert "No readable scope text" in result.text
+
+
+def build_pre_review_test_store(tmp_path: Path) -> WorkspaceStore:
+    from PIL import Image
+
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1" / "drawing.pdf"
+    pdf_path.parent.mkdir(parents=True)
+    write_minimal_drawing_pdf(pdf_path, scope_text="PROVIDE NEW ROOF CURB")
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    crop_path = store.crop_path("cloud-1")
+    render_path = store.page_path("sheet-1")
+    Image.new("RGB", (200, 120), "white").save(crop_path)
+    Image.new("RGB", (400, 240), "white").save(render_path)
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1",
+            source_dir=str(pdf_path.parent),
+            set_number=1,
+            set_date=None,
+            pdf_paths=[str(pdf_path)],
+        )
+    ]
+    sheet = SheetVersion(
+        id="sheet-1",
+        revision_set_id="rev-1",
+        source_pdf=str(pdf_path),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Preview",
+        issue_date=None,
+        render_path=str(render_path),
+        width=400,
+        height=240,
+        status="active",
+    )
+    cloud = CloudCandidate(
+        id="cloud-1",
+        sheet_version_id=sheet.id,
+        bbox=[80, 40, 120, 80],
+        image_path=str(crop_path),
+        page_image_path="",
+        confidence=0.91,
+        extraction_method="cloudhammer_manifest",
+        nearby_text="Cloud Only - PROVIDE NEW ROOF CURB",
+        detail_ref=None,
+        scope_text="Cloud Only - PROVIDE NEW ROOF CURB",
+        scope_reason="text-layer-near-cloud",
+        scope_signal=0.78,
+        scope_method="pdf-text-layer",
+        metadata={
+            "bbox_page_xywh": [80, 40, 120, 80],
+            "bbox_page_xyxy": [80, 40, 200, 120],
+            "crop_box_page_xywh": [40, 20, 240, 160],
+            "crop_box_page_xyxy": [40, 20, 280, 180],
+            "page_width": 400,
+            "page_height": 240,
+        },
+    )
+    item = ChangeItem(
+        id="change-1",
+        sheet_version_id=sheet.id,
+        cloud_candidate_id=cloud.id,
+        sheet_id=sheet.sheet_id,
+        detail_ref=None,
+        raw_text=cloud.scope_text,
+        normalized_text=cloud.scope_text.lower(),
+        provenance={"source": "visual-region", "extraction_method": "cloudhammer_manifest"},
+    )
+    store.data.sheets = [sheet]
+    store.data.clouds = [cloud]
+    store.data.change_items = [item]
+    store.save()
+    return store
+
+
+class FakePreReviewProvider:
+    name = "fake_pre_review"
+    enabled = True
+    disabled_reason = ""
+
+    def __init__(self):
+        self.calls = 0
+
+    def review(self, context):
+        self.calls += 1
+        return normalize_pre_review_2(
+            {
+                "geometry_decision": "adjusted_box",
+                "boxes": [[45, 25, 110, 55]],
+                "refined_text": "Provide new roof curb.",
+                "reason": "Tighter around the clouded roof curb note.",
+                "confidence": 0.82,
+                "tags": ["tightened"],
+            },
+            context,
+        )
+
+
+def test_pre_review_success_stores_second_pass_without_hiding_candidate(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    provider = FakePreReviewProvider()
+
+    summary = ensure_workspace_pre_review(store, provider)
+
+    assert summary.total_count == 1
+    assert summary.pre_review_2_count == 1
+    assert len(store.data.change_items) == 1
+    payload = pre_review_payload(store.data.change_items[0])
+    assert payload["selected"] == PRE_REVIEW_1
+    assert payload[PRE_REVIEW_2]["available"] is True
+    assert payload[PRE_REVIEW_2]["text"] == "Provide new roof curb."
+    assert provider.calls == 1
+
+
+def test_pre_review_failure_continues_with_first_pass(tmp_path: Path):
+    class FailingProvider:
+        name = "failing_pre_review"
+        enabled = True
+        disabled_reason = ""
+
+        def review(self, context):
+            raise RuntimeError("temporary API failure")
+
+    store = build_pre_review_test_store(tmp_path)
+
+    summary = ensure_workspace_pre_review(store, FailingProvider())
+
+    payload = pre_review_payload(store.data.change_items[0])
+    assert summary.failed_count == 1
+    assert payload["selected"] == PRE_REVIEW_1
+    assert payload[PRE_REVIEW_2]["available"] is False
+
+
+def test_pre_review_selection_sets_reviewer_truth(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    item = store.data.change_items[0]
+
+    selected = select_pre_review_source(item, PRE_REVIEW_2)
+
+    payload = pre_review_payload(selected)
+    assert payload["selected"] == PRE_REVIEW_2
+    assert selected.reviewer_text == "Provide new roof curb."
+
+
+def test_openai_pre_review_provider_uses_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = build_pre_review_test_store(tmp_path)
+    provider = OpenAIPreReviewProvider(model="gpt-5.5")
+    calls = {"count": 0}
+
+    def fake_call(context, input_image):
+        calls["count"] += 1
+        return json.dumps(
+            {
+                "geometry_decision": "same_box",
+                "boxes": [[33, 15, 100, 60]],
+                "refined_text": "Cached text.",
+                "reason": "Same visible region.",
+                "confidence": 0.7,
+                "tags": ["same"],
+            }
+        )
+
+    monkeypatch.setattr(provider, "_call_openai", fake_call)
+
+    first = ensure_workspace_pre_review(store, provider, force=True)
+    second = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert first.pre_review_2_count == 1
+    assert second.cache_hits == 1
+    assert calls["count"] == 1
+
+
+def test_review_route_persists_pre_review_selection_without_internal_labels(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    page = client.get("/changes/change-1")
+
+    assert page.status_code == 200
+    assert b"Pre Review 1" in page.data
+    assert b"Pre Review 2" in page.data
+    assert b"CloudHammer" not in page.data
+    assert b"GPT" not in page.data
+
+    response = client.post(
+        "/changes/change-1/review",
+        data={
+            "status": "pending",
+            "selected_pre_review": PRE_REVIEW_2,
+            "reviewer_text": "old text",
+            "reviewer_notes": "",
+        },
+    )
+
+    assert response.status_code == 302
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    item = loaded.data.change_items[0]
+    payload = pre_review_payload(item)
+    assert payload["selected"] == PRE_REVIEW_2
+    assert item.reviewer_text == "Provide new roof curb."
+
+
+def test_exports_use_selected_pre_review_text_and_keep_multiple_boxes_one_item(tmp_path: Path):
+    from openpyxl import load_workbook
+
+    class MultiBoxProvider(FakePreReviewProvider):
+        def review(self, context):
+            return normalize_pre_review_2(
+                {
+                    "geometry_decision": "overmerged",
+                    "boxes": [[45, 25, 60, 40], [115, 25, 45, 40]],
+                    "refined_text": "Provide two roof curb updates.",
+                    "reason": "Two visible clouded areas are inside the same review crop.",
+                    "confidence": 0.77,
+                    "tags": ["overmerge"],
+                },
+                context,
+            )
+
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, MultiBoxProvider())
+    selected = select_pre_review_source(store.data.change_items[0], PRE_REVIEW_2)
+    store.update_change_item(
+        selected.id,
+        status="approved",
+        reviewer_text=selected.reviewer_text,
+        provenance=selected.provenance,
+    )
+
+    outputs = Exporter(store).export(force_attention=True)
+    packet = build_review_packet(store)
+
+    assert packet.item_count == 1
+    assert "Provide two roof curb updates." in packet.html_path.read_text(encoding="utf-8")
+    wb = load_workbook(outputs["revision_changelog_xlsx"])
+    assert "Provide two roof curb updates" in wb["Sheet1"].cell(row=2, column=5).value
+
+
+def test_workspace_loads_without_review_events_and_preserves_events_through_rescan(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    record_review_update(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        changes={"status": "approved", "reviewer_text": "Approved scope"},
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+        action="accept",
+    )
+    assert len(store.data.review_events) == 1
+
+    payload = json.loads(store.data_path.read_text(encoding="utf-8"))
+    payload_without_events = dict(payload)
+    payload_without_events.pop("review_events", None)
+    legacy_workspace = tmp_path / "legacy-workspace"
+    legacy_workspace.mkdir()
+    (legacy_workspace / "workspace.json").write_text(json.dumps(payload_without_events), encoding="utf-8")
+    legacy_loaded = WorkspaceStore(legacy_workspace).load()
+    assert legacy_loaded.data.review_events == []
+
+    rescanned = RevisionScanner(Path(store.data.input_dir), store.workspace_dir).scan()
+    assert len(rescanned.data.review_events) == 1
+    assert rescanned.data.review_events[0].action == "accept"
+
+
+def test_review_route_accept_and_reject_create_review_events(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    accepted = client.post(
+        "/changes/change-1/review",
+        data={
+            "status_override": "approved",
+            "reviewer_text": "Accepted roof curb scope",
+            "reviewer_notes": "Looks correct",
+        },
+        headers={"Cf-Access-Authenticated-User-Email": "Kevin@Example.com"},
+    )
+
+    assert accepted.status_code == 302
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert len(loaded.data.review_events) == 1
+    event = loaded.data.review_events[0]
+    assert event.action == "accept"
+    assert event.reviewer_id == "kevin@example.com"
+    assert event.review_session_id
+    assert event.original_candidate_json["cloud_candidate"]["bbox"] == [80, 40, 120, 80]
+    assert event.human_result_json["final_text"] == "Accepted roof curb scope"
+    assert event.human_result_json["final_geometry"]["boxes"]
+
+    rejected = client.post(
+        "/changes/change-1/review",
+        data={
+            "status_override": "rejected",
+            "reviewer_text": "Accepted roof curb scope",
+            "reviewer_notes": "Reject after second look",
+        },
+    )
+
+    assert rejected.status_code == 302
+    reloaded = WorkspaceStore(store.workspace_dir).load()
+    assert [item.action for item in reloaded.data.review_events] == ["accept", "reject"]
+
+
+def test_review_route_relabel_and_comment_events_stay_internal(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    page = client.get("/changes/change-1")
+    assert page.status_code == 200
+    for hidden_term in (b"review event", b"truth capture", b"training data", b"eval truth"):
+        assert hidden_term not in page.data.lower()
+
+    relabel = client.post(
+        "/changes/change-1/review",
+        data={
+            "status": "pending",
+            "selected_pre_review": PRE_REVIEW_2,
+            "reviewer_text": "old text",
+            "reviewer_notes": "",
+        },
+    )
+    assert relabel.status_code == 302
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert loaded.data.review_events[-1].action == "relabel"
+    assert loaded.data.review_events[-1].ai_suggestion_json["payload"][PRE_REVIEW_2]["text"] == "Provide new roof curb."
+
+    comment = client.post(
+        "/changes/change-1/review",
+        data={
+            "status": "pending",
+            "reviewer_text": "Provide new roof curb.",
+            "reviewer_notes": "Ask Kevin about symbol reference.",
+        },
+    )
+    assert comment.status_code == 302
+    commented = WorkspaceStore(store.workspace_dir).load()
+    assert commented.data.review_events[-1].action == "comment"
+    assert commented.data.review_events[-1].notes == "Ask Kevin about symbol reference."
+
+
+def test_internal_review_events_support_geometry_actions(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+
+    resize = record_internal_review_event(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        action="resize",
+        human_result_overrides={"final_geometry": {"boxes": [[82, 42, 90, 50]]}},
+    )
+    merge = record_internal_review_event(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        action="merge",
+        human_result_overrides={"merged_candidate_ids": ["cloud-1", "cloud-2"]},
+    )
+    split = record_internal_review_event(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        action="split",
+        human_result_overrides={"split_child_geometries": [[[80, 40, 40, 30]], [[130, 60, 30, 30]]]},
+    )
+
+    assert resize.human_result_json["final_geometry"]["boxes"] == [[82, 42, 90, 50]]
+    assert resize.original_candidate_json["cloud_candidate"]["bbox"] == [80, 40, 120, 80]
+    assert merge.human_result_json["merged_candidate_ids"] == ["cloud-1", "cloud-2"]
+    assert len(split.human_result_json["split_child_geometries"]) == 2
+
+
+def test_crop_adjustment_coordinate_conversion():
+    assert crop_box_to_page_box([50, 20, 80, 40], [40, 20, 240, 160], (200, 120)) == [
+        100.0,
+        46.667,
+        96.0,
+        53.333,
+    ]
+
+
+def test_crop_adjustment_route_updates_provenance_and_creates_resize_event(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    original_bbox = list(store.data.clouds[0].bbox)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    page = client.get("/changes/change-1")
+    assert page.status_code == 200
+    assert b"Adjust crop" in page.data
+    for hidden_term in (b"training", b"labeling", b"mining", b"eval", b"CloudHammer", b"GPT"):
+        assert hidden_term not in page.data
+
+    response = client.post(
+        "/changes/change-1/crop-adjustment",
+        json={"crop_box": [50, 20, 80, 40]},
+        headers={"Cf-Access-Authenticated-User-Email": "Kevin@Example.com"},
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["crop_box"]
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    item = loaded.data.change_items[0]
+    cloud = loaded.data.clouds[0]
+    adjustment = crop_adjustment_payload(item)
+    assert adjustment["schema"] == CROP_ADJUSTMENT_KEY
+    assert Path(adjustment["crop_image_path"]).exists()
+    assert adjustment["page_boxes"] == [payload["page_box"]]
+    assert selected_review_page_boxes(item, cloud) == adjustment["page_boxes"]
+    assert cloud.bbox == original_bbox
+
+    assert len(loaded.data.review_events) == 1
+    event = loaded.data.review_events[0]
+    assert event.action == "resize"
+    assert event.reviewer_id == "kevin@example.com"
+    assert event.original_candidate_json["cloud_candidate"]["bbox"] == original_bbox
+    assert CROP_ADJUSTMENT_KEY not in event.original_candidate_json["change_item"]["provenance"]
+    assert event.human_result_json["final_geometry"]["boxes"] == adjustment["page_boxes"]
+    assert event.human_result_json["crop_adjustment"]["adjustment_id"] == adjustment["adjustment_id"]
+
+
+def test_crop_adjustment_route_rejects_invalid_box_without_event(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post("/changes/change-1/crop-adjustment", json={"crop_box": [2, 2, 3, 3]})
+
+    assert response.status_code == 400
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert loaded.data.review_events == []
+    assert CROP_ADJUSTMENT_KEY not in loaded.data.change_items[0].provenance
+
+
+def test_crop_adjustment_route_reports_render_failure_without_event(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    sheet = store.data.sheets[0]
+    store.data.sheets[0] = SheetVersion(
+        id=sheet.id,
+        revision_set_id=sheet.revision_set_id,
+        source_pdf=str(tmp_path / "missing.pdf"),
+        page_number=sheet.page_number,
+        sheet_id=sheet.sheet_id,
+        sheet_title=sheet.sheet_title,
+        issue_date=sheet.issue_date,
+        revision_entries=sheet.revision_entries,
+        narrative_entry_ids=sheet.narrative_entry_ids,
+        status=sheet.status,
+        render_path=sheet.render_path,
+        width=sheet.width,
+        height=sheet.height,
+        page_text_excerpt=sheet.page_text_excerpt,
+    )
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post("/changes/change-1/crop-adjustment", json={"crop_box": [50, 20, 80, 40]})
+
+    assert response.status_code == 400
+    assert "source drawing PDF" in response.get_json()["error"]
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert loaded.data.review_events == []
+    assert CROP_ADJUSTMENT_KEY not in loaded.data.change_items[0].provenance
+
+
+def test_exports_use_crop_adjustment_geometry_and_asset(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+    response = client.post("/changes/change-1/crop-adjustment", json={"crop_box": [50, 20, 80, 40]})
+    assert response.status_code == 200
+
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    loaded.update_change_item("change-1", status="approved", reviewer_text="Adjusted crop scope")
+    adjusted = WorkspaceStore(store.workspace_dir).load()
+    item = adjusted.data.change_items[0]
+    cloud = adjusted.data.clouds[0]
+    adjustment = crop_adjustment_payload(item)
+
+    outputs = Exporter(adjusted).export(force_attention=True)
+    packet = build_review_packet(adjusted)
+
+    assert Path(outputs["revision_changelog_xlsx"]).exists()
+    assert packet.item_count == 1
+    packet_asset = packet.html_path.parent / f"{packet.html_path.stem}_assets" / "0001_cloud-1_selected.png"
+    assert packet_asset.exists()
+    assert selected_review_page_boxes(item, cloud) == adjustment["page_boxes"]
+
+
+def test_export_review_events_cli_writes_jsonl(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    record_review_update(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        changes={"status": "approved", "reviewer_text": "Approved scope"},
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+        action="accept",
+    )
+    output_path = tmp_path / "review_events.jsonl"
+
+    result = cli_main(
+        [
+            "export-review-events",
+            str(store.workspace_dir),
+            "--project-id",
+            "test-project",
+            "--out",
+            str(output_path),
+        ]
+    )
+
+    assert result == 0
+    rows = [json.loads(line) for line in output_path.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 1
+    assert rows[0]["project_id"] == "test-project"
+    assert rows[0]["action"] == "accept"
+    assert rows[0]["original_candidate_json"]["cloud_candidate"]["id"] == "cloud-1"
+    assert rows[0]["human_result_json"]["final_text"] == "Approved scope"
 
 
 def test_enrich_workspace_scope_text_updates_existing_cloud_items(tmp_path: Path):
@@ -1227,7 +1800,7 @@ def test_cli_export_summary_is_human_readable():
 
 
 def test_empty_project_registry_starts_without_demo(tmp_path: Path):
-    app = create_app(tmp_path / "empty-seed-workspace")
+    app = create_app(tmp_path / "app-data")
     client = app.test_client()
 
     projects = client.get("/projects")
@@ -1263,13 +1836,13 @@ def test_production_app_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_pat
     monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
 
     with pytest.raises(RuntimeError, match="SCOPELEDGER_WEBAPP_SECRET"):
-        create_app(tmp_path / "seed-workspace", production=True)
+        create_app(tmp_path, production=True)
 
 
 def test_cli_production_serve_requires_secret(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys):
     monkeypatch.delenv("SCOPELEDGER_WEBAPP_SECRET", raising=False)
 
-    result = cli_main(["serve", str(tmp_path / "seed-workspace"), "--production"])
+    result = cli_main(["serve", str(tmp_path / "app-data"), "--production"])
 
     captured = capsys.readouterr()
     assert result == 1
@@ -1288,7 +1861,7 @@ def test_cli_production_serve_uses_waitress(monkeypatch: pytest.MonkeyPatch, tmp
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
     monkeypatch.setattr(cli_module, "serve_production_app", fake_serve)
 
-    result = cli_main(["serve", str(tmp_path / "seed-workspace"), "--host", "127.0.0.1", "--port", "5055", "--production"])
+    result = cli_main(["serve", str(tmp_path / "app-data"), "--host", "127.0.0.1", "--port", "5055", "--production"])
 
     assert result == 0
     assert calls == {
@@ -1302,17 +1875,30 @@ def test_cli_production_serve_uses_waitress(monkeypatch: pytest.MonkeyPatch, tmp
 def test_cli_production_serve_rejects_public_host(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys):
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
 
-    result = cli_main(["serve", str(tmp_path / "seed-workspace"), "--host", "0.0.0.0", "--production"])
+    result = cli_main(["serve", str(tmp_path / "app-data"), "--host", "0.0.0.0", "--production"])
 
     captured = capsys.readouterr()
     assert result == 1
     assert "loopback host" in captured.out
 
 
+def test_cli_serve_rejects_project_workspace_as_app_data_root(tmp_path: Path, capsys):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    WorkspaceStore(workspace_dir).create(input_dir)
+
+    result = cli_main(["serve", str(workspace_dir)])
+
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "app data root" in captured.out
+
+
 def test_production_app_sets_release_cookie_and_security_headers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
 
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
     response = client.get("/projects")
 
@@ -1328,17 +1914,17 @@ def test_production_app_sets_release_cookie_and_security_headers(monkeypatch: py
 def test_production_post_requires_csrf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
 
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
     response = client.post("/projects", data={"name": "Blocked Project"})
 
     assert response.status_code == 400
-    assert ProjectRegistry(tmp_path / "seed-workspace").load().projects == []
+    assert ProjectRegistry(tmp_path).load().projects == []
 
 
-def test_production_project_creation_disables_custom_workspace(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+def test_project_creation_rejects_custom_workspace_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
     projects = client.get("/projects")
     token = csrf_token_from(projects)
@@ -1351,22 +1937,72 @@ def test_production_project_creation_disables_custom_workspace(monkeypatch: pyte
     )
 
     assert response.status_code == 200
-    assert b"Custom workspace paths are disabled" in response.data
-    assert ProjectRegistry(tmp_path / "seed-workspace").load().projects == []
+    assert b"Project storage is managed by ScopeLedger" in response.data
+    assert ProjectRegistry(tmp_path).load().projects == []
+
+
+def test_dev_project_creation_also_rejects_custom_workspace_paths(tmp_path: Path):
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post(
+        "/projects",
+        data={"name": "Unsafe Path", "workspace_dir": str(tmp_path / "elsewhere")},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Project storage is managed by ScopeLedger" in response.data
+    assert ProjectRegistry(tmp_path).load().projects == []
+
+
+def test_project_creation_uses_managed_app_project_root(tmp_path: Path):
+    registry = ProjectRegistry(tmp_path).load()
+
+    project = registry.create_project("Test Revision 2")
+
+    assert Path(project.workspace_dir) == tmp_path / "projects" / "test-revision-2"
+    assert Path(project.input_dir) == tmp_path / "projects" / "test-revision-2" / "input"
+    assert (tmp_path / "projects" / "test-revision-2" / "workspace.json").exists()
 
 
 def test_cli_reset_projects_clears_registry_without_deleting_workspace(tmp_path: Path):
     input_dir = tmp_path / "input"
     workspace_dir = tmp_path / "workspace"
+    app_data_dir = tmp_path / "app-data"
     input_dir.mkdir()
-    WorkspaceStore(workspace_dir).create(input_dir)
-    register_workspace_project(workspace_dir)
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    registry = ProjectRegistry(app_data_dir).load()
+    registry.projects = [
+        ProjectRecord(
+            id="test-project",
+            name="Test Project",
+            workspace_dir=str(workspace_dir.resolve()),
+            input_dir=store.data.input_dir,
+            status="active",
+            created_at=store.data.created_at,
+        )
+    ]
+    registry.save()
 
-    result = cli_main(["reset-projects", str(workspace_dir)])
+    result = cli_main(["reset-projects", str(app_data_dir)])
 
     assert result == 0
     assert (workspace_dir / "workspace.json").exists()
-    assert ProjectRegistry(workspace_dir).load().projects == []
+    assert ProjectRegistry(app_data_dir).load().projects == []
+
+
+def test_cli_reset_projects_rejects_project_workspace_path(tmp_path: Path, capsys):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    WorkspaceStore(workspace_dir).create(input_dir)
+
+    result = cli_main(["reset-projects", str(workspace_dir)])
+
+    captured = capsys.readouterr()
+    assert result == 1
+    assert "app data root" in captured.out
 
 
 def test_web_routes_render_without_ai(workspace_copy):
@@ -1377,8 +2013,9 @@ def test_web_routes_render_without_ai(workspace_copy):
     projects = client.get("/projects")
     assert projects.status_code == 200
     assert b"Project archive" in projects.data
-    assert b"Workspace folder" in projects.data
-    assert b"Browse folder" in projects.data
+    assert b"Workspace folder" not in projects.data
+    assert b"Browse folder" not in projects.data
+    assert str(workspace_copy).encode("utf-8") not in projects.data
     assert b"Project name" in projects.data
     assert b"Initial package" not in projects.data
     assert b"Manual source path" not in projects.data
@@ -1393,7 +2030,7 @@ def test_web_routes_render_without_ai(workspace_copy):
     assert b"Ingested PDF files" in diagnostics.data
     settings = client.get("/settings")
     assert settings.status_code == 200
-    assert b"archived" in settings.data
+    assert b"Archived" in settings.data
 
 
 def test_import_revision_sets_root_preserves_child_packages(tmp_path: Path):
@@ -1408,7 +2045,7 @@ def test_import_revision_sets_root_preserves_child_packages(tmp_path: Path):
     write_pdf(source_root / "Revision #1 - Alpha" / "alpha.pdf")
     write_pdf(source_root / "Revision #2 - Beta" / "beta.pdf")
 
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1429,7 +2066,7 @@ def test_production_manual_import_allows_configured_root(monkeypatch: pytest.Mon
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
     monkeypatch.setenv("SCOPELEDGER_ALLOWED_IMPORT_ROOTS", str(source_root))
 
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
     token = csrf_token_from(client.get("/projects"))
     created = client.post("/projects", data={"name": "Fresh Project", "csrf_token": token})
@@ -1451,7 +2088,7 @@ def test_production_manual_import_rejects_outside_allowed_root(monkeypatch: pyte
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
     monkeypatch.setenv("SCOPELEDGER_ALLOWED_IMPORT_ROOTS", str(allowed_root))
 
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
     token = csrf_token_from(client.get("/projects"))
     created = client.post("/projects", data={"name": "Fresh Project", "csrf_token": token})
@@ -1471,7 +2108,7 @@ def test_production_manual_import_rejects_outside_allowed_root(monkeypatch: pyte
 
 def test_chunked_browser_import_reconstructs_pdf_package(tmp_path: Path):
     payload = b"%PDF-1.7\n" + (b"0" * (8 * 1024 * 1024)) + b"\n%%EOF"
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1511,7 +2148,7 @@ def test_chunked_browser_import_reconstructs_pdf_package(tmp_path: Path):
 
 
 def test_chunked_upload_rejects_non_pdf(tmp_path: Path):
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1530,7 +2167,7 @@ def test_chunked_upload_rejects_non_pdf(tmp_path: Path):
 
 def test_production_chunked_upload_requires_csrf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
     token = csrf_token_from(client.get("/projects"))
     created = client.post("/projects", data={"name": "Fresh Project", "csrf_token": token})
@@ -1550,7 +2187,7 @@ def test_production_chunked_upload_requires_csrf(monkeypatch: pytest.MonkeyPatch
 
 def test_chunked_upload_respects_configured_size_limit(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("SCOPELEDGER_MAX_UPLOAD_BYTES", str(20 * 1024 * 1024))
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1569,7 +2206,7 @@ def test_chunked_upload_respects_configured_size_limit(monkeypatch: pytest.Monke
 
 def test_production_workspace_folder_dialog_is_disabled(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
-    app = create_app(tmp_path / "seed-workspace", production=True)
+    app = create_app(tmp_path, production=True)
     client = app.test_client()
 
     response = client.get("/system/dialog/workspace-folder")
@@ -1580,7 +2217,7 @@ def test_production_workspace_folder_dialog_is_disabled(monkeypatch: pytest.Monk
 
 def test_chunked_upload_abort_removes_temp_session(tmp_path: Path):
     payload = b"%PDF-1.7\n%%EOF"
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1616,7 +2253,7 @@ def test_chunked_upload_abort_removes_temp_session(tmp_path: Path):
 
 
 def test_chunked_upload_init_cleans_stale_temp_sessions(tmp_path: Path):
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1700,7 +2337,7 @@ def test_manual_import_rejects_folder_without_pdfs(tmp_path: Path):
     source_root.mkdir()
     (source_root / "notes.txt").write_text("not a drawing", encoding="utf-8")
 
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1761,7 +2398,7 @@ def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
                 candidate_count=1,
             )
 
-    app = create_app(tmp_path / "seed-workspace", cloudhammer_runner=FakeCloudHammerRunner())
+    app = create_app(tmp_path, cloudhammer_runner=FakeCloudHammerRunner())
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1780,7 +2417,7 @@ def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
 
 
 def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Path):
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1814,7 +2451,7 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
 
 
 def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):
-    app = create_app(tmp_path / "seed-workspace")
+    app = create_app(tmp_path)
     client = app.test_client()
     created = client.post("/projects", data={"name": "Fresh Project"})
     assert created.status_code == 302
@@ -1943,7 +2580,7 @@ def test_change_detail_uses_previous_current_comparison_asset(tmp_path: Path):
     client = app.test_client()
     response = client.get("/changes/change-1")
     assert response.status_code == 200
-    assert b"/workspace-assets/cloud-comparisons/cloud-1.png" in response.data
+    assert b"/workspace-assets/pre-review/change-1.png" in response.data
 
     image_response = client.get("/workspace-assets/cloud-comparisons/cloud-1.png")
     assert image_response.status_code == 200
@@ -2059,7 +2696,7 @@ def test_bulk_review_and_next_navigation(workspace_copy):
     remaining_pending = [item for item in refreshed.data.change_items if item.status == "pending"][:2]
     detail = client.get(f"/changes/{remaining_pending[0].id}?queue=pending")
     assert detail.status_code == 200
-    assert b"Save + Next" in detail.data
+    assert b"Save + Next" not in detail.data
 
     advance = client.post(
         f"/changes/{remaining_pending[0].id}/review",

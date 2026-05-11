@@ -70,13 +70,15 @@ def build_cloud_comparison_image(
     current_sheet: SheetVersion,
     previous_sheet: SheetVersion | None,
     output_path: Path,
+    highlight_bboxes: list[list[float]] | None = None,
 ) -> Path | None:
-    context_bbox = _context_bbox(cloud.bbox, current_sheet)
+    highlight_bboxes = highlight_bboxes or [cloud.bbox]
+    context_bbox = _context_bbox(highlight_bboxes, current_sheet)
     current = _render_sheet_crop(
         store,
         current_sheet,
         context_bbox,
-        highlight_bbox=_normalized_bbox(cloud.bbox),
+        highlight_bboxes=[_normalized_bbox(bbox) for bbox in highlight_bboxes],
     )
     if current is None:
         current = _open_existing_crop(store, cloud.image_path)
@@ -87,12 +89,12 @@ def build_cloud_comparison_image(
     previous_label = "Previous revision"
     if previous_sheet is not None:
         previous_context = _scale_bbox(context_bbox, current_sheet, previous_sheet)
-        previous_highlight = _scale_bbox(_normalized_bbox(cloud.bbox), current_sheet, previous_sheet)
+        previous_highlights = [_scale_bbox(_normalized_bbox(bbox), current_sheet, previous_sheet) for bbox in highlight_bboxes]
         previous = _render_sheet_crop(
             store,
             previous_sheet,
             previous_context,
-            highlight_bbox=previous_highlight,
+            highlight_bboxes=previous_highlights,
         )
         previous_label = f"Previous: {_display_revision(previous_sheet, store)}"
     if previous is None:
@@ -134,8 +136,15 @@ def _normalized_bbox(values: list[int] | tuple[float, float, float, float]) -> t
     return (x, y, width, height)
 
 
-def _context_bbox(bbox: list[int], sheet: SheetVersion) -> tuple[float, float, float, float]:
-    x, y, width, height = _normalized_bbox(bbox)
+def _context_bbox(bboxes: list[list[float]], sheet: SheetVersion) -> tuple[float, float, float, float]:
+    normalized = [_normalized_bbox(bbox) for bbox in bboxes if len(bbox) >= 4]
+    if not normalized:
+        normalized = [(0.0, 0.0, 1.0, 1.0)]
+    x1 = min(box[0] for box in normalized)
+    y1 = min(box[1] for box in normalized)
+    x2 = max(box[0] + box[2] for box in normalized)
+    y2 = max(box[1] + box[3] for box in normalized)
+    x, y, width, height = x1, y1, max(1.0, x2 - x1), max(1.0, y2 - y1)
     sheet_width = float(sheet.width or max(x + width, 1.0))
     sheet_height = float(sheet.height or max(y + height, 1.0))
     pad = max(CONTEXT_PAD_MIN, min(max(width, height) * CONTEXT_PAD_FACTOR, CONTEXT_PAD_MAX))
@@ -166,14 +175,14 @@ def _render_sheet_crop(
     sheet: SheetVersion,
     bbox: tuple[float, float, float, float],
     *,
-    highlight_bbox: tuple[float, float, float, float],
+    highlight_bboxes: list[tuple[float, float, float, float]],
 ) -> Image.Image | None:
     pdf_path = store.resolve_path(sheet.source_pdf)
     if pdf_path.exists():
-        rendered = _render_pdf_crop(pdf_path, sheet, bbox, highlight_bbox=highlight_bbox)
+        rendered = _render_pdf_crop(pdf_path, sheet, bbox, highlight_bboxes=highlight_bboxes)
         if rendered is not None:
             return rendered
-    return _render_image_crop(store, sheet, bbox, highlight_bbox=highlight_bbox)
+    return _render_image_crop(store, sheet, bbox, highlight_bboxes=highlight_bboxes)
 
 
 def _render_pdf_crop(
@@ -181,7 +190,7 @@ def _render_pdf_crop(
     sheet: SheetVersion,
     bbox: tuple[float, float, float, float],
     *,
-    highlight_bbox: tuple[float, float, float, float],
+    highlight_bboxes: list[tuple[float, float, float, float]],
 ) -> Image.Image | None:
     try:
         document = fitz.open(pdf_path)
@@ -206,8 +215,9 @@ def _render_pdf_crop(
             return None
         pix = page.get_pixmap(matrix=fitz.Matrix(RENDER_ZOOM, RENDER_ZOOM), clip=clip, alpha=False)
         image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-        rect = _highlight_rect(bbox, highlight_bbox, image.size)
-        _draw_highlight(image, rect)
+        for highlight_bbox in highlight_bboxes:
+            rect = _highlight_rect(bbox, highlight_bbox, image.size)
+            _draw_highlight(image, rect)
         return image
     finally:
         document.close()
@@ -218,7 +228,7 @@ def _render_image_crop(
     sheet: SheetVersion,
     bbox: tuple[float, float, float, float],
     *,
-    highlight_bbox: tuple[float, float, float, float],
+    highlight_bboxes: list[tuple[float, float, float, float]],
 ) -> Image.Image | None:
     source_path = store.resolve_path(sheet.render_path)
     if not source_path.exists():
@@ -242,8 +252,9 @@ def _render_image_crop(
             image = page.crop(crop_box)
     except Exception:
         return None
-    rect = _highlight_rect(bbox, highlight_bbox, image.size)
-    _draw_highlight(image, rect)
+    for highlight_bbox in highlight_bboxes:
+        rect = _highlight_rect(bbox, highlight_bbox, image.size)
+        _draw_highlight(image, rect)
     return image
 
 

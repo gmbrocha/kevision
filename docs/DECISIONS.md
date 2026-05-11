@@ -118,6 +118,30 @@ Consequences:
 - This does not mutate `revision_sets/`, CloudHammer_v2 eval/training
   artifacts, frozen pages, labels, datasets, or model checkpoints.
 
+## 2026-05-10 - App-Owned Project Workspace Root
+
+Decision: ScopeLedger is served as a standalone app with a managed application
+data root, defaulting to repo-local `app_workspaces/`. Project workspaces are
+created under `app_workspaces/projects/`; the app is no longer launched from,
+or structurally defined by, a project workspace.
+
+Reason: During preloaded demo work, the serve command pointed at an existing
+workspace, which made `ProjectRegistry` derive new project storage from that
+workspace's parent. For the client handoff, the app itself must own the
+storage boundary while users create projects inside the app.
+
+Consequences / follow-up:
+
+- `python -m backend serve` defaults to the managed repo-local app data root.
+- A custom app data root can still be supplied to the CLI for testing or
+  operator-controlled relocation, but it is not a client-facing project field.
+- The CLI rejects paths that look like a project workspace containing
+  `workspace.json` for `serve` and `reset-projects`.
+- The Projects UI hides server-local workspace paths.
+- Project workspace path selection is rejected by the web route in all modes.
+- Existing generated workspaces under `runs/` are not deleted or migrated by
+  this change.
+
 ## 2026-05-10 - Populate Status Polling
 
 Decision: Keep Populate synchronous for the private handoff, but make the
@@ -135,6 +159,76 @@ Consequences / follow-up:
   when those manifests exist.
 - Background jobs and resumable server-side run supervision remain follow-up
   work after the immediate handoff.
+
+## 2026-05-10 - App-Layer Pre Review Enrichment
+
+Decision: During Populate, ScopeLedger may run a server-side Pre Review pass on
+each detected visual region when explicitly configured with
+`SCOPELEDGER_PREREVIEW_ENABLED=1`, `SCOPELEDGER_PREREVIEW_MODEL`, and
+`OPENAI_API_KEY`.
+
+Reason: The immediate handoff needs the best current review queue without
+turning provisional model/API judgment into final truth. A second pass can
+suggest tighter or multi-box geometry and cleaner text, while the reviewer
+keeps control.
+
+Consequences / follow-up:
+
+- Every detected candidate remains visible; the API pass cannot hide, approve,
+  reject, or split rows.
+- Each visual item stores `scopeledger.pre_review.v1` provenance with
+  `Pre Review 1`, optional `Pre Review 2`, and the reviewer-selected source.
+- Workbook and review packet exports use the selected pre-review text and
+  selected overlay geometry, defaulting to `Pre Review 1` when no selection is
+  stored.
+- The API key stays server-side, and failures fall back to `Pre Review 1`
+  without blocking Populate.
+- OCR context was tightened around the detected box, but symbol/legend lookup
+  and split/merge model quality remain follow-up work.
+
+## 2026-05-10 - Internal Review Truth Capture
+
+Decision: Store internal review truth events in each project `workspace.json`
+using the existing `WorkspaceStore` persistence layer, and export them only
+through a CLI JSONL command.
+
+Reason: Client review actions should quietly produce durable truth data for
+future QA, eval, retraining, and pipeline analysis without adding a labeling
+workflow or exposing telemetry concepts to the normal app user.
+
+Consequences / follow-up:
+
+- Existing accept/reject, reviewer text changes, Pre Review selection, notes,
+  and bulk review actions append `review_events` records server-side.
+- Events preserve immutable snapshots for original machine candidate, optional
+  AI/Pre Review suggestion, OCR/context, and human final result.
+- Cloudflare Access reviewer headers are captured when available; otherwise a
+  stable anonymous browser-session reviewer id is used.
+- No normal UI, client exports, or review screens expose these records.
+- Future geometry tools can reuse the internal service for resize, merge,
+  split, needs-followup, undo, and comment events without changing the storage
+  contract.
+
+## 2026-05-10 - Reviewer Crop Adjustment Is Derived Evidence
+
+Decision: Let reviewers adjust an oversized detected crop on the existing
+review item, regenerate a derived crop asset, and capture the change as an
+internal `resize` review event.
+
+Reason: The client review workflow needs a simple way to correct visibly large
+or poorly bounded evidence without creating duplicate review items or mutating
+the original machine candidate.
+
+Consequences / follow-up:
+
+- The original cloud candidate bbox remains unchanged.
+- Adjusted geometry is stored separately under
+  `scopeledger.crop_adjustment.v1` provenance and used by review/export
+  surfaces.
+- Each update writes a durable `resize` event with original candidate,
+  optional Pre Review data, and the human-adjusted result.
+- Split/merge controls and OCR refresh after crop adjustment remain follow-up
+  work.
 
 ## 2026-05-10 - Index Pages Are Context Only
 
@@ -219,8 +313,8 @@ Consequences:
   auth remain follow-up work if this becomes a longer-lived deployment.
 - Production serve mode refuses non-loopback hosts. The Cloudflare Tunnel is
   the external ingress path.
-- Custom project workspace paths are disabled in production handoff mode;
-  projects are created under the registry's managed projects folder.
+- Custom project workspace paths are disabled in the UI; projects are created
+  under the app-owned `app_workspaces/projects/` root by default.
 - Production POST requests require app-level CSRF tokens even though
   Cloudflare Access is the authentication gate.
 
