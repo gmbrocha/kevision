@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,7 +38,14 @@ class WorkspaceStore:
         return self
 
     def save(self) -> None:
-        self.data_path.write_text(json_dumps(self._relativize_workspace_payload(self.data.to_dict())), encoding="utf-8")
+        ensure_dir(self.workspace_dir)
+        payload = json_dumps(self._relativize_workspace_payload(self.data.to_dict()))
+        temp_path = self.data_path.with_name(f".{self.data_path.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            temp_path.write_text(payload, encoding="utf-8")
+            temp_path.replace(self.data_path)
+        finally:
+            temp_path.unlink(missing_ok=True)
 
     def display_path(self, path: str | Path) -> str:
         """Return a stable project/workspace-relative path for user-facing files."""

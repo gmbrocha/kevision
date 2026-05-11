@@ -16,6 +16,7 @@ from urllib.parse import urlsplit
 import fitz
 from flask import Flask, abort, flash, g, has_request_context, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
+from backend.bulk_review_jobs import BulkReviewJobConflict, BulkReviewJobManager
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult, CloudHammerRunner, LiveCloudHammerPipeline
 from backend.crop_adjustments import (
@@ -41,7 +42,7 @@ from backend.pre_review import (
     select_pre_review_source,
 )
 from backend.review import change_item_needs_attention
-from backend.review_events import record_bulk_review_updates, record_review_update
+from backend.review_events import record_review_update
 from backend.review_queue import ensure_queue_order, is_superseded, ordered_change_items, review_queue_counts, visible_change_items
 from backend.revision_state.page_classification import sheet_is_index_like
 from backend.revision_state.tracker import RevisionScanner
@@ -218,6 +219,7 @@ def create_app(
     verification_provider=None,
     cloudhammer_runner: CloudHammerRunner | None = None,
     pre_review_provider=None,
+    bulk_review_manager: BulkReviewJobManager | None = None,
     *,
     production: bool = False,
 ) -> Flask:
@@ -230,6 +232,7 @@ def create_app(
     provider = verification_provider or DisabledReviewAssistProvider()
     cloudhammer_runner = cloudhammer_runner or LiveCloudHammerPipeline()
     pre_review_provider = pre_review_provider or build_pre_review_provider_from_env()
+    bulk_review_manager = bulk_review_manager or BulkReviewJobManager()
     allowed_import_roots = _configured_allowed_import_roots()
     max_chunked_upload_bytes = _configured_max_chunked_upload_bytes()
     app.config["STORE"] = None
@@ -237,6 +240,7 @@ def create_app(
     app.config["REVIEW_ASSIST_PROVIDER"] = provider
     app.config["CLOUDHAMMER_RUNNER"] = cloudhammer_runner
     app.config["PRE_REVIEW_PROVIDER"] = pre_review_provider
+    app.config["BULK_REVIEW_JOBS"] = bulk_review_manager
     app.config["SCOPELEDGER_LOADED_ENV_FILES"] = loaded_env_files
     app.config["SCOPELEDGER_PRODUCTION"] = production
     app.config["SCOPELEDGER_ALLOWED_IMPORT_ROOTS"] = allowed_import_roots
@@ -267,6 +271,19 @@ def create_app(
         "archive_project",
         "restore_project",
         "static",
+    }
+    bulk_review_locked_post_endpoints = {
+        "import_package",
+        "append_package_file",
+        "init_chunked_upload",
+        "receive_chunked_upload_chunk",
+        "complete_chunked_upload",
+        "populate_workspace",
+        "update_crop_adjustment",
+        "update_geometry_correction",
+        "review_change",
+        "export_run",
+        "review_packet_run",
     }
 
     def active_project_or_none() -> ProjectRecord | None:
@@ -345,6 +362,15 @@ def create_app(
             return redirect(url_for("projects"))
         return None
 
+    @app.before_request
+    def block_workspace_mutations_during_bulk_review():
+        if request.method != "POST" or (request.endpoint or "") not in bulk_review_locked_post_endpoints:
+            return None
+        project = active_project_or_none()
+        if project is not None and bulk_review_manager.has_running_job(project.id):
+            return bulk_review_block_response()
+        return None
+
     @app.after_request
     def add_release_security_headers(response):
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -375,6 +401,24 @@ def create_app(
         if parsed.scheme or parsed.netloc or not target.startswith("/") or target.startswith("//"):
             return default
         return target
+
+    def local_referrer_or(default: str) -> str:
+        referrer = request.referrer or ""
+        parsed = urlsplit(referrer)
+        if parsed.scheme or parsed.netloc:
+            if parsed.netloc != request.host:
+                return default
+        target = parsed.path or ""
+        if parsed.query:
+            target = f"{target}?{parsed.query}"
+        return safe_redirect_target(target, default)
+
+    def bulk_review_block_response():
+        message = "A bulk review update is running. Workspace changes will be available when it finishes."
+        if request.is_json or "application/json" in request.headers.get("Accept", ""):
+            return jsonify({"error": message}), 409
+        flash(message, "warning")
+        return redirect(local_referrer_or(url_for("changes")))
 
     def replacement_redirect_target(item, *, queue_status: str = "pending", search_query: str = "", attention_only: bool = False) -> str:
         for replacement_id in item.superseded_by_change_item_ids:
@@ -739,6 +783,8 @@ def create_app(
         total_changes = len(change_items)
         reviewed_count = len([item for item in change_items if item.status in {"approved", "rejected"}])
         current_package = max(active_store.data.revision_sets, key=lambda item: item.set_number, default=None) if active_store else None
+        active_bulk_job = bulk_review_manager.active_job(project.id) if project else None
+        bulk_review_job = active_bulk_job.to_dict() if active_bulk_job else None
         diagnostic_summary = (
             build_diagnostic_summary(active_store.data.documents, active_store.data.preflight_issues)
             if active_store
@@ -758,6 +804,8 @@ def create_app(
             "current_package_label": current_package.label if current_package else "No package loaded",
             "ai_enabled": provider.enabled,
             "pre_review_provider": pre_review_provider,
+            "bulk_review_job": bulk_review_job,
+            "bulk_review_job_running": bool(bulk_review_job),
             "diagnostic_summary": diagnostic_summary,
             "needs_attention": change_item_needs_attention,
             "pre_review_payload": pre_review_payload,
@@ -1807,44 +1855,59 @@ def create_app(
                 redirect_to = url_for("change_detail", **redirect_kwargs)
         return redirect(redirect_to)
 
+    @app.get("/changes/bulk-review/status")
+    def bulk_review_status():
+        project = active_project()
+        job_id = request.args.get("job_id", "").strip() or None
+        payload = bulk_review_manager.status_payload(project.id, job_id)
+        if payload is None:
+            return jsonify({"error": "Bulk review job was not found.", "state": "unknown"}), 404
+        return jsonify(payload)
+
     @app.post("/changes/bulk-review")
     def bulk_review():
         project = active_project()
         selected_ids = request.form.getlist("change_ids")
         redirect_to = safe_redirect_target(request.form.get("redirect_to"), url_for("changes"))
+        wants_json = request.is_json or "application/json" in request.headers.get("Accept", "")
         if not selected_ids:
+            if wants_json:
+                return jsonify({"error": "No queue items were selected."}), 400
             flash("No queue items were selected.", "warning")
             return redirect(redirect_to)
         status = request.form.get("status")
         if status not in VALID_REVIEW_STATUSES:
+            if wants_json:
+                return jsonify({"error": "Choose a valid bulk action."}), 400
             flash("Choose a valid bulk action.", "warning")
             return redirect(redirect_to)
-        selected_once = list(dict.fromkeys(selected_ids))
-        items_by_id = {item.id: item for item in store.data.change_items}
-        item_changes: dict[str, dict[str, str]] = {}
-        for change_id in selected_once:
-            item = items_by_id.get(change_id)
-            if item is None:
-                continue
-            if is_superseded(item):
-                continue
-            reviewer_text = item.reviewer_text or item.raw_text
-            if item.status == status and item.reviewer_text == reviewer_text:
-                continue
-            item_changes[change_id] = {"status": status, "reviewer_text": reviewer_text}
-        if item_changes:
-            result = record_bulk_review_updates(
-                store,
+        try:
+            job = bulk_review_manager.start_job(
                 project_id=project.id,
-                item_changes=item_changes,
+                workspace_dir=project.workspace_dir,
+                selected_change_ids=selected_ids,
+                requested_status=status,
                 reviewer_id=current_reviewer_id(),
                 review_session_id=current_review_session_id(),
-                action="accept" if status == "approved" else "reject" if status == "rejected" else None,
             )
-            count = result.updated_count
-        else:
-            count = 0
-        flash(f"Updated {count} queue items to {status}.", "success")
+        except BulkReviewJobConflict:
+            active_job = bulk_review_manager.active_job(project.id)
+            if wants_json:
+                payload = active_job.to_dict() if active_job else {"state": "unknown"}
+                return jsonify({"error": "A bulk review update is already running.", "job": payload}), 409
+            return redirect(redirect_to)
+
+        if wants_json:
+            return (
+                jsonify(
+                    {
+                        "job_id": job.id,
+                        "state": job.state,
+                        "status_url": url_for("bulk_review_status", job_id=job.id),
+                    }
+                ),
+                202,
+            )
         return redirect(redirect_to)
 
     @app.post("/changes/<change_id>/verify")

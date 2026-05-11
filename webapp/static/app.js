@@ -39,6 +39,128 @@ function bindQueueSelection() {
   });
 }
 
+function bindBulkReviewForms() {
+  const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const statusPanel = document.querySelector("[data-bulk-review-status]");
+  const statusUrl = statusPanel?.dataset.statusUrl || "";
+  let pollTimer = null;
+
+  const parsePayload = async (response) => {
+    const text = await response.text();
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch {
+      return { error: text || response.statusText };
+    }
+  };
+
+  const setStatusText = (selector, value) => {
+    const node = statusPanel?.querySelector(selector);
+    if (node) node.textContent = value;
+  };
+
+  const renderStatus = (payload) => {
+    if (!statusPanel || !payload) return;
+    statusPanel.hidden = false;
+    const state = payload.state || "unknown";
+    const selected = Number(payload.total_selected || 0);
+    const eligible = Number(payload.eligible_count || 0);
+    const updated = Number(payload.updated_count || 0);
+    const skipped = Number(payload.skipped_count || 0);
+    const action = payload.requested_status === "approved" ? "Accepting" : payload.requested_status === "rejected" ? "Rejecting" : "Updating";
+    statusPanel.dataset.jobId = payload.id || statusPanel.dataset.jobId || "";
+    setStatusText("[data-bulk-review-state]", state.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()));
+    if (state === "done") {
+      setStatusText("[data-bulk-review-message]", `Bulk review complete.`);
+    } else if (state === "failed") {
+      setStatusText("[data-bulk-review-message]", payload.error || "Bulk review failed.");
+    } else {
+      setStatusText("[data-bulk-review-message]", `${action} selected review items.`);
+    }
+    setStatusText("[data-bulk-review-detail]", `${updated} updated, ${skipped} skipped, ${eligible || selected} eligible.`);
+  };
+
+  const setBulkButtonsDisabled = (disabled) => {
+    document.querySelectorAll(".js-bulk-review-form button[type='submit']").forEach((button) => {
+      button.disabled = disabled;
+    });
+  };
+
+  const pollStatus = async ({ reloadWhenDone = false } = {}) => {
+    if (!statusUrl || !statusPanel?.dataset.jobId) return null;
+    const url = `${statusUrl}?job_id=${encodeURIComponent(statusPanel.dataset.jobId)}`;
+    const response = await fetch(url, { headers: { Accept: "application/json" } });
+    const payload = await parsePayload(response);
+    if (!response.ok) throw new Error(payload.error || "Bulk review status is unavailable.");
+    renderStatus(payload);
+    if (payload.state === "done") {
+      window.clearInterval(pollTimer);
+      pollTimer = null;
+      if (reloadWhenDone) window.location.reload();
+    }
+    if (payload.state === "failed") {
+      window.clearInterval(pollTimer);
+      pollTimer = null;
+      setBulkButtonsDisabled(false);
+    }
+    return payload;
+  };
+
+  const startPolling = ({ reloadWhenDone = false } = {}) => {
+    if (pollTimer || !statusUrl || !statusPanel?.dataset.jobId) return;
+    setBulkButtonsDisabled(true);
+    pollStatus({ reloadWhenDone }).catch(() => {});
+    pollTimer = window.setInterval(() => {
+      pollStatus({ reloadWhenDone }).catch(() => {});
+    }, 2500);
+  };
+
+  if (statusPanel?.dataset.jobId) {
+    startPolling({ reloadWhenDone: true });
+  }
+
+  document.querySelectorAll(".js-bulk-review-form").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitter = event.submitter;
+      const formData = new FormData(form);
+      if (submitter?.name) formData.set(submitter.name, submitter.value);
+      if (!formData.get("csrf_token")) formData.set("csrf_token", csrfToken());
+      setBulkButtonsDisabled(true);
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: formData,
+        });
+        const payload = await parsePayload(response);
+        if (response.status === 409 && payload.job?.id) {
+          statusPanel.dataset.jobId = payload.job.id;
+          renderStatus(payload.job);
+          startPolling({ reloadWhenDone: true });
+          return;
+        }
+        if (!response.ok || payload.error) {
+          throw new Error(payload.error || "Bulk review could not start.");
+        }
+        if (payload.job_id) {
+          statusPanel.dataset.jobId = payload.job_id;
+          renderStatus({ id: payload.job_id, state: payload.state || "queued" });
+          startPolling({ reloadWhenDone: true });
+        }
+      } catch (error) {
+        if (statusPanel) {
+          statusPanel.hidden = false;
+          setStatusText("[data-bulk-review-message]", error.message || "Bulk review could not start.");
+          setStatusText("[data-bulk-review-detail]", "");
+          setStatusText("[data-bulk-review-state]", "Failed");
+        }
+        setBulkButtonsDisabled(false);
+      }
+    });
+  });
+}
+
 function bindReviewShortcuts() {
   const reviewForm = document.querySelector(".js-review-form");
   const queueHeader = document.querySelector(".cockpit-header, .queue-header");
@@ -1051,6 +1173,7 @@ function bindGeometryCorrection() {
 document.addEventListener("DOMContentLoaded", () => {
   applyBoundingBoxes();
   bindQueueSelection();
+  bindBulkReviewForms();
   bindReviewShortcuts();
   bindChunkedUploadForms();
   bindPopulateWorkspace();

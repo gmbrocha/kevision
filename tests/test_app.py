@@ -4,6 +4,7 @@ import io
 import json
 import os
 import re
+import threading
 import time
 from collections import Counter
 from dataclasses import replace
@@ -13,6 +14,7 @@ import fitz
 import pytest
 
 import backend.cli as cli_module
+from backend.bulk_review_jobs import BulkReviewJobConflict, BulkReviewJobManager
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
 from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult, LiveCloudHammerPipeline
@@ -659,7 +661,7 @@ def test_review_queue_order_and_superseded_items_are_hidden(tmp_path: Path):
     ]
     store.save()
     register_workspace_project(store.workspace_dir)
-    app = create_app(store.workspace_dir)
+    app = create_app(store.workspace_dir, bulk_review_manager=BulkReviewJobManager(run_async=False))
     client = app.test_client()
 
     queue = client.get("/changes?status=all")
@@ -687,7 +689,7 @@ def test_bulk_review_ignores_superseded_parents(tmp_path: Path):
     ]
     store.save()
     register_workspace_project(store.workspace_dir)
-    app = create_app(store.workspace_dir)
+    app = create_app(store.workspace_dir, bulk_review_manager=BulkReviewJobManager(run_async=False))
     client = app.test_client()
 
     response = client.post(
@@ -746,7 +748,7 @@ def test_bulk_review_route_accept_all_writes_workspace_once(tmp_path: Path, monk
     append_pre_review_test_item(store, 3)
     store.save()
     register_workspace_project(store.workspace_dir)
-    app = create_app(store.workspace_dir)
+    app = create_app(store.workspace_dir, bulk_review_manager=BulkReviewJobManager(run_async=False))
     client = app.test_client()
     save_count = 0
     original_save = WorkspaceStore.save
@@ -772,6 +774,186 @@ def test_bulk_review_route_accept_all_writes_workspace_once(tmp_path: Path, monk
     assert save_count == 1
     assert [item.status for item in loaded.data.change_items] == ["approved", "approved", "approved"]
     assert [event.change_item_id for event in loaded.data.review_events] == ["change-1", "change-2", "change-3"]
+
+
+def test_bulk_review_job_manager_skips_ineligible_items_and_exports_status(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    append_pre_review_test_item(store, 3)
+    raw_text = store.data.change_items[2].raw_text
+    store.data.change_items = [
+        store.data.change_items[0],
+        replace(
+            store.data.change_items[1],
+            superseded_by_change_item_ids=["change-1"],
+            superseded_reason="partial_correction",
+            superseded_at="2026-05-11T00:00:00+00:00",
+        ),
+        replace(store.data.change_items[2], status="approved", reviewer_text=raw_text),
+    ]
+    store.save()
+    manager = BulkReviewJobManager(run_async=False)
+
+    job = manager.start_job(
+        project_id="test-project",
+        workspace_dir=store.workspace_dir,
+        selected_change_ids=["change-1", "change-1", "change-2", "missing", "change-3"],
+        requested_status="approved",
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+    )
+    payload = manager.status_payload("test-project", job.id)
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert job.state == "done"
+    assert payload["total_selected"] == 5
+    assert payload["eligible_count"] == 1
+    assert payload["updated_count"] == 1
+    assert payload["skipped_count"] == 4
+    assert loaded.get_change_item("change-1").status == "approved"
+    assert loaded.get_change_item("change-2").status == "pending"
+    assert [event.change_item_id for event in loaded.data.review_events] == ["change-1"]
+
+
+def test_bulk_review_job_manager_rejects_second_active_job(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    started = threading.Event()
+    release = threading.Event()
+
+    def blocking_store_factory(path: Path) -> WorkspaceStore:
+        started.set()
+        release.wait(timeout=5)
+        return WorkspaceStore(path)
+
+    manager = BulkReviewJobManager(store_factory=blocking_store_factory)
+    job = manager.start_job(
+        project_id="test-project",
+        workspace_dir=store.workspace_dir,
+        selected_change_ids=["change-1"],
+        requested_status="approved",
+        reviewer_id=None,
+        review_session_id=None,
+    )
+    assert started.wait(timeout=5)
+
+    with pytest.raises(BulkReviewJobConflict):
+        manager.start_job(
+            project_id="test-project",
+            workspace_dir=store.workspace_dir,
+            selected_change_ids=["change-1"],
+            requested_status="rejected",
+            reviewer_id=None,
+            review_session_id=None,
+        )
+
+    release.set()
+    assert manager.wait(job.id, timeout=5)
+
+
+def test_bulk_review_job_manager_records_failure_state(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+
+    def failing_store_factory(path: Path) -> WorkspaceStore:
+        raise RuntimeError("workspace unavailable")
+
+    manager = BulkReviewJobManager(store_factory=failing_store_factory, run_async=False)
+
+    job = manager.start_job(
+        project_id="test-project",
+        workspace_dir=store.workspace_dir,
+        selected_change_ids=["change-1"],
+        requested_status="approved",
+        reviewer_id=None,
+        review_session_id=None,
+    )
+
+    assert job.state == "failed"
+    assert "workspace unavailable" in job.error
+    assert manager.status_payload("test-project", job.id)["state"] == "failed"
+
+
+def test_bulk_review_route_json_starts_job_and_status_endpoint_reports_completion(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    manager = BulkReviewJobManager(run_async=False)
+    app = create_app(store.workspace_dir, bulk_review_manager=manager)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/bulk-review",
+        data={"change_ids": ["change-1", "change-2"], "status": "approved", "redirect_to": "/changes"},
+        headers={"Accept": "application/json"},
+    )
+    payload = response.get_json()
+    status = client.get(payload["status_url"])
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert response.status_code == 202
+    assert payload["job_id"]
+    assert status.status_code == 200
+    assert status.get_json()["state"] == "done"
+    assert [item.status for item in loaded.data.change_items] == ["approved", "approved"]
+    assert [event.action for event in loaded.data.review_events] == ["accept", "accept"]
+
+
+def test_bulk_review_running_allows_get_navigation_and_blocks_mutations(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    register_workspace_project(store.workspace_dir)
+    started = threading.Event()
+    release = threading.Event()
+
+    def blocking_store_factory(path: Path) -> WorkspaceStore:
+        started.set()
+        release.wait(timeout=5)
+        return WorkspaceStore(path)
+
+    manager = BulkReviewJobManager(store_factory=blocking_store_factory)
+    job = manager.start_job(
+        project_id="test-project",
+        workspace_dir=store.workspace_dir,
+        selected_change_ids=["change-1"],
+        requested_status="approved",
+        reviewer_id=None,
+        review_session_id=None,
+    )
+    assert started.wait(timeout=5)
+    app = create_app(store.workspace_dir, bulk_review_manager=manager)
+    client = app.test_client()
+
+    get_paths = ["/changes", "/changes/change-1", "/overview", "/sheets/sheet-1", "/export"]
+    get_responses = [client.get(path) for path in get_paths]
+    review_response = client.post(
+        "/changes/change-1/review",
+        data={"status": "approved", "reviewer_text": "Approved"},
+        headers={"Accept": "application/json"},
+    )
+    export_response = client.post("/export/run", headers={"Accept": "application/json"})
+    duplicate_bulk = client.post(
+        "/changes/bulk-review",
+        data={"change_ids": ["change-1"], "status": "rejected", "redirect_to": "/changes"},
+        headers={"Accept": "application/json"},
+    )
+
+    release.set()
+    assert manager.wait(job.id, timeout=5)
+    assert [response.status_code for response in get_responses] == [200, 200, 200, 200, 200]
+    assert b"data-bulk-review-status" in get_responses[0].data
+    assert review_response.status_code == 409
+    assert export_response.status_code == 409
+    assert duplicate_bulk.status_code == 409
+
+
+def test_workspace_save_writes_valid_json_atomically(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.change_items = [replace(store.data.change_items[0], status="approved")]
+
+    store.save()
+
+    payload = json.loads(store.data_path.read_text(encoding="utf-8"))
+    assert payload["change_items"][0]["status"] == "approved"
+    assert list(store.workspace_dir.glob(".workspace.json.*.tmp")) == []
 
 
 def test_superseded_parents_are_hidden_from_exports_and_packet(tmp_path: Path):
@@ -3592,7 +3774,7 @@ def test_navbar_includes_conformed_link(workspace_copy):
 
 
 def test_bulk_review_and_next_navigation(workspace_copy):
-    app = create_app(workspace_copy)
+    app = create_app(workspace_copy, bulk_review_manager=BulkReviewJobManager(run_async=False))
     client = app.test_client()
     store = WorkspaceStore(workspace_copy).load()
     pending_items = [item for item in store.data.change_items if item.status == "pending"][:2]

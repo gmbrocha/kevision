@@ -78,13 +78,13 @@
                     <span>Generate with flagged items still pending</span>
                   </label>
                 {% endif %}
-                <button class="btn btn-primary btn-xl js-generate-button" type="submit" style="width: 100%; justify-content: center;">
+                <button class="btn btn-primary btn-xl js-generate-button" type="submit" style="width: 100%; justify-content: center;" {% if bulk_review_job_running %}disabled{% endif %}>
                   {% if output_files.workbook.exists() %}Re-generate workbook{% else %}Generate workbook{% endif %}
                 </button>
               </form>
               <form method="post" action="{{ url_for('review_packet_run') }}">
                 {{ csrf_field()|safe }}
-                <button class="btn btn-secondary btn-lg" type="submit" style="width: 100%; justify-content: center;">Refresh Review Packet</button>
+                <button class="btn btn-secondary btn-lg" type="submit" style="width: 100%; justify-content: center;" {% if bulk_review_job_running %}disabled{% endif %}>Refresh Review Packet</button>
               </form>
             {% else %}
               <section class="callout callout-info">

@@ -692,6 +692,30 @@ input, textarea, select { font-family: inherit; }
   height: 6px;
 }
 
+.bulk-review-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.bulk-review-status-title {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.bulk-review-status-detail {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
 .chunked-upload-status {
   display: grid;
   gap: var(--sp-2);

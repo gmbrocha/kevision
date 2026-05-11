@@ -91,7 +91,7 @@
         <span class="cell-mono cell-dim">{{ item.sheet_id|discipline }}</span>
         {% if crop_adjustment.enabled %}
           <div class="crop-adjust-controls js-crop-adjust-controls">
-            <button class="btn btn-secondary btn-sm" type="button" data-crop-adjust-start>Adjust crop</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-crop-adjust-start {% if bulk_review_job_running %}disabled{% endif %}>Adjust crop</button>
             <button class="btn btn-primary btn-sm" type="button" data-crop-adjust-save hidden>Update crop</button>
             <button class="btn btn-ghost btn-sm" type="button" data-crop-adjust-cancel hidden>Cancel</button>
             <span class="crop-adjust-status" data-crop-adjust-status></span>
@@ -102,8 +102,8 @@
             data-search-query="{{ search_query }}"
             data-attention-only="{{ '1' if attention_only else '0' }}"
           >
-            <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="overmerge">Correct overmerge</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="partial">Correct partial</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="overmerge" {% if bulk_review_job_running %}disabled{% endif %}>Correct overmerge</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="partial" {% if bulk_review_job_running %}disabled{% endif %}>Correct partial</button>
             <button class="btn btn-primary btn-sm" type="button" data-geometry-save="overmerge" hidden>Save split</button>
             <button class="btn btn-primary btn-sm" type="button" data-geometry-save="partial" hidden>Save correction</button>
             <button class="btn btn-secondary btn-sm" type="button" data-geometry-delete hidden>Delete box</button>
@@ -164,7 +164,7 @@
               {% if selected_pre_review == pre_review_1 %}<span class="badge badge-active">Selected</span>{% endif %}
             </div>
             <textarea class="pre-review-textarea" rows="4" readonly>{{ pr1.get("text", item.raw_text) }}</textarea>
-            <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_1 }}">Use Pre Review 1</button>
+            <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_1 }}" {% if bulk_review_job_running %}disabled{% endif %}>Use Pre Review 1</button>
           </div>
           <div class="pre-review-choice {{ 'selected' if selected_pre_review == pre_review_2 else '' }}">
             <div class="pre-review-choice-head">
@@ -172,7 +172,7 @@
               {% if selected_pre_review == pre_review_2 %}<span class="badge badge-active">Selected</span>{% endif %}
             </div>
             <textarea class="pre-review-textarea" rows="4" readonly>{{ pr2.get("text", "") }}</textarea>
-            <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_2 }}" {% if not pr2.get("available") %}disabled{% endif %}>Use Pre Review 2</button>
+            <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_2 }}" {% if not pr2.get("available") or bulk_review_job_running %}disabled{% endif %}>Use Pre Review 2</button>
           </div>
         </div>
 
@@ -188,10 +188,10 @@
       </div>
 
       <div class="cockpit-actions">
-        <button class="btn-accept-full" type="submit" name="status_override" value="approved" onclick="this.form.elements.advance.value='next';">
+        <button class="btn-accept-full" type="submit" name="status_override" value="approved" onclick="this.form.elements.advance.value='next';" {% if bulk_review_job_running %}disabled{% endif %}>
           Accept + Next <span class="kbd">A</span>
         </button>
-        <button class="btn-reject-full" type="submit" name="status_override" value="rejected" onclick="this.form.elements.advance.value='next';">
+        <button class="btn-reject-full" type="submit" name="status_override" value="rejected" onclick="this.form.elements.advance.value='next';" {% if bulk_review_job_running %}disabled{% endif %}>
           Reject + Next <span class="kbd">R</span>
         </button>
       </div>

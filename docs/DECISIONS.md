@@ -2,22 +2,30 @@
 
 Status: canonical application decision log.
 
-## 2026-05-11 - Bulk Review Writes Are Batched
+## 2026-05-11 - Bulk Review Runs As An In-Memory Background Job
 
-Decision: Bulk accept/reject actions update selected review items and append
-their internal review events in one workspace save.
+Decision: Bulk accept/reject actions run as one in-memory background job per
+project. The browser returns immediately, read-only navigation remains
+available, and conflicting workspace mutations are blocked until the job
+finishes.
 
 Reason: Large select-all review actions can touch hundreds of items. Saving
-`workspace.json` once per item is slow enough to trigger browser or tunnel
-timeouts even when the backend eventually finishes.
+`workspace.json` once per item, or waiting for the full batch in one blocking
+request, can trigger browser or tunnel timeouts even when the backend
+eventually finishes.
 
 Consequences / follow-up:
 
 - The normal review-event audit trail is preserved: each changed item still
   gets its own `accept` or `reject` event.
-- Superseded parent items are still skipped by bulk review.
-- This reduces write overhead but the action is still synchronous; background
-  review jobs remain a later option if very large queues continue to feel slow.
+- Superseded parent, missing, duplicate, and no-op selections are skipped by
+  the job.
+- The job reloads the project workspace, applies the existing batched review
+  update, and commits `workspace.json` with an atomic replace.
+- Job state is process-local by design for this handoff pass. A server restart
+  can lose job status, but not leave a partially written workspace.
+- A durable queue remains a later option if ScopeLedger becomes multi-worker
+  or longer-lived shared infrastructure.
 
 ## 2026-05-11 - Reviewer Geometry Corrections Supersede Parents
 

@@ -70,7 +70,7 @@
               data-status-url="{{ url_for('populate_status') }}"
             >
               {{ csrf_field()|safe }}
-              <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating...">Populate Workspace</button>
+              <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating..." {% if bulk_review_job_running %}disabled{% endif %}>Populate Workspace</button>
             </form>
           {% else %}
             <a class="btn btn-primary btn-sm" href="{{ url_for('projects') }}">Create project</a>
@@ -137,7 +137,7 @@
                   <span class="panel-title">Import new package</span>
                   <p class="form-help">Choose PDFs or a folder from this browser. Large files upload in chunks for remote review. Manual path is for server-local imports. After staging files, populate the workspace.</p>
                 </div>
-                <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading...">Import package</button>
+                <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading..." {% if bulk_review_job_running %}disabled{% endif %}>Import package</button>
               </div>
               <div class="package-form-grid">
                 <label>
@@ -191,7 +191,7 @@
                 <span class="panel-title">Modify package</span>
                 <p class="form-help">Append PDF files to an existing revision package. Large browser files upload in chunks. After staging files, populate the workspace to refresh generated review data.</p>
               </div>
-                <button class="btn btn-secondary js-generate-button" type="submit" data-loading-text="Uploading...">Append PDF</button>
+                <button class="btn btn-secondary js-generate-button" type="submit" data-loading-text="Uploading..." {% if bulk_review_job_running %}disabled{% endif %}>Append PDF</button>
               </div>
               <div class="package-form-grid">
                 <label>
