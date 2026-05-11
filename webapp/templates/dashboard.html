@@ -101,6 +101,9 @@
                 <span>Clouds <strong data-populate-field="cloud_count">{{ populate_status.get("cloud_count", 0) }}</strong></span>
                 <span>Changes <strong data-populate-field="change_item_count">{{ populate_status.get("change_item_count", 0) }}</strong></span>
                 <span>Cache hits <strong data-populate-field="cache_hits">{{ populate_status.get("cache_hits", 0) }}</strong></span>
+                <span>Pre Review <strong><span data-populate-field="pre_review_2_count">{{ populate_status.get("pre_review_2_count", 0) }}</span> / <span data-populate-field="pre_review_total_count">{{ populate_status.get("pre_review_total_count", 0) }}</span></strong></span>
+                <span>Pre Review failures <strong data-populate-field="pre_review_failed_count">{{ populate_status.get("pre_review_failed_count", 0) }}</strong></span>
+                <span>Pre Review cache <strong data-populate-field="pre_review_cache_hits">{{ populate_status.get("pre_review_cache_hits", 0) }}</strong></span>
                 {% if populate_status.get("cloudhammer_page_count") is not none %}
                   <span>Analyzed pages <strong>{{ populate_status.get("cloudhammer_page_count", 0) }}</strong></span>
                   <span>Detected regions <strong>{{ populate_status.get("cloudhammer_candidate_count", 0) }}</strong></span>

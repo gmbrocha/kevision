@@ -2,6 +2,28 @@
 
 Status: canonical application decision log.
 
+## 2026-05-11 - Pre Review API Calls Are Batched
+
+Decision: Batch app-layer Pre Review API calls by default while preserving
+per-item cache files and reviewer workflow.
+
+Reason: Full project Populate can create hundreds of detected regions. Sending
+one API request per region adds avoidable request overhead and makes progress
+harder to inspect during a synchronous handoff run.
+
+Consequences / follow-up:
+
+- `SCOPELEDGER_PREREVIEW_BATCH_SIZE` defaults to `5`; `1` keeps the prior
+  single-item behavior and oversized values clamp to `10`.
+- Existing single-item cache files remain readable before new batch requests
+  are made.
+- Batch responses are validated by `item_id`; missing, duplicate, or unknown
+  rows fail safely for the affected items while keeping candidates visible.
+- Per-call usage is written to project JSONL under
+  `outputs/pre_review/usage/pre_review_usage.jsonl`.
+- This is still synchronous Populate. Background jobs remain follow-up if the
+  handoff app becomes long-running shared infrastructure.
+
 ## 2026-05-02 - CloudHammer_v2 Eval-Pivot Workspace
 
 Created `CloudHammer_v2/` as the active eval-pivot workspace. Existing

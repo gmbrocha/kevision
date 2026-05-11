@@ -7,7 +7,7 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -19,6 +19,7 @@ from .workspace import WorkspaceStore
 PRE_REVIEW_KEY = "scopeledger.pre_review.v1"
 PRE_REVIEW_SCHEMA = "scopeledger.pre_review.v1"
 PROMPT_VERSION = "scopeledger_pre_review_prompt_v1"
+BATCH_PROMPT_VERSION = "scopeledger_pre_review_batch_prompt_v1"
 PRE_REVIEW_1 = "pre_review_1"
 PRE_REVIEW_2 = "pre_review_2"
 VALID_PRE_REVIEW_SOURCES = {PRE_REVIEW_1, PRE_REVIEW_2}
@@ -50,6 +51,31 @@ RESPONSE_SCHEMA: dict[str, Any] = {
     },
 }
 
+BATCH_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["results"],
+    "properties": {
+        "results": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["item_id", "geometry_decision", "boxes", "refined_text", "reason", "confidence", "tags"],
+                "properties": {
+                    "item_id": {"type": "string"},
+                    "geometry_decision": {"type": "string", "enum": sorted(GEOMETRY_DECISIONS)},
+                    "boxes": RESPONSE_SCHEMA["properties"]["boxes"],
+                    "refined_text": {"type": "string"},
+                    "reason": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                    "tags": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        }
+    },
+}
+
 
 PROMPT = """You are reviewing one detected drawing revision region before a human reviewer sees it.
 
@@ -72,6 +98,14 @@ Policy:
 Return JSON only.
 """
 
+BATCH_PROMPT = PROMPT.replace(
+    "You receive one large crop image.",
+    "You receive multiple large crop images, one per item_id.",
+).replace(
+    "Return JSON only.",
+    "Return JSON only. Return one result per item_id in the provided Candidate contexts JSON.",
+)
+
 
 @dataclass(frozen=True)
 class PreReviewContext:
@@ -84,7 +118,7 @@ class PreReviewContext:
     cache_dir: Path
 
 
-@dataclass(frozen=True)
+@dataclass
 class PreReviewRunSummary:
     total_count: int = 0
     pre_review_2_count: int = 0
@@ -92,6 +126,12 @@ class PreReviewRunSummary:
     failed_count: int = 0
     cache_hits: int = 0
     disabled_reason: str = ""
+    batch_size: int = 1
+    request_count: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    cached_input_tokens: int = 0
 
     def to_status(self) -> dict[str, object]:
         return {
@@ -101,6 +141,12 @@ class PreReviewRunSummary:
             "pre_review_failed_count": self.failed_count,
             "pre_review_cache_hits": self.cache_hits,
             "pre_review_disabled_reason": self.disabled_reason,
+            "pre_review_batch_size": self.batch_size,
+            "pre_review_request_count": self.request_count,
+            "pre_review_input_tokens": self.input_tokens,
+            "pre_review_output_tokens": self.output_tokens,
+            "pre_review_total_tokens": self.total_tokens,
+            "pre_review_cached_input_tokens": self.cached_input_tokens,
         }
 
 
@@ -110,6 +156,9 @@ class PreReviewProvider(Protocol):
     disabled_reason: str
 
     def review(self, context: PreReviewContext) -> dict[str, Any] | None:
+        ...
+
+    def review_batch(self, contexts: list[PreReviewContext]) -> dict[str, dict[str, Any]]:
         ...
 
 
@@ -122,6 +171,9 @@ class DisabledPreReviewProvider:
 
     def review(self, context: PreReviewContext) -> dict[str, Any] | None:
         return None
+
+    def review_batch(self, contexts: list[PreReviewContext]) -> dict[str, dict[str, Any]]:
+        return {}
 
 
 class OpenAIPreReviewProvider:
@@ -136,11 +188,13 @@ class OpenAIPreReviewProvider:
         max_retries: int = 2,
         retry_initial_delay: float = 1.5,
         image_format: str = "png",
+        batch_size: int = 5,
     ):
         self.model = model
         self.max_retries = max_retries
         self.retry_initial_delay = retry_initial_delay
         self.image_format = image_format
+        self.batch_size = max(1, min(10, int(batch_size or 1)))
 
     def review(self, context: PreReviewContext) -> dict[str, Any] | None:
         cache_dir = context.cache_dir / "cache"
@@ -153,13 +207,51 @@ class OpenAIPreReviewProvider:
             payload = json.loads(cache_path.read_text(encoding="utf-8"))
             result = dict(payload.get("result") or {})
             result["cache_hit"] = True
+            result["usage"] = payload.get("usage") or result.get("usage") or {}
             return result
 
         input_image = _write_api_overlay(context, api_input_dir / f"{cache_key}.{self.image_format}")
-        raw_text = self._call_openai(context, input_image)
-        payload = json.loads(raw_text)
-        result = normalize_pre_review_2(payload, context)
+        try:
+            call = _coerce_call_result(self._call_openai(context, input_image))
+        except Exception as exc:
+            _append_usage_event(
+                context.cache_dir,
+                {
+                    "event_type": "api_request_failed",
+                    "prompt_version": PROMPT_VERSION,
+                    "model": self.model,
+                    "item_ids": [context.item.id],
+                    "batch_size": 1,
+                    "usage": {},
+                    "request_meta": {},
+                    "cache_hit": False,
+                    "failure_reason": _compact_error(exc),
+                },
+            )
+            raise
+        raw_text = call["text"]
+        try:
+            payload = json.loads(raw_text)
+            result = normalize_pre_review_2(payload, context)
+        except Exception as exc:
+            _append_usage_event(
+                context.cache_dir,
+                {
+                    "event_type": "api_request_failed",
+                    "prompt_version": PROMPT_VERSION,
+                    "model": self.model,
+                    "item_ids": [context.item.id],
+                    "batch_size": 1,
+                    "usage": call["usage"],
+                    "request_meta": call["meta"],
+                    "cache_hit": False,
+                    "failure_reason": _compact_error(exc),
+                },
+            )
+            raise
         result["cache_hit"] = False
+        result["usage"] = call["usage"]
+        result["request_meta"] = call["meta"]
         cache_path.write_text(
             json_dumps(
                 {
@@ -169,14 +261,137 @@ class OpenAIPreReviewProvider:
                     "item_id": context.item.id,
                     "cloud_id": context.cloud.id,
                     "api_input_path": str(input_image),
+                    "usage": call["usage"],
+                    "request_meta": call["meta"],
                     "result": result,
                 }
             ),
             encoding="utf-8",
         )
+        _append_usage_event(
+            context.cache_dir,
+            {
+                "event_type": "api_request",
+                "prompt_version": PROMPT_VERSION,
+                "model": self.model,
+                "item_ids": [context.item.id],
+                "batch_size": 1,
+                "usage": call["usage"],
+                "request_meta": call["meta"],
+                "cache_hit": False,
+            },
+        )
         return result
 
-    def _call_openai(self, context: PreReviewContext, input_image: Path) -> str:
+    def review_batch(self, contexts: list[PreReviewContext]) -> dict[str, dict[str, Any]]:
+        if not contexts:
+            return {}
+        cache_dir = contexts[0].cache_dir / "cache"
+        api_input_dir = contexts[0].cache_dir / "api_inputs"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        api_input_dir.mkdir(parents=True, exist_ok=True)
+        results: dict[str, dict[str, Any]] = {}
+        pending: list[tuple[PreReviewContext, str, Path]] = []
+        for context in contexts:
+            cache_key = _cache_key(self.model, context, prompt_version=BATCH_PROMPT_VERSION)
+            cache_path = cache_dir / f"{cache_key}.json"
+            legacy_path = cache_dir / f"{_cache_key(self.model, context, prompt_version=PROMPT_VERSION)}.json"
+            existing_path = cache_path if cache_path.exists() else legacy_path if legacy_path.exists() else None
+            if existing_path is not None:
+                payload = json.loads(existing_path.read_text(encoding="utf-8"))
+                result = dict(payload.get("result") or {})
+                result["cache_hit"] = True
+                result["usage"] = payload.get("usage") or result.get("usage") or {}
+                results[context.item.id] = result
+                continue
+            input_image = _write_api_overlay(context, api_input_dir / f"{cache_key}.{self.image_format}")
+            pending.append((context, cache_key, input_image))
+
+        if not pending:
+            return results
+
+        try:
+            call = _coerce_call_result(self._call_openai_batch([item[0] for item in pending], [item[2] for item in pending]))
+        except Exception as exc:
+            _append_usage_event(
+                contexts[0].cache_dir,
+                {
+                    "event_type": "api_batch_request_failed",
+                    "prompt_version": BATCH_PROMPT_VERSION,
+                    "model": self.model,
+                    "item_ids": [item[0].item.id for item in pending],
+                    "batch_size": len(pending),
+                    "usage": {},
+                    "request_meta": {},
+                    "cache_hit": False,
+                    "failure_reason": _compact_error(exc),
+                },
+            )
+            raise
+        try:
+            raw_results = _batch_results_by_item_id(json.loads(call["text"]), [item[0].item.id for item in pending])
+        except Exception as exc:
+            _append_usage_event(
+                contexts[0].cache_dir,
+                {
+                    "event_type": "api_batch_request_failed",
+                    "prompt_version": BATCH_PROMPT_VERSION,
+                    "model": self.model,
+                    "item_ids": [item[0].item.id for item in pending],
+                    "batch_size": len(pending),
+                    "usage": call["usage"],
+                    "request_meta": call["meta"],
+                    "cache_hit": False,
+                    "failure_reason": _compact_error(exc),
+                },
+            )
+            raise
+        allocations = _allocated_usage(call["usage"], len(pending))
+        for index, (context, cache_key, input_image) in enumerate(pending):
+            raw_result = raw_results.get(context.item.id)
+            if raw_result is None:
+                continue
+            result = normalize_pre_review_2(raw_result, context)
+            result["cache_hit"] = False
+            result["usage"] = allocations[min(index, len(allocations) - 1)] if allocations else {}
+            result["request_meta"] = call["meta"]
+            cache_path = cache_dir / f"{cache_key}.json"
+            cache_path.write_text(
+                json_dumps(
+                    {
+                        "schema": "scopeledger.pre_review_cache.v1",
+                        "prompt_version": BATCH_PROMPT_VERSION,
+                        "model": self.model,
+                        "item_id": context.item.id,
+                        "cloud_id": context.cloud.id,
+                        "api_input_path": str(input_image),
+                        "usage": result["usage"],
+                        "batch_usage": call["usage"],
+                        "request_meta": call["meta"],
+                        "result": result,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            results[context.item.id] = result
+
+        _append_usage_event(
+            contexts[0].cache_dir,
+            {
+                "event_type": "api_batch_request",
+                "prompt_version": BATCH_PROMPT_VERSION,
+                "model": self.model,
+                "item_ids": [item[0].item.id for item in pending],
+                "returned_item_ids": sorted(raw_results),
+                "batch_size": len(pending),
+                "usage": call["usage"],
+                "request_meta": call["meta"],
+                "cache_hit": False,
+            },
+        )
+        return results
+
+    def _call_openai(self, context: PreReviewContext, input_image: Path) -> dict[str, Any]:
         try:
             from openai import OpenAI  # type: ignore
         except ModuleNotFoundError as exc:
@@ -203,6 +418,7 @@ class OpenAIPreReviewProvider:
             image_part,
         ]
         attempt = 0
+        started_at = time.time()
         while True:
             try:
                 response = client.responses.create(
@@ -217,7 +433,60 @@ class OpenAIPreReviewProvider:
                         }
                     },
                 )
-                return _extract_response_text(response)
+                return {
+                    "text": _extract_response_text(response),
+                    "usage": _response_usage(response),
+                    "meta": _request_meta(started_at, attempt),
+                }
+            except Exception as exc:
+                if attempt >= self.max_retries or not _is_retryable_openai_error(exc):
+                    raise
+                attempt += 1
+                retry_after = _retry_after_seconds(exc)
+                delay = retry_after if retry_after is not None else self.retry_initial_delay * (2 ** (attempt - 1))
+                time.sleep(min(max(0.0, delay), 30.0))
+
+    def _call_openai_batch(self, contexts: list[PreReviewContext], input_images: list[Path]) -> dict[str, Any]:
+        try:
+            from openai import OpenAI  # type: ignore
+        except ModuleNotFoundError as exc:
+            raise RuntimeError("openai is not installed. Install requirements.txt before enabling pre-review.") from exc
+
+        client = OpenAI()
+        prompt_context = json.dumps(
+            {
+                "prompt_version": BATCH_PROMPT_VERSION,
+                "items": [_prompt_context(context) for context in contexts],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        content: list[dict[str, Any]] = [{"type": "input_text", "text": BATCH_PROMPT + "\n\nCandidate contexts JSON:\n" + prompt_context}]
+        for context, input_image in zip(contexts, input_images):
+            content.append({"type": "input_text", "text": f"Image for item_id: {context.item.id}"})
+            content.append({"type": "input_image", "image_url": _image_to_data_url(input_image)})
+
+        attempt = 0
+        started_at = time.time()
+        while True:
+            try:
+                response = client.responses.create(
+                    model=self.model,
+                    input=[{"role": "user", "content": content}],
+                    text={
+                        "format": {
+                            "type": "json_schema",
+                            "name": "scopeledger_pre_review_batch",
+                            "schema": BATCH_RESPONSE_SCHEMA,
+                            "strict": True,
+                        }
+                    },
+                )
+                return {
+                    "text": _extract_response_text(response),
+                    "usage": _response_usage(response),
+                    "meta": _request_meta(started_at, attempt),
+                }
             except Exception as exc:
                 if attempt >= self.max_retries or not _is_retryable_openai_error(exc):
                     raise
@@ -232,7 +501,10 @@ def build_pre_review_provider_from_env() -> PreReviewProvider:
         return DisabledPreReviewProvider("disabled")
     if not os.getenv("OPENAI_API_KEY"):
         return DisabledPreReviewProvider("missing_api_key")
-    return OpenAIPreReviewProvider(model=os.getenv("SCOPELEDGER_PREREVIEW_MODEL", "gpt-5.5"))
+    return OpenAIPreReviewProvider(
+        model=os.getenv("SCOPELEDGER_PREREVIEW_MODEL", "gpt-5.5"),
+        batch_size=_configured_batch_size(os.getenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "")),
+    )
 
 
 def ensure_workspace_pre_review(
@@ -240,59 +512,50 @@ def ensure_workspace_pre_review(
     provider: PreReviewProvider | None = None,
     *,
     force: bool = False,
+    progress_callback: Callable[[PreReviewRunSummary], None] | None = None,
 ) -> PreReviewRunSummary:
     provider = provider or DisabledPreReviewProvider()
     sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
     clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
-    updated_items: list[ChangeItem] = []
-    total = 0
-    pre_review_2_count = 0
-    skipped = 0
-    failed = 0
-    cache_hits = 0
-    changed = False
+    updated_items: list[ChangeItem] = list(store.data.change_items)
+    entries: list[dict[str, Any]] = []
 
-    for item in store.data.change_items:
+    for index, item in enumerate(store.data.change_items):
         cloud = clouds_by_id.get(item.cloud_candidate_id or "")
         sheet = sheets_by_id.get(item.sheet_version_id)
         if not cloud or not sheet or item.provenance.get("source") != "visual-region":
-            updated_items.append(item)
             continue
+        entries.append(
+            {
+                "index": index,
+                "item": item,
+                "cloud": cloud,
+                "sheet": sheet,
+                "context": build_pre_review_context(store, item, cloud, sheet),
+            }
+        )
 
-        total += 1
-        context = build_pre_review_context(store, item, cloud, sheet)
+    summary = PreReviewRunSummary(
+        total_count=len(entries),
+        batch_size=_provider_batch_size(provider),
+        disabled_reason="" if provider.enabled else provider.disabled_reason,
+    )
+    changed = False
+
+    def emit() -> None:
+        if progress_callback:
+            progress_callback(summary)
+
+    def apply_entry(entry: dict[str, Any], pre_review_2: dict[str, Any] | None, status: str, error: str = "") -> None:
+        nonlocal changed
+        item: ChangeItem = entry["item"]
+        cloud: CloudCandidate = entry["cloud"]
+        context: PreReviewContext | None = entry["context"]
         existing = pre_review_payload(item)
         selected = str(existing.get("selected") or PRE_REVIEW_1)
-        if selected not in VALID_PRE_REVIEW_SOURCES:
+        if selected not in VALID_PRE_REVIEW_SOURCES or (selected == PRE_REVIEW_2 and not pre_review_2):
             selected = PRE_REVIEW_1
-
-        pre_review_2 = existing.get(PRE_REVIEW_2) if isinstance(existing.get(PRE_REVIEW_2), dict) else None
-        status = str(existing.get("status") or "pending")
-        error = ""
-        if provider.enabled and context is not None and (force or not pre_review_2):
-            try:
-                pre_review_2 = provider.review(context)
-                if pre_review_2:
-                    status = "complete"
-                    pre_review_2_count += 1
-                    if pre_review_2.get("cache_hit"):
-                        cache_hits += 1
-            except Exception as exc:
-                failed += 1
-                status = "failed"
-                error = _compact_error(exc)
-        elif pre_review_2:
-            pre_review_2_count += 1
-        else:
-            skipped += 1
-            if not provider.enabled:
-                status = "skipped"
-            elif context is None:
-                status = "missing_crop"
-
         pre_review_1 = context.pre_review_1 if context is not None else _fallback_pre_review_1(item, cloud)
-        if selected == PRE_REVIEW_2 and not pre_review_2:
-            selected = PRE_REVIEW_1
         payload: dict[str, Any] = {
             "schema": PRE_REVIEW_SCHEMA,
             "selected": selected,
@@ -303,11 +566,8 @@ def ensure_workspace_pre_review(
         }
         if error:
             payload["error"] = error
-
         provenance = {**item.provenance, PRE_REVIEW_KEY: payload}
-        reviewer_text = item.reviewer_text
-        if not reviewer_text:
-            reviewer_text = selected_pre_review_text(payload) or item.raw_text
+        reviewer_text = item.reviewer_text or selected_pre_review_text(payload) or item.raw_text
         updated = ChangeItem(
             id=item.id,
             sheet_version_id=item.sheet_version_id,
@@ -321,21 +581,86 @@ def ensure_workspace_pre_review(
             reviewer_text=reviewer_text,
             reviewer_notes=item.reviewer_notes,
         )
-        if updated != item:
+        if updated != updated_items[entry["index"]]:
             changed = True
-        updated_items.append(updated)
+        updated_items[entry["index"]] = updated
+        entry["item"] = updated
 
+    pending_batch: list[dict[str, Any]] = []
+
+    def flush_batch() -> None:
+        nonlocal changed
+        if not pending_batch:
+            return
+        contexts = [entry["context"] for entry in pending_batch if entry["context"] is not None]
+        attempted_request = False
+        try:
+            if _provider_batch_size(provider) > 1 and hasattr(provider, "review_batch") and len(contexts) > 1:
+                attempted_request = True
+                results = provider.review_batch(contexts)  # type: ignore[attr-defined]
+            else:
+                results = {}
+                for context in contexts:
+                    attempted_request = True
+                    result = provider.review(context)
+                    if result:
+                        results[context.item.id] = result
+                        if not result.get("cache_hit"):
+                            summary.request_count += 1
+            if attempted_request and any(not (results.get(context.item.id) or {}).get("cache_hit") for context in contexts):
+                summary.request_count += 1
+            for entry in pending_batch:
+                context = entry["context"]
+                result = results.get(context.item.id) if context is not None else None
+                if result:
+                    apply_entry(entry, result, "complete")
+                    summary.pre_review_2_count += 1
+                    if result.get("cache_hit"):
+                        summary.cache_hits += 1
+                    else:
+                        _add_usage_to_summary(summary, result.get("usage"))
+                else:
+                    apply_entry(entry, None, "failed", "Pre-review response was missing for this item.")
+                    summary.failed_count += 1
+        except Exception as exc:
+            if attempted_request:
+                summary.request_count += 1
+            for entry in pending_batch:
+                apply_entry(entry, None, "failed", _compact_error(exc))
+                summary.failed_count += 1
+        finally:
+            if changed:
+                store.data.change_items = updated_items
+                store.save()
+            emit()
+            pending_batch.clear()
+
+    for entry in entries:
+        item: ChangeItem = entry["item"]
+        context: PreReviewContext | None = entry["context"]
+        existing = pre_review_payload(item)
+        pre_review_2 = existing.get(PRE_REVIEW_2) if isinstance(existing.get(PRE_REVIEW_2), dict) else None
+        if pre_review_2 and pre_review_2.get("available") and not force:
+            summary.pre_review_2_count += 1
+            continue
+        if not provider.enabled:
+            apply_entry(entry, None, "skipped")
+            summary.skipped_count += 1
+            continue
+        if context is None:
+            apply_entry(entry, None, "missing_crop")
+            summary.skipped_count += 1
+            continue
+        pending_batch.append(entry)
+        if len(pending_batch) >= _provider_batch_size(provider):
+            flush_batch()
+
+    flush_batch()
     if changed:
         store.data.change_items = updated_items
         store.save()
-    return PreReviewRunSummary(
-        total_count=total,
-        pre_review_2_count=pre_review_2_count,
-        skipped_count=skipped,
-        failed_count=failed,
-        cache_hits=cache_hits,
-        disabled_reason="" if provider.enabled else provider.disabled_reason,
-    )
+    emit()
+    return summary
 
 
 def build_pre_review_context(
@@ -708,10 +1033,10 @@ def _positive_float(value: Any, fallback: Any) -> float:
     return number if number > 0 else 1.0
 
 
-def _cache_key(model: str, context: PreReviewContext) -> str:
+def _cache_key(model: str, context: PreReviewContext, *, prompt_version: str = PROMPT_VERSION) -> str:
     crop_hash = hashlib.sha256(context.crop_path.read_bytes()).hexdigest()
     return stable_id(
-        PROMPT_VERSION,
+        prompt_version,
         model,
         context.item.id,
         context.cloud.id,
@@ -719,6 +1044,19 @@ def _cache_key(model: str, context: PreReviewContext) -> str:
         context.pre_review_1.get("crop_boxes", []),
         normalize_text(str(context.pre_review_1.get("text") or "")),
     )
+
+
+def _prompt_context(context: PreReviewContext) -> dict[str, Any]:
+    return {
+        "item_id": context.item.id,
+        "sheet_id": context.sheet.sheet_id,
+        "sheet_title": context.sheet.sheet_title,
+        "page_number": context.sheet.page_number,
+        "pre_review_1_crop_boxes": context.pre_review_1.get("crop_boxes", []),
+        "pre_review_1_ocr_text": context.pre_review_1.get("text", ""),
+        "pre_review_1_reason": context.pre_review_1.get("reason", ""),
+        "confidence": context.cloud.confidence,
+    }
 
 
 def _image_to_data_url(path: Path) -> str:
@@ -741,6 +1079,148 @@ def _extract_response_text(response: Any) -> str:
         if chunks:
             return "".join(chunks)
     return str(response)
+
+
+def _coerce_call_result(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return {
+            "text": str(value.get("text") or ""),
+            "usage": _usage_dict(value.get("usage")),
+            "meta": value.get("meta") if isinstance(value.get("meta"), dict) else {},
+        }
+    return {"text": str(value), "usage": {}, "meta": {}}
+
+
+def _response_usage(response: Any) -> dict[str, Any]:
+    return _usage_dict(getattr(response, "usage", None))
+
+
+def _usage_dict(value: Any) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return {str(key): _usage_dict(item) if not isinstance(item, (str, int, float, bool, type(None))) else item for key, item in value.items()}
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return _usage_dict(model_dump())
+        except Exception:
+            pass
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        try:
+            return _usage_dict(to_dict())
+        except Exception:
+            pass
+    raw = getattr(value, "__dict__", None)
+    if isinstance(raw, dict):
+        return _usage_dict({key: item for key, item in raw.items() if not key.startswith("_")})
+    return {}
+
+
+def _request_meta(started_at: float, retry_count: int) -> dict[str, Any]:
+    return {
+        "started_at_unix": round(started_at, 3),
+        "duration_seconds": round(max(0.0, time.time() - started_at), 3),
+        "retry_count": retry_count,
+    }
+
+
+def _batch_results_by_item_id(payload: dict[str, Any], expected_ids: list[str]) -> dict[str, dict[str, Any]]:
+    expected = set(expected_ids)
+    mapped: dict[str, dict[str, Any]] = {}
+    rows = payload.get("results") if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        return mapped
+    counts: dict[str, int] = {}
+    for row in rows:
+        if isinstance(row, dict):
+            item_id = str(row.get("item_id") or "")
+            counts[item_id] = counts.get(item_id, 0) + 1
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item_id = str(row.get("item_id") or "")
+        if item_id not in expected or counts.get(item_id, 0) != 1:
+            continue
+        mapped[item_id] = row
+    return mapped
+
+
+def _allocated_usage(usage: dict[str, Any], count: int) -> list[dict[str, Any]]:
+    if not usage or count <= 0:
+        return [{} for _ in range(max(0, count))]
+    token_fields = {
+        "input_tokens",
+        "prompt_tokens",
+        "output_tokens",
+        "completion_tokens",
+        "total_tokens",
+    }
+    nested_token_fields = {"cached_tokens", "reasoning_tokens"}
+    allocations = []
+    for _ in range(count):
+        allocations.append({"allocation_method": "equal_per_item"})
+    for key, value in usage.items():
+        if key in token_fields and isinstance(value, int):
+            parts = _split_int(value, count)
+            for index, part in enumerate(parts):
+                allocations[index][key] = part
+        elif isinstance(value, dict):
+            nested_allocations = _allocated_nested_usage(value, count, nested_token_fields)
+            for index, nested in enumerate(nested_allocations):
+                if nested:
+                    allocations[index][key] = nested
+        else:
+            for allocation in allocations:
+                allocation[key] = value
+    return allocations
+
+
+def _allocated_nested_usage(value: dict[str, Any], count: int, token_fields: set[str]) -> list[dict[str, Any]]:
+    allocations = [{} for _ in range(count)]
+    for key, item in value.items():
+        if key in token_fields and isinstance(item, int):
+            for index, part in enumerate(_split_int(item, count)):
+                allocations[index][key] = part
+        else:
+            for allocation in allocations:
+                allocation[key] = item
+    return allocations
+
+
+def _split_int(value: int, count: int) -> list[int]:
+    if count <= 0:
+        return []
+    base = value // count
+    remainder = value % count
+    return [base + (1 if index < remainder else 0) for index in range(count)]
+
+
+def _append_usage_event(cache_dir: Path, payload: dict[str, Any]) -> None:
+    usage_dir = cache_dir / "usage"
+    usage_dir.mkdir(parents=True, exist_ok=True)
+    event = {
+        "created_at_unix": round(time.time(), 3),
+        **payload,
+    }
+    with (usage_dir / "pre_review_usage.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n")
+
+
+def _add_usage_to_summary(summary: PreReviewRunSummary, usage: Any) -> None:
+    payload = _usage_dict(usage)
+    summary.input_tokens += _int_value(payload, "input_tokens") + _int_value(payload, "prompt_tokens")
+    summary.output_tokens += _int_value(payload, "output_tokens") + _int_value(payload, "completion_tokens")
+    summary.total_tokens += _int_value(payload, "total_tokens")
+    input_details = payload.get("input_tokens_details") if isinstance(payload.get("input_tokens_details"), dict) else {}
+    prompt_details = payload.get("prompt_tokens_details") if isinstance(payload.get("prompt_tokens_details"), dict) else {}
+    summary.cached_input_tokens += _int_value(input_details, "cached_tokens") + _int_value(prompt_details, "cached_tokens")
+
+
+def _int_value(payload: dict[str, Any], key: str) -> int:
+    value = payload.get(key)
+    return int(value) if isinstance(value, int) else 0
 
 
 def _error_status_code(exc: Exception) -> int | None:
@@ -779,6 +1259,24 @@ def _is_retryable_openai_error(exc: Exception) -> bool:
 
 def _truthy(value: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on", "enabled"}
+
+
+def _configured_batch_size(value: str) -> int:
+    if not value.strip():
+        return 5
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise RuntimeError("SCOPELEDGER_PREREVIEW_BATCH_SIZE must be an integer.") from exc
+    return max(1, min(10, parsed))
+
+
+def _provider_batch_size(provider: PreReviewProvider) -> int:
+    value = getattr(provider, "batch_size", 1)
+    try:
+        return max(1, min(10, int(value)))
+    except (TypeError, ValueError):
+        return 1
 
 
 def _compact_error(exc: Exception, limit: int = 600) -> str:

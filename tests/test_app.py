@@ -6,6 +6,7 @@ import os
 import re
 import time
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 import fitz
@@ -23,6 +24,7 @@ from backend.pre_review import (
     PRE_REVIEW_1,
     PRE_REVIEW_2,
     OpenAIPreReviewProvider,
+    build_pre_review_provider_from_env,
     ensure_workspace_pre_review,
     normalize_pre_review_2,
     pre_review_payload,
@@ -604,6 +606,19 @@ def build_pre_review_test_store(tmp_path: Path) -> WorkspaceStore:
     return store
 
 
+def append_pre_review_test_item(store: WorkspaceStore, index: int) -> None:
+    from PIL import Image
+
+    base_cloud = store.data.clouds[0]
+    base_item = store.data.change_items[0]
+    crop_path = store.crop_path(f"cloud-{index}")
+    Image.new("RGB", (200, 120), "white").save(crop_path)
+    cloud = replace(base_cloud, id=f"cloud-{index}", image_path=str(crop_path))
+    item = replace(base_item, id=f"change-{index}", cloud_candidate_id=cloud.id)
+    store.data.clouds.append(cloud)
+    store.data.change_items.append(item)
+
+
 class FakePreReviewProvider:
     name = "fake_pre_review"
     enabled = True
@@ -658,6 +673,7 @@ def test_pre_review_failure_continues_with_first_pass(tmp_path: Path):
 
     payload = pre_review_payload(store.data.change_items[0])
     assert summary.failed_count == 1
+    assert summary.request_count == 1
     assert payload["selected"] == PRE_REVIEW_1
     assert payload[PRE_REVIEW_2]["available"] is False
 
@@ -700,6 +716,226 @@ def test_openai_pre_review_provider_uses_cache(tmp_path: Path, monkeypatch: pyte
     assert first.pre_review_2_count == 1
     assert second.cache_hits == 1
     assert calls["count"] == 1
+
+
+def test_openai_pre_review_provider_batches_and_logs_usage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = build_pre_review_test_store(tmp_path)
+    for index in range(2, 4):
+        append_pre_review_test_item(store, index)
+    store.save()
+    provider = OpenAIPreReviewProvider(model="gpt-5.5", batch_size=5)
+    calls = {"count": 0}
+
+    def fake_batch_call(contexts, input_images):
+        calls["count"] += 1
+        assert len(contexts) == 3
+        assert len(input_images) == 3
+        return {
+            "text": json.dumps(
+                {
+                    "results": [
+                        {
+                            "item_id": context.item.id,
+                            "geometry_decision": "same_box",
+                            "boxes": [[33, 15, 100, 60]],
+                            "refined_text": f"Batch text {context.item.id}.",
+                            "reason": "Same visible region.",
+                            "confidence": 0.7,
+                            "tags": ["same"],
+                        }
+                        for context in contexts
+                    ]
+                }
+            ),
+            "usage": {
+                "input_tokens": 90,
+                "output_tokens": 30,
+                "total_tokens": 120,
+                "input_tokens_details": {"cached_tokens": 15},
+            },
+            "meta": {"duration_seconds": 1.2, "retry_count": 0},
+        }
+
+    monkeypatch.setattr(provider, "_call_openai_batch", fake_batch_call)
+
+    summary = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert calls["count"] == 1
+    assert summary.pre_review_2_count == 3
+    assert summary.request_count == 1
+    assert summary.input_tokens == 90
+    assert summary.output_tokens == 30
+    assert summary.total_tokens == 120
+    assert summary.cached_input_tokens == 15
+    cache_files = list((store.output_dir / "pre_review" / "cache").glob("*.json"))
+    assert len(cache_files) == 3
+    first_cache = json.loads(cache_files[0].read_text(encoding="utf-8"))
+    assert first_cache["prompt_version"] == "scopeledger_pre_review_batch_prompt_v1"
+    assert first_cache["usage"]["input_tokens"] > 0
+    usage_lines = (store.output_dir / "pre_review" / "usage" / "pre_review_usage.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(usage_lines) == 1
+    assert json.loads(usage_lines[0])["batch_size"] == 3
+
+    second = ensure_workspace_pre_review(store, provider, force=True)
+    assert calls["count"] == 1
+    assert second.cache_hits == 3
+    assert second.request_count == 0
+    assert second.total_tokens == 0
+
+
+def test_batched_pre_review_reuses_existing_single_item_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = build_pre_review_test_store(tmp_path)
+    provider = OpenAIPreReviewProvider(model="gpt-5.5", batch_size=5)
+    calls = {"single": 0, "batch": 0}
+
+    def fake_single_call(context, input_image):
+        calls["single"] += 1
+        return json.dumps(
+            {
+                "geometry_decision": "same_box",
+                "boxes": [[33, 15, 100, 60]],
+                "refined_text": "Single cache text.",
+                "reason": "Same visible region.",
+                "confidence": 0.7,
+                "tags": ["same"],
+            }
+        )
+
+    monkeypatch.setattr(provider, "_call_openai", fake_single_call)
+    first = ensure_workspace_pre_review(store, provider, force=True)
+    assert first.pre_review_2_count == 1
+
+    append_pre_review_test_item(store, 2)
+    store.save()
+
+    def fake_batch_call(contexts, input_images):
+        calls["batch"] += 1
+        assert [context.item.id for context in contexts] == ["change-2"]
+        return {
+            "text": json.dumps(
+                {
+                    "results": [
+                        {
+                            "item_id": "change-2",
+                            "geometry_decision": "same_box",
+                            "boxes": [[33, 15, 100, 60]],
+                            "refined_text": "Batch text.",
+                            "reason": "Same visible region.",
+                            "confidence": 0.7,
+                            "tags": ["same"],
+                        }
+                    ]
+                }
+            ),
+            "usage": {"input_tokens": 20, "output_tokens": 10, "total_tokens": 30},
+            "meta": {},
+        }
+
+    monkeypatch.setattr(provider, "_call_openai_batch", fake_batch_call)
+    second = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert calls == {"single": 1, "batch": 1}
+    assert second.pre_review_2_count == 2
+    assert second.cache_hits == 1
+    assert second.request_count == 1
+    assert second.total_tokens == 30
+
+
+def test_batched_pre_review_missing_or_duplicate_rows_fail_safely(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.save()
+    provider = OpenAIPreReviewProvider(model="gpt-5.5", batch_size=5)
+
+    def fake_batch_call(contexts, input_images):
+        row = {
+            "item_id": "change-1",
+            "geometry_decision": "same_box",
+            "boxes": [[33, 15, 100, 60]],
+            "refined_text": "Duplicate should fail.",
+            "reason": "Duplicate row.",
+            "confidence": 0.7,
+            "tags": ["duplicate"],
+        }
+        return {"text": json.dumps({"results": [row, row]}), "usage": {"total_tokens": 20}, "meta": {}}
+
+    monkeypatch.setattr(provider, "_call_openai_batch", fake_batch_call)
+
+    summary = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert summary.failed_count == 2
+    assert summary.pre_review_2_count == 0
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert all(pre_review_payload(item)["status"] == "failed" for item in loaded.data.change_items)
+
+
+def test_batched_pre_review_progress_callback_saves_after_each_batch(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    for index in range(2, 5):
+        append_pre_review_test_item(store, index)
+    store.save()
+
+    class BatchPreReviewProvider:
+        name = "batch_fake"
+        enabled = True
+        disabled_reason = ""
+        batch_size = 2
+
+        def __init__(self):
+            self.batch_lengths: list[int] = []
+
+        def review(self, context):
+            raise AssertionError("single-item review should not be used")
+
+        def review_batch(self, contexts):
+            self.batch_lengths.append(len(contexts))
+            return {
+                context.item.id: normalize_pre_review_2(
+                    {
+                        "geometry_decision": "same_box",
+                        "boxes": [[33, 15, 100, 60]],
+                        "refined_text": f"Progress text {context.item.id}.",
+                        "reason": "Same visible region.",
+                        "confidence": 0.7,
+                        "tags": ["same"],
+                    },
+                    context,
+                )
+                for context in contexts
+            }
+
+    provider = BatchPreReviewProvider()
+    snapshots: list[dict[str, object]] = []
+
+    summary = ensure_workspace_pre_review(store, provider, force=True, progress_callback=lambda value: snapshots.append(value.to_status()))
+
+    assert provider.batch_lengths == [2, 2]
+    assert summary.pre_review_2_count == 4
+    assert summary.request_count == 2
+    assert snapshots
+    assert snapshots[-1]["pre_review_2_count"] == 4
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    assert all(pre_review_payload(item)[PRE_REVIEW_2]["available"] for item in loaded.data.change_items)
+
+
+def test_pre_review_batch_size_env_defaults_accepts_and_clamps(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_ENABLED", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.delenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", raising=False)
+    default_provider = build_pre_review_provider_from_env()
+    assert getattr(default_provider, "batch_size") == 5
+
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "1")
+    one_provider = build_pre_review_provider_from_env()
+    assert getattr(one_provider, "batch_size") == 1
+
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "100")
+    clamped_provider = build_pre_review_provider_from_env()
+    assert getattr(clamped_provider, "batch_size") == 10
+
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "bad")
+    with pytest.raises(RuntimeError, match="SCOPELEDGER_PREREVIEW_BATCH_SIZE"):
+        build_pre_review_provider_from_env()
 
 
 def test_review_route_persists_pre_review_selection_without_internal_labels(tmp_path: Path):
@@ -2451,6 +2687,10 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
         state="running",
         stage="drawing_analysis",
         message="Analyzing staged drawing packages.",
+        pre_review_total_count=12,
+        pre_review_2_count=7,
+        pre_review_failed_count=1,
+        pre_review_cache_hits=3,
     )
 
     response = client.get("/workspace/populate/status")
@@ -2463,6 +2703,10 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
     assert payload["live_artifact_count"] == 2
     assert payload["inferred_cloudhammer_page_count"] == 1
     assert payload["inferred_cloudhammer_candidate_count"] == 1
+    assert payload["pre_review_total_count"] == 12
+    assert payload["pre_review_2_count"] == 7
+    assert payload["pre_review_failed_count"] == 1
+    assert payload["pre_review_cache_hits"] == 3
 
 
 def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):
@@ -2479,6 +2723,12 @@ def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):
     assert b'data-populate-status-url="/workspace/populate/status"' in response.data
     assert b"Staged PDFs" in response.data
     assert b"Live artifacts" in response.data
+    assert b"Pre Review" in response.data
+    assert b"GPT" not in response.data
+    assert b"CloudHammer" not in response.data
+    assert b"training" not in response.data
+    assert b"eval" not in response.data
+    assert b"labeling" not in response.data
 
 
 def test_review_routes_reject_invalid_status_and_external_redirect(workspace_copy):

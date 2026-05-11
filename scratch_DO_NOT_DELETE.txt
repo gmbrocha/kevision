@@ -16,3 +16,4 @@ Candidate pools:
 *Need a way to easily subset clouds that are found as overmerged after the GPT second pass in Populate
 
 
+*Need to implement a system where legend clouds are not included as review items, but simply parsed and stored so the information can be easily added as revision detail when needed ref

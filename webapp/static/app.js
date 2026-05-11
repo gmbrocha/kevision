@@ -135,6 +135,10 @@ function bindPopulateWorkspace() {
     setField("cloud_count", payload.cloud_count || 0);
     setField("change_item_count", payload.change_item_count || 0);
     setField("cache_hits", payload.cache_hits || 0);
+    setField("pre_review_total_count", payload.pre_review_total_count || 0);
+    setField("pre_review_2_count", payload.pre_review_2_count || 0);
+    setField("pre_review_failed_count", payload.pre_review_failed_count || 0);
+    setField("pre_review_cache_hits", payload.pre_review_cache_hits || 0);
     setField("staged_pdf_count", payload.staged_pdf_count || 0);
     setField("live_artifact_count", payload.live_artifact_count || 0);
 
@@ -148,6 +152,7 @@ function bindPopulateWorkspace() {
       if (payload.live_artifact_count) parts.push(`${payload.live_artifact_count} live artifact${payload.live_artifact_count === 1 ? "" : "s"} written`);
       if (payload.inferred_cloudhammer_page_count) parts.push(`${payload.inferred_cloudhammer_page_count} cataloged page rows`);
       if (payload.inferred_cloudhammer_candidate_count) parts.push(`${payload.inferred_cloudhammer_candidate_count} candidate rows`);
+      if (payload.pre_review_total_count) parts.push(`Pre Review ${payload.pre_review_2_count || 0} of ${payload.pre_review_total_count}`);
       detail.textContent = parts.join(" | ");
     }
 

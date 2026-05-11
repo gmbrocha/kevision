@@ -41,7 +41,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   app keeps every detected candidate visible, stores raw `Pre Review 1` plus a
   provisional `Pre Review 2`, and makes the reviewer choose which text/geometry
   becomes export truth. Missing, disabled, rate-limited, or failed API calls do
-  not block Populate.
+  not block Populate. Pre Review API calls now batch up to
+  `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, while
+  preserving per-item cache files and writing per-call usage JSONL under the
+  active project `outputs/pre_review/usage/` folder.
 - Review actions now append internal `review_events` records to the active
   project `workspace.json`. These events preserve the original detected
   candidate, optional Pre Review metadata, and the human final result for

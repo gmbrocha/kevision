@@ -1344,7 +1344,27 @@ def create_app(
                 cache_hits=cache_hits,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
-            pre_review_summary = ensure_workspace_pre_review(refreshed, app.config["PRE_REVIEW_PROVIDER"])
+
+            def update_pre_review_progress(summary) -> None:
+                refreshed.update_populate_status(
+                    state="running",
+                    stage="pre_review",
+                    message="Running pre-review on detected regions.",
+                    package_count=len(refreshed.data.revision_sets),
+                    document_count=len(refreshed.data.documents),
+                    sheet_count=len(refreshed.data.sheets),
+                    cloud_count=len(refreshed.data.clouds),
+                    change_item_count=len(refreshed.data.change_items),
+                    cache_hits=cache_hits,
+                    **summary.to_status(),
+                    **(cloudhammer_result.to_status() if cloudhammer_result else {}),
+                )
+
+            pre_review_summary = ensure_workspace_pre_review(
+                refreshed,
+                app.config["PRE_REVIEW_PROVIDER"],
+                progress_callback=update_pre_review_progress,
+            )
             refreshed.update_populate_status(
                 state="done",
                 stage="complete",
