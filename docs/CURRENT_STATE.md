@@ -11,9 +11,11 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 
 ## Application Project Registry Status
 
-- Current app registry state is intentionally empty after clearing the
-  throwaway first real-run project. `/projects` is the expected first screen
-  before creating the next real client/handoff project.
+- The app registry is local ignored state under `app_workspaces/` and may
+  contain throwaway smoke-test projects. Any current `TEST Revision` style
+  rows are disposable local app data, not client-approved scope, reviewed
+  labels, training data, or CloudHammer_v2 eval material. `/projects` remains
+  the expected first screen before creating or selecting a handoff project.
 - The web app no longer seeds a `Demo Project` automatically when the project
   registry is missing or empty.
 - The app registry and managed project workspaces now live under the
@@ -27,6 +29,11 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   project creation. Mutating workspace actions still require an active project.
 - App project reset is registry-only. It must not delete old generated run
   folders, `revision_sets/`, CloudHammer artifacts, model runs, or outputs.
+- The Projects UI has an explicit hard-gated Delete action for project cleanup.
+  The operator must type `DELETE`; the action removes the project registry
+  entry and its direct managed workspace under `app_workspaces/projects/`.
+  It refuses unmanaged, custom, nested, linked, reparse-point, or cross-project
+  paths and is blocked while that project has a bulk review job running.
 - Fresh projects can import the repo-level `revision_sets/` folder; each
   `Revision #...` child folder is copied as its own package into the selected
   project input folder before Populate Workspace runs.

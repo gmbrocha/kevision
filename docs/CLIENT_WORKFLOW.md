@@ -1,6 +1,6 @@
 # Client Workflow
 
-Status: client workflow summary as of 2026-05-10.
+Status: client workflow summary as of 2026-05-12.
 
 ## Workflow
 
@@ -14,6 +14,10 @@ Status: client workflow summary as of 2026-05-10.
 5. Accept or reject review items before using them as deliverable evidence.
 6. Generate and review workbook/review-packet output before treating it as
    client-facing.
+
+For local testing cleanup, archive projects when the workspace should be kept.
+Use the Projects page Delete action only for disposable projects; it requires
+typing `DELETE` and removes the app-managed project workspace.
 
 ## Trust-But-Verify Principle
 

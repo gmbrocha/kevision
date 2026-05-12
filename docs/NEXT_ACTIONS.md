@@ -1,15 +1,16 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-10.
+Status: operational queue as of 2026-05-12.
 
 ## Now
 
 1. Finish the private client handoff pass.
    - Cloudflare Access gating on `ledger.nezcoupe.net` is confirmed from a
      fresh/incognito browser session.
-   - Start from the intentionally empty app registry under `app_workspaces/`,
-     create the next real project in `/projects`, stage package PDFs, and run
-     Populate.
+   - Start from `/projects`. If local smoke-test projects remain under
+     `app_workspaces/`, delete disposable rows through the hard-gated project
+     Delete dialog or use the registry-only reset command before creating the
+     next real project. Then stage package PDFs and run Populate.
    - If using API enrichment, confirm `SCOPELEDGER_PREREVIEW_ENABLED`,
      `SCOPELEDGER_PREREVIEW_MODEL`, and the server-side `OPENAI_API_KEY` are
      set in the process environment or present in the allowlisted local `.env`

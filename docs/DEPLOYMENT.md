@@ -1,6 +1,6 @@
 # Deployment
 
-Status: deployment notes as of 2026-05-09.
+Status: deployment notes as of 2026-05-12.
 
 ScopeLedger is in a private client-handoff deployment posture, not a public
 SaaS posture. The current release path is a Windows-hosted app behind the
@@ -36,12 +36,16 @@ existing Cloudflare Tunnel and Cloudflare Access application at
 - Chunked upload temporary files are removed on success, browser abort, or
   stale cleanup.
 - Unreadable PDFs are kept as diagnostics instead of crashing Populate.
+- Project deletion is a local cleanup control only: the UI requires typing
+  `DELETE`, and the backend only removes the direct app-managed workspace
+  matching that project id.
 
 ## Before Broader Rollout
 
 - Move Populate to a background worker with status polling.
 - Add durable process supervision for the app and tunnel.
-- Define artifact retention and workspace cleanup policy.
+- Define broader artifact retention and workspace cleanup policy beyond the
+  current local hard-gated project delete path.
 - Add app-level identity/JWT validation if relying on more than Cloudflare
   Access as the outer gate.
 - Revisit security approval for any new client/project.

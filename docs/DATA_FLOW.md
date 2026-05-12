@@ -1,6 +1,6 @@
 # Data Flow
 
-Status: canonical high-level data flow as of 2026-05-10.
+Status: canonical high-level data flow as of 2026-05-12.
 
 ## Flow
 
@@ -15,6 +15,11 @@ Status: canonical high-level data flow as of 2026-05-10.
 5. Human review accepts or rejects review items before deliverable use.
 6. The application produces reviewable exports/workbooks and client-facing
    evidence.
+
+The Projects page can delete disposable app projects after a `DELETE` typed
+confirmation. That cleanup removes the project registry row and the direct
+app-managed workspace only; durable source packages, CloudHammer_v2 eval data,
+model runs, and repo-level `revision_sets/` are outside that delete boundary.
 
 ## Human-In-The-Loop Points
 

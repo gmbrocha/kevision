@@ -1,6 +1,6 @@
 # ScopeLedger Runbook
 
-Status: application-level runbook as of 2026-05-10.
+Status: application-level runbook as of 2026-05-12.
 
 Use this file for verified application-level commands only. Do not invent
 commands here.
@@ -31,6 +31,25 @@ packages:
 - Safety: safe registry-only cleanup. It does not delete workspace folders,
   generated runs, `revision_sets/`, CloudHammer artifacts, model runs, or
   outputs.
+
+Delete a test project and its managed project workspace from the UI:
+
+- Purpose: remove a throwaway project registration and its app-managed
+  workspace during local testing.
+- Working directory: no shell command; use the Projects page.
+- Browser steps:
+  1. Open `/projects`.
+  2. Click Delete on the project row.
+  3. Confirm the dialog says `Are you sure?`.
+  4. Type `DELETE` in all caps.
+  5. Click Delete project.
+- Expected output/artifact: the project disappears from the registry and its
+  direct managed workspace under `app_workspaces/projects/` is removed.
+- Safety: destructive with no undo. The backend refuses unmanaged, custom,
+  symlinked, reparse-point, nested, or cross-project workspace paths and must
+  not delete `revision_sets/`, CloudHammer artifacts, model runs, or outputs
+  outside the managed project workspace. Deletion is blocked while the target
+  project has a bulk review job running.
 
 Serve the local review app:
 

@@ -362,6 +362,45 @@ input, textarea, select { font-family: inherit; }
 
 .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
+.project-action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.delete-dialog {
+  width: min(520px, calc(100vw - var(--sp-8)));
+  border: 1px solid oklch(0.60 0.135 22 / 0.42);
+  border-radius: var(--radius-lg);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+}
+
+.delete-dialog::backdrop {
+  background: oklch(0 0 0 / 0.62);
+}
+
+.delete-dialog-body {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+}
+
+.delete-dialog-warning {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
 /* --- Status Badges --------------------------------------- */
 .badge {
   display: inline-flex;

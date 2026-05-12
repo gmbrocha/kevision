@@ -224,6 +224,43 @@ function bindGenerateForms() {
   });
 }
 
+function bindProjectDeleteDialog() {
+  const dialog = document.querySelector("[data-project-delete-dialog]");
+  if (!dialog) return;
+  const form = dialog.querySelector("form");
+  const input = dialog.querySelector("[data-project-delete-input]");
+  const submit = dialog.querySelector("[data-project-delete-submit]");
+  const name = dialog.querySelector("[data-project-delete-name]");
+  const cancel = dialog.querySelector("[data-project-delete-cancel]");
+  if (!form || !input || !submit) return;
+
+  const closeDialog = () => {
+    if (typeof dialog.close === "function") {
+      dialog.close();
+    }
+  };
+
+  document.querySelectorAll("[data-project-delete-open]").forEach((button) => {
+    button.addEventListener("click", () => {
+      form.action = button.dataset.deleteUrl || "";
+      if (name) name.textContent = button.dataset.projectName || "this project";
+      input.value = "";
+      submit.disabled = true;
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      }
+      input.focus();
+    });
+  });
+
+  input.addEventListener("input", () => {
+    submit.disabled = input.value !== "DELETE";
+  });
+  if (cancel) {
+    cancel.addEventListener("click", closeDialog);
+  }
+}
+
 function bindPopulateWorkspace() {
   const statusPanel = document.querySelector("[data-populate-status-url]");
   const statusUrl = statusPanel?.dataset.populateStatusUrl || document.querySelector(".js-populate-form")?.dataset.statusUrl;
@@ -1175,6 +1212,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyBoundingBoxes();
   bindQueueSelection();
   bindBulkReviewForms();
+  bindProjectDeleteDialog();
   bindReviewShortcuts();
   bindChunkedUploadForms();
   bindPopulateWorkspace();

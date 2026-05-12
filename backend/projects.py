@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import shutil
+import stat
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +25,16 @@ def utc_now() -> str:
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return slug or "project"
+
+
+def _has_filesystem_link_marker(path: Path) -> bool:
+    if path.is_symlink():
+        return True
+    try:
+        attributes = path.stat(follow_symlinks=False).st_file_attributes
+    except (AttributeError, FileNotFoundError, OSError):
+        return False
+    return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
 
 
 @dataclass
@@ -132,5 +144,28 @@ class ProjectRegistry:
         project = self.get(project_id)
         project.status = "active"
         project.archived_at = ""
+        self.save()
+        return project
+
+    def delete_project(self, project_id: str, confirmation: str) -> ProjectRecord:
+        if confirmation != "DELETE":
+            raise ValueError("Type DELETE to confirm project deletion.")
+        project = self.get(project_id)
+        projects_root = self.projects_dir.resolve()
+        raw_workspace_path = Path(project.workspace_dir)
+        if _has_filesystem_link_marker(raw_workspace_path):
+            raise PermissionError("Only managed project workspaces can be deleted from the UI.")
+        workspace_path = raw_workspace_path.resolve()
+        try:
+            workspace_path.relative_to(projects_root)
+        except ValueError as exc:
+            raise PermissionError("Only managed project workspaces can be deleted from the UI.") from exc
+        if workspace_path == projects_root or workspace_path.parent != projects_root or workspace_path.name != project.id:
+            raise PermissionError("Only managed project workspaces can be deleted from the UI.")
+        if workspace_path.exists():
+            if not workspace_path.is_dir():
+                raise PermissionError("Only managed project workspace folders can be deleted from the UI.")
+            shutil.rmtree(workspace_path)
+        self.projects = [item for item in self.projects if item.id != project.id]
         self.save()
         return project

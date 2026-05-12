@@ -40,14 +40,17 @@
                   <td class="col-right cell-mono">{{ row.pending_count }}</td>
                   <td class="col-right cell-mono">{{ row.approved_count }}</td>
                   <td class="col-right">
-                    <form method="post" action="{{ url_for('select_project', project_id=row.project.id) }}" style="display: inline;">
-                      {{ csrf_field()|safe }}
-                      <button class="btn btn-secondary btn-sm" type="submit">Select</button>
-                    </form>
-                    <form method="post" action="{{ url_for('archive_project', project_id=row.project.id) }}" style="display: inline;">
-                      {{ csrf_field()|safe }}
-                      <button class="btn btn-ghost btn-sm" type="submit">Archive</button>
-                    </form>
+                    <div class="project-action-row">
+                      <form method="post" action="{{ url_for('select_project', project_id=row.project.id) }}">
+                        {{ csrf_field()|safe }}
+                        <button class="btn btn-secondary btn-sm" type="submit">Select</button>
+                      </form>
+                      <form method="post" action="{{ url_for('archive_project', project_id=row.project.id) }}">
+                        {{ csrf_field()|safe }}
+                        <button class="btn btn-ghost btn-sm" type="submit">Archive</button>
+                      </form>
+                      <button class="btn btn-danger btn-sm" type="button" data-project-delete-open data-project-name="{{ row.project.name }}" data-delete-url="{{ url_for('delete_project', project_id=row.project.id) }}">Delete</button>
+                    </div>
                   </td>
                 </tr>
               {% else %}
@@ -102,10 +105,13 @@
                   <td class="cell-mono">{{ row.project.name }}</td>
                   <td class="cell-dim">{{ row.project.archived_at or "n/a" }}</td>
                   <td class="col-right">
-                    <form method="post" action="{{ url_for('restore_project', project_id=row.project.id) }}">
-                      {{ csrf_field()|safe }}
-                      <button class="btn btn-secondary btn-sm" type="submit">Restore</button>
-                    </form>
+                    <div class="project-action-row">
+                      <form method="post" action="{{ url_for('restore_project', project_id=row.project.id) }}">
+                        {{ csrf_field()|safe }}
+                        <button class="btn btn-secondary btn-sm" type="submit">Restore</button>
+                      </form>
+                      <button class="btn btn-danger btn-sm" type="button" data-project-delete-open data-project-name="{{ row.project.name }}" data-delete-url="{{ url_for('delete_project', project_id=row.project.id) }}">Delete</button>
+                    </div>
                   </td>
                 </tr>
               {% else %}
@@ -115,6 +121,25 @@
           </table>
         </div>
       </section>
+
+      <dialog class="delete-dialog" data-project-delete-dialog>
+        <form class="delete-dialog-body" method="post">
+          {{ csrf_field()|safe }}
+          <div>
+            <span class="panel-title">Delete project</span>
+            <p class="form-help">Are you sure?</p>
+          </div>
+          <p class="delete-dialog-warning">This deletes the project registry entry and the managed project workspace for <span data-project-delete-name>this project</span>.</p>
+          <label>
+            <span class="form-label">Type DELETE to confirm</span>
+            <input class="form-input" name="delete_confirmation" autocomplete="off" required pattern="DELETE" data-project-delete-input>
+          </label>
+          <div class="dialog-actions">
+            <button class="btn btn-ghost" type="button" data-project-delete-cancel>Cancel</button>
+            <button class="btn btn-danger" type="submit" disabled data-project-delete-submit>Delete project</button>
+          </div>
+        </form>
+      </dialog>
     </div>
   </div>
 {% endblock %}

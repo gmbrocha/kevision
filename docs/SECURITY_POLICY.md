@@ -1,6 +1,6 @@
 # Security Policy
 
-Status: project-level security policy summary as of 2026-05-10.
+Status: project-level security policy summary as of 2026-05-12.
 
 ## Current Project Exception
 
@@ -52,6 +52,13 @@ operational records: they can include candidate geometry, OCR/context text,
 reviewer notes, reviewer identity from Cloudflare Access headers, and
 provisional AI metadata. They must not be committed or shared as client-facing
 deliverables.
+
+Project deletion is available only from the Projects UI through a destructive
+dialog that requires typing `DELETE`. The backend limits deletion to the direct
+app-managed workspace for that project id and refuses unmanaged, linked,
+reparse-point, nested, or cross-project paths. Deletion is blocked while the
+target project has a bulk review job running. Use it for disposable test
+cleanup only; archive remains the non-destructive option.
 
 The current audit baseline requires `urllib3>=2.7.0`. Local CUDA `torch`,
 `torchaudio`, and `torchvision` wheels may be skipped by `pip-audit` because

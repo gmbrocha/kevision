@@ -2,6 +2,25 @@
 
 Status: canonical application decision log.
 
+## 2026-05-12 - Project Deletion Is Explicit And Hard-Gated
+
+Decision: The Projects UI can delete a project only through a destructive
+dialog that requires typing `DELETE`. The backend removes the registry entry
+and the direct managed workspace folder under the app-owned projects root, only
+when that folder is the direct workspace matching the project id.
+
+Reason: Local testing needs a fast way to clean throwaway project workspaces
+without broad filesystem cleanup or manual folder deletion.
+
+Consequences / follow-up:
+
+- Archive remains non-destructive.
+- Delete refuses unmanaged, custom, symlinked, reparse-point, nested, or
+  cross-project workspace paths.
+- Delete is blocked while the target project has an active bulk review job.
+- Delete is destructive and has no undo; use it only for test or intentionally
+  disposable projects.
+
 ## 2026-05-11 - Revision Package Order Is Explicit Project State
 
 Decision: Staged drawing packages carry an explicit user-managed positive

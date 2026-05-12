@@ -14,6 +14,7 @@ import fitz
 import pytest
 
 import backend.cli as cli_module
+import backend.projects as projects_module
 from backend.bulk_review_jobs import BulkReviewJobConflict, BulkReviewJobManager
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
@@ -980,6 +981,11 @@ def test_bulk_review_running_allows_get_navigation_and_blocks_mutations(tmp_path
         headers={"Accept": "application/json"},
     )
     export_response = client.post("/export/run", headers={"Accept": "application/json"})
+    delete_response = client.post(
+        "/projects/test-project/delete",
+        data={"delete_confirmation": "DELETE"},
+        headers={"Accept": "application/json"},
+    )
     duplicate_bulk = client.post(
         "/changes/bulk-review",
         data={"change_ids": ["change-1"], "status": "rejected", "redirect_to": "/changes"},
@@ -992,6 +998,7 @@ def test_bulk_review_running_allows_get_navigation_and_blocks_mutations(tmp_path
     assert b"data-bulk-review-status" in get_responses[0].data
     assert review_response.status_code == 409
     assert export_response.status_code == 409
+    assert delete_response.status_code == 409
     assert duplicate_bulk.status_code == 409
 
 
@@ -3420,6 +3427,161 @@ def test_project_creation_uses_managed_app_project_root(tmp_path: Path):
     assert Path(project.workspace_dir) == tmp_path / "projects" / "test-revision-2"
     assert Path(project.input_dir) == tmp_path / "projects" / "test-revision-2" / "input"
     assert (tmp_path / "projects" / "test-revision-2" / "workspace.json").exists()
+
+
+def test_projects_page_renders_delete_gate(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+
+    response = client.get("/projects")
+
+    assert response.status_code == 200
+    assert b"data-project-delete-open" in response.data
+    assert b"data-project-delete-dialog" in response.data
+    assert b"Are you sure?" in response.data
+    assert b"Type DELETE to confirm" in response.data
+    assert b"/projects/test-project/delete" in response.data
+
+
+def test_project_delete_requires_uppercase_confirmation(tmp_path: Path):
+    registry = ProjectRegistry(tmp_path).load()
+    project = registry.create_project("Scratch Project")
+    workspace_dir = Path(project.workspace_dir)
+    marker = workspace_dir / "outputs" / "marker.txt"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("generated output", encoding="utf-8")
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    rejected = client.post(f"/projects/{project.id}/delete", data={"delete_confirmation": "delete"})
+
+    assert rejected.status_code == 302
+    assert workspace_dir.exists()
+    assert marker.exists()
+    assert [item.id for item in ProjectRegistry(tmp_path).load().projects] == [project.id]
+
+    deleted = client.post(f"/projects/{project.id}/delete", data={"delete_confirmation": "DELETE"})
+
+    assert deleted.status_code == 302
+    assert not workspace_dir.exists()
+    assert ProjectRegistry(tmp_path).load().projects == []
+
+
+def test_project_delete_refuses_non_managed_workspace(tmp_path: Path):
+    app_data_dir = tmp_path / "app-data"
+    outside_input = tmp_path / "outside-workspace" / "input"
+    outside_store = WorkspaceStore(tmp_path / "outside-workspace").create(outside_input)
+    registry = ProjectRegistry(app_data_dir).load()
+    registry.projects = [
+        ProjectRecord(
+            id="outside-project",
+            name="Outside Project",
+            workspace_dir=str(outside_store.workspace_dir.resolve()),
+            input_dir=outside_store.data.input_dir,
+            status="active",
+            created_at=outside_store.data.created_at,
+        )
+    ]
+    registry.save()
+    app = create_app(app_data_dir)
+    client = app.test_client()
+
+    response = client.post("/projects/outside-project/delete", data={"delete_confirmation": "DELETE"})
+
+    assert response.status_code == 302
+    assert outside_store.workspace_dir.exists()
+    assert [item.id for item in ProjectRegistry(app_data_dir).load().projects] == ["outside-project"]
+
+
+def test_project_delete_refuses_cross_project_managed_path(tmp_path: Path):
+    registry = ProjectRegistry(tmp_path).load()
+    first = registry.create_project("First Project")
+    second = registry.create_project("Second Project")
+    first_workspace = Path(first.workspace_dir)
+    second_workspace = Path(second.workspace_dir)
+    first.workspace_dir = second.workspace_dir
+    registry.save()
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post(f"/projects/{first.id}/delete", data={"delete_confirmation": "DELETE"})
+
+    assert response.status_code == 302
+    assert first_workspace.exists()
+    assert second_workspace.exists()
+    assert [item.id for item in ProjectRegistry(tmp_path).load().projects] == [first.id, second.id]
+
+
+def test_project_delete_refuses_nested_managed_path(tmp_path: Path):
+    registry = ProjectRegistry(tmp_path).load()
+    project = registry.create_project("Nested Scratch Project")
+    root_workspace = Path(project.workspace_dir)
+    nested_workspace = root_workspace / "nested"
+    nested_workspace.mkdir()
+    marker = nested_workspace / "marker.txt"
+    marker.write_text("do not delete", encoding="utf-8")
+    project.workspace_dir = str(nested_workspace.resolve())
+    registry.save()
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post(f"/projects/{project.id}/delete", data={"delete_confirmation": "DELETE"})
+
+    assert response.status_code == 302
+    assert root_workspace.exists()
+    assert marker.exists()
+    assert [item.id for item in ProjectRegistry(tmp_path).load().projects] == [project.id]
+
+
+def test_project_delete_refuses_filesystem_link_marker(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    registry = ProjectRegistry(tmp_path).load()
+    project = registry.create_project("Linked Scratch Project")
+    workspace_dir = Path(project.workspace_dir)
+    marker = workspace_dir / "marker.txt"
+    marker.write_text("do not delete", encoding="utf-8")
+    monkeypatch.setattr(projects_module, "_has_filesystem_link_marker", lambda path: Path(path) == workspace_dir)
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post(f"/projects/{project.id}/delete", data={"delete_confirmation": "DELETE"})
+
+    assert response.status_code == 302
+    assert marker.exists()
+    assert [item.id for item in ProjectRegistry(tmp_path).load().projects] == [project.id]
+
+
+def test_project_delete_keeps_registry_when_workspace_removal_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    registry = ProjectRegistry(tmp_path).load()
+    project = registry.create_project("Locked Project")
+    workspace_dir = Path(project.workspace_dir)
+
+    def fail_rmtree(path):
+        raise OSError("workspace is locked")
+
+    monkeypatch.setattr(projects_module.shutil, "rmtree", fail_rmtree)
+    app = create_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post(f"/projects/{project.id}/delete", data={"delete_confirmation": "DELETE"})
+
+    assert response.status_code == 302
+    assert workspace_dir.exists()
+    assert [item.id for item in ProjectRegistry(tmp_path).load().projects] == [project.id]
+
+
+def test_production_project_delete_requires_csrf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv("SCOPELEDGER_WEBAPP_SECRET", "test-production-secret")
+    registry = ProjectRegistry(tmp_path).load()
+    project = registry.create_project("Protected Project")
+    workspace_dir = Path(project.workspace_dir)
+    app = create_app(tmp_path, production=True)
+    client = app.test_client()
+
+    response = client.post(f"/projects/{project.id}/delete", data={"delete_confirmation": "DELETE"})
+
+    assert response.status_code == 400
+    assert workspace_dir.exists()
+    assert [item.id for item in ProjectRegistry(tmp_path).load().projects] == [project.id]
 
 
 def test_cli_reset_projects_clears_registry_without_deleting_workspace(tmp_path: Path):

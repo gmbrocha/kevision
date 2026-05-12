@@ -306,6 +306,7 @@ def create_app(
         "select_project",
         "archive_project",
         "restore_project",
+        "delete_project",
         "static",
     }
     bulk_review_locked_post_endpoints = {
@@ -1205,6 +1206,33 @@ def create_app(
         session["project_id"] = project.id
         flash(f"Restored {project.name}.", "success")
         return redirect(url_for("dashboard"))
+
+    @app.post("/projects/<project_id>/delete")
+    def delete_project(project_id: str):
+        if bulk_review_manager.has_running_job(project_id):
+            return bulk_review_block_response()
+        confirmation = request.form.get("delete_confirmation", "")
+        try:
+            project = registry.delete_project(project_id, confirmation)
+        except KeyError:
+            abort(404)
+        except ValueError as exc:
+            flash(str(exc), "warning")
+            return redirect(url_for("projects"))
+        except PermissionError as exc:
+            flash(str(exc), "warning")
+            return redirect(url_for("projects"))
+        except OSError as exc:
+            flash(f"Project deletion failed: {exc}", "warning")
+            return redirect(url_for("projects"))
+        if session.get("project_id") == project.id:
+            active = registry.active_projects()
+            if active:
+                session["project_id"] = active[0].id
+            else:
+                session.pop("project_id", None)
+        flash(f"Deleted {project.name} and its managed project workspace.", "success")
+        return redirect(url_for("projects"))
 
     @app.route("/")
     def index():
