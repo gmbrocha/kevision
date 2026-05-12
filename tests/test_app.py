@@ -4452,6 +4452,70 @@ def test_conformed_page_ignores_duplicate_same_revision_versions(tmp_path: Path)
     assert b"No prior version" in all_sheets.data
     assert b"<span>1 prior</span>" not in all_sheets.data
 
+    drawings_superseded = client.get("/sheets?status=superseded")
+    drawings_all = client.get("/sheets")
+    assert drawings_superseded.status_code == 200
+    assert b"No drawings match the current filters." in drawings_superseded.data
+    assert drawings_all.status_code == 200
+    assert b"2 active sheets" in drawings_all.data
+    assert b"badge-superseded" not in drawings_all.data
+
+
+def test_drawings_page_superseded_filter_uses_later_revision_only(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1",
+            source_dir=str(input_dir / "Revision #1"),
+            set_number=1,
+            set_date="05/01/2026",
+        ),
+        RevisionSet(
+            id="rev-2",
+            label="Revision #2",
+            source_dir=str(input_dir / "Revision #2"),
+            set_number=2,
+            set_date="05/11/2026",
+        ),
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-pl511-r1",
+            revision_set_id="rev-1",
+            source_pdf="rev1.pdf",
+            page_number=33,
+            sheet_id="PL511",
+            sheet_title="Riser Diagram",
+            issue_date="05/01/2026",
+            status="superseded",
+        ),
+        SheetVersion(
+            id="sheet-pl511-r2",
+            revision_set_id="rev-2",
+            source_pdf="rev2.pdf",
+            page_number=33,
+            sheet_id="PL511",
+            sheet_title="Riser Diagram",
+            issue_date="05/11/2026",
+            status="active",
+        ),
+    ]
+    store.save()
+    register_workspace_project(workspace_dir)
+    app = create_app(workspace_dir)
+    client = app.test_client()
+
+    drawings_superseded = client.get("/sheets?status=superseded")
+
+    assert drawings_superseded.status_code == 200
+    assert b"PL511" in drawings_superseded.data
+    assert b"1 active sheets - 1 superseded" in drawings_superseded.data
+    assert b"badge-superseded" in drawings_superseded.data
+
 
 def test_navbar_includes_conformed_link(workspace_copy):
     app = create_app(workspace_copy)

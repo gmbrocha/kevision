@@ -9,6 +9,7 @@ import shutil
 import time
 import uuid
 from collections import Counter
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -173,6 +174,24 @@ def latest_real_sheet_version(sheet, all_sheets: list, revision_sets_by_id: dict
         ),
     )
     return ranked[0]
+
+
+def sheet_has_later_real_revision(sheet, all_sheets: list, revision_sets_by_id: dict) -> bool:
+    current_revision = revision_sets_by_id.get(sheet.revision_set_id)
+    if current_revision is None:
+        return False
+    current_number = current_revision.set_number
+    for candidate in all_sheets:
+        if candidate.id == sheet.id or candidate.sheet_id != sheet.sheet_id or sheet_is_index_like(candidate):
+            continue
+        candidate_revision = revision_sets_by_id.get(candidate.revision_set_id)
+        if candidate_revision and candidate_revision.set_number > current_number:
+            return True
+    return False
+
+
+def sheet_status_for_drawings(sheet, all_sheets: list, revision_sets_by_id: dict) -> str:
+    return "superseded" if sheet_has_later_real_revision(sheet, all_sheets, revision_sets_by_id) else "active"
 
 
 HIGH_RES_SHEET_SCALE = 2.25
@@ -1748,10 +1767,16 @@ def create_app(
                 include_index_matches=include_index_matches,
                 index_match_count=0,
             )
-        active_sheet_count = len([sheet for sheet in store.data.sheets if sheet.status == "active"])
-        superseded_sheet_count = len([sheet for sheet in store.data.sheets if sheet.status == "superseded"])
+        revision_sets_by_id = {revision_set.id: revision_set for revision_set in store.data.revision_sets}
+        rendered_sheets = [
+            replace(sheet, status=sheet_status_for_drawings(sheet, store.data.sheets, revision_sets_by_id))
+            for sheet in store.data.sheets
+        ]
+        countable_sheets = [sheet for sheet in rendered_sheets if not sheet_is_index_like(sheet)]
+        active_sheet_count = len([sheet for sheet in countable_sheets if sheet.status == "active"])
+        superseded_sheet_count = len([sheet for sheet in countable_sheets if sheet.status == "superseded"])
         index_match_count = len([sheet for sheet in store.data.sheets if sheet_is_index_like(sheet)])
-        all_sheets = store.data.sheets
+        all_sheets = rendered_sheets
         if filter_status != "all":
             all_sheets = [sheet for sheet in all_sheets if sheet.status == filter_status]
         if not include_index_matches:
