@@ -37,6 +37,11 @@ def scanned_workspace_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return workspace_dir
 
 
+@pytest.fixture(autouse=True)
+def _enable_review_capture_by_default(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("REVIEW_CAPTURE", "true")
+
+
 @pytest.fixture()
 def workspace_copy(tmp_path: Path, scanned_workspace_dir: Path) -> Path:
     destination = tmp_path / "workspace"

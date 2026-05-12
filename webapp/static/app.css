@@ -761,6 +761,11 @@ input, textarea, select { font-family: inherit; }
   align-items: end;
 }
 
+.package-import-grid {
+  grid-template-columns: minmax(180px, 0.95fr) max-content minmax(360px, 1.8fr);
+  column-gap: var(--sp-2);
+}
+
 .project-create-grid {
   display: grid;
   grid-template-columns: minmax(180px, 0.85fr) minmax(180px, 0.85fr) minmax(300px, 1.5fr);
@@ -848,6 +853,29 @@ input, textarea, select { font-family: inherit; }
   color: var(--text-primary);
   font-size: var(--text-sm);
   outline: none;
+}
+
+.revision-number-cell {
+  inline-size: 5.25rem;
+  min-inline-size: 5.25rem;
+}
+
+.form-input.revision-number-input {
+  inline-size: 5.25rem;
+  width: 5.25rem;
+  min-width: 0;
+  padding-inline: var(--sp-2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color-scheme: dark;
+}
+
+.form-input.revision-number-input::-webkit-inner-spin-button,
+.form-input.revision-number-input::-webkit-outer-spin-button {
+  opacity: 1;
+  background: var(--surface-input);
+  color: var(--text-primary);
+  filter: brightness(1.35) sepia(0.18) saturate(1.2);
 }
 
 .form-input:focus,

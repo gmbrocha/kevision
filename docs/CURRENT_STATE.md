@@ -69,7 +69,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   candidate, optional Pre Review metadata, and the human final result for
   future internal QA, audit, and pipeline analysis. They are not exposed in the
   normal UI or client-facing exports; use the CLI-only JSONL export when
-  needed. Bulk accept/reject now runs as an in-memory background job: the
+  needed. For local test sessions, setting `REVIEW_CAPTURE=false` disables new
+  `review_events` writes while leaving normal review state changes enabled.
+  Bulk accept/reject now runs as an in-memory background job: the
   browser can continue navigating read-only pages, each changed item still
   gets its own review event, and the job commits the workspace in one save.
   Other workspace mutations are temporarily blocked until the job finishes.
@@ -101,6 +103,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number
   from a strictly earlier real revision set.
+- Latest Set revision chains also require strictly earlier revision numbers.
+  Duplicate sheet-number detections inside the same package do not count as
+  prior versions in the conformed/latest-set view.
 - Handoff hardening pass is complete for the current web app surface: review
   status writes are validated, form redirects are constrained to local paths,
   project-root asset serving is limited to generated image assets, manual
@@ -118,7 +123,8 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Remote browser PDF intake now uses chunked upload endpoints for selected
   files/folders, with 8 MiB chunks reconstructed inside the active project
   workspace before Populate runs. This avoids Cloudflare request-body 413s for
-  large package PDFs while preserving the normal manual server-path fallback.
+  large package PDFs. The client-facing Overview UI no longer shows manual
+  server-path import fields.
   Failed or abandoned chunk sessions are cleaned by browser abort calls when
   possible and by automatic stale cleanup under `.chunked_uploads/`. Uploads
   are capped by `SCOPELEDGER_MAX_UPLOAD_BYTES`, defaulting to `2 GiB`.
@@ -327,9 +333,10 @@ human confirmation/correction before training use.
 - During the next populate/review, verify that index pages do not create review
   items and that previous/current comparison only matches the same sheet from
   a strictly earlier revision set.
-- During the next review smoke, confirm normal accept/reject and Pre Review
-  selection create internal review events, then export them with the CLI-only
-  `export-review-events` command if analysis is needed.
+- After `REVIEW_CAPTURE` is re-enabled for real client review, confirm normal
+  accept/reject and Pre Review selection create internal review events, then
+  export them with the CLI-only `export-review-events` command if analysis is
+  needed.
 - During the next review smoke, resize one oversized crop with `Adjust crop`,
   confirm the regenerated crop stays on the same review item, and verify the
   JSONL review-event export contains a `resize` event.

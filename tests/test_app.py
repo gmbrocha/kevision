@@ -749,6 +749,49 @@ def test_record_bulk_review_updates_saves_once_and_creates_review_events(tmp_pat
     assert all(event.action == "accept" for event in loaded.data.review_events)
 
 
+def test_review_capture_false_updates_review_state_without_events(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("REVIEW_CAPTURE", "false")
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.save()
+
+    updated, event = record_review_update(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        changes={"status": "approved", "reviewer_text": "Testing only"},
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+        action="accept",
+    )
+    assert updated.status == "approved"
+    assert event is None
+
+    bulk_result = record_bulk_review_updates(
+        store,
+        project_id="test-project",
+        item_changes={"change-2": {"status": "rejected", "reviewer_text": "Testing reject"}},
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+        action="reject",
+    )
+    assert bulk_result.updated_count == 1
+    assert bulk_result.events == []
+
+    internal_event = record_internal_review_event(
+        store,
+        project_id="test-project",
+        change_id="change-1",
+        action="resize",
+        human_result_overrides={"final_geometry": {"boxes": [[82, 42, 90, 50]]}},
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert internal_event is None
+    assert [item.status for item in loaded.data.change_items] == ["approved", "rejected"]
+    assert loaded.data.review_events == []
+
+
 def test_bulk_review_route_accept_all_writes_workspace_once(tmp_path: Path, monkeypatch):
     store = build_pre_review_test_store(tmp_path)
     append_pre_review_test_item(store, 2)
@@ -1080,6 +1123,32 @@ def test_overmerge_split_creates_child_items_and_review_event(tmp_path: Path):
     assert event.action == "split"
     assert event.original_candidate_json["cloud_candidate"]["bbox"] == [80, 40, 120, 80]
     assert len(event.human_result_json["split_child_geometries"]) == 2
+
+
+def test_geometry_correction_respects_review_capture_false(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("REVIEW_CAPTURE", "false")
+    store = build_pre_review_test_store(tmp_path)
+    store.data.change_items = [replace(store.data.change_items[0], queue_order=1000)]
+    store.save()
+    parent = store.data.change_items[0]
+
+    result = apply_geometry_correction(
+        store,
+        parent,
+        store.data.clouds[0],
+        store.data.sheets[0],
+        mode="partial",
+        crop_boxes=[[30, 20, 70, 50]],
+        project_id="test-project",
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+
+    assert result.event is None
+    assert loaded.get_change_item(parent.id).superseded_reason == "partial_correction"
+    assert len(result.child_items) == 1
+    assert loaded.data.review_events == []
 
 
 def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path: Path):
@@ -3126,6 +3195,7 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
     monkeypatch.delenv("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS", raising=False)
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_ENABLED", raising=False)
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_MODEL", raising=False)
+    monkeypatch.delenv("REVIEW_CAPTURE", raising=False)
 
     env_dir = tmp_path / "CloudHammer"
     env_dir.mkdir()
@@ -3138,6 +3208,7 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
                 "SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS=120",
                 "SCOPELEDGER_PREREVIEW_ENABLED=1",
                 'SCOPELEDGER_PREREVIEW_MODEL="test-model"',
+                "REVIEW_CAPTURE=false",
                 "UNRELATED_SECRET=do-not-load",
             ]
         ),
@@ -3151,6 +3222,7 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
     assert os.environ["SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS"] == "120"
     assert os.environ["SCOPELEDGER_PREREVIEW_ENABLED"] == "1"
     assert os.environ["SCOPELEDGER_PREREVIEW_MODEL"] == "test-model"
+    assert os.environ["REVIEW_CAPTURE"] == "false"
     assert "UNRELATED_SECRET" not in os.environ
     assert app.config["SCOPELEDGER_LOADED_ENV_FILES"] == (env_path.resolve(),)
     provider = app.config["PRE_REVIEW_PROVIDER"]
@@ -3628,6 +3700,53 @@ def test_chunked_browser_import_reconstructs_pdf_package(tmp_path: Path):
     store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
     assert store.data.staged_packages[0].label == "Chunked Package"
     assert store.data.staged_packages[0].revision_number == 1
+
+
+def test_chunked_folder_import_uses_single_positive_revision_number(tmp_path: Path):
+    first_payload = b"%PDF-1.7\nfolder-first\n%%EOF"
+    second_payload = b"%PDF-1.7\nfolder-second\n%%EOF"
+    app = create_app(tmp_path)
+    client = app.test_client()
+    created = client.post("/projects", data={"name": "Fresh Project"})
+    assert created.status_code == 302
+
+    init = client.post(
+        "/uploads/chunked/init",
+        json={
+            "purpose": "import_package",
+            "package_label": "",
+            "revision_number": 7,
+            "files": [
+                {"name": "floor_plan.pdf", "relative_path": "Revision #7/floor_plan.pdf", "size": len(first_payload)},
+                {"name": "riser.pdf", "relative_path": "Revision #7/plumbing/riser.pdf", "size": len(second_payload)},
+            ],
+        },
+    )
+    assert init.status_code == 200
+    upload_id = init.get_json()["upload_id"]
+
+    for index, payload in enumerate([first_payload, second_payload]):
+        response = client.post(
+            "/uploads/chunked/chunk",
+            data={
+                "upload_id": upload_id,
+                "file_index": str(index),
+                "chunk_index": "0",
+                "chunk": (io.BytesIO(payload), f"chunk-{index}.part"),
+            },
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+
+    complete = client.post("/uploads/chunked/complete", json={"upload_id": upload_id})
+
+    assert complete.status_code == 200
+    input_dir = tmp_path / "projects" / "fresh-project" / "input"
+    assert (input_dir / "Revision #7" / "floor_plan.pdf").read_bytes() == first_payload
+    assert (input_dir / "Revision #7" / "plumbing" / "riser.pdf").read_bytes() == second_payload
+    store = WorkspaceStore(tmp_path / "projects" / "fresh-project").load()
+    assert store.data.staged_packages[0].label == "Revision #7"
+    assert store.data.staged_packages[0].revision_number == 7
 
 
 def test_chunked_upload_rejects_non_pdf(tmp_path: Path):
@@ -4205,7 +4324,12 @@ def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
     assert b"Project Files and Packages" in body
     assert b"Choose PDF(s)" in body
     assert b"Choose folder" in body
-    assert b"Manual server path" in body
+    assert b"Browse Local Files" in body
+    assert b'class="btn btn-secondary" for="package-folder-input">Choose folder' in body
+    assert b"class=\"form-input revision-number-input\"" in body
+    assert b"Manual server path" not in body
+    assert b"Manual path is for server-local imports" not in body
+    assert b"Assign a positive revision number before importing a package." not in body
     assert b'name="package_files"' in body
     assert b'name="append_files"' in body
     assert b"Populate Workspace" in body
@@ -4256,10 +4380,77 @@ def test_conformed_page_lists_revised_sheets_by_default(workspace_copy):
     assert b"Latest Set" in body
     assert b"Revised only" in body
     assert b"Revised" in body
+    assert b"What this is" not in body
+    assert b"detected and deprioritized" not in body
 
     response_all = client.get("/conformed?show=all")
     assert response_all.status_code == 200
     assert response_all.data.count(b"conformed-card") >= response.data.count(b"conformed-card")
+
+
+def test_drawings_page_keeps_index_toggle_without_explanatory_callout(workspace_copy):
+    app = create_app(workspace_copy)
+    client = app.test_client()
+
+    response = client.get("/sheets")
+
+    assert response.status_code == 200
+    assert b"Drawings" in response.data
+    assert b"Show index matches" in response.data or b"Hide index matches" in response.data
+    assert b"sheet-index matches are hidden" not in response.data
+    assert b"not necessarily the drawing page itself" not in response.data
+
+
+def test_conformed_page_ignores_duplicate_same_revision_versions(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1",
+            source_dir=str(input_dir / "Revision #1"),
+            set_number=1,
+            set_date="05/11/2026",
+        )
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-pl511-a",
+            revision_set_id="rev-1",
+            source_pdf="rev1.pdf",
+            page_number=33,
+            sheet_id="PL511",
+            sheet_title="Riser Diagram Notes",
+            issue_date="05/11/2026",
+            status="superseded",
+        ),
+        SheetVersion(
+            id="sheet-pl511-b",
+            revision_set_id="rev-1",
+            source_pdf="rev1.pdf",
+            page_number=40,
+            sheet_id="PL511",
+            sheet_title="Riser Diagram",
+            issue_date="05/11/2026",
+            status="active",
+        ),
+    ]
+    store.save()
+    register_workspace_project(workspace_dir)
+    app = create_app(workspace_dir)
+    client = app.test_client()
+
+    revised = client.get("/conformed")
+    all_sheets = client.get("/conformed?show=all")
+
+    assert revised.status_code == 200
+    assert b"No sheets match the current filter." in revised.data
+    assert all_sheets.status_code == 200
+    assert b"PL511" in all_sheets.data
+    assert b"No prior version" in all_sheets.data
+    assert b"<span>1 prior</span>" not in all_sheets.data
 
 
 def test_navbar_includes_conformed_link(workspace_copy):

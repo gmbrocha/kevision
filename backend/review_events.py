@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
@@ -17,6 +18,8 @@ from .workspace import WorkspaceStore
 
 REVIEW_EVENT_SCHEMA = "scopeledger.review_event.v1"
 REVIEW_EVENT_APP_VERSION = "scopeledger_app_review_events_v1"
+REVIEW_CAPTURE_ENV = "REVIEW_CAPTURE"
+REVIEW_CAPTURE_DISABLED_VALUES = {"0", "false", "no", "off", "disabled"}
 VALID_REVIEW_EVENT_ACTIONS = {
     "accept",
     "reject",
@@ -64,7 +67,7 @@ def record_review_update(
             notes=notes,
             human_result_overrides=human_result_overrides,
         )
-        if inferred_action
+        if inferred_action and review_capture_enabled()
         else None
     )
 
@@ -99,6 +102,7 @@ def record_bulk_review_updates(
     updated_items: list[ChangeItem] = []
     new_items: list[ChangeItem] = []
     explicit_action = _valid_action(action)
+    capture_enabled = review_capture_enabled()
     for before in store.data.change_items:
         changes = requested_changes.get(before.id)
         if changes is None:
@@ -109,7 +113,7 @@ def record_bulk_review_updates(
             new_items.append(before)
             continue
         inferred_action = explicit_action or classify_review_action(before, after)
-        if inferred_action:
+        if inferred_action and capture_enabled:
             events.append(
                 build_review_event(
                     store,
@@ -145,9 +149,11 @@ def record_internal_review_event(
     review_session_id: str | None = None,
     notes: str | None = None,
     human_result_overrides: dict[str, Any] | None = None,
-) -> ReviewEvent:
+) -> ReviewEvent | None:
     if action not in VALID_REVIEW_EVENT_ACTIONS:
         raise ValueError(f"Unsupported review event action: {action}")
+    if not review_capture_enabled():
+        return None
     item = store.get_change_item(change_id)
     event = build_review_event(
         store,
@@ -163,6 +169,11 @@ def record_internal_review_event(
     store.data.review_events.append(event)
     store.save()
     return event
+
+
+def review_capture_enabled() -> bool:
+    value = os.getenv(REVIEW_CAPTURE_ENV, "true").strip().lower()
+    return value not in REVIEW_CAPTURE_DISABLED_VALUES
 
 
 def build_review_event(

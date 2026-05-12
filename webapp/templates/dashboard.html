@@ -141,31 +141,27 @@
               <div class="package-card-head">
                 <div>
                   <span class="panel-title">Import new package</span>
-                  <p class="form-help">Choose PDFs or a folder from this browser. Large files upload in chunks for remote review. Manual path is for server-local imports. After staging files, populate the workspace.</p>
+                  <p class="form-help">Choose PDFs or a folder from this browser. Large files upload in chunks for remote review. After staging files, populate the workspace.</p>
                 </div>
                 <button class="btn btn-primary js-generate-button" type="submit" data-loading-text="Uploading..." {% if bulk_review_job_running %}disabled{% endif %}>Import package</button>
               </div>
-              <div class="package-form-grid">
+              <div class="package-form-grid package-import-grid">
                 <label>
                   <span class="form-label">Optional package name</span>
                   <input class="form-input" name="package_label" placeholder="Package name">
                 </label>
                 <label>
                   <span class="form-label">Revision number</span>
-                  <input class="form-input" name="revision_number" type="number" min="1" step="1" placeholder="1">
+                  <input class="form-input revision-number-input" name="revision_number" type="number" min="1" step="1" required placeholder="1">
                 </label>
                 <div class="file-picker">
-                  <span class="form-label">File dialog</span>
+                  <span class="form-label">Browse Local Files</span>
                   <input id="package-files-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple data-summary-target="#package-file-summary">
                   <label class="btn btn-secondary" for="package-files-input">Choose PDF(s)</label>
                   <input id="package-folder-input" class="js-file-input" type="file" name="package_files" accept="application/pdf,.pdf" multiple webkitdirectory data-summary-target="#package-file-summary">
-                  <label class="btn btn-ghost" for="package-folder-input">Choose folder</label>
+                  <label class="btn btn-secondary" for="package-folder-input">Choose folder</label>
                   <span class="file-picker-summary" id="package-file-summary">No files selected</span>
                 </div>
-                <label>
-                  <span class="form-label">Manual server path</span>
-                  <input class="form-input" name="source_path" placeholder="Optional folder or PDF path on server">
-                </label>
               </div>
               <div class="chunked-upload-status" data-upload-status hidden>
                 <div class="chunked-upload-status-line">
@@ -213,15 +209,11 @@
                   </select>
                 </label>
                 <div class="file-picker">
-                  <span class="form-label">File dialog</span>
+                  <span class="form-label">Browse Local Files</span>
                   <input id="append-files-input" class="js-file-input" type="file" name="append_files" accept="application/pdf,.pdf" multiple data-summary-target="#append-file-summary">
                   <label class="btn btn-secondary" for="append-files-input">Choose PDF(s)</label>
                   <span class="file-picker-summary" id="append-file-summary">No files selected</span>
                 </div>
-                <label>
-                  <span class="form-label">Manual server path</span>
-                  <input class="form-input" name="source_path" placeholder="Optional PDF path on server">
-                </label>
               </div>
               <div class="chunked-upload-status" data-upload-status hidden>
                 <div class="chunked-upload-status-line">
@@ -308,8 +300,8 @@
                       {% if row.revision_set and row.revision_set.label == current_package_label %}<span class="nav-pkg-dot"></span>{% endif %}
                       {{ row.package.label }}
                     </td>
-                    <td style="max-width: 110px;">
-                      <input class="form-input" name="revision_number_{{ row.package.id }}" type="number" min="1" step="1" required value="{{ row.package.revision_number or '' }}" aria-label="Revision number for {{ row.package.label }}">
+                    <td class="revision-number-cell">
+                      <input class="form-input revision-number-input" name="revision_number_{{ row.package.id }}" type="number" min="1" step="1" required value="{{ row.package.revision_number or '' }}" aria-label="Revision number for {{ row.package.label }}">
                     </td>
                     <td class="cell-secondary">{{ row.revision_set.set_date if row.revision_set else "n/a" }}</td>
                     <td class="cell-secondary">{{ row.discipline }}</td>

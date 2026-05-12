@@ -7,7 +7,7 @@ from typing import Any
 
 from .crop_adjustments import CropAdjustmentError, build_crop_adjustment_context, crop_box_to_page_box, render_adjusted_crop
 from .pre_review import PRE_REVIEW_1, PRE_REVIEW_2, PRE_REVIEW_KEY
-from .review_events import build_review_event
+from .review_events import build_review_event, review_capture_enabled
 from .review_queue import ensure_queue_order, is_superseded, replacement_queue_order
 from .revision_state.models import ChangeItem, CloudCandidate, ReviewEvent, SheetVersion
 from .utils import clean_display_text, normalize_text
@@ -28,7 +28,7 @@ class GeometryCorrectionResult:
     parent_item: ChangeItem
     child_items: list[ChangeItem]
     child_clouds: list[CloudCandidate]
-    event: ReviewEvent
+    event: ReviewEvent | None
 
 
 def apply_geometry_correction(
@@ -122,35 +122,38 @@ def apply_geometry_correction(
         superseded_at=created_at,
     )
     action = "split" if mode == "overmerge" else "resize"
-    event = build_review_event(
-        store,
-        project_id=project_id,
-        before_item=parent_item,
-        after_item=superseded_parent,
-        action=action,
-        reviewer_id=reviewer_id,
-        review_session_id=review_session_id,
-        human_result_overrides={
-            "final_geometry": {"boxes": page_boxes},
-            "replacement_change_item_ids": [item.id for item in child_items],
-            "replacement_cloud_candidate_ids": [cloud.id for cloud in child_clouds],
-            "split_child_geometries": [
-                {
-                    "change_item_id": item.id,
-                    "cloud_candidate_id": cloud.id,
-                    "page_box": box,
-                    "crop_box": crop_box,
-                }
-                for item, cloud, box, crop_box in zip(child_items, child_clouds, page_boxes, normalized_crop_boxes)
-            ],
-            "correction_mode": mode,
-            "superseded_reason": reason,
-        },
-    )
+    event = None
+    if review_capture_enabled():
+        event = build_review_event(
+            store,
+            project_id=project_id,
+            before_item=parent_item,
+            after_item=superseded_parent,
+            action=action,
+            reviewer_id=reviewer_id,
+            review_session_id=review_session_id,
+            human_result_overrides={
+                "final_geometry": {"boxes": page_boxes},
+                "replacement_change_item_ids": [item.id for item in child_items],
+                "replacement_cloud_candidate_ids": [cloud.id for cloud in child_clouds],
+                "split_child_geometries": [
+                    {
+                        "change_item_id": item.id,
+                        "cloud_candidate_id": cloud.id,
+                        "page_box": box,
+                        "crop_box": crop_box,
+                    }
+                    for item, cloud, box, crop_box in zip(child_items, child_clouds, page_boxes, normalized_crop_boxes)
+                ],
+                "correction_mode": mode,
+                "superseded_reason": reason,
+            },
+        )
 
     _replace_parent_and_insert_children(store, superseded_parent, child_items)
     store.data.clouds.extend(child_clouds)
-    store.data.review_events.append(event)
+    if event is not None:
+        store.data.review_events.append(event)
     store.save()
     return GeometryCorrectionResult(parent_item=superseded_parent, child_items=child_items, child_clouds=child_clouds, event=event)
 

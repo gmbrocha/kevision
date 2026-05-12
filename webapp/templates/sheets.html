@@ -30,12 +30,6 @@
         </div>
       </form>
 
-      {% if index_match_count and not include_index_matches %}
-        <section class="callout callout-info">
-          <span>{{ index_match_count }} sheet-index matches are hidden. These are pages where a sheet number appears inside the drawing index, not necessarily the drawing page itself.</span>
-        </section>
-      {% endif %}
-
       <section class="data-table-wrap">
         <table class="data-table drawings-table">
           <colgroup>

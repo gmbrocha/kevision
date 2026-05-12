@@ -182,12 +182,8 @@ Fresh client project flow with live Populate and optional Pre Review:
 - Browser steps:
   1. Open `http://127.0.0.1:5000/projects`.
   2. Create a new project.
-  3. On Overview, import packages by either selecting PDFs/folders in the
-     browser or entering manual server path:
-     `F:\Desktop\m\projects\scopeLedger\revision_sets`.
-     For a single uploaded package, enter its revision number before import;
-     importing the repo-level `revision_sets` root auto-fills each
-     `Revision #...` child package number.
+  3. On Overview, import packages by selecting PDFs or folders in the browser.
+     Enter the package revision number before import.
   4. Confirm the Revision packages table shows a positive integer revision
      number for every staged package. Edit numbers and click Save package
      order if needed. Before Populate, the staged-for-population card should
@@ -211,8 +207,7 @@ Fresh client project flow with live Populate and optional Pre Review:
   Populate is blocked until staged package revision numbers are complete and
   unique.
 - Safety: local inference/product workflow. Browser-selected PDF files upload
-  in 8 MiB chunks and are reconstructed in the selected app workspace. Manual
-  folder import copies PDF files, not arbitrary sidecar files. It writes
+  in 8 MiB chunks and are reconstructed in the selected app workspace. It writes
   generated project outputs only and must not delete or mutate `revision_sets/`,
   CloudHammer_v2 eval/training artifacts, frozen pages, labels, datasets, or
   model checkpoints.

@@ -468,11 +468,30 @@ able to stage large drawing-package PDFs through the browser.
 Consequences:
 
 - The Overview import and append forms use chunked upload when browser files
-  are selected; manual server-path imports still use the existing form path.
+  are selected; the manual server-path control is not shown in the
+  client-facing Overview UI.
 - Chunks are 8 MiB, with a server-side per-chunk cap of 16 MiB.
 - Only PDF filenames are accepted by the chunked upload init endpoint.
 - Temporary chunk folders are removed after successful reconstruction, explicit
   browser aborts, and automatic stale cleanup. Upload resume is deferred.
+
+## 2026-05-11 - Review Capture Test Kill Switch
+
+Decision: Add `REVIEW_CAPTURE=false` as a local environment kill switch for
+internal review-event capture.
+
+Reason: Product testing can involve exploratory accept/reject/correction
+actions that should not be preserved as future QA or training/eval raw
+material.
+
+Consequences:
+
+- Normal review state changes still save to the workspace.
+- New internal `review_events` rows are not written while the switch is false,
+  including single review, bulk review, crop adjustment, and geometry
+  correction event paths.
+- Re-enable with `REVIEW_CAPTURE=true` or by removing the variable before
+  client review sessions that should create internal event records.
 
 ## 2026-05-09 - Pre-Release Handoff Audit
 

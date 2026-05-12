@@ -1320,9 +1320,9 @@ def create_app(
             )
             return redirect(url_for("dashboard"))
 
-        set_package_setup_status(current, error="Choose PDF files or a folder from your computer, or enter a manual server path.")
+        set_package_setup_status(current, error="Choose PDF files or a folder from your computer.")
         flash(
-            "Choose PDF files or a folder from your computer, or enter a manual server path.",
+            "Choose PDF files or a folder from your computer.",
             "warning",
         )
         return redirect(url_for("dashboard"))
@@ -1382,7 +1382,7 @@ def create_app(
             )
             return redirect(url_for("dashboard"))
 
-        flash("Choose PDF files from your computer, or enter a manual server path.", "warning")
+        flash("Choose PDF files from your computer.", "warning")
         return redirect(url_for("dashboard"))
 
     @app.post("/uploads/chunked/init")
@@ -1683,16 +1683,28 @@ def create_app(
         search_query = request.args.get("q", "")
         rendered_groups = []
         index_page_count = 0
+        revised_sheet_count = 0
         for sheet_id, versions in groups.items():
             index_page_count += len([sheet for sheet in versions if sheet_is_index_like(sheet)])
             real_versions = [sheet for sheet in versions if not sheet_is_index_like(sheet)]
             candidate_versions = real_versions or versions
             ranked = sorted(
                 candidate_versions,
-                key=lambda item: (item.status != "active", -revision_sets_by_id[item.revision_set_id].set_number, item.page_number),
+                key=lambda item: (
+                    -revision_sets_by_id[item.revision_set_id].set_number,
+                    item.status != "active",
+                    item.page_number,
+                ),
             )
             latest = ranked[0]
-            superseded = ranked[1:]
+            latest_revision_number = revision_sets_by_id[latest.revision_set_id].set_number
+            superseded = [
+                version
+                for version in ranked[1:]
+                if revision_sets_by_id[version.revision_set_id].set_number < latest_revision_number
+            ]
+            if superseded:
+                revised_sheet_count += 1
             if show_filter == "revised" and not superseded:
                 continue
             if search_query and search_query.lower() not in " ".join([sheet_id, latest.sheet_title]).lower():
@@ -1709,14 +1721,13 @@ def create_app(
                 }
             )
         rendered_groups.sort(key=lambda item: item["sheet_id"])
-        revised_count = sum(1 for versions in groups.values() if len(versions) > 1)
         return render_template(
             "conformed.html",
             groups=rendered_groups,
             show_filter=show_filter,
             search_query=search_query,
             sheet_id_count=len(groups),
-            revised_count=revised_count,
+            revised_count=revised_sheet_count,
             index_page_count=index_page_count,
         )
 

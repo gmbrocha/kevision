@@ -19,16 +19,6 @@
 
   <div class="page-scroll">
     <div class="page-content">
-      <section class="callout callout-info">
-        <span><strong>What this is:</strong> one selected latest drawing per sheet number. The thumbnail is the page ScopeLedger will treat as current for review/export context. Older versions stay available as superseded history.</span>
-      </section>
-
-      {% if index_page_count %}
-        <section class="callout callout-check">
-          <span>{{ index_page_count }} sheet-index page{{ "s" if index_page_count != 1 else "" }} detected and deprioritized so index thumbnails do not masquerade as drawing sheets.</span>
-        </section>
-      {% endif %}
-
       <section class="conformed-grid">
         {% for group in groups %}
           <a class="conformed-card {% if group.superseded %}revised{% endif %}" href="{{ url_for('sheet_detail', sheet_version_id=group.latest.id) }}">
