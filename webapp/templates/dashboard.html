@@ -383,25 +383,6 @@
         </form>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Export readiness</span>
-          <a class="btn btn-secondary btn-sm" href="{{ url_for('export_view') }}">Export page</a>
-        </div>
-        <div class="panel-body">
-          <div class="export-status-bar" style="border: 0; padding: 0; background: transparent;">
-            <div class="export-readiness" style="flex: 1;">
-              <div class="export-readiness-label">Review completion</div>
-              <div class="progress-bar-track" style="margin-top: 6px;">
-                <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
-              </div>
-              <div class="progress-label" style="margin-top: 4px;">
-                {% if pending_count %}{{ pending_count }} changes still pending - workbook will export with current decisions{% else %}All changes reviewed - ready to generate workbook{% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 {% endblock %}
