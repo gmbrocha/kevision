@@ -41,6 +41,8 @@ from backend.legend_context import (
     legend_context_text,
 )
 from backend.keynote_legends import (
+    KEYNOTE_REGISTRY_EXTRACTOR_VERSION,
+    KEYNOTE_REGISTRY_SCHEMA,
     apply_pre_review_keynote_expansions,
     build_workspace_keynote_registry,
     keynote_expansion_payload,
@@ -864,6 +866,67 @@ def create_app(
             status["stage"] = "package_setup"
             status["message"] = f"Ready to process {revision_text}: {next_label}."
         return status
+
+    def keynote_registry_status_from_store(store: WorkspaceStore) -> dict[str, int]:
+        registry = store.data.keynote_registry if isinstance(store.data.keynote_registry, dict) else {}
+        sheets = registry.get("sheets") if isinstance(registry.get("sheets"), dict) else {}
+        definitions = [
+            definition
+            for entry in sheets.values()
+            if isinstance(entry, dict)
+            for definition in (entry.get("definitions") or [])
+        ]
+        return {
+            "keynote_registry_scanned_sheet_count": len(sheets),
+            "keynote_registry_sheet_count": len(
+                [entry for entry in sheets.values() if isinstance(entry, dict) and entry.get("definitions")]
+            ),
+            "keynote_registry_definition_count": len(definitions),
+            "keynote_registry_cache_hits": len(sheets),
+        }
+
+    def keynote_registry_covers_workspace(store: WorkspaceStore) -> bool:
+        registry = store.data.keynote_registry if isinstance(store.data.keynote_registry, dict) else {}
+        sheets = registry.get("sheets") if isinstance(registry.get("sheets"), dict) else {}
+        eligible_sheets = [sheet for sheet in store.data.sheets if sheet.source_pdf and sheet.page_number >= 1]
+        if not eligible_sheets:
+            return True
+        for sheet in eligible_sheets:
+            entry = sheets.get(sheet.id)
+            if not isinstance(entry, dict):
+                return False
+            if (
+                entry.get("schema") != KEYNOTE_REGISTRY_SCHEMA
+                or entry.get("extractor_version") != KEYNOTE_REGISTRY_EXTRACTOR_VERSION
+            ):
+                return False
+            if entry.get("sheet_version_id") != sheet.id or entry.get("revision_set_id") != sheet.revision_set_id:
+                return False
+            if entry.get("page_number") != sheet.page_number or not isinstance(entry.get("definitions"), list):
+                return False
+        return True
+
+    def workspace_missing_pre_review(store: WorkspaceStore) -> bool:
+        provider = app.config["PRE_REVIEW_PROVIDER"]
+        if not getattr(provider, "enabled", False):
+            return False
+        for item in store.data.change_items:
+            if is_superseded(item) or item.provenance.get("source") != "visual-region":
+                continue
+            payload = pre_review_payload(item)
+            pre_review_2 = payload.get(PRE_REVIEW_2) if isinstance(payload.get(PRE_REVIEW_2), dict) else None
+            if not pre_review_2 or not pre_review_2.get("available"):
+                return True
+        return False
+
+    def clean_populate_can_short_circuit(store: WorkspaceStore, dirty_count: int, rebuild_all: bool) -> bool:
+        if rebuild_all or dirty_count:
+            return False
+        if not store.data.revision_sets or not store.data.sheets or not store.data.scan_cache.get("documents"):
+            return False
+        if workspace_missing_pre_review(store):
+            return False
+        return keynote_registry_covers_workspace(store)
 
     def copy_package_source(source_path: Path, destination_dir: Path) -> int:
         destination_dir.mkdir(parents=True, exist_ok=True)
@@ -1849,6 +1912,49 @@ def create_app(
         plans = plan_package_runs(current, runner, packages, force_rebuild=rebuild_all)
         dirty_count = len([plan for plan in plans if plan.is_dirty])
         previous_visible_ids = {item.id for item in visible_change_items(current.data.change_items)}
+        if clean_populate_can_short_circuit(current, dirty_count, rebuild_all):
+            for plan in plans:
+                record = dict(plan.record)
+                record["last_action"] = "reused"
+                current.data.package_runs[plan.package.id] = record
+            visible_items = visible_change_items(current.data.change_items)
+            pending_review_count = len([item for item in visible_items if item.status == "pending"])
+            now = utc_timestamp()
+            current.update_populate_status(
+                state="done",
+                stage="complete",
+                message=(
+                    f"Workspace already up to date: 0 package(s) processed, "
+                    f"{len(plans)} package(s) reused, 0 new review item(s), "
+                    f"{pending_review_count} pending total."
+                ),
+                started_at=now,
+                finished_at=now,
+                total_package_count=len(plans),
+                dirty_package_count=0,
+                processed_package_count=0,
+                reused_package_count=len(plans),
+                current_package_label="",
+                current_revision_number="",
+                new_change_item_count=0,
+                pending_review_count=pending_review_count,
+                package_count=len(current.data.revision_sets),
+                document_count=len(current.data.documents),
+                sheet_count=len(current.data.sheets),
+                cloud_count=len(current.data.clouds),
+                change_item_count=len(visible_items),
+                cache_hits=len(current.data.documents),
+                error="",
+                **keynote_registry_status_from_store(current),
+            )
+            flash(
+                (
+                    f"Workspace already up to date: {len(plans)} package(s) reused, "
+                    f"{len(visible_items)} change item(s)."
+                ),
+                "success",
+            )
+            return redirect(url_for("dashboard"))
         current.update_populate_status(
             state="running",
             stage="package_plan",
@@ -1964,7 +2070,11 @@ def create_app(
                 current_revision_number="",
                 **cloudhammer_result.to_status(),
             )
-            cloud_client = ManifestCloudInferenceClient(cloudhammer_result.candidate_manifest, pdf_cache_keys=pdf_cache_keys)
+            cloud_client = ManifestCloudInferenceClient(
+                cloudhammer_result.candidate_manifest,
+                pdf_cache_keys=pdf_cache_keys,
+                rows=cloudhammer_result.candidate_rows,
+            )
             refreshed, cache_hits = rescan_active_project(cloud_inference_client=cloud_client)
             refreshed.update_populate_status(
                 state="running",
@@ -2044,7 +2154,18 @@ def create_app(
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
 
+            last_pre_review_status_write = {"time": 0.0, "completed": -1}
+
             def update_pre_review_progress(summary) -> None:
+                completed = summary.pre_review_2_count + summary.failed_count + summary.skipped_count
+                now = time.monotonic()
+                is_finished = summary.total_count == 0 or completed >= summary.total_count
+                if not is_finished and completed == last_pre_review_status_write["completed"]:
+                    return
+                if not is_finished and now - last_pre_review_status_write["time"] < 2.0:
+                    return
+                last_pre_review_status_write["time"] = now
+                last_pre_review_status_write["completed"] = completed
                 refreshed.update_populate_status(
                     state="running",
                     stage="pre_review",

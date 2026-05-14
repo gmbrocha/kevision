@@ -106,15 +106,7 @@ class RevisionScanner:
                     sheets.extend(cached_sheets)
                     clouds.extend(cached_clouds)
                     folder_sheets.extend(cached_sheets)
-                    next_scan_cache[source_pdf] = self._build_cache_entry(
-                        fingerprint=fingerprint,
-                        document=cached_document,
-                        preflight_issues=cached_issues,
-                        narratives=cached_narratives,
-                        sheets=cached_sheets,
-                        clouds=cached_clouds,
-                        pdf_path=pdf_path,
-                    )
+                    next_scan_cache[source_pdf] = dict(cache_entry)
                     self.cache_hits += 1
                     continue
 
@@ -243,7 +235,8 @@ class RevisionScanner:
                         narrative_by_sheet.setdefault(entry.sheet_id, []).append(entry)
                     continue
 
-                metadata = self._extract_sheet_metadata(page, text, pdf_path)
+                page_words = list(page.get_text("words"))
+                metadata = self._extract_sheet_metadata(page, text, pdf_path, page_words=page_words)
                 if not metadata["sheet_id"]:
                     continue
 
@@ -281,7 +274,7 @@ class RevisionScanner:
                 sheets.append(sheet)
 
                 preflight_issues.extend(self._run_import_check(document_id, source_pdf, document, page_index))
-                clouds.extend(self._detect_cloud_candidates(page=page, sheet=sheet))
+                clouds.extend(self._detect_cloud_candidates(page=page, sheet=sheet, page_words=page_words))
         finally:
             document.close()
 
@@ -517,10 +510,17 @@ class RevisionScanner:
             )
         return entries
 
-    def _extract_sheet_metadata(self, page: fitz.Page, text: str, pdf_path: Path | None = None) -> dict[str, object]:
+    def _extract_sheet_metadata(
+        self,
+        page: fitz.Page,
+        text: str,
+        pdf_path: Path | None = None,
+        *,
+        page_words: list[tuple] | None = None,
+    ) -> dict[str, object]:
         title_block_words = [
             word[4]
-            for word in page.get_text("words")
+            for word in (page_words if page_words is not None else page.get_text("words"))
             if word[0] >= page.rect.width * 0.64 and word[1] >= page.rect.height * 0.72
         ]
         title_block_text = " ".join(title_block_words)
@@ -629,7 +629,13 @@ class RevisionScanner:
         finally:
             target.close()
 
-    def _detect_cloud_candidates(self, *, page: fitz.Page, sheet: SheetVersion) -> list[CloudCandidate]:
+    def _detect_cloud_candidates(
+        self,
+        *,
+        page: fitz.Page,
+        sheet: SheetVersion,
+        page_words: list[tuple] | None = None,
+    ) -> list[CloudCandidate]:
         """Delegate cloud detection to CloudHammer integration.
 
         The legacy OpenCV contour detector has been retired from the active
@@ -642,7 +648,7 @@ class RevisionScanner:
             return []
 
         detections = self.cloud_inference_client.detect(page=page, sheet=sheet)
-        page_words = list(page.get_text("words")) if detections else []
+        words = page_words if page_words is not None else list(page.get_text("words")) if detections else []
         candidates: list[CloudCandidate] = []
         for index, detection in enumerate(detections):
             cloud_id = stable_id(sheet.id, index, *detection.bbox)
@@ -650,7 +656,7 @@ class RevisionScanner:
                 page,
                 sheet,
                 [int(value) for value in detection.bbox],
-                page_words=page_words,
+                page_words=words,
             )
             candidates.append(
                 CloudCandidate(

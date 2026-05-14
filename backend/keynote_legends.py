@@ -14,12 +14,13 @@ import fitz
 from .pre_review import PRE_REVIEW_2, PRE_REVIEW_KEY
 from .review_queue import is_superseded
 from .revision_state.models import ChangeItem, SheetVersion
-from .utils import choose_best_sheet_id, clean_display_text, normalize_text
+from .utils import choose_best_sheet_id, clean_display_text, normalize_text, stable_id
 from .workspace import WorkspaceStore
 
 
 KEYNOTE_REGISTRY_SCHEMA = "scopeledger.keynote_registry.v1"
 KEYNOTE_EXPANSION_SCHEMA = "scopeledger.keynote_expansion.v1"
+KEYNOTE_REGISTRY_EXTRACTOR_VERSION = 1
 HEADER_SEARCH_TERMS = (
     "KEYED NOTES",
     "KEYED NOTE",
@@ -90,12 +91,14 @@ class KeynoteRegistrySummary:
     scanned_sheet_count: int = 0
     sheet_count_with_keynotes: int = 0
     definition_count: int = 0
+    cache_hit_count: int = 0
 
     def to_status(self) -> dict[str, int]:
         return {
             "keynote_registry_scanned_sheet_count": self.scanned_sheet_count,
             "keynote_registry_sheet_count": self.sheet_count_with_keynotes,
             "keynote_registry_definition_count": self.definition_count,
+            "keynote_registry_cache_hits": self.cache_hit_count,
         }
 
 
@@ -148,14 +151,26 @@ def scan_keynote_legends(input_dir: Path) -> tuple[list[HeaderRegion], list[Keyn
 
 def build_workspace_keynote_registry(store: WorkspaceStore) -> KeynoteRegistrySummary:
     document_cache: dict[str, fitz.Document] = {}
+    previous_registry = store.data.keynote_registry if isinstance(store.data.keynote_registry, dict) else {}
+    previous_sheets = previous_registry.get("sheets") if isinstance(previous_registry.get("sheets"), dict) else {}
     registry_sheets: dict[str, dict[str, Any]] = {}
     scanned_count = 0
+    cache_hit_count = 0
     definition_count = 0
     try:
         for sheet in store.data.sheets:
             if not sheet.source_pdf or sheet.page_number < 1:
                 continue
             source_pdf = str(store.resolve_path(sheet.source_pdf).resolve())
+            source_fingerprint = _sheet_source_fingerprint(Path(source_pdf), sheet.page_number)
+            previous_entry = previous_sheets.get(sheet.id)
+            if _registry_entry_usable(previous_entry, sheet, source_pdf, source_fingerprint):
+                entry = dict(previous_entry)
+                registry_sheets[sheet.id] = entry
+                scanned_count += 1
+                cache_hit_count += 1
+                definition_count += len(entry.get("definitions") or [])
+                continue
             if source_pdf not in document_cache:
                 document_cache[source_pdf] = fitz.open(source_pdf)
             document = document_cache[source_pdf]
@@ -165,15 +180,16 @@ def build_workspace_keynote_registry(store: WorkspaceStore) -> KeynoteRegistrySu
             page = document.load_page(sheet.page_number - 1)
             rows = extract_keynote_rows_for_sheet(page, sheet, source_pdf)
             definitions = [_row_to_registry_definition(row) for row in rows]
-            if not definitions:
-                continue
             registry_sheets[sheet.id] = {
                 "schema": KEYNOTE_REGISTRY_SCHEMA,
+                "extractor_version": KEYNOTE_REGISTRY_EXTRACTOR_VERSION,
                 "sheet_version_id": sheet.id,
                 "sheet_id": sheet.sheet_id,
                 "revision_set_id": sheet.revision_set_id,
                 "source_pdf": source_pdf,
+                "source_fingerprint": source_fingerprint,
                 "page_number": sheet.page_number,
+                "has_keynotes": bool(definitions),
                 "definitions": definitions,
             }
             definition_count += len(definitions)
@@ -189,8 +205,9 @@ def build_workspace_keynote_registry(store: WorkspaceStore) -> KeynoteRegistrySu
     store.save()
     return KeynoteRegistrySummary(
         scanned_sheet_count=scanned_count,
-        sheet_count_with_keynotes=len(registry_sheets),
+        sheet_count_with_keynotes=sum(1 for entry in registry_sheets.values() if entry.get("definitions")),
         definition_count=definition_count,
+        cache_hit_count=cache_hit_count,
     )
 
 
@@ -223,6 +240,7 @@ def apply_pre_review_keynote_expansions(store: WorkspaceStore) -> KeynoteExpansi
     changed = False
     expanded_item_count = 0
     reference_count = 0
+    definitions_by_sheet: dict[str, dict[str, dict[str, Any]]] = {}
     for item in store.data.change_items:
         updated = item
         if is_superseded(item) or item.provenance.get("source") != "visual-region":
@@ -237,7 +255,9 @@ def apply_pre_review_keynote_expansions(store: WorkspaceStore) -> KeynoteExpansi
             updated_items.append(updated)
             continue
         sheet_registry = registry_sheets.get(item.sheet_version_id)
-        definitions = _unique_definitions(sheet_registry)
+        if item.sheet_version_id not in definitions_by_sheet:
+            definitions_by_sheet[item.sheet_version_id] = _unique_definitions(sheet_registry)
+        definitions = definitions_by_sheet[item.sheet_version_id]
         if not definitions:
             updated_items.append(updated)
             continue
@@ -276,6 +296,36 @@ def apply_pre_review_keynote_expansions(store: WorkspaceStore) -> KeynoteExpansi
         store.data.change_items = updated_items
         store.save()
     return KeynoteExpansionSummary(item_count=expanded_item_count, reference_count=reference_count)
+
+
+def _sheet_source_fingerprint(source_pdf: Path, page_number: int) -> str:
+    if not source_pdf.exists():
+        return ""
+    stat = source_pdf.stat()
+    return stable_id(
+        "keynote-registry-sheet",
+        source_pdf.resolve(),
+        stat.st_size,
+        stat.st_mtime_ns,
+        page_number,
+        KEYNOTE_REGISTRY_EXTRACTOR_VERSION,
+    )
+
+
+def _registry_entry_usable(entry: Any, sheet: SheetVersion, source_pdf: str, source_fingerprint: str) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    return (
+        entry.get("schema") == KEYNOTE_REGISTRY_SCHEMA
+        and entry.get("extractor_version") == KEYNOTE_REGISTRY_EXTRACTOR_VERSION
+        and entry.get("sheet_version_id") == sheet.id
+        and entry.get("sheet_id") == sheet.sheet_id
+        and entry.get("revision_set_id") == sheet.revision_set_id
+        and entry.get("source_pdf") == source_pdf
+        and entry.get("source_fingerprint") == source_fingerprint
+        and entry.get("page_number") == sheet.page_number
+        and isinstance(entry.get("definitions"), list)
+    )
 
 
 def expand_keynote_text(text: str, definitions: dict[str, dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:

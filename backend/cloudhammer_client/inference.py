@@ -189,11 +189,17 @@ class ManifestCloudInferenceClient:
 
     name = "cloudhammer_manifest"
 
-    def __init__(self, manifest_path: Path | str, *, pdf_cache_keys: dict[str, str] | None = None):
+    def __init__(
+        self,
+        manifest_path: Path | str,
+        *,
+        pdf_cache_keys: dict[str, str] | None = None,
+        rows: list[dict[str, Any]] | None = None,
+    ):
         self.manifest_path = Path(manifest_path).resolve()
         stat = self.manifest_path.stat()
         self.cache_key = f"{self.name}:{self.manifest_path}:{stat.st_size}:{stat.st_mtime_ns}"
-        self.rows = _read_jsonl(self.manifest_path)
+        self.rows = rows if rows is not None else _read_jsonl(self.manifest_path)
         self._pdf_cache_keys = {str(Path(path).resolve()).lower(): key for path, key in (pdf_cache_keys or {}).items()}
         self._by_pdf_page: dict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
         self._rows_by_pdf: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -226,7 +232,8 @@ class ManifestCloudInferenceClient:
             self._by_pdf_page[(resolved, page_number)].append(row)
             self._rows_by_pdf[resolved].append(row)
             self.stats["indexed_rows"] += 1
-            if _row_crop_path(row, self.manifest_path) and not Path(_row_crop_path(row, self.manifest_path)).exists():
+            crop_path = _row_crop_path(row, self.manifest_path)
+            if crop_path and not Path(crop_path).exists():
                 self.stats["missing_crop_count"] += 1
 
     def cache_key_for_pdf(self, pdf_path: Path | str) -> str:

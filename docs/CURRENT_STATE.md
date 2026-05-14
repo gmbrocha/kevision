@@ -55,7 +55,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   handoff path uses the current continuity checkpoint
   `CloudHammer/runs/cloudhammer_roi-symbol-text-fp-hn-20260502/weights/best.pt`,
   grouping profile `review_v1`, and whole-cloud export under the selected app
-  project's `outputs/cloudhammer_live/` folder.
+  project's `outputs/cloudhammer_live/` folder. A clean follow-up Populate now
+  short-circuits when package runs, scan cache, keynote registry, and Pre
+  Review state are already current, so accidentally pressing Populate again
+  does not reassemble manifests, rescan PDFs, or make GPT calls.
 - Populate then runs app-layer Pre Review enrichment when
   `SCOPELEDGER_PREREVIEW_ENABLED=1` and `OPENAI_API_KEY` are configured. The
   app keeps every detected candidate visible, stores raw `Pre Review 1` plus a
@@ -139,13 +142,18 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   Populate builds a sheet-version-scoped keynote registry from explicit
   `KEYNOTE` / `KEYED NOTES` headers, marker labels, and numbered-list blocks,
   then uses that registry to expand same-sheet GPT `Pre Review 2` keynote
-  references. The diagnostic wrapper still writes derived inspection artifacts
-  under `test_tmp/` without mutating source PDFs or app workspaces.
+  references. The registry caches sheet entries, including sheets with no
+  detected keynote definitions, so unchanged follow-up Populates avoid
+  repeated PyMuPDF header/shape scans. The diagnostic wrapper still writes
+  derived inspection artifacts under `test_tmp/` without mutating source PDFs
+  or app workspaces.
 - The 2026-05-14 app pipeline audit is documented in
   `docs/APP_AUDIT_2026_05_14_PIPELINE_EFFICIENCY.md`. Implemented fixes keep
   revision changelog workbook grouping scoped by sheet version, reuse PDF text
-  words across same-page cloud scope extraction, and make populate artifact
-  polling stream counts instead of materializing every file path.
+  words across same-page cloud scope extraction, reuse scanner cache entries
+  without rebuilding them, pass assembled candidate rows in memory, and make
+  populate artifact polling stream counts instead of materializing every file
+  path.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number

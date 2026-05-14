@@ -2,6 +2,27 @@
 
 Status: canonical application decision log.
 
+## 2026-05-14 - Clean Populate Short-Circuits Repeated Work
+
+Decision: A follow-up `Populate Workspace` with zero dirty packages now exits
+early when the workspace already has scan data, a current keynote registry, and
+no missing enabled Pre Review 2 work. The package rows are marked reused and
+the UI receives a normal completion summary without reassembling manifests,
+rescanning PDFs, rerunning app enrichment, or making GPT calls.
+
+Reason: Operators can press Populate more than once while reviewing packages.
+When nothing has changed, the previous default still rebuilt project-level
+manifests and walked the scan/enrichment path, which was pure overhead.
+
+Consequences / follow-up:
+
+- `Rebuild all packages` still forces the full path.
+- If Pre Review is enabled and visual items are missing Pre Review 2, Populate
+  still runs the enrichment path instead of short-circuiting.
+- Keynote registry entries now include extractor version and source
+  fingerprint metadata, including empty no-keynote sheet entries, so unchanged
+  sheets can be reused safely.
+
 ## 2026-05-14 - Pipeline Audit Fixes Preserve Revision Scope And Reduce Rework
 
 Decision: Apply the first pass of the app pipeline efficiency audit as focused

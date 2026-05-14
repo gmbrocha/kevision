@@ -108,6 +108,25 @@ Status: fixed.
 - Add package processing attempt history later if current-state rows are not
   enough for operations/audit.
 
+## Second Pass Implemented
+
+The follow-up Populate efficiency pass added these runtime reductions:
+
+- Clean Populate short-circuit: if no package is dirty, scan data exists, the
+  keynote registry is current, and enabled Pre Review has no missing second
+  pass work, Populate updates package reuse/completion status without
+  reassembling manifests, rescanning PDFs, or rerunning enrichment.
+- Keynote registry cache: registry entries now include extractor version and
+  source fingerprint metadata, and Populate stores entries for sheets with no
+  keynote definitions. Unchanged follow-up Populates can reuse both positive
+  and negative sheet scans.
+- Manifest assembly now streams page rows instead of retaining the full pages
+  manifest in memory, and passes assembled candidate rows directly into the
+  manifest inference client to avoid an immediate JSONL reread.
+- Scanner cache hits now carry the existing cache entry forward instead of
+  rebuilding equivalent dataclass dictionaries, and scanned pages reuse one
+  PyMuPDF word list across metadata extraction and cloud scope extraction.
+
 ## Planned Verification
 
 - Add regression coverage for revision-scoped workbook grouping.

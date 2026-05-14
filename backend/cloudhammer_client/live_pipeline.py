@@ -7,7 +7,7 @@ import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from ..utils import ensure_dir, json_dumps
 
@@ -39,6 +39,7 @@ class CloudHammerRunResult:
     candidate_count: int
     skipped_reason: str = ""
     commands: list[CloudHammerCommandRecord] = field(default_factory=list)
+    candidate_rows: list[dict[str, Any]] = field(default_factory=list)
 
     def to_status(self) -> dict[str, object]:
         return {

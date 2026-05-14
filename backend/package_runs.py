@@ -202,34 +202,41 @@ def assemble_cloudhammer_package_runs(
     candidate_manifest = run_dir / "whole_cloud_candidates" / "whole_cloud_candidates_manifest.jsonl"
     candidate_manifest.parent.mkdir(parents=True, exist_ok=True)
 
-    page_rows: list[dict[str, Any]] = []
     candidate_rows: list[dict[str, Any]] = []
+    page_row_count = 0
+    drawing_page_count = 0
     pdf_cache_keys: dict[str, str] = {}
-    for record in records:
-        page_rows.extend(read_jsonl(Path(str(record.get("pages_manifest") or ""))))
-        candidate_rows.extend(read_jsonl(Path(str(record.get("candidate_manifest") or ""))))
-        for pdf in record.get("pdf_fingerprints") or []:
-            rel_path = str(pdf.get("path") or "")
-            if not rel_path:
-                continue
-            pdf_path = Path(str(record.get("source_dir") or "")) / rel_path
-            pdf_cache_keys[str(pdf_path.resolve()).lower()] = stable_id(
-                "package-run-pdf",
-                record.get("package_id"),
-                pdf.get("fingerprint"),
-                record.get("pipeline_fingerprint"),
-                record.get("candidate_manifest_fingerprint"),
-            )
+    with pages_manifest.open("w", encoding="utf-8") as pages_handle, candidate_manifest.open("w", encoding="utf-8") as candidates_handle:
+        for record in records:
+            for row in read_jsonl_iter(Path(str(record.get("pages_manifest") or ""))):
+                page_row_count += 1
+                if row.get("page_kind") == "drawing" and row.get("render_path"):
+                    drawing_page_count += 1
+                pages_handle.write(json.dumps(row, sort_keys=True) + "\n")
+            for row in read_jsonl_iter(Path(str(record.get("candidate_manifest") or ""))):
+                candidate_rows.append(row)
+                candidates_handle.write(json.dumps(row, sort_keys=True) + "\n")
+            for pdf in record.get("pdf_fingerprints") or []:
+                rel_path = str(pdf.get("path") or "")
+                if not rel_path:
+                    continue
+                pdf_path = Path(str(record.get("source_dir") or "")) / rel_path
+                pdf_cache_keys[str(pdf_path.resolve()).lower()] = stable_id(
+                    "package-run-pdf",
+                    record.get("package_id"),
+                    pdf.get("fingerprint"),
+                    record.get("pipeline_fingerprint"),
+                    record.get("candidate_manifest_fingerprint"),
+                )
 
-    write_jsonl(pages_manifest, page_rows)
-    write_jsonl(candidate_manifest, candidate_rows)
     result = CloudHammerRunResult(
         run_dir=run_dir,
         pages_manifest=pages_manifest,
         candidate_manifest=candidate_manifest,
-        page_count=sum(1 for row in page_rows if row.get("page_kind") == "drawing" and row.get("render_path")),
+        page_count=drawing_page_count,
         candidate_count=len(candidate_rows),
-        skipped_reason="no_drawing_pages" if not page_rows else "",
+        skipped_reason="no_drawing_pages" if not page_row_count else "",
+        candidate_rows=candidate_rows,
     )
     summary = {
         "schema": ASSEMBLED_RUN_SCHEMA,
@@ -243,15 +250,17 @@ def assemble_cloudhammer_package_runs(
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    return list(read_jsonl_iter(path))
+
+
+def read_jsonl_iter(path: Path):
     if not path.exists():
-        return []
-    rows: list[dict[str, Any]] = []
+        return
     with path.open("r", encoding="utf-8") as handle:
         for line in handle:
             line = line.strip()
             if line:
-                rows.append(json.loads(line))
-    return rows
+                yield json.loads(line)
 
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:

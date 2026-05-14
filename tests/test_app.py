@@ -14,6 +14,7 @@ import fitz
 import pytest
 
 import backend.cli as cli_module
+import backend.keynote_legends as keynote_legends_module
 import backend.pre_review as pre_review_module
 import backend.projects as projects_module
 from backend.bulk_review_jobs import BulkReviewJobConflict, BulkReviewJobManager
@@ -1532,6 +1533,46 @@ def test_keynote_registry_extracts_numbered_list_by_sheet_version(tmp_path: Path
     definitions = registry["sheets"]["sheet-rev1"]["definitions"]
     assert {definition["token"] for definition in definitions} == {"1", "2"}
     assert definitions[0]["source_pattern"] == "numbered-list"
+
+
+def test_keynote_registry_reuses_cached_sheet_entries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1" / "keynotes.pdf"
+    pdf_path.parent.mkdir(parents=True)
+    document = fitz.open()
+    page = document.new_page(width=600, height=800)
+    page.insert_text((60, 70), "KEY NOTES:", fontsize=10)
+    page.insert_text((60, 95), "1. PROVIDE NEW GRAB BAR BLOCKING", fontsize=10)
+    page.insert_text((430, 720), "AE101", fontsize=14)
+    document.save(pdf_path)
+    document.close()
+
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-rev1",
+            revision_set_id="rev-1",
+            source_pdf=str(pdf_path),
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Plan",
+            issue_date=None,
+            status="active",
+        )
+    ]
+    store.save()
+    first = build_workspace_keynote_registry(store)
+
+    def fail_if_sheet_is_rescanned(*_args, **_kwargs):
+        raise AssertionError("unchanged keynote sheet should use registry cache")
+
+    monkeypatch.setattr(keynote_legends_module, "extract_keynote_rows_for_sheet", fail_if_sheet_is_rescanned)
+    second = build_workspace_keynote_registry(store)
+
+    assert first.definition_count == 1
+    assert second.definition_count == 1
+    assert second.cache_hit_count == 1
 
 
 def test_pre_review_keynote_expansion_uses_same_sheet_registry(tmp_path: Path):
@@ -4578,7 +4619,12 @@ def test_incremental_populate_reuses_clean_package_and_carries_revision_scope(tm
             )
 
     runner = FakeCloudHammerRunner()
-    app = create_app(tmp_path, cloudhammer_runner=runner)
+    class DisabledPreReviewProvider:
+        name = "disabled"
+        enabled = False
+        disabled_reason = "disabled"
+
+    app = create_app(tmp_path, cloudhammer_runner=runner, pre_review_provider=DisabledPreReviewProvider())
     client = app.test_client()
     assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
 
@@ -4603,6 +4649,14 @@ def test_incremental_populate_reuses_clean_package_and_carries_revision_scope(tm
     assert len(visible) == 2
     assert any(item.status == "approved" and item.reviewer_text == "Approved revision 1 scope" for item in visible)
     assert any(item.status == "pending" for item in visible)
+
+    assert client.post("/workspace/populate").status_code == 302
+    clean_loaded = WorkspaceStore(workspace_dir).load()
+    assert runner.calls == ["Revision #1 - Test", "Revision #2 - Test"]
+    assert clean_loaded.data.populate_status["processed_package_count"] == 0
+    assert clean_loaded.data.populate_status["reused_package_count"] == 2
+    assert clean_loaded.data.populate_status["new_change_item_count"] == 0
+    assert "already up to date" in clean_loaded.data.populate_status["message"].lower()
 
 
 def test_rebuild_all_packages_reprocesses_clean_package(tmp_path: Path):
