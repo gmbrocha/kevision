@@ -168,6 +168,8 @@ class WorkspaceData:
     change_items: list[ChangeItem] = field(default_factory=list)
     verifications: list[VerificationRecord] = field(default_factory=list)
     review_events: list[ReviewEvent] = field(default_factory=list)
+    package_runs: dict[str, Any] = field(default_factory=dict)
+    keynote_registry: dict[str, Any] = field(default_factory=dict)
     exports: list[dict[str, Any]] = field(default_factory=list)
     scan_cache: dict[str, Any] = field(default_factory=dict)
     populate_status: dict[str, Any] = field(default_factory=dict)
@@ -194,6 +196,8 @@ class WorkspaceData:
             change_items=load_many("change_items", ChangeItem),
             verifications=load_many("verifications", VerificationRecord),
             review_events=load_many("review_events", ReviewEvent),
+            package_runs=payload.get("package_runs", {}),
+            keynote_registry=payload.get("keynote_registry", {}),
             exports=payload.get("exports", []),
             scan_cache=payload.get("scan_cache", {}),
             populate_status=payload.get("populate_status", {}),

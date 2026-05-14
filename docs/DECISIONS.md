@@ -2,6 +2,108 @@
 
 Status: canonical application decision log.
 
+## 2026-05-14 - Same-Sheet Keynote Registry Expands Pre Review 2
+
+Decision: Populate now builds a sheet-version-scoped keynote registry from
+keyed-note legend headers and applies it after GPT Pre Review. The app uses
+GPT's refined `Pre Review 2` text as the token source, resolves only matching
+same-sheet definitions, and writes expanded `TOKEN: definition` text plus
+provenance back into the Pre Review payload.
+
+Reason: CloudHammer/OCR text near revision clouds is too noisy to decide
+whether a token is a real keynote reference, but GPT's Pre Review 2 text is
+much more reliable at preserving the concise reference. The legend definitions
+are deterministic sheet data and do not need more API calls.
+
+Consequences / follow-up:
+
+- `workspace.json` stores `scopeledger.keynote_registry.v1` keyed by
+  `sheet_version_id`, so later packages with the same sheet number do not
+  overwrite earlier revision-package definitions.
+- Ambiguous duplicate definitions on the same sheet are skipped, and bare
+  numeric or single-letter tokens require a keynote cue or known token cluster
+  before expansion.
+- The Review UI shows expanded Pre Review 2 text and a `Keynotes resolved`
+  badge when references were applied.
+- Unclouded legends are not added as review items; existing CloudHammer
+  probable legend review and `Accept as legend` behavior remains separate.
+
+## 2026-05-14 - Keynote Legends Are Discovered From Headers And Markers
+
+Decision: Replace the failed text-only unclouded legend audit with a
+standalone keynote legend finder. The diagnostic starts from sheet text
+containing `KEYNOTE`, `KEYNOTES`, `KEY NOTE`, `KEY NOTES`, `KEYED NOTE`,
+`KEYED NOTES`, `KEYEDNOTE`, or `KEYEDNOTES`. It first looks for repeated
+marker graphics containing labels and adjacent description text. It also
+handles `KEYED NOTES` blocks where the header has an empty sample marker and
+the definitions are plain numbered `1.` / `2.` rows below or beside it. Strong
+`KEY NOTES` / `KEYED NOTES` headers can also use that numbered-list path when
+there is no marker at all.
+
+Reason: Plain aligned text rows produced too many false definitions from
+normal notes and schedules. The reliable signal is the keyed-note header plus
+the repeated marker symbol/label/description structure.
+
+Consequences / follow-up:
+
+- The utility writes derived CSV/JSON/HTML outputs under `test_tmp/` and does
+  not mutate app workspace state, source PDFs, revision sets, eval artifacts,
+  labels, model files, or exports.
+- The first pass records all found legend entries by sheet and does not inspect
+  revision clouds.
+- Rotated/vertical `KEYED NOTES` headers are parsed only for the numbered-list
+  pattern; title-block symbol legends are excluded from header eligibility.
+- If this diagnostic is accurate enough, production work should build a
+  same-sheet keynote registry from these marker-backed entries before Pre
+  Review resolves cloud text.
+
+## 2026-05-14 - Review Queue Can Focus By Revision Package
+
+Decision: Review Changes keeps all pending items as the default queue, but adds
+package-scoped filters for newest package and specific package review. Overview
+shows package processing history as one current-state row per staged package
+with dirty, reused, processed, failed, and pending states.
+
+Reason: Incremental Populate carries review scope across packages, so reviewers
+need a clear way to focus on the latest package without hiding older active
+revision scope. Operators also need to see whether packages were reused,
+processed, dirtied, or failed after follow-up populations.
+
+Consequences / follow-up:
+
+- Newest package means the highest assigned positive revision number.
+- Package filter state is preserved through review list/detail navigation and
+  review actions.
+- Failed package processing writes a package run record so Overview can show
+  the failed package and error.
+- A chronological populate attempt log remains a later option if current-state
+  package history is not enough.
+
+## 2026-05-14 - Populate Is Incremental And Review Items Carry Forward
+
+Decision: Default Populate processes only new or dirty revision packages,
+reuses clean package-level CloudHammer runs, assembles all package manifests
+into one project scan, and keeps review items scoped to the package/revision
+that produced them. A later package with the same sheet number does not
+automatically hide or reject older package clouds on that sheet. `Rebuild all
+packages` is an explicit full rerun action.
+
+Reason: Follow-up revisions should not rerun CloudHammer or GPT Pre Review for
+unchanged prior packages, and revision packages can contain independent scope
+deltas on the same sheet number.
+
+Consequences / follow-up:
+
+- `workspace.json` stores package run metadata and dirty reasons for staged
+  package folders.
+- Overview shows package-level progress, including reused packages, processed
+  packages, dirty packages, and the current revision/package being processed.
+- Approved scope from multiple revision packages remains exportable unless it
+  is rejected or explicitly item-superseded.
+- Duplicate/replacement detection between packages remains a future
+  reviewer-driven workflow; sheet-level supersedence is context only for this
+  purpose.
+
 ## 2026-05-12 - Project Deletion Is Explicit And Hard-Gated
 
 Decision: The Projects UI can delete a project only through a destructive
@@ -39,7 +141,11 @@ Consequences / follow-up:
   Populate when numbers are missing or duplicated.
 - Manual imports of a `Revision #...` root auto-fill child package numbers;
   single-package imports and browser uploads require the user to provide the
-  package revision number.
+  package revision number. Browser folder upload uses that one package number
+  for every selected PDF in the folder.
+- After Populate, the Revision packages table shows the assigned revision
+  number as static package metadata. Revision-number editing remains a staged
+  package setup action before Populate.
 - Previous/current comparison continues to require the same sheet number from
   a strictly lower real revision set, preferring the nearest prior package that
   contains that sheet.

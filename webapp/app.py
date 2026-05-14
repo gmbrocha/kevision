@@ -40,7 +40,18 @@ from backend.legend_context import (
     legend_context_payload,
     legend_context_text,
 )
+from backend.keynote_legends import (
+    apply_pre_review_keynote_expansions,
+    build_workspace_keynote_registry,
+    keynote_expansion_payload,
+)
 from backend.local_env import load_local_env_defaults
+from backend.package_runs import (
+    assemble_cloudhammer_package_runs,
+    build_failed_package_run_record,
+    build_package_run_record,
+    plan_package_runs,
+)
 from backend.projects import ProjectRecord, ProjectRegistry, default_app_data_dir
 from backend.pre_review import (
     PRE_REVIEW_1,
@@ -75,9 +86,88 @@ class DisabledReviewAssistProvider:
     enabled = False
 
 
-def filter_change_items(store: WorkspaceStore, filter_status: str, search_query: str) -> list:
+VALID_PACKAGE_SCOPES = {"all", "newest", "package"}
+
+
+def path_identity(value: str) -> str:
+    if not value:
+        return ""
+    return str(Path(value).resolve()).lower()
+
+
+def package_context(store: WorkspaceStore) -> dict[str, object]:
+    packages = sorted(store.data.staged_packages, key=staged_package_sort_key)
+    packages_by_id = {package.id: package for package in packages}
+    packages_by_source = {path_identity(package.source_dir): package for package in packages}
+    packages_by_folder = {package.folder_name.lower(): package for package in packages}
+    revision_sets_by_id = {revision_set.id: revision_set for revision_set in store.data.revision_sets}
+    revision_package_ids: dict[str, str] = {}
+    for revision_set in store.data.revision_sets:
+        package = packages_by_source.get(path_identity(revision_set.source_dir))
+        if package is None:
+            package = packages_by_folder.get(Path(revision_set.source_dir).name.lower())
+        if package is not None:
+            revision_package_ids[revision_set.id] = package.id
+
+    sheet_package_ids: dict[str, str] = {}
+    for sheet in store.data.sheets:
+        package_id = revision_package_ids.get(sheet.revision_set_id)
+        if package_id:
+            sheet_package_ids[sheet.id] = package_id
+
+    item_package_ids: dict[str, str] = {}
+    for item in visible_change_items(store.data.change_items):
+        package_id = sheet_package_ids.get(item.sheet_version_id)
+        if package_id:
+            item_package_ids[item.id] = package_id
+
+    newest_package = max(
+        [package for package in packages if package.revision_number is not None],
+        key=lambda package: (package.revision_number or 0, package.label.lower()),
+        default=None,
+    )
+    return {
+        "packages": packages,
+        "packages_by_id": packages_by_id,
+        "revision_sets_by_id": revision_sets_by_id,
+        "sheet_package_ids": sheet_package_ids,
+        "item_package_ids": item_package_ids,
+        "newest_package": newest_package,
+    }
+
+
+def normalize_package_filter(store: WorkspaceStore, package_scope: str = "all", package_id: str = "") -> tuple[str, str]:
+    context = package_context(store)
+    packages_by_id = context["packages_by_id"]
+    scope = package_scope if package_scope in VALID_PACKAGE_SCOPES else "all"
+    if scope == "newest":
+        newest = context["newest_package"]
+        return ("newest", newest.id if newest else "")
+    if scope == "package" and package_id in packages_by_id:
+        return ("package", package_id)
+    return ("all", "")
+
+
+def package_query_args(package_scope: str, package_id: str) -> dict[str, str]:
+    if package_scope in {"newest", "package"}:
+        return {"package_scope": package_scope, "package_id": package_id}
+    return {}
+
+
+def filter_change_items(
+    store: WorkspaceStore,
+    filter_status: str,
+    search_query: str,
+    package_scope: str = "all",
+    package_id: str = "",
+) -> list:
     ensure_review_queue_state(store)
+    package_scope, package_id = normalize_package_filter(store, package_scope, package_id)
+    context = package_context(store)
     items = visible_change_items(store.data.change_items)
+    if package_scope in {"newest", "package"} and package_id:
+        item_package_ids = context["item_package_ids"]
+        items = [item for item in items if item_package_ids.get(item.id) == package_id]
     if filter_status != "all":
         items = [item for item in items if item.status == filter_status]
     query = search_query.strip().lower()
@@ -96,6 +186,38 @@ def filter_change_items(store: WorkspaceStore, filter_status: str, search_query:
             ).lower()
         ]
     return ordered_change_items(items)
+
+
+def review_package_filter_context(store: WorkspaceStore, package_scope: str = "all", package_id: str = "") -> dict[str, object]:
+    package_scope, package_id = normalize_package_filter(store, package_scope, package_id)
+    context = package_context(store)
+    item_package_ids = context["item_package_ids"]
+    visible = visible_change_items(store.data.change_items)
+    pending_by_package = Counter(item_package_ids.get(item.id, "") for item in visible if item.status == "pending")
+    total_by_package = Counter(item_package_ids.get(item.id, "") for item in visible)
+    options = []
+    for package in context["packages"]:
+        options.append(
+            {
+                "id": package.id,
+                "label": package.label,
+                "revision_number": package.revision_number,
+                "pending_count": pending_by_package.get(package.id, 0),
+                "total_count": total_by_package.get(package.id, 0),
+            }
+        )
+    selected_package = context["packages_by_id"].get(package_id) if package_id else None
+    newest_package = context["newest_package"]
+    return {
+        "package_scope": package_scope,
+        "package_id": package_id,
+        "query_args": package_query_args(package_scope, package_id),
+        "options": options,
+        "selected_package": selected_package,
+        "newest_package": newest_package,
+        "newest_pending_count": pending_by_package.get(newest_package.id, 0) if newest_package else 0,
+        "all_pending_count": len([item for item in visible if item.status == "pending"]),
+    }
 
 
 def ensure_review_queue_state(store: WorkspaceStore) -> bool:
@@ -459,20 +581,68 @@ def create_app(
         flash(message, "warning")
         return redirect(local_referrer_or(url_for("changes")))
 
-    def replacement_redirect_target(item, *, queue_status: str = "pending", search_query: str = "", attention_only: bool = False) -> str:
+    def review_url_kwargs(
+        *,
+        queue_status: str = "pending",
+        search_query: str = "",
+        attention_only: bool = False,
+        package_scope: str = "all",
+        package_id: str = "",
+    ) -> dict[str, str]:
+        scope, selected_package_id = normalize_package_filter(store, package_scope, package_id)
+        kwargs: dict[str, str] = {}
+        if queue_status:
+            kwargs["queue"] = queue_status
+        kwargs["q"] = search_query
+        kwargs.update(package_query_args(scope, selected_package_id))
+        if attention_only:
+            kwargs["attention"] = "1"
+        return kwargs
+
+    def replacement_redirect_target(
+        item,
+        *,
+        queue_status: str = "pending",
+        search_query: str = "",
+        attention_only: bool = False,
+        package_scope: str = "all",
+        package_id: str = "",
+    ) -> str:
         for replacement_id in item.superseded_by_change_item_ids:
             try:
                 store.get_change_item(replacement_id)
             except KeyError:
                 continue
-            kwargs = {"change_id": replacement_id, "queue": queue_status, "q": search_query}
-            if attention_only:
-                kwargs["attention"] = "1"
+            kwargs = {
+                "change_id": replacement_id,
+                **review_url_kwargs(
+                    queue_status=queue_status,
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=package_scope,
+                    package_id=package_id,
+                ),
+            }
             return url_for("change_detail", **kwargs)
-        return url_for("changes", status=queue_status, q=search_query, attention="1" if attention_only else "0")
+        kwargs = review_url_kwargs(
+            queue_status="",
+            search_query=search_query,
+            attention_only=attention_only,
+            package_scope=package_scope,
+            package_id=package_id,
+        )
+        kwargs["status"] = queue_status
+        return url_for("changes", **kwargs)
 
-    def next_pending_change_id_after(change_id: str, *, search_query: str = "", attention_only: bool = False) -> str | None:
-        queue_items = filter_change_items(store, "pending", search_query)
+    def next_pending_change_id_after(
+        change_id: str,
+        *,
+        search_query: str = "",
+        attention_only: bool = False,
+        package_scope: str = "all",
+        package_id: str = "",
+    ) -> str | None:
+        queue_items = filter_change_items(store, "pending", search_query, package_scope, package_id)
         if attention_only:
             queue_items = [item for item in queue_items if item.status == "pending" and change_item_needs_attention(item)]
         ids = [item.id for item in queue_items]
@@ -484,10 +654,26 @@ def create_app(
             if candidate_id != change_id:
                 return candidate_id
         if search_query or attention_only:
-            for item in filter_change_items(store, "pending", ""):
+            for item in filter_change_items(store, "pending", "", package_scope, package_id):
                 if item.id != change_id:
                     return item.id
         return None
+
+    def next_change_id_after_in_queue(
+        change_id: str,
+        *,
+        queue_status: str = "pending",
+        search_query: str = "",
+        attention_only: bool = False,
+        package_scope: str = "all",
+        package_id: str = "",
+    ) -> str | None:
+        queue_items = filter_change_items(store, queue_status, search_query, package_scope, package_id)
+        if attention_only:
+            queue_items = [item for item in queue_items if item.status == "pending" and change_item_needs_attention(item)]
+        navigation = build_change_navigation(queue_items, change_id)
+        next_id = navigation.get("next_change_id")
+        return str(next_id) if next_id else None
 
     def current_review_session_id() -> str:
         value = session.get("review_session_id")
@@ -564,7 +750,32 @@ def create_app(
         with path.open("r", encoding="utf-8") as handle:
             return sum(1 for line in handle if line.strip())
 
-    def summarize_populate_artifacts(project: ProjectRecord, store: WorkspaceStore) -> dict[str, object]:
+    def package_revision_label(package) -> str:
+        if package.revision_number:
+            return f"Revision {package.revision_number}"
+        return package.label or package.folder_name
+
+    def package_run_display_status(plan) -> str:
+        record = plan.record or {}
+        if record.get("status") == "failed":
+            return "failed"
+        if plan.is_dirty:
+            return "pending" if not record else "dirty"
+        if record.get("last_action") == "reused":
+            return "reused"
+        if record.get("status") == "complete":
+            return "processed"
+        return str(record.get("status") or "pending")
+
+    def package_run_display_action(plan) -> str:
+        status = package_run_display_status(plan)
+        if status == "dirty":
+            return "process"
+        if status == "pending":
+            return "process"
+        return status
+
+    def summarize_populate_artifacts(project: ProjectRecord, store: WorkspaceStore, runner: CloudHammerRunner | None = None) -> dict[str, object]:
         input_dir = Path(store.data.input_dir)
         staged_pdfs = sorted(input_dir.rglob("*.pdf")) if input_dir.exists() else []
         package_dirs = {pdf.parent for pdf in staged_pdfs}
@@ -591,7 +802,7 @@ def create_app(
             inferred_pages = count_jsonl_rows(run_dir / "pages_manifest.jsonl")
             inferred_candidates = count_jsonl_rows(run_dir / "whole_cloud_candidates" / "whole_cloud_candidates_manifest.jsonl")
 
-        return {
+        summary = {
             "staged_package_count": len(package_dirs),
             "staged_pdf_count": len(staged_pdfs),
             "live_run_dir": live_run_dir,
@@ -600,6 +811,53 @@ def create_app(
             "inferred_cloudhammer_page_count": inferred_pages,
             "inferred_cloudhammer_candidate_count": inferred_candidates,
         }
+        if runner is not None:
+            packages, _ = reconcile_staged_packages(store, save=False)
+            plans = plan_package_runs(store, runner, sorted(packages, key=staged_package_sort_key))
+            dirty = [plan for plan in plans if plan.is_dirty]
+            complete = [plan for plan in plans if not plan.is_dirty]
+            next_plan = dirty[0] if dirty else None
+            summary.update(
+                {
+                    "total_package_count": len(plans),
+                    "dirty_package_count": len(dirty),
+                    "reusable_package_count": len(complete),
+                    "next_package_label": next_plan.package.label if next_plan else "",
+                    "next_revision_number": next_plan.package.revision_number if next_plan else "",
+                    "next_dirty_reason": next_plan.dirty_reason if next_plan else "",
+                    "package_run_rows": [
+                        {
+                            "package_id": plan.package.id,
+                            "label": plan.package.label,
+                            "revision_number": plan.package.revision_number,
+                            "action": package_run_display_action(plan),
+                            "dirty_reason": plan.dirty_reason,
+                            "status": package_run_display_status(plan),
+                            "last_action": (plan.record or {}).get("last_action", ""),
+                            "processed_at": (plan.record or {}).get("processed_at", ""),
+                            "failed_at": (plan.record or {}).get("failed_at", ""),
+                            "last_error": (plan.record or {}).get("last_error", ""),
+                            "page_count": (plan.record or {}).get("page_count", 0),
+                            "candidate_count": (plan.record or {}).get("candidate_count", 0),
+                        }
+                        for plan in plans
+                    ],
+                }
+            )
+        return summary
+
+    def populate_status_payload(project: ProjectRecord, store: WorkspaceStore) -> dict[str, object]:
+        status = dict(store.data.populate_status or {})
+        status.update(summarize_populate_artifacts(project, store, app.config["CLOUDHAMMER_RUNNER"]))
+        state = str(status.get("state") or "idle")
+        if state not in {"running", "failed", "blocked", "done"} and status.get("dirty_package_count"):
+            next_label = status.get("next_package_label") or "the next package"
+            next_revision = status.get("next_revision_number")
+            revision_text = f"Revision {next_revision}" if next_revision else str(next_label)
+            status["state"] = "ready"
+            status["stage"] = "package_setup"
+            status["message"] = f"Ready to process {revision_text}: {next_label}."
+        return status
 
     def copy_package_source(source_path: Path, destination_dir: Path) -> int:
         destination_dir.mkdir(parents=True, exist_ok=True)
@@ -923,6 +1181,7 @@ def create_app(
             "diagnostic_summary": diagnostic_summary,
             "needs_attention": change_item_needs_attention,
             "pre_review_payload": pre_review_payload,
+            "keynote_expansion_payload": keynote_expansion_payload,
             "legend_context_payload": legend_context_payload,
             "legend_context_text": legend_context_text,
             "pre_review_1": PRE_REVIEW_1,
@@ -1297,16 +1556,15 @@ def create_app(
             pending_review_count=pending_review_count,
             first_pending=first_pending,
             output_files=build_output_files(),
-            populate_status=store.data.populate_status or {},
+            populate_status=populate_status_payload(project, active_store),
         )
 
     @app.get("/workspace/populate/status")
     def populate_status():
         project = active_project()
         current = load_project_store(project)
-        status = dict(current.data.populate_status or {})
+        status = populate_status_payload(project, current)
         status["package_setup_errors"] = validate_staged_packages(current)
-        status.update(summarize_populate_artifacts(project, current))
         return jsonify(status)
 
     @app.post("/packages/order")
@@ -1571,6 +1829,7 @@ def create_app(
         current = load_project_store()
         reconcile_staged_packages(current, save=True)
         package_setup_errors = validate_staged_packages(current)
+        rebuild_all = request.form.get("rebuild_all") == "1"
         if package_setup_errors:
             current.update_populate_status(
                 state="blocked",
@@ -1579,13 +1838,28 @@ def create_app(
                 error=" ".join(package_setup_errors),
             )
             return redirect(url_for("dashboard"))
+        packages = sorted(current.data.staged_packages, key=staged_package_sort_key)
+        runner = app.config["CLOUDHAMMER_RUNNER"]
+        plans = plan_package_runs(current, runner, packages, force_rebuild=rebuild_all)
+        dirty_count = len([plan for plan in plans if plan.is_dirty])
+        previous_visible_ids = {item.id for item in visible_change_items(current.data.change_items)}
         current.update_populate_status(
             state="running",
-            stage="drawing_analysis",
-            message="Analyzing staged drawing packages.",
+            stage="package_plan",
+            message=(
+                "Rebuilding all revision packages."
+                if rebuild_all
+                else f"Preparing package runs: {dirty_count} package(s) to process, {len(plans) - dirty_count} package(s) to reuse."
+            ),
             started_at=utc_timestamp(),
             finished_at="",
-            package_count=0,
+            total_package_count=len(plans),
+            dirty_package_count=dirty_count,
+            processed_package_count=0,
+            reused_package_count=0,
+            current_package_label="",
+            current_revision_number="",
+            package_count=len(current.data.revision_sets),
             document_count=0,
             sheet_count=0,
             cloud_count=0,
@@ -1596,24 +1870,126 @@ def create_app(
         refreshed: WorkspaceStore | None = None
         cloudhammer_result: CloudHammerRunResult | None = None
         pre_review_summary = None
+        keynote_registry_summary = None
+        keynote_expansion_summary = None
+        processed_count = 0
+        reused_count = 0
+        package_records: list[dict] = []
+        active_package_plan = None
+
+        def package_status_fields(plan, index: int | None = None) -> dict[str, object]:
+            package = plan.package
+            return {
+                "total_package_count": len(plans),
+                "dirty_package_count": dirty_count,
+                "processed_package_count": processed_count,
+                "reused_package_count": reused_count,
+                "current_package_label": package.label,
+                "current_revision_number": package.revision_number or "",
+                "current_package_index": index or "",
+                "current_package_total": len(plans),
+            }
+
         try:
-            runner = app.config["CLOUDHAMMER_RUNNER"]
-            cloudhammer_result = runner.run(
-                input_dir=Path(current.data.input_dir),
-                workspace_dir=Path(project.workspace_dir),
+            for index, plan in enumerate(plans, start=1):
+                package = plan.package
+                revision_text = package_revision_label(package)
+                if not plan.is_dirty:
+                    reused_count += 1
+                    record = dict(plan.record)
+                    record["last_action"] = "reused"
+                    current.data.package_runs[package.id] = record
+                    package_records.append(record)
+                    current.update_populate_status(
+                        state="running",
+                        stage="package_reuse",
+                        message=f"Reusing {revision_text} ({index} of {len(plans)}): {package.label}.",
+                        **package_status_fields(plan, index),
+                    )
+                    continue
+
+                current.update_populate_status(
+                    state="running",
+                    stage="drawing_analysis",
+                    message=f"Processing {revision_text} ({index} of {len(plans)}): {package.label}.",
+                    **package_status_fields(plan, index),
+                )
+                active_package_plan = plan
+                cloudhammer_result = runner.run(
+                    input_dir=Path(package.source_dir),
+                    workspace_dir=Path(project.workspace_dir),
+                )
+                processed_count += 1
+                record = build_package_run_record(
+                    package,
+                    cloudhammer_result,
+                    pdf_fingerprints=plan.pdf_fingerprints,
+                    pipeline_fingerprint=plan.pipeline_fingerprint,
+                )
+                record["last_action"] = "processed"
+                current.data.package_runs[package.id] = record
+                current.save()
+                active_package_plan = None
+                package_records.append(record)
+                current.update_populate_status(
+                    state="running",
+                    stage="package_complete",
+                    message=f"Processed {revision_text}: {cloudhammer_result.candidate_count} detected region(s).",
+                    **package_status_fields(plan, index),
+                    **cloudhammer_result.to_status(),
+                )
+
+            cloudhammer_result, pdf_cache_keys = assemble_cloudhammer_package_runs(
+                Path(project.workspace_dir),
+                package_records,
             )
             current.update_populate_status(
                 state="running",
                 stage="scan",
-                message="Scanning staged packages with detected revision regions.",
+                message=(
+                    f"Assembling workspace from {processed_count} processed package(s) "
+                    f"and {reused_count} reused package(s)."
+                ),
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
+                current_package_label="",
+                current_revision_number="",
                 **cloudhammer_result.to_status(),
             )
-            cloud_client = ManifestCloudInferenceClient(cloudhammer_result.candidate_manifest)
+            cloud_client = ManifestCloudInferenceClient(cloudhammer_result.candidate_manifest, pdf_cache_keys=pdf_cache_keys)
             refreshed, cache_hits = rescan_active_project(cloud_inference_client=cloud_client)
             refreshed.update_populate_status(
                 state="running",
                 stage="scope_extraction",
                 message="Extracting scope text and review reasons from cloud regions.",
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
+                current_package_label="",
+                current_revision_number="",
+                package_count=len(refreshed.data.revision_sets),
+                document_count=len(refreshed.data.documents),
+                sheet_count=len(refreshed.data.sheets),
+                cloud_count=len(refreshed.data.clouds),
+                change_item_count=len(visible_change_items(refreshed.data.change_items)),
+                cache_hits=cache_hits,
+                **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
+                **(cloudhammer_result.to_status() if cloudhammer_result else {}),
+            )
+            enrich_workspace_scope_text(refreshed)
+            refreshed.update_populate_status(
+                state="running",
+                stage="keynote_registry",
+                message="Building same-sheet keynote registry.",
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
+                current_package_label="",
+                current_revision_number="",
                 package_count=len(refreshed.data.revision_sets),
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
@@ -1622,17 +1998,24 @@ def create_app(
                 cache_hits=cache_hits,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
-            enrich_workspace_scope_text(refreshed)
+            keynote_registry_summary = build_workspace_keynote_registry(refreshed)
             refreshed.update_populate_status(
                 state="running",
                 stage="legend_context",
                 message="Resolving legend context for detected regions.",
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
+                current_package_label="",
+                current_revision_number="",
                 package_count=len(refreshed.data.revision_sets),
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
                 cloud_count=len(refreshed.data.clouds),
                 change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
+                **keynote_registry_summary.to_status(),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             enrich_workspace_legend_context(refreshed)
@@ -1640,6 +2023,12 @@ def create_app(
                 state="running",
                 stage="pre_review",
                 message="Running pre-review on detected regions.",
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
+                current_package_label="",
+                current_revision_number="",
                 package_count=len(refreshed.data.revision_sets),
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
@@ -1654,12 +2043,19 @@ def create_app(
                     state="running",
                     stage="pre_review",
                     message="Running pre-review on detected regions.",
+                    processed_package_count=processed_count,
+                    reused_package_count=reused_count,
+                    total_package_count=len(plans),
+                    dirty_package_count=dirty_count,
+                    current_package_label="",
+                    current_revision_number="",
                     package_count=len(refreshed.data.revision_sets),
                     document_count=len(refreshed.data.documents),
                     sheet_count=len(refreshed.data.sheets),
                     cloud_count=len(refreshed.data.clouds),
                     change_item_count=len(visible_change_items(refreshed.data.change_items)),
                     cache_hits=cache_hits,
+                    **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
                     **summary.to_status(),
                     **(cloudhammer_result.to_status() if cloudhammer_result else {}),
                 )
@@ -1669,37 +2065,74 @@ def create_app(
                 app.config["PRE_REVIEW_PROVIDER"],
                 progress_callback=update_pre_review_progress,
             )
+            keynote_expansion_summary = apply_pre_review_keynote_expansions(refreshed)
+            visible_items = visible_change_items(refreshed.data.change_items)
+            new_change_item_count = len([item for item in visible_items if item.id not in previous_visible_ids])
+            pending_review_count = len([item for item in visible_items if item.status == "pending"])
             refreshed.update_populate_status(
                 state="done",
                 stage="complete",
-                message="Workspace is populated with detected revision regions and ready for review.",
+                message=(
+                    f"Workspace populated: {processed_count} package(s) processed, "
+                    f"{reused_count} package(s) reused, {new_change_item_count} new review item(s), "
+                    f"{pending_review_count} pending total."
+                ),
                 finished_at=utc_timestamp(),
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
+                current_package_label="",
+                current_revision_number="",
+                new_change_item_count=new_change_item_count,
+                pending_review_count=pending_review_count,
                 package_count=len(refreshed.data.revision_sets),
                 document_count=len(refreshed.data.documents),
                 sheet_count=len(refreshed.data.sheets),
                 cloud_count=len(refreshed.data.clouds),
-                change_item_count=len(visible_change_items(refreshed.data.change_items)),
+                change_item_count=len(visible_items),
                 cache_hits=cache_hits,
                 error="",
+                **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
+                **(keynote_expansion_summary.to_status() if keynote_expansion_summary else {}),
                 **pre_review_summary.to_status(),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             g.active_store = refreshed
         except Exception as exc:
             failed_store = refreshed or current
+            if active_package_plan is not None:
+                failed_record = build_failed_package_run_record(
+                    active_package_plan.package,
+                    pdf_fingerprints=active_package_plan.pdf_fingerprints,
+                    pipeline_fingerprint=active_package_plan.pipeline_fingerprint,
+                    dirty_reason=active_package_plan.dirty_reason,
+                    error=str(exc),
+                )
+                failed_store.data.package_runs[active_package_plan.package.id] = failed_record
             failed_store.update_populate_status(
                 state="failed",
                 stage="failed",
                 message="Workspace population failed.",
                 finished_at=utc_timestamp(),
+                processed_package_count=processed_count,
+                reused_package_count=reused_count,
+                total_package_count=len(plans),
+                dirty_package_count=dirty_count,
                 error=str(exc),
                 **(pre_review_summary.to_status() if pre_review_summary else {}),
+                **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
+                **(keynote_expansion_summary.to_status() if keynote_expansion_summary else {}),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             flash(f"Workspace population failed: {exc}", "warning")
             return redirect(url_for("dashboard"))
         flash(
-            f"Workspace populated: {len(refreshed.data.revision_sets)} package(s), {len(refreshed.data.sheets)} sheet version(s), {len(visible_change_items(refreshed.data.change_items))} change item(s).",
+            (
+                f"Workspace populated: {processed_count} package(s) processed, {reused_count} reused, "
+                f"{len(refreshed.data.sheets)} sheet version(s), "
+                f"{len(visible_change_items(refreshed.data.change_items))} change item(s)."
+            ),
             "success",
         )
         if pre_review_summary and (
@@ -1879,6 +2312,8 @@ def create_app(
         filter_status = request.args.get("status", "pending")
         search_query = request.args.get("q", "")
         attention_only = request.args.get("attention", "0") == "1"
+        package_scope = request.args.get("package_scope", "all")
+        package_id = request.args.get("package_id", "")
         if active_project_or_none() is None:
             return render_template(
                 "changes.html",
@@ -1888,12 +2323,42 @@ def create_app(
                 attention_only=attention_only,
                 counts=empty_counts(),
                 first_pending=None,
+                review_filter={
+                    "package_scope": "all",
+                    "package_id": "",
+                    "query_args": {"package_scope": "all"},
+                    "options": [],
+                    "selected_package": None,
+                    "newest_package": None,
+                    "newest_pending_count": 0,
+                    "all_pending_count": 0,
+                },
+                item_package_context={"packages_by_id": {}, "item_package_ids": {}},
             )
-        items = filter_change_items(store, filter_status, search_query)
+        review_filter = review_package_filter_context(store, package_scope, package_id)
+        items = filter_change_items(
+            store,
+            filter_status,
+            search_query,
+            str(review_filter["package_scope"]),
+            str(review_filter["package_id"]),
+        )
         if attention_only:
             items = [item for item in items if item.status == "pending" and change_item_needs_attention(item)]
         counts = visible_review_counts(store)
-        first_pending = next((item for item in filter_change_items(store, "pending", "")), None)
+        first_pending = next(
+            (
+                item
+                for item in filter_change_items(
+                    store,
+                    "pending",
+                    "",
+                    str(review_filter["package_scope"]),
+                    str(review_filter["package_id"]),
+                )
+            ),
+            None,
+        )
         return render_template(
             "changes.html",
             items=items,
@@ -1902,6 +2367,8 @@ def create_app(
             attention_only=attention_only,
             counts=counts,
             first_pending=first_pending,
+            review_filter=review_filter,
+            item_package_context=package_context(store),
         )
 
     @app.route("/changes/<change_id>")
@@ -1913,12 +2380,30 @@ def create_app(
         queue_status = request.args.get("queue", "pending")
         search_query = request.args.get("q", "")
         attention_only = request.args.get("attention", "0") == "1"
+        package_scope = request.args.get("package_scope", "all")
+        package_id = request.args.get("package_id", "")
+        review_filter = review_package_filter_context(store, package_scope, package_id)
         if is_superseded(item):
-            return redirect(replacement_redirect_target(item, queue_status=queue_status, search_query=search_query, attention_only=attention_only))
+            return redirect(
+                replacement_redirect_target(
+                    item,
+                    queue_status=queue_status,
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=str(review_filter["package_scope"]),
+                    package_id=str(review_filter["package_id"]),
+                )
+            )
         sheet = store.get_sheet(item.sheet_version_id)
         cloud = store.get_cloud(item.cloud_candidate_id) if item.cloud_candidate_id else None
         verifications = store.change_verifications(change_id)
-        queue_items = filter_change_items(store, queue_status, search_query)
+        queue_items = filter_change_items(
+            store,
+            queue_status,
+            search_query,
+            str(review_filter["package_scope"]),
+            str(review_filter["package_id"]),
+        )
         if attention_only:
             queue_items = [queued_item for queued_item in queue_items if queued_item.status == "pending" and change_item_needs_attention(queued_item)]
         navigation = build_change_navigation(queue_items, change_id)
@@ -1936,6 +2421,7 @@ def create_app(
             queue_status=queue_status,
             search_query=search_query,
             attention_only=attention_only,
+            review_filter=review_filter,
             navigation=navigation,
             item_needs_attention=item.status == "pending" and change_item_needs_attention(item),
             sheet_revision_set=next((revision_set for revision_set in store.data.revision_sets if revision_set.id == sheet.revision_set_id), None),
@@ -2018,6 +2504,12 @@ def create_app(
             "queue": str(payload.get("queue_status") or "pending"),
             "q": str(payload.get("search_query") or ""),
         }
+        package_scope = str(payload.get("package_scope") or "all")
+        package_id = str(payload.get("package_id") or "")
+        if package_scope in {"newest", "package"}:
+            redirect_kwargs["package_scope"] = package_scope
+        if package_scope == "package" and package_id:
+            redirect_kwargs["package_id"] = package_id
         if str(payload.get("attention_only") or "0") == "1":
             redirect_kwargs["attention"] = "1"
         return jsonify(
@@ -2037,11 +2529,32 @@ def create_app(
         queue_status = request.form.get("queue_status", "pending")
         search_query = request.form.get("search_query", "")
         attention_only = request.form.get("attention_only", "0") == "1"
+        package_scope = request.form.get("package_scope", "all")
+        package_id = request.form.get("package_id", "")
         if is_superseded(item):
-            return redirect(replacement_redirect_target(item, queue_status=queue_status, search_query=search_query, attention_only=attention_only))
+            return redirect(
+                replacement_redirect_target(
+                    item,
+                    queue_status=queue_status,
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=package_scope,
+                    package_id=package_id,
+                )
+            )
         if not is_probable_legend_context(item):
             flash("This item is not marked as probable legend context.", "warning")
-            return redirect(url_for("change_detail", change_id=change_id, queue=queue_status, q=search_query, attention="1" if attention_only else "0"))
+            redirect_kwargs = {
+                "change_id": change_id,
+                **review_url_kwargs(
+                    queue_status=queue_status,
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=package_scope,
+                    package_id=package_id,
+                ),
+            }
+            return redirect(url_for("change_detail", **redirect_kwargs))
 
         project = active_project()
         confirmed_at = utc_timestamp()
@@ -2067,13 +2580,34 @@ def create_app(
             action="relabel",
             human_result_overrides=legend_context_human_result(updated),
         )
-        next_change_id = next_pending_change_id_after(change_id, search_query=search_query, attention_only=attention_only)
+        next_change_id = next_pending_change_id_after(
+            change_id,
+            search_query=search_query,
+            attention_only=attention_only,
+            package_scope=package_scope,
+            package_id=package_id,
+        )
         if next_change_id:
-            redirect_kwargs = {"change_id": next_change_id, "queue": "pending", "q": search_query}
-            if attention_only:
-                redirect_kwargs["attention"] = "1"
+            redirect_kwargs = {
+                "change_id": next_change_id,
+                **review_url_kwargs(
+                    queue_status="pending",
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=package_scope,
+                    package_id=package_id,
+                ),
+            }
             return redirect(url_for("change_detail", **redirect_kwargs))
-        return redirect(url_for("changes", status="pending", q=search_query, attention="1" if attention_only else "0"))
+        redirect_kwargs = review_url_kwargs(
+            queue_status="",
+            search_query=search_query,
+            attention_only=attention_only,
+            package_scope=package_scope,
+            package_id=package_id,
+        )
+        redirect_kwargs["status"] = "pending"
+        return redirect(url_for("changes", **redirect_kwargs))
 
     @app.post("/changes/<change_id>/review")
     def review_change(change_id: str):
@@ -2086,12 +2620,42 @@ def create_app(
             queue_status = request.form.get("queue_status", "pending")
             search_query = request.form.get("search_query", "")
             attention_only = request.form.get("attention_only", "0") == "1"
-            return redirect(replacement_redirect_target(item, queue_status=queue_status, search_query=search_query, attention_only=attention_only))
+            package_scope = request.form.get("package_scope", "all")
+            package_id = request.form.get("package_id", "")
+            return redirect(
+                replacement_redirect_target(
+                    item,
+                    queue_status=queue_status,
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=package_scope,
+                    package_id=package_id,
+                )
+            )
         status = request.form.get("status_override") or request.form.get("status", item.status)
         default_redirect = url_for("change_detail", change_id=change_id)
         if status not in VALID_REVIEW_STATUSES:
             flash("Choose a valid review status.", "warning")
             return redirect(safe_redirect_target(request.form.get("redirect_to"), default_redirect))
+        queue_status = request.form.get("queue_status", "pending")
+        search_query = request.form.get("search_query", "")
+        attention_param = request.form.get("attention_only", "0")
+        attention_only = attention_param == "1"
+        package_scope = request.form.get("package_scope", "all")
+        package_id = request.form.get("package_id", "")
+        advance_to_next = request.form.get("advance") == "next"
+        server_next_change_id = (
+            next_change_id_after_in_queue(
+                change_id,
+                queue_status=queue_status,
+                search_query=search_query,
+                attention_only=attention_only,
+                package_scope=package_scope,
+                package_id=package_id,
+            )
+            if advance_to_next
+            else None
+        )
         selected_pre_review = request.form.get("selected_pre_review", "")
         if selected_pre_review:
             item = select_pre_review_source(item, selected_pre_review)
@@ -2113,13 +2677,16 @@ def create_app(
             review_session_id=current_review_session_id(),
         )
         flash(f"Updated {change_id} to {status}.", "success")
-        attention_param = request.form.get("attention_only", "0")
-        if request.form.get("advance") == "next" and request.form.get("next_change_id"):
+        if advance_to_next and server_next_change_id:
             redirect_kwargs = {
-                "change_id": request.form["next_change_id"],
-                "queue": request.form.get("queue_status", "pending"),
-                "q": request.form.get("search_query", ""),
+                "change_id": server_next_change_id,
+                "queue": queue_status,
+                "q": search_query,
             }
+            if package_scope in {"newest", "package"}:
+                redirect_kwargs["package_scope"] = package_scope
+            if package_scope == "package" and package_id:
+                redirect_kwargs["package_id"] = package_id
             if attention_param == "1":
                 redirect_kwargs["attention"] = "1"
             redirect_to = url_for(
@@ -2127,14 +2694,28 @@ def create_app(
                 **redirect_kwargs,
             )
         else:
-            if request.form.get("redirect_to"):
+            if advance_to_next:
+                redirect_kwargs = review_url_kwargs(
+                    queue_status="",
+                    search_query=search_query,
+                    attention_only=attention_only,
+                    package_scope=package_scope,
+                    package_id=package_id,
+                )
+                redirect_kwargs["status"] = queue_status
+                redirect_to = url_for("changes", **redirect_kwargs)
+            elif request.form.get("redirect_to"):
                 redirect_to = safe_redirect_target(request.form.get("redirect_to"), default_redirect)
             else:
                 redirect_kwargs = {
                     "change_id": change_id,
-                    "queue": request.form.get("queue_status", "pending"),
-                    "q": request.form.get("search_query", ""),
+                    "queue": queue_status,
+                    "q": search_query,
                 }
+                if package_scope in {"newest", "package"}:
+                    redirect_kwargs["package_scope"] = package_scope
+                if package_scope == "package" and package_id:
+                    redirect_kwargs["package_id"] = package_id
                 if attention_param == "1":
                     redirect_kwargs["attention"] = "1"
                 redirect_to = url_for("change_detail", **redirect_kwargs)

@@ -65,7 +65,11 @@ class RevisionScanner:
         self.previous_scan_cache = dict(self.store.data.scan_cache.get("documents", {}))
         self.cache_hits = 0
 
-    def _cloud_inference_cache_key(self) -> str:
+    def _cloud_inference_cache_key(self, pdf_path: Path | None = None) -> str:
+        if pdf_path is not None:
+            pdf_cache_key = getattr(self.cloud_inference_client, "cache_key_for_pdf", None)
+            if callable(pdf_cache_key):
+                return str(pdf_cache_key(pdf_path))
         return str(
             getattr(
                 self.cloud_inference_client,
@@ -94,7 +98,7 @@ class RevisionScanner:
                 revision_set.pdf_paths.append(source_pdf)
                 fingerprint = self._document_fingerprint(pdf_path)
                 cache_entry = self.previous_scan_cache.get(source_pdf)
-                if self._cache_entry_usable(cache_entry, fingerprint):
+                if self._cache_entry_usable(cache_entry, fingerprint, pdf_path):
                     cached_document, cached_issues, cached_narratives, cached_sheets, cached_clouds = self._inflate_cache_entry(cache_entry)
                     documents.append(cached_document)
                     preflight_issues.extend(cached_issues)
@@ -109,6 +113,7 @@ class RevisionScanner:
                         narratives=cached_narratives,
                         sheets=cached_sheets,
                         clouds=cached_clouds,
+                        pdf_path=pdf_path,
                     )
                     self.cache_hits += 1
                     continue
@@ -130,6 +135,7 @@ class RevisionScanner:
                     narratives=parsed_narratives,
                     sheets=parsed_sheets,
                     clouds=parsed_clouds,
+                    pdf_path=pdf_path,
                 )
 
             revision_sets[-1] = replace(
@@ -300,10 +306,10 @@ class RevisionScanner:
         stat = pdf_path.stat()
         return stable_id(pdf_path.resolve(), stat.st_size, stat.st_mtime_ns)
 
-    def _cache_entry_usable(self, cache_entry: dict[str, object] | None, fingerprint: str) -> bool:
+    def _cache_entry_usable(self, cache_entry: dict[str, object] | None, fingerprint: str, pdf_path: Path) -> bool:
         if not cache_entry or cache_entry.get("fingerprint") != fingerprint:
             return False
-        if cache_entry.get("cloud_inference_cache_key") != self._cloud_inference_cache_key():
+        if cache_entry.get("cloud_inference_cache_key") != self._cloud_inference_cache_key(pdf_path):
             return False
         if (
             cache_entry.get("clouds")
@@ -356,11 +362,12 @@ class RevisionScanner:
         narratives: list[NarrativeEntry],
         sheets: list[SheetVersion],
         clouds: list[CloudCandidate],
+        pdf_path: Path,
     ) -> dict[str, object]:
         return {
             "fingerprint": fingerprint,
             "scope_extraction_version": SCOPE_EXTRACTION_CACHE_VERSION,
-            "cloud_inference_cache_key": self._cloud_inference_cache_key(),
+            "cloud_inference_cache_key": self._cloud_inference_cache_key(pdf_path),
             "document": asdict(document),
             "preflight_issues": [asdict(issue) for issue in preflight_issues],
             "narratives": [asdict(entry) for entry in narratives],
@@ -371,7 +378,10 @@ class RevisionScanner:
 
     def _restore_review_state(self, items: list[ChangeItem]) -> list[ChangeItem]:
         previous_by_id = {item.id: item for item in self.previous_change_items}
-        previous_by_key = {(item.sheet_id, item.detail_ref, item.normalized_text): item for item in self.previous_change_items}
+        previous_by_key = {
+            (item.sheet_version_id, item.sheet_id, item.detail_ref, item.normalized_text): item
+            for item in self.previous_change_items
+        }
         previous_by_cloud = {item.cloud_candidate_id: item for item in self.previous_change_items if item.cloud_candidate_id}
         restored: list[ChangeItem] = []
         restored_ids: set[str] = set()
@@ -379,7 +389,7 @@ class RevisionScanner:
         for item in items:
             previous = (
                 previous_by_id.get(item.id)
-                or previous_by_key.get((item.sheet_id, item.detail_ref, item.normalized_text))
+                or previous_by_key.get((item.sheet_version_id, item.sheet_id, item.detail_ref, item.normalized_text))
                 or previous_by_cloud.get(item.cloud_candidate_id or "")
             )
             if previous:
@@ -704,7 +714,7 @@ class RevisionScanner:
         for cloud in clouds:
             clouds_by_sheet.setdefault(cloud.sheet_version_id, []).append(cloud)
 
-        unique: dict[tuple[str, str | None, str], ChangeItem] = {}
+        unique: dict[tuple[str, str, str | None, str], ChangeItem] = {}
         for sheet in sheets:
             sheet_clouds = clouds_by_sheet.get(sheet.id, [])
             sheet_narratives = [narratives_by_id[narrative_id] for narrative_id in sheet.narrative_entry_ids if narrative_id in narratives_by_id]
@@ -727,7 +737,7 @@ class RevisionScanner:
                             "extraction_signal": 1.0,
                         },
                     )
-                    unique[(item.sheet_id, item.detail_ref, item.normalized_text)] = item
+                    unique[(sheet.id, item.sheet_id, item.detail_ref, item.normalized_text)] = item
 
             visual_clouds = [cloud for cloud in sheet_clouds if cloud.extraction_method == "cloudhammer_manifest"] if sheet_narratives else sheet_clouds
             for cloud in visual_clouds:
@@ -735,7 +745,7 @@ class RevisionScanner:
                 dedupe_key = (sheet.sheet_id, cloud.detail_ref, normalize_text(raw_text))
                 if (
                     normalize_text(raw_text) == "possible revision region"
-                    and any(key[0] == sheet.sheet_id and key[1] == cloud.detail_ref for key in unique)
+                    and any(key[0] == sheet.id and key[1] == sheet.sheet_id and key[2] == cloud.detail_ref for key in unique)
                 ):
                     continue
                 item = ChangeItem(
@@ -758,7 +768,7 @@ class RevisionScanner:
                         **cloud.metadata,
                     },
                 )
-                unique[dedupe_key] = item
+                unique[(sheet.id, *dedupe_key)] = item
 
         return sorted(unique.values(), key=legacy_review_sort_key)
 

@@ -709,7 +709,7 @@ input, textarea, select { font-family: inherit; }
 
 .populate-status-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(90px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: var(--sp-2);
   color: var(--text-secondary);
   font-size: var(--text-xs);
@@ -729,6 +729,37 @@ input, textarea, select { font-family: inherit; }
 
 .populate-progress {
   height: 6px;
+}
+
+.package-run-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.package-run-history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.package-run-history-title {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.package-run-table-wrap {
+  border-radius: var(--radius-sm);
+}
+
+.package-run-table td {
+  vertical-align: top;
 }
 
 .bulk-review-status {
@@ -960,6 +991,23 @@ input, textarea, select { font-family: inherit; }
 .filter-toggle .toggle-count {
   font-size: var(--text-2xs);
   opacity: 0.75;
+}
+
+.package-filter-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.package-filter-form {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.package-filter-form .form-select {
+  min-width: min(360px, 70vw);
 }
 
 /* --- Panels / Sections ----------------------------------- */

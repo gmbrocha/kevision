@@ -41,14 +41,20 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   package with an editable positive integer revision number; Populate is
   blocked until every staged package with PDFs has a revision number and no two
   packages share the same number. Folder-name parsing is only a convenience
-  fallback for newly reconciled legacy/staged folders. Before Populate,
-  Overview also shows a staged-for-population package/file summary so imported
-  PDFs are visible without exposing local workspace paths.
-- Populate Workspace now runs the local CloudHammer full-page pipeline before
-  the app scanner consumes review data. The live handoff path uses the current
-  continuity checkpoint
+  fallback for newly reconciled legacy/staged folders. Browser file or folder
+  upload uses one package revision number for the whole selected package.
+  Before Populate, Overview also shows a staged-for-population package/file
+  summary so imported PDFs are visible without exposing local workspace paths.
+  After Populate, the Revision packages table displays the assigned revision
+  number as static package metadata rather than an editable control.
+- Populate Workspace now processes revision packages incrementally. The
+  default action runs the local CloudHammer full-page pipeline only for new or
+  dirty staged packages, reuses clean package runs, assembles all package
+  manifests into a project-level scan, then imports review data. `Rebuild all
+  packages` remains available when every package needs a fresh run. The live
+  handoff path uses the current continuity checkpoint
   `CloudHammer/runs/cloudhammer_roi-symbol-text-fp-hn-20260502/weights/best.pt`,
-  grouping profile `review_v1`, and whole-cloud export into the selected app
+  grouping profile `review_v1`, and whole-cloud export under the selected app
   project's `outputs/cloudhammer_live/` folder.
 - Populate then runs app-layer Pre Review enrichment when
   `SCOPELEDGER_PREREVIEW_ENABLED=1` and `OPENAI_API_KEY` are configured. The
@@ -58,7 +64,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   not block Populate. Pre Review API calls now batch up to
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, while
   preserving per-item cache files and writing per-call usage JSONL under the
-  active project `outputs/pre_review/usage/` folder.
+  active project `outputs/pre_review/usage/` folder. After Pre Review, a
+  deterministic same-sheet keynote pass expands resolved `Pre Review 2`
+  references such as `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text
+  without additional API calls.
 - Populate now adds a conservative legend-context pass between OCR extraction
   and Pre Review. Probable legend/keynote regions remain visible in the review
   queue until the reviewer clicks `Accept as legend`; confirmed legend context
@@ -93,19 +102,41 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   export, pricing candidates, and review packet. Direct parent URLs redirect
   to replacement items when possible, and mutation endpoints reject superseded
   parents.
+- Review items are revision-scope records. A later package containing the same
+  sheet number does not automatically hide, reject, or supersede older package
+  clouds on that sheet; approved scope from multiple revision packages remains
+  exportable unless explicitly rejected or item-superseded.
+- Review Changes now has package-scoped review filters. The default remains all
+  pending active review items, while reviewers can switch to the newest
+  revision package or one specific package without losing status/search/needs
+  check filtering.
 - The review page now supports `Correct overmerge` and `Correct partial` from
   the current crop image. Overmerge correction creates multiple pending child
   review items in the same queue position and records an internal `split`
   event. Partial correction creates one replacement review item and records an
   internal `resize` event. Full-sheet correction remains a later follow-up.
 - The Overview page now polls `/workspace/populate/status` during Populate so
-  the browser shows staged PDF count, live artifact count, and completion/fail
-  state while CloudHammer runs inside long synchronous backend work.
+  the browser shows staged PDF count, package-level reuse/process progress,
+  current revision/package markers, live artifact count, and completion/fail
+  state while CloudHammer runs inside long synchronous backend work. Overview
+  also shows a package processing history panel with current dirty, reused,
+  processed, failed, and pending state for each staged package.
+- Copied manual-test package folders `revision_sets/Revision #8 - test copy
+  reduced size` and `revision_sets/Revision #9 - test copy 2 reduced size`
+  are intentionally reduced subsets for app flow testing. The original
+  Revision #1 and Revision #2 source package folders remain untouched.
 - OCR extraction is now intentionally tighter around detected boxes, with
   isolated numeric clutter filtered unless it looks like a tag/callout/keynote
   reference. Legend symbol lookup is available as provisional context from
   probable legend/keynote regions; image-shape detection for hexagons/circles
   and split/merge quality remain follow-up work.
+- Keynote legend extraction is now a shared backend service used by Populate
+  and by the standalone `utils/find_keynote_legends.py` diagnostic wrapper.
+  Populate builds a sheet-version-scoped keynote registry from explicit
+  `KEYNOTE` / `KEYED NOTES` headers, marker labels, and numbered-list blocks,
+  then uses that registry to expand same-sheet GPT `Pre Review 2` keynote
+  references. The diagnostic wrapper still writes derived inspection artifacts
+  under `test_tmp/` without mutating source PDFs or app workspaces.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number

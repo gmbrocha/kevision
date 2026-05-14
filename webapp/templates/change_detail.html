@@ -2,9 +2,9 @@
 {% block title %}{{ item.sheet_id }} {{ item.detail_ref or "" }}{% endblock %}
 {% block content %}
   <header class="cockpit-header"
-          data-prev-url="{% if navigation.previous_change_id %}{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}"
-          data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}{% endif %}">
-    <a class="cockpit-back" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0') }}">Review Changes</a>
+          data-prev-url="{% if navigation.previous_change_id %}{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}{% endif %}"
+          data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}{% endif %}">
+    <a class="cockpit-back" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Review Changes</a>
 
     <div style="display: flex; align-items: center; gap: var(--sp-4);">
       <span class="cockpit-id">
@@ -19,13 +19,13 @@
 
     <nav class="cockpit-nav">
       {% if navigation.previous_change_id %}
-        <a class="cockpit-nav-btn" href="{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}" title="Previous">[</a>
+        <a class="cockpit-nav-btn" href="{{ url_for('change_detail', change_id=navigation.previous_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}" title="Previous">[</a>
       {% else %}
         <button class="cockpit-nav-btn" type="button" disabled>[</button>
       {% endif %}
       <span class="cockpit-nav-pos">{% if navigation.index %}{{ navigation.index }} / {{ navigation.total }}{% else %}-{% endif %}</span>
       {% if navigation.next_change_id %}
-        <a class="cockpit-nav-btn" href="{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}" title="Next">]</a>
+        <a class="cockpit-nav-btn" href="{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}" title="Next">]</a>
       {% else %}
         <button class="cockpit-nav-btn" type="button" disabled>]</button>
       {% endif %}
@@ -35,10 +35,12 @@
 
   <form method="post" action="{{ url_for('review_change', change_id=item.id) }}" class="js-review-form cockpit-layout">
     {{ csrf_field()|safe }}
-    <input type="hidden" name="redirect_to" value="{{ url_for('change_detail', change_id=item.id, queue=queue_status, q=search_query, attention='1' if attention_only else '0') }}">
+    <input type="hidden" name="redirect_to" value="{{ url_for('change_detail', change_id=item.id, queue=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">
     <input type="hidden" name="queue_status" value="{{ queue_status }}">
     <input type="hidden" name="search_query" value="{{ search_query }}">
     <input type="hidden" name="attention_only" value="{{ '1' if attention_only else '0' }}">
+    <input type="hidden" name="package_scope" value="{{ review_filter.package_scope }}">
+    <input type="hidden" name="package_id" value="{{ review_filter.package_id }}">
     <input type="hidden" name="next_change_id" value="{{ navigation.next_change_id or '' }}">
     <input type="hidden" name="advance" value="">
     <select name="status" style="display: none;">
@@ -102,6 +104,8 @@
             data-queue-status="{{ queue_status }}"
             data-search-query="{{ search_query }}"
             data-attention-only="{{ '1' if attention_only else '0' }}"
+            data-package-scope="{{ review_filter.package_scope }}"
+            data-package-id="{{ review_filter.package_id }}"
           >
             <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="overmerge" {% if bulk_review_job_running %}disabled{% endif %}>Correct overmerge</button>
             <button class="btn btn-secondary btn-sm" type="button" data-geometry-start="partial" {% if bulk_review_job_running %}disabled{% endif %}>Correct partial</button>
@@ -146,6 +150,7 @@
         {% set selected_pre_review = pre_review.get("selected", pre_review_1) if pre_review else pre_review_1 %}
         {% set pr1 = pre_review.get(pre_review_1, {}) if pre_review else {} %}
         {% set pr2 = pre_review.get(pre_review_2, {}) if pre_review else {} %}
+        {% set keynote_expansion = pr2.get("keynote_expansion", {}) if pr2 else {} %}
         <div class="pre-review-panel">
           <div class="pre-review-legend">
             <span class="pre-review-key pre-review-key-1"></span>
@@ -171,6 +176,9 @@
             <div class="pre-review-choice-head">
               <span>Pre Review 2</span>
               {% if selected_pre_review == pre_review_2 %}<span class="badge badge-active">Selected</span>{% endif %}
+              {% if keynote_expansion.get("references") %}
+                <span class="badge badge-active">Keynotes resolved: {{ keynote_expansion.get("references")|map(attribute="token")|join(", ") }}</span>
+              {% endif %}
             </div>
             <textarea class="pre-review-textarea" rows="4" readonly>{{ pr2.get("text", "") }}</textarea>
             <button class="btn btn-secondary btn-sm" type="submit" name="selected_pre_review" value="{{ pre_review_2 }}" {% if not pr2.get("available") or bulk_review_job_running %}disabled{% endif %}>Use Pre Review 2</button>

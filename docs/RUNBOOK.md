@@ -202,29 +202,42 @@ Fresh client project flow with live Populate and optional Pre Review:
   1. Open `http://127.0.0.1:5000/projects`.
   2. Create a new project.
   3. On Overview, import packages by selecting PDFs or folders in the browser.
-     Enter the package revision number before import.
+     Enter the package revision number before import. One number applies to
+     the selected PDF batch or folder package.
   4. Confirm the Revision packages table shows a positive integer revision
      number for every staged package. Edit numbers and click Save package
-     order if needed. Before Populate, the staged-for-population card should
-     list the imported packages and PDF filenames.
-  5. Click Populate Workspace.
+     order if needed before Populate. Before Populate, the
+     staged-for-population card should list the imported packages and PDF
+     filenames. After Populate, loaded package revision numbers should render
+     as static values, not editable number controls.
+  5. Click Populate Workspace. This processes only new or dirty packages and
+     reuses clean package runs. Use Rebuild all packages only when every staged
+     package needs a fresh CloudHammer run.
   6. Review Overview, Drawings, Latest Set, Review Changes, Diagnostics,
      Export Workbook, and Review Packet.
-- Expected output/artifact: Populate writes live detection artifacts under
-  the selected project workspace at `outputs/cloudhammer_live/run_*/`, then
-  imports the generated `whole_cloud_candidates_manifest.jsonl` into normal
-  app review items. If Pre Review is enabled and `OPENAI_API_KEY` is present,
-  provisional second-pass metadata is cached under `outputs/pre_review/` and
-  appears in the review screen as `Pre Review 2`; otherwise review items keep
-  raw `Pre Review 1`. API calls batch up to
+- Expected output/artifact: Populate writes package-level live detection
+  artifacts under the selected project workspace at
+  `outputs/cloudhammer_live/run_*/`, writes an assembled manifest under
+  `outputs/cloudhammer_live/assembled/`, then imports the assembled
+  `whole_cloud_candidates_manifest.jsonl` into normal app review items. If Pre
+  Review is enabled and `OPENAI_API_KEY` is present, provisional second-pass
+  metadata is cached under `outputs/pre_review/` and appears in the review
+  screen as `Pre Review 2`; otherwise review items keep raw `Pre Review 1`.
+  API calls batch up to
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, and
-  usage records are written under `outputs/pre_review/usage/`. While Populate
-  is running, Overview polls `/workspace/populate/status` and should show
-  staged PDF count plus live artifact count before final package/sheet/change
-  counts appear. Drawing index pages remain context only; they should not
-  create review items or be used as previous/current comparison sheets.
-  Populate is blocked until staged package revision numbers are complete and
-  unique.
+  usage records are written under `outputs/pre_review/usage/`. Populate also
+  builds the sheet-version keynote registry and deterministically expands
+  matching `Pre Review 2` keynote references without extra API calls. While
+  Populate is running, Overview polls `/workspace/populate/status` and should
+  show staged PDF count, package reuse/process counts, the current
+  revision/package, keynote registry/expansion counts, and live artifact count
+  before final package/sheet/change counts appear.
+  Drawing index pages remain context only; they should not create review items
+  or be used as previous/current comparison sheets. Populate is blocked until
+  staged package revision numbers are complete and unique. A later package with
+  the same sheet number does not automatically remove older package review
+  items; approved scope carries forward unless explicitly rejected or
+  item-superseded.
 - Safety: local inference/product workflow. Browser-selected PDF files upload
   in 8 MiB chunks and are reconstructed in the selected app workspace. It writes
   generated project outputs only and must not delete or mutate `revision_sets/`,
@@ -252,6 +265,31 @@ Large remote browser uploads:
   accepted by the chunked upload init endpoint. Upload batches are capped by
   `SCOPELEDGER_MAX_UPLOAD_BYTES`, defaulting to `2 GiB`, and by `500` PDF
   files per batch.
+
+Find keyed-note legend rows from header text and marker graphics:
+
+- Purpose: run the same backend keynote extraction service used by Populate as
+  a standalone diagnostic. It builds a registry of sheet keynote legend entries
+  by finding `KEYNOTE`/`KEYNOTES`/`KEY NOTE`/`KEY NOTES`/`KEYED NOTES`
+  headers, then extracting marker labels with adjacent description text or
+  `KEYED NOTES` numbered-list entries where the header uses an empty sample
+  marker, or no marker, and the definitions are plain `1.` / `2.` rows.
+- Working directory: repo root.
+- Command:
+
+```powershell
+.\.venv\Scripts\python.exe utils\find_keynote_legends.py --input-dir "revision_sets\Revision #1 - Drawing Changes"
+```
+
+- Expected output/artifact: a timestamped folder under
+  `test_tmp\keynote_legend_finder\` containing `summary.json`,
+  `keynote_legend_rows.csv`, `keynote_legend_rows.jsonl`,
+  `keynote_legend_regions.jsonl`, `keynotes_by_sheet.json`, and
+  `keynote_legend_viewer.html`.
+- Safety: derived diagnostic output only. It reads source PDFs with PyMuPDF
+  text/vector extraction and does not mutate source PDFs, revision sets, app
+  workspace state, CloudHammer_v2 eval/training artifacts, labels, model
+  files, or exports.
 
 Run pre-release audit checks:
 

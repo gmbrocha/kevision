@@ -4,11 +4,18 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Review Changes</h1>
-      <p class="page-subtitle">{{ pending_count }} pending · {{ items|length }} visible</p>
+      <p class="page-subtitle">
+        {{ pending_count }} pending · {{ items|length }} visible
+        {% if review_filter.package_scope == "newest" and review_filter.newest_package %}
+          · Newest package: Revision {{ review_filter.newest_package.revision_number }}
+        {% elif review_filter.package_scope == "package" and review_filter.selected_package %}
+          · {{ review_filter.selected_package.label }}
+        {% endif %}
+      </p>
     </div>
     <div class="page-actions">
       {% if first_pending %}
-        <a class="btn btn-primary btn-lg" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending') }}">Start reviewing</a>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Start reviewing</a>
       {% endif %}
     </div>
   </header>
@@ -16,6 +23,8 @@
   <div class="page-scroll">
     <div class="page-content">
       <form class="filter-bar" method="get">
+        <input type="hidden" name="package_scope" value="{{ review_filter.package_scope }}">
+        <input type="hidden" name="package_id" value="{{ review_filter.package_id }}">
         <div class="filter-input-wrap">
           <span class="filter-input-icon">⌕</span>
           <input class="filter-input" type="search" name="q" value="{{ search_query }}" placeholder="Sheet, scope text...">
@@ -27,15 +36,41 @@
             ("approved", "Accepted", counts.approved),
             ("rejected", "Rejected", counts.rejected)
           ] %}
-            <a class="filter-toggle {% if filter_status == value and not attention_only %}active{% endif %}" href="{{ url_for('changes', status=value, q=search_query) }}">
+            <a class="filter-toggle {% if filter_status == value and not attention_only %}active{% endif %}" href="{{ url_for('changes', status=value, q=search_query, package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">
               {{ label }} <span class="toggle-count">{{ count }}</span>
             </a>
           {% endfor %}
-          <a class="filter-toggle {% if attention_only %}active{% endif %}" href="{{ url_for('changes', status='all', q=search_query, attention='1') }}">
+          <a class="filter-toggle {% if attention_only %}active{% endif %}" href="{{ url_for('changes', status='all', q=search_query, attention='1', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">
             Needs check <span class="toggle-count">{{ counts.needs_check }}</span>
           </a>
         </div>
       </form>
+
+      <div class="package-filter-strip">
+        <div class="filter-toggle-group">
+          <a class="filter-toggle {% if review_filter.package_scope == 'all' and filter_status == 'pending' and not attention_only %}active{% endif %}" href="{{ url_for('changes', status='pending', q='', package_scope='all') }}">
+            All pending <span class="toggle-count">{{ review_filter.all_pending_count }}</span>
+          </a>
+          <a class="filter-toggle {% if review_filter.package_scope == 'newest' %}active{% endif %}" href="{{ url_for('changes', status='pending', q=search_query, package_scope='newest') }}">
+            Newest package <span class="toggle-count">{{ review_filter.newest_pending_count }}</span>
+          </a>
+        </div>
+        <form class="package-filter-form" method="get">
+          <input type="hidden" name="status" value="{{ filter_status }}">
+          <input type="hidden" name="q" value="{{ search_query }}">
+          {% if attention_only %}<input type="hidden" name="attention" value="1">{% endif %}
+          <input type="hidden" name="package_scope" value="package">
+          <select class="form-select" name="package_id" aria-label="Review package">
+            <option value="">Package-specific review</option>
+            {% for option in review_filter.options %}
+              <option value="{{ option.id }}" {% if review_filter.package_scope == 'package' and review_filter.package_id == option.id %}selected{% endif %}>
+                Revision {{ option.revision_number or "n/a" }} - {{ option.label }} ({{ option.pending_count }} pending)
+              </option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-secondary btn-sm" type="submit">Apply</button>
+        </form>
+      </div>
 
       {% if attention_count %}
         <section class="callout callout-check">
@@ -67,7 +102,7 @@
 
       <form method="post" action="{{ url_for('bulk_review') }}" class="panel js-bulk-review-form">
         {{ csrf_field()|safe }}
-        <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0') }}">
+        <input type="hidden" name="redirect_to" value="{{ url_for('changes', status=filter_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">
         <div class="panel-header">
           <span class="panel-title">Change list</span>
           {% if active_project %}
@@ -85,6 +120,7 @@
               <tr>
                 <th><input type="checkbox" class="js-master-checkbox" data-target=".js-queue-checkbox" aria-label="Select all"></th>
                 <th>Sheet</th>
+                <th>Package</th>
                 <th>Cloud</th>
                 <th>Scope of change</th>
                 <th>Discipline</th>
@@ -95,11 +131,21 @@
             <tbody>
               {% for item in items %}
                 {% set show_attention = item.status == 'pending' and needs_attention(item) %}
+                {% set item_package_id = item_package_context.item_package_ids.get(item.id) %}
+                {% set item_package = item_package_context.packages_by_id.get(item_package_id) if item_package_id else none %}
                 <tr class="{% if first_pending and item.id == first_pending.id %}row-next-up{% endif %} {% if show_attention %}row-needs-check{% endif %}">
                   <td><input type="checkbox" class="js-queue-checkbox" name="change_ids" value="{{ item.id }}"></td>
                   <td class="cell-mono">
                     {% if first_pending and item.id == first_pending.id %}<span class="next-dot"></span><span class="cell-secondary">Next</span>{% endif %}
                     {{ item.sheet_id }}
+                  </td>
+                  <td class="cell-secondary">
+                    {% if item_package %}
+                      Revision {{ item_package.revision_number or "n/a" }}
+                      <span class="cell-dim">{{ item_package.label }}</span>
+                    {% else %}
+                      n/a
+                    {% endif %}
                   </td>
                   <td class="cell-mono" style="color: var(--accent-text);">{{ item.detail_ref or "Cloud" }}</td>
                   <td>{{ item.reviewer_text or item.raw_text }}</td>
@@ -109,10 +155,10 @@
                     {% if show_attention %}<span class="badge badge-check"><span class="badge-dot"></span>Needs check</span>{% endif %}
                     {% if legend_context_payload(item).get("probable") %}<span class="badge badge-check"><span class="badge-dot"></span>Possible legend</span>{% endif %}
                   </td>
-                  <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0') }}">Review →</a></td>
+                  <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Review →</a></td>
                 </tr>
               {% else %}
-                <tr><td colspan="7">No changes match the current filters.</td></tr>
+                <tr><td colspan="8">No changes match the current filters.</td></tr>
               {% endfor %}
             </tbody>
           </table>

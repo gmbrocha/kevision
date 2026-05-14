@@ -281,6 +281,54 @@ function bindPopulateWorkspace() {
     if (node) node.textContent = value ?? 0;
   };
 
+  const packageBadgeClass = (state) => {
+    if (state === "failed") return "rejected";
+    if (state === "dirty" || state === "pending") return "pending";
+    return "accepted";
+  };
+
+  const titleCaseState = (value) => titleCase(value || "pending");
+
+  const appendCell = (row, text, className = "") => {
+    const cell = document.createElement("td");
+    if (className) cell.className = className;
+    cell.textContent = text ?? "";
+    row.appendChild(cell);
+    return cell;
+  };
+
+  const renderPackageRunRows = (rows) => {
+    const body = document.querySelector("[data-package-run-rows]");
+    if (!body || !Array.isArray(rows)) return;
+    body.replaceChildren();
+    if (!rows.length) {
+      const row = document.createElement("tr");
+      const cell = appendCell(row, "No staged package runs yet.", "data-table-empty");
+      cell.colSpan = 7;
+      body.appendChild(row);
+      return;
+    }
+    rows.forEach((item) => {
+      const state = item.status || "pending";
+      const row = document.createElement("tr");
+      appendCell(row, item.label || "Package", "cell-mono");
+      appendCell(row, item.revision_number || "n/a", "cell-mono");
+      const stateCell = appendCell(row, "");
+      const badge = document.createElement("span");
+      badge.className = `badge badge-${packageBadgeClass(state)}`;
+      const dot = document.createElement("span");
+      dot.className = "badge-dot";
+      badge.appendChild(dot);
+      badge.appendChild(document.createTextNode(titleCaseState(state)));
+      stateCell.appendChild(badge);
+      appendCell(row, item.last_error || item.dirty_reason || item.last_action || item.action || "n/a", "cell-secondary");
+      appendCell(row, item.page_count || 0, "col-right cell-mono");
+      appendCell(row, item.candidate_count || 0, "col-right cell-mono");
+      appendCell(row, item.failed_at || item.processed_at || "n/a", "cell-secondary");
+      body.appendChild(row);
+    });
+  };
+
   const renderStatus = (payload) => {
     if (!statusPanel || !payload) return;
     const state = payload.state || "idle";
@@ -289,10 +337,17 @@ function bindPopulateWorkspace() {
     setText("[data-populate-state]", titleCase(state));
     setField("stage", titleCase(payload.stage || "n/a"));
     setField("package_count", payload.package_count || 0);
+    setField("processed_package_count", payload.processed_package_count || 0);
+    setField("reused_package_count", payload.reused_package_count || 0);
+    setField("dirty_package_count", payload.dirty_package_count || 0);
+    setField("total_package_count", payload.total_package_count || 0);
+    setField("current_revision_number", payload.current_revision_number || payload.next_revision_number || "n/a");
     setField("document_count", payload.document_count || 0);
     setField("sheet_count", payload.sheet_count || 0);
     setField("cloud_count", payload.cloud_count || 0);
     setField("change_item_count", payload.change_item_count || 0);
+    setField("new_change_item_count", payload.new_change_item_count || 0);
+    setField("pending_review_count", payload.pending_review_count || 0);
     setField("cache_hits", payload.cache_hits || 0);
     setField("pre_review_total_count", payload.pre_review_total_count || 0);
     setField("pre_review_2_count", payload.pre_review_2_count || 0);
@@ -307,6 +362,9 @@ function bindPopulateWorkspace() {
     const detail = document.querySelector("[data-populate-detail]");
     if (detail) {
       const parts = [];
+      if (payload.current_package_label) parts.push(`Current package: ${payload.current_package_label}`);
+      if (payload.next_package_label && state === "ready") parts.push(`Next package: ${payload.next_package_label}`);
+      if (payload.total_package_count) parts.push(`${payload.processed_package_count || 0} processed / ${payload.reused_package_count || 0} reused / ${payload.total_package_count} total packages`);
       if (payload.staged_pdf_count) parts.push(`${payload.staged_pdf_count} staged PDF${payload.staged_pdf_count === 1 ? "" : "s"}`);
       if (payload.live_artifact_count) parts.push(`${payload.live_artifact_count} live artifact${payload.live_artifact_count === 1 ? "" : "s"} written`);
       if (payload.inferred_cloudhammer_page_count) parts.push(`${payload.inferred_cloudhammer_page_count} cataloged page rows`);
@@ -320,6 +378,8 @@ function bindPopulateWorkspace() {
       error.hidden = !payload.error;
       error.textContent = payload.error || "";
     }
+
+    renderPackageRunRows(payload.package_run_rows);
   };
 
   const pollStatus = async ({ reloadWhenFinished = false } = {}) => {
@@ -350,22 +410,27 @@ function bindPopulateWorkspace() {
   document.querySelectorAll(".js-populate-form").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const button = form.querySelector(".js-generate-button");
-      const originalButtonText = button ? button.textContent : "";
-      if (button) {
-        button.disabled = true;
-        button.textContent = button.dataset.loadingText || "Populating...";
-      }
+      const button = event.submitter || form.querySelector(".js-generate-button");
+      const buttons = Array.from(form.querySelectorAll('button[type="submit"]'));
+      const originalButtonTexts = new Map(buttons.map((item) => [item, item.textContent]));
+      buttons.forEach((item) => {
+        item.disabled = true;
+      });
+      if (button) button.textContent = button.dataset.loadingText || "Populating...";
       renderStatus({
         state: "running",
         stage: "request_started",
-        message: "Populate request sent. Keeping this page updated while drawing analysis runs.",
+        message: button?.name === "rebuild_all"
+          ? "Rebuild request sent. Keeping this page updated while all packages are processed."
+          : "Populate request sent. Keeping this page updated while new or changed packages are processed.",
       });
       startPolling({ reloadWhenFinished: true });
       try {
+        const formData = new FormData(form);
+        if (button?.name && button.value) formData.append(button.name, button.value);
         const response = await fetch(form.action, {
           method: "POST",
-          body: new FormData(form),
+          body: formData,
           headers: { Accept: "text/html" },
         });
         if (!response.ok) throw new Error("Populate failed to start.");
@@ -377,10 +442,10 @@ function bindPopulateWorkspace() {
           message: error.message || "Populate request failed.",
           error: error.message || "Populate request failed.",
         });
-        if (button) {
-          button.disabled = false;
-          button.textContent = originalButtonText;
-        }
+        buttons.forEach((item) => {
+          item.disabled = false;
+          item.textContent = originalButtonTexts.get(item) || item.textContent;
+        });
       }
     });
   });
@@ -473,6 +538,12 @@ function bindChunkedUploadForms() {
 
       try {
         const formData = new FormData(form);
+        const revisionNumber = String(formData.get("revision_number") || "").trim();
+        if (form.dataset.uploadPurpose === "import_package" && !/^[1-9]\d*$/.test(revisionNumber)) {
+          const revisionInput = form.querySelector('input[name="revision_number"]');
+          if (revisionInput) revisionInput.focus();
+          throw new Error("Assign a positive revision number before importing a package.");
+        }
         const initResponse = await fetch(form.dataset.initUrl, {
           method: "POST",
           headers: {
@@ -482,7 +553,7 @@ function bindChunkedUploadForms() {
           body: JSON.stringify({
             purpose: form.dataset.uploadPurpose,
             package_label: formData.get("package_label") || "",
-            revision_number: formData.get("revision_number") || "",
+            revision_number: revisionNumber,
             revision_set_id: formData.get("revision_set_id") || "",
             csrf_token: csrfTokenForForm(form),
             files: entries.map(({ file, relativePath }) => ({
@@ -1186,6 +1257,8 @@ function bindGeometryCorrection() {
               queue_status: controls.dataset.queueStatus || "pending",
               search_query: controls.dataset.searchQuery || "",
               attention_only: controls.dataset.attentionOnly || "0",
+              package_scope: controls.dataset.packageScope || "all",
+              package_id: controls.dataset.packageId || "",
             }),
           });
           const payload = await response.json().catch(() => ({}));

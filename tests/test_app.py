@@ -24,6 +24,12 @@ from backend.crop_adjustments import CROP_ADJUSTMENT_KEY, crop_box_to_page_box, 
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
 from backend.geometry_corrections import GEOMETRY_CORRECTION_KEY, apply_geometry_correction
+from backend.keynote_legends import (
+    apply_pre_review_keynote_expansions,
+    build_workspace_keynote_registry,
+    expand_keynote_text,
+    keynote_expansion_payload,
+)
 from backend.legend_context import (
     LEGEND_CONTEXT_KEY,
     classify_legend_context,
@@ -31,9 +37,11 @@ from backend.legend_context import (
     extract_symbol_definitions,
     legend_context_payload,
 )
+from backend.package_runs import package_pdf_fingerprints
 from backend.pre_review import (
     PRE_REVIEW_1,
     PRE_REVIEW_2,
+    PRE_REVIEW_KEY,
     OpenAIPreReviewProvider,
     build_pre_review_provider_from_env,
     ensure_workspace_pre_review,
@@ -1193,6 +1201,64 @@ def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path
     assert loaded.data.review_events[0].action == "resize"
 
 
+def test_overmerge_child_accept_next_uses_server_queue_when_hidden_next_is_stale(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    selected = client.post(
+        "/changes/change-1/review",
+        data={
+            "status": "pending",
+            "selected_pre_review": PRE_REVIEW_2,
+            "reviewer_text": "old text",
+            "reviewer_notes": "",
+            "queue_status": "pending",
+            "search_query": "",
+            "attention_only": "0",
+        },
+    )
+    split = client.post(
+        "/changes/change-1/geometry-correction",
+        json={
+            "mode": "overmerge",
+            "crop_boxes": [[10, 10, 40, 30], [80, 40, 50, 35]],
+            "queue_status": "pending",
+            "search_query": "",
+            "attention_only": "0",
+        },
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    child_1_id, child_2_id = loaded.get_change_item("change-1").superseded_by_change_item_ids
+
+    detail = client.get(f"/changes/{child_1_id}?queue=pending&q=")
+    accepted = client.post(
+        f"/changes/{child_1_id}/review",
+        data={
+            "status_override": "approved",
+            "reviewer_text": "Approved first split child",
+            "reviewer_notes": "",
+            "queue_status": "pending",
+            "search_query": "",
+            "attention_only": "0",
+            "next_change_id": child_1_id,
+            "advance": "next",
+        },
+    )
+
+    assert selected.status_code == 302
+    assert split.status_code == 200
+    assert detail.status_code == 200
+    assert b"1 / 2" in detail.data
+    assert accepted.status_code == 302
+    assert accepted.headers["Location"].endswith(f"/changes/{child_2_id}?queue=pending&q=")
+    reloaded = WorkspaceStore(store.workspace_dir).load()
+    assert reloaded.get_change_item(child_1_id).status == "approved"
+    assert reloaded.get_change_item(child_2_id).status == "pending"
+
+
 def test_geometry_correction_route_rejects_invalid_payload_without_mutation(tmp_path: Path):
     store = build_pre_review_test_store(tmp_path)
     register_workspace_project(store.workspace_dir)
@@ -1407,6 +1473,95 @@ def test_pre_review_selection_sets_reviewer_truth(tmp_path: Path):
     payload = pre_review_payload(selected)
     assert payload["selected"] == PRE_REVIEW_2
     assert selected.reviewer_text == "Provide new roof curb."
+
+
+def test_keynote_registry_extracts_numbered_list_by_sheet_version(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1" / "keynotes.pdf"
+    pdf_path.parent.mkdir(parents=True)
+    document = fitz.open()
+    page = document.new_page(width=600, height=800)
+    page.insert_text((60, 70), "KEY NOTES:", fontsize=10)
+    page.insert_text((60, 95), "1. PROVIDE NEW GRAB BAR BLOCKING", fontsize=10)
+    page.insert_text((60, 120), "2. REMOVE EXISTING SOAP DISPENSER", fontsize=10)
+    page.insert_text((430, 720), "AE101", fontsize=14)
+    document.save(pdf_path)
+    document.close()
+
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    sheet = SheetVersion(
+        id="sheet-rev1",
+        revision_set_id="rev-1",
+        source_pdf=str(pdf_path),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date=None,
+        status="active",
+    )
+    store.data.sheets = [sheet]
+    store.save()
+
+    summary = build_workspace_keynote_registry(store)
+
+    assert summary.definition_count == 2
+    registry = WorkspaceStore(workspace_dir).load().data.keynote_registry
+    definitions = registry["sheets"]["sheet-rev1"]["definitions"]
+    assert {definition["token"] for definition in definitions} == {"1", "2"}
+    assert definitions[0]["source_pattern"] == "numbered-list"
+
+
+def test_pre_review_keynote_expansion_uses_same_sheet_registry(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.keynote_registry = {
+        "schema": "scopeledger.keynote_registry.v1",
+        "sheets": {
+            "sheet-1": {
+                "definitions": [
+                    {"token": "Z.8", "description": "PROVIDE NEW GRAB BAR BLOCKING", "source_pattern": "marker-label"},
+                    {"token": "1", "description": "PROVIDE ACCESS PANELS", "source_pattern": "numbered-list"},
+                    {"token": "2", "description": "PROVIDE TEMPERATURE SENSOR", "source_pattern": "numbered-list"},
+                ]
+            }
+        },
+    }
+    payload = {
+        "schema": "scopeledger.pre_review.v1",
+        "selected": PRE_REVIEW_2,
+        PRE_REVIEW_1: {"available": True, "text": "Cloud Only - Z.8"},
+        PRE_REVIEW_2: {"available": True, "text": "Z.8", "boxes": [], "crop_boxes": []},
+    }
+    store.data.change_items[0] = replace(
+        store.data.change_items[0],
+        provenance={**store.data.change_items[0].provenance, PRE_REVIEW_KEY: payload},
+        reviewer_text="Z.8",
+    )
+    store.save()
+
+    summary = apply_pre_review_keynote_expansions(store)
+
+    item = WorkspaceStore(store.workspace_dir).load().data.change_items[0]
+    expansion = keynote_expansion_payload(item)
+    assert summary.item_count == 1
+    assert item.reviewer_text == "Z.8: PROVIDE NEW GRAB BAR BLOCKING"
+    assert expansion["original_text"] == "Z.8"
+    assert expansion["references"][0]["token"] == "Z.8"
+
+
+def test_keynote_expansion_protects_bare_numbers_without_cue():
+    definitions = {
+        "1": {"token": "1", "description": "PROVIDE ACCESS PANELS"},
+        "2": {"token": "2", "description": "PROVIDE TEMPERATURE SENSOR"},
+    }
+
+    unchanged, no_refs = expand_keynote_text("Install 1 grab bar.", definitions)
+    expanded, refs = expand_keynote_text("Keynotes: 1, 2", definitions)
+
+    assert unchanged == "Install 1 grab bar."
+    assert no_refs == []
+    assert expanded == "Keynotes: 1: PROVIDE ACCESS PANELS, 2: PROVIDE TEMPERATURE SENSOR"
+    assert [reference["token"] for reference in refs] == ["1", "2"]
 
 
 def test_openai_pre_review_provider_uses_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -1688,6 +1843,39 @@ def test_review_route_persists_pre_review_selection_without_internal_labels(tmp_
     payload = pre_review_payload(item)
     assert payload["selected"] == PRE_REVIEW_2
     assert item.reviewer_text == "Provide new roof curb."
+
+
+def test_review_route_shows_keynote_resolution_badge(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    payload = {
+        "schema": "scopeledger.pre_review.v1",
+        "selected": PRE_REVIEW_1,
+        PRE_REVIEW_1: {"available": True, "text": "Cloud Only - Z.8"},
+        PRE_REVIEW_2: {
+            "available": True,
+            "text": "Z.8: PROVIDE NEW GRAB BAR BLOCKING",
+            "keynote_expansion": {
+                "schema": "scopeledger.keynote_expansion.v1",
+                "original_text": "Z.8",
+                "expanded_text": "Z.8: PROVIDE NEW GRAB BAR BLOCKING",
+                "references": [{"token": "Z.8", "description": "PROVIDE NEW GRAB BAR BLOCKING"}],
+            },
+        },
+    }
+    store.data.change_items[0] = replace(
+        store.data.change_items[0],
+        provenance={**store.data.change_items[0].provenance, PRE_REVIEW_KEY: payload},
+    )
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    page = client.get("/changes/change-1")
+
+    assert page.status_code == 200
+    assert b"Keynotes resolved: Z.8" in page.data
+    assert b"Z.8: PROVIDE NEW GRAB BAR BLOCKING" in page.data
 
 
 def test_probable_legend_item_shows_accept_as_legend_button(tmp_path: Path):
@@ -2659,6 +2847,56 @@ def test_export_only_approved_items_when_forced(workspace_copy):
     assert summary["superseded_sheet_count"] == len([sheet for sheet in store.data.sheets if sheet.status == "superseded"])
     assert summary["revision_set_count"] == len(store.data.revision_sets)
     assert store.data.exports[-1]["summary"] == summary
+
+
+def test_pricing_log_carries_approved_scope_from_prior_revision(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.revision_sets = [
+        RevisionSet(id="rev-1", label="Revision #1", source_dir=str(input_dir / "Revision #1"), set_number=1, set_date="05/01/2026"),
+        RevisionSet(id="rev-2", label="Revision #2", source_dir=str(input_dir / "Revision #2"), set_number=2, set_date="05/08/2026"),
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-ae101-r1",
+            revision_set_id="rev-1",
+            source_pdf="rev1.pdf",
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Floor Plan",
+            issue_date="05/01/2026",
+            status="superseded",
+        ),
+        SheetVersion(
+            id="sheet-ae101-r2",
+            revision_set_id="rev-2",
+            source_pdf="rev2.pdf",
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Floor Plan",
+            issue_date="05/08/2026",
+            status="active",
+        ),
+    ]
+    store.data.change_items = [
+        ChangeItem(
+            id="change-r1",
+            sheet_version_id="sheet-ae101-r1",
+            cloud_candidate_id=None,
+            sheet_id="AE101",
+            detail_ref=None,
+            raw_text="Provide new door frame.",
+            normalized_text="provide new door frame.",
+            provenance={"source": "visual-region"},
+            status="approved",
+        )
+    ]
+    rows = Exporter(store)._pricing_log_rows()
+
+    assert [row["change_id"] for row in rows] == ["change-r1"]
+    assert rows[0]["revision_set_number"] == 1
+    assert rows[0]["latest_for_pricing"] is False
 
 
 def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
@@ -3877,7 +4115,7 @@ def test_chunked_folder_import_uses_single_positive_revision_number(tmp_path: Pa
         json={
             "purpose": "import_package",
             "package_label": "",
-            "revision_number": 7,
+            "revision_number": "7",
             "files": [
                 {"name": "floor_plan.pdf", "relative_path": "Revision #7/floor_plan.pdf", "size": len(first_payload)},
                 {"name": "riser.pdf", "relative_path": "Revision #7/plumbing/riser.pdf", "size": len(second_payload)},
@@ -4182,6 +4420,127 @@ def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
     assert any(item.provenance.get("extraction_method") == "cloudhammer_manifest" for item in store.data.change_items)
     assert store.data.populate_status["cloudhammer_page_count"] == 1
     assert store.data.populate_status["cloudhammer_candidate_count"] == 1
+    assert len(store.data.package_runs) == 1
+    assert next(iter(store.data.package_runs.values()))["status"] == "complete"
+
+
+def test_incremental_populate_reuses_clean_package_and_carries_revision_scope(tmp_path: Path):
+    class FakeCloudHammerRunner:
+        name = "fake_cloudhammer_live"
+
+        def __init__(self):
+            self.calls: list[str] = []
+
+        def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
+            self.calls.append(input_dir.name)
+            pdf_path = next(input_dir.rglob("*.pdf"))
+            run_dir = workspace_dir / "outputs" / "cloudhammer_live" / f"fake_{len(self.calls)}"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            crop_path = run_dir / f"crop_{len(self.calls)}.png"
+            crop_path.write_bytes(b"png")
+            pages_manifest = run_dir / "pages_manifest.jsonl"
+            pages_manifest.write_text(
+                json.dumps(
+                    {
+                        "page_kind": "drawing",
+                        "pdf_path": str(pdf_path),
+                        "pdf_stem": pdf_path.stem,
+                        "page_index": 0,
+                        "page_number": 1,
+                        "render_path": str(run_dir / "render.png"),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            candidate_manifest = run_dir / "whole_cloud_candidates_manifest.jsonl"
+            candidate_manifest.write_text(
+                json.dumps(
+                    {
+                        "candidate_id": f"fake-live-{len(self.calls)}",
+                        "pdf_path": str(pdf_path),
+                        "page_number": 1,
+                        "bbox_page_xywh": [70, 70, 120, 80],
+                        "whole_cloud_confidence": 0.91,
+                        "policy_bucket": "auto_deliverable_candidate",
+                        "crop_image_path": str(crop_path),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            return CloudHammerRunResult(
+                run_dir=run_dir,
+                pages_manifest=pages_manifest,
+                candidate_manifest=candidate_manifest,
+                page_count=1,
+                candidate_count=1,
+            )
+
+    runner = FakeCloudHammerRunner()
+    app = create_app(tmp_path, cloudhammer_runner=runner)
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    input_dir = workspace_dir / "input"
+    write_minimal_drawing_pdf(input_dir / "Revision #1 - Test" / "drawing.pdf")
+    assert client.post("/workspace/populate").status_code == 302
+    store = WorkspaceStore(workspace_dir).load()
+    first_item = visible_change_items(store.data.change_items)[0]
+    store.update_change_item(first_item.id, status="approved", reviewer_text="Approved revision 1 scope")
+
+    write_minimal_drawing_pdf(input_dir / "Revision #2 - Test" / "drawing.pdf")
+    assert client.post("/workspace/populate").status_code == 302
+
+    loaded = WorkspaceStore(workspace_dir).load()
+    visible = visible_change_items(loaded.data.change_items)
+    assert runner.calls == ["Revision #1 - Test", "Revision #2 - Test"]
+    assert loaded.data.populate_status["processed_package_count"] == 1
+    assert loaded.data.populate_status["reused_package_count"] == 1
+    assert loaded.data.populate_status["new_change_item_count"] == 1
+    assert len(loaded.data.package_runs) == 2
+    assert len(visible) == 2
+    assert any(item.status == "approved" and item.reviewer_text == "Approved revision 1 scope" for item in visible)
+    assert any(item.status == "pending" for item in visible)
+
+
+def test_rebuild_all_packages_reprocesses_clean_package(tmp_path: Path):
+    class CountingRunner:
+        name = "counting_cloudhammer"
+
+        def __init__(self):
+            self.calls: list[str] = []
+
+        def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
+            self.calls.append(input_dir.name)
+            pdf_path = next(input_dir.rglob("*.pdf"))
+            run_dir = workspace_dir / "outputs" / "cloudhammer_live" / f"counting_{len(self.calls)}"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            pages_manifest = run_dir / "pages_manifest.jsonl"
+            pages_manifest.write_text(
+                json.dumps({"page_kind": "drawing", "pdf_path": str(pdf_path), "page_number": 1, "render_path": str(run_dir / "render.png")})
+                + "\n",
+                encoding="utf-8",
+            )
+            candidate_manifest = run_dir / "whole_cloud_candidates_manifest.jsonl"
+            candidate_manifest.write_text("", encoding="utf-8")
+            return CloudHammerRunResult(run_dir, pages_manifest, candidate_manifest, 1, 0)
+
+    runner = CountingRunner()
+    app = create_app(tmp_path, cloudhammer_runner=runner)
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    write_minimal_drawing_pdf(workspace_dir / "input" / "Revision #1 - Test" / "drawing.pdf")
+
+    assert client.post("/workspace/populate").status_code == 302
+    assert client.post("/workspace/populate", data={"rebuild_all": "1"}).status_code == 302
+
+    loaded = WorkspaceStore(workspace_dir).load()
+    assert runner.calls == ["Revision #1 - Test", "Revision #1 - Test"]
+    assert loaded.data.populate_status["processed_package_count"] == 1
+    assert loaded.data.populate_status["reused_package_count"] == 0
 
 
 def test_package_order_edit_survives_rescan(tmp_path: Path):
@@ -4204,6 +4563,11 @@ def test_package_order_edit_survives_rescan(tmp_path: Path):
 
     assert WorkspaceStore(workspace_dir).load().data.staged_packages[0].revision_number == 5
     assert scanned.data.revision_sets[0].set_number == 5
+    package_id = WorkspaceStore(workspace_dir).load().data.staged_packages[0].id
+    populated_overview = client.get("/overview")
+    assert populated_overview.status_code == 200
+    assert f'name="revision_number_{package_id}"'.encode("utf-8") not in populated_overview.data
+    assert b"Save package order" not in populated_overview.data
 
 
 def test_scanner_does_not_infer_revision_number_over_existing_blank_metadata(tmp_path: Path):
@@ -4725,6 +5089,224 @@ def test_bulk_review_and_next_navigation(workspace_copy):
     reloaded = WorkspaceStore(workspace_copy).load()
     assert reloaded.get_change_item(remaining_pending[0].id).reviewer_text == "Fast lane approval"
     assert reloaded.get_change_item(remaining_pending[0].id).status == "approved"
+
+
+def test_review_package_filters_scope_same_sheet_revisions(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    revision_1_dir = input_dir / "Revision #1"
+    revision_2_dir = input_dir / "Revision #2"
+    revision_1_dir.mkdir(parents=True)
+    revision_2_dir.mkdir(parents=True)
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.staged_packages = [
+        StagedPackage(
+            id="pkg-r1",
+            folder_name=revision_1_dir.name,
+            source_dir=str(revision_1_dir.resolve()),
+            label="Revision #1",
+            revision_number=1,
+        ),
+        StagedPackage(
+            id="pkg-r2",
+            folder_name=revision_2_dir.name,
+            source_dir=str(revision_2_dir.resolve()),
+            label="Revision #2",
+            revision_number=2,
+        ),
+    ]
+    store.data.revision_sets = [
+        RevisionSet(id="rev-1", label="Revision #1", source_dir=str(revision_1_dir.resolve()), set_number=1, set_date="05/01/2026"),
+        RevisionSet(id="rev-2", label="Revision #2", source_dir=str(revision_2_dir.resolve()), set_number=2, set_date="05/08/2026"),
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-ae101-r1",
+            revision_set_id="rev-1",
+            source_pdf="rev1.pdf",
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Floor Plan",
+            issue_date="05/01/2026",
+        ),
+        SheetVersion(
+            id="sheet-ae101-r2",
+            revision_set_id="rev-2",
+            source_pdf="rev2.pdf",
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Floor Plan",
+            issue_date="05/08/2026",
+        ),
+    ]
+    store.data.change_items = [
+        ChangeItem(
+            id="change-r1",
+            sheet_version_id="sheet-ae101-r1",
+            cloud_candidate_id=None,
+            sheet_id="AE101",
+            detail_ref="Cloud 1",
+            raw_text="Revision 1 scope",
+            normalized_text="revision 1 scope",
+            queue_order=1000,
+        ),
+        ChangeItem(
+            id="change-r2",
+            sheet_version_id="sheet-ae101-r2",
+            cloud_candidate_id=None,
+            sheet_id="AE101",
+            detail_ref="Cloud 2",
+            raw_text="Revision 2 scope",
+            normalized_text="revision 2 scope",
+            queue_order=2000,
+        ),
+    ]
+    store.save()
+    register_workspace_project(workspace_dir)
+    app = create_app(workspace_dir)
+    client = app.test_client()
+
+    all_pending = client.get("/changes")
+    newest = client.get("/changes?package_scope=newest")
+    revision_1 = client.get("/changes?package_scope=package&package_id=pkg-r1")
+    invalid = client.get("/changes?package_scope=package&package_id=missing")
+    detail = client.get("/changes/change-r1?queue=pending&package_scope=package&package_id=pkg-r1")
+
+    assert all_pending.status_code == 200
+    assert b"Revision 1 scope" in all_pending.data
+    assert b"Revision 2 scope" in all_pending.data
+    assert b"Package-specific review" in all_pending.data
+    assert newest.status_code == 200
+    assert b"Revision 1 scope" not in newest.data
+    assert b"Revision 2 scope" in newest.data
+    assert revision_1.status_code == 200
+    assert b"Revision 1 scope" in revision_1.data
+    assert b"Revision 2 scope" not in revision_1.data
+    assert invalid.status_code == 200
+    assert b"Revision 1 scope" in invalid.data
+    assert b"Revision 2 scope" in invalid.data
+    assert detail.status_code == 200
+    assert b"1 / 1" in detail.data
+    assert b"change-r2" not in detail.data
+
+
+def test_populate_status_reports_package_run_history_rows(tmp_path: Path):
+    class FingerprintedRunner:
+        def fingerprint(self) -> str:
+            return "test-pipeline"
+
+    app = create_app(tmp_path, cloudhammer_runner=FingerprintedRunner())
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    input_dir = workspace_dir / "input"
+    clean_dir = input_dir / "Revision #1"
+    failed_dir = input_dir / "Revision #2"
+    dirty_dir = input_dir / "Revision #3"
+    write_minimal_drawing_pdf(clean_dir / "clean.pdf")
+    write_minimal_drawing_pdf(failed_dir / "failed.pdf")
+    write_minimal_drawing_pdf(dirty_dir / "dirty.pdf")
+    assert client.get("/overview").status_code == 200
+    store = WorkspaceStore(workspace_dir).load()
+    packages = {package.folder_name: package for package in store.data.staged_packages}
+
+    clean_run_dir = workspace_dir / "outputs" / "cloudhammer_live" / "clean"
+    clean_run_dir.mkdir(parents=True)
+    pages_manifest = clean_run_dir / "pages_manifest.jsonl"
+    candidate_manifest = clean_run_dir / "whole_cloud_candidates_manifest.jsonl"
+    pages_manifest.write_text(json.dumps({"page_kind": "drawing"}) + "\n", encoding="utf-8")
+    candidate_manifest.write_text(json.dumps({"candidate_id": "c1"}) + "\n", encoding="utf-8")
+    store.data.package_runs[packages["Revision #1"].id] = {
+        "schema": "scopeledger.package_run.v1",
+        "status": "complete",
+        "package_id": packages["Revision #1"].id,
+        "folder_name": packages["Revision #1"].folder_name,
+        "label": packages["Revision #1"].label,
+        "revision_number": 1,
+        "source_dir": str(clean_dir.resolve()),
+        "pdf_fingerprints": package_pdf_fingerprints(packages["Revision #1"]),
+        "pipeline_fingerprint": "test-pipeline",
+        "run_dir": str(clean_run_dir.resolve()),
+        "pages_manifest": str(pages_manifest.resolve()),
+        "candidate_manifest": str(candidate_manifest.resolve()),
+        "page_count": 1,
+        "candidate_count": 1,
+        "last_action": "reused",
+        "processed_at": "2026-05-14T00:00:00+00:00",
+    }
+    store.data.package_runs[packages["Revision #2"].id] = {
+        "schema": "scopeledger.package_run.v1",
+        "status": "failed",
+        "package_id": packages["Revision #2"].id,
+        "folder_name": packages["Revision #2"].folder_name,
+        "label": packages["Revision #2"].label,
+        "revision_number": 2,
+        "source_dir": str(failed_dir.resolve()),
+        "pdf_fingerprints": [],
+        "pipeline_fingerprint": "test-pipeline",
+        "dirty_reason": "not_processed",
+        "last_action": "failed",
+        "last_error": "runner failed",
+        "failed_at": "2026-05-14T00:01:00+00:00",
+    }
+    store.data.package_runs[packages["Revision #3"].id] = {
+        "schema": "scopeledger.package_run.v1",
+        "status": "complete",
+        "package_id": packages["Revision #3"].id,
+        "folder_name": packages["Revision #3"].folder_name,
+        "label": packages["Revision #3"].label,
+        "revision_number": 3,
+        "source_dir": str(dirty_dir.resolve()),
+        "pdf_fingerprints": [],
+        "pipeline_fingerprint": "test-pipeline",
+        "run_dir": str(clean_run_dir.resolve()),
+        "pages_manifest": str(pages_manifest.resolve()),
+        "candidate_manifest": str(candidate_manifest.resolve()),
+        "page_count": 1,
+        "candidate_count": 1,
+        "last_action": "processed",
+        "processed_at": "2026-05-14T00:02:00+00:00",
+    }
+    store.save()
+
+    response = client.get("/workspace/populate/status")
+
+    assert response.status_code == 200
+    rows = {row["label"]: row for row in response.get_json()["package_run_rows"]}
+    assert rows["Revision #1"]["status"] == "reused"
+    assert rows["Revision #1"]["candidate_count"] == 1
+    assert rows["Revision #2"]["status"] == "failed"
+    assert rows["Revision #2"]["last_error"] == "runner failed"
+    assert rows["Revision #3"]["status"] == "dirty"
+    assert rows["Revision #3"]["dirty_reason"] == "source_pdfs_changed"
+
+
+def test_failed_package_run_is_persisted(tmp_path: Path):
+    class FailingRunner:
+        def fingerprint(self) -> str:
+            return "failing-pipeline"
+
+        def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
+            raise RuntimeError(f"failed on {input_dir.name}")
+
+    app = create_app(tmp_path, cloudhammer_runner=FailingRunner())
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    input_dir = workspace_dir / "input"
+    write_minimal_drawing_pdf(input_dir / "Revision #1" / "drawing.pdf")
+
+    response = client.post("/workspace/populate")
+
+    assert response.status_code == 302
+    store = WorkspaceStore(workspace_dir).load()
+    package = store.data.staged_packages[0]
+    record = store.data.package_runs[package.id]
+    assert record["status"] == "failed"
+    assert record["last_action"] == "failed"
+    assert "failed on Revision #1" in record["last_error"]
+    assert store.data.populate_status["state"] == "failed"
 
 
 def test_rescan_reuses_cache_and_preserves_review_state(workspace_copy):

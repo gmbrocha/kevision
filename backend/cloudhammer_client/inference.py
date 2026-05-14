@@ -10,6 +10,7 @@ from typing import Protocol
 import fitz
 
 from ..revision_state.models import SheetVersion
+from ..utils import stable_id
 from .schemas import CloudDetection
 
 
@@ -188,12 +189,14 @@ class ManifestCloudInferenceClient:
 
     name = "cloudhammer_manifest"
 
-    def __init__(self, manifest_path: Path | str):
+    def __init__(self, manifest_path: Path | str, *, pdf_cache_keys: dict[str, str] | None = None):
         self.manifest_path = Path(manifest_path).resolve()
         stat = self.manifest_path.stat()
         self.cache_key = f"{self.name}:{self.manifest_path}:{stat.st_size}:{stat.st_mtime_ns}"
         self.rows = _read_jsonl(self.manifest_path)
+        self._pdf_cache_keys = {str(Path(path).resolve()).lower(): key for path, key in (pdf_cache_keys or {}).items()}
         self._by_pdf_page: dict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
+        self._rows_by_pdf: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self.stats: dict[str, int] = {
             "total_rows": len(self.rows),
             "indexed_rows": 0,
@@ -221,9 +224,19 @@ class ManifestCloudInferenceClient:
                 continue
             resolved = str(Path(pdf_path).resolve()).lower()
             self._by_pdf_page[(resolved, page_number)].append(row)
+            self._rows_by_pdf[resolved].append(row)
             self.stats["indexed_rows"] += 1
             if _row_crop_path(row, self.manifest_path) and not Path(_row_crop_path(row, self.manifest_path)).exists():
                 self.stats["missing_crop_count"] += 1
+
+    def cache_key_for_pdf(self, pdf_path: Path | str) -> str:
+        resolved = str(Path(pdf_path).resolve()).lower()
+        if resolved in self._pdf_cache_keys:
+            return self._pdf_cache_keys[resolved]
+        rows = self._rows_by_pdf.get(resolved, [])
+        if not rows:
+            return self.cache_key
+        return stable_id("manifest-pdf", self.cache_key, resolved, json.dumps(rows, sort_keys=True))
 
     def detect(self, *, page: fitz.Page, sheet: SheetVersion) -> list[CloudDetection]:
         key = (str(Path(sheet.source_pdf).resolve()).lower(), int(sheet.page_number))

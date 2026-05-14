@@ -128,7 +128,7 @@ class Exporter:
     ) -> dict[str, object]:
         all_rows = self._all_pricing_rows()
         candidate_rows = [row for row in all_rows if row["pricing_relevance"]]
-        log_rows = [row for row in candidate_rows if row["pricing_status"] == "approved" and row["latest_for_pricing"]]
+        log_rows = [row for row in candidate_rows if row["pricing_status"] == "approved"]
         sheets = self.store.data.sheets
         change_items = visible_change_items(self.store.data.change_items)
         filtered_by_reason: dict[str, int] = {}
@@ -267,7 +267,7 @@ class Exporter:
         )
 
     def _pricing_log_rows(self) -> list[dict[str, object]]:
-        rows = [row for row in self._pricing_candidate_rows() if row["pricing_status"] == "approved" and row["latest_for_pricing"]]
+        rows = [row for row in self._pricing_candidate_rows() if row["pricing_status"] == "approved"]
         return sorted(rows, key=lambda row: (row["sheet_id"], row["detail_ref"], row["change_id"]))
 
     def _write_pricing_change_candidates_csv(self) -> Path:

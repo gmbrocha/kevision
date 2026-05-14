@@ -71,6 +71,7 @@
             >
               {{ csrf_field()|safe }}
               <button class="btn btn-primary btn-sm js-generate-button" type="submit" data-loading-text="Populating..." {% if bulk_review_job_running or not can_populate %}disabled{% endif %}>Populate Workspace</button>
+              <button class="btn btn-secondary btn-sm js-generate-button" type="submit" name="rebuild_all" value="1" data-loading-text="Rebuilding..." {% if bulk_review_job_running or not can_populate %}disabled{% endif %}>Rebuild all packages</button>
             </form>
           {% else %}
             <a class="btn btn-primary btn-sm" href="{{ url_for('projects') }}">Create project</a>
@@ -96,14 +97,23 @@
               <div class="populate-status-grid">
                 <span>Stage <strong data-populate-field="stage">{{ populate_status.get("stage", "n/a")|replace("_", " ")|title }}</strong></span>
                 <span>Packages <strong data-populate-field="package_count">{{ populate_status.get("package_count", 0) }}</strong></span>
+                <span>Package progress <strong><span data-populate-field="processed_package_count">{{ populate_status.get("processed_package_count", 0) }}</span> / <span data-populate-field="total_package_count">{{ populate_status.get("total_package_count", 0) }}</span></strong></span>
+                <span>Reused packages <strong data-populate-field="reused_package_count">{{ populate_status.get("reused_package_count", 0) }}</strong></span>
+                <span>Dirty packages <strong data-populate-field="dirty_package_count">{{ populate_status.get("dirty_package_count", 0) }}</strong></span>
+                <span>Current revision <strong data-populate-field="current_revision_number">{{ populate_status.get("current_revision_number", populate_status.get("next_revision_number", "n/a")) or "n/a" }}</strong></span>
                 <span>Documents <strong data-populate-field="document_count">{{ populate_status.get("document_count", 0) }}</strong></span>
                 <span>Sheets <strong data-populate-field="sheet_count">{{ populate_status.get("sheet_count", 0) }}</strong></span>
                 <span>Clouds <strong data-populate-field="cloud_count">{{ populate_status.get("cloud_count", 0) }}</strong></span>
                 <span>Changes <strong data-populate-field="change_item_count">{{ populate_status.get("change_item_count", 0) }}</strong></span>
+                <span>New changes <strong data-populate-field="new_change_item_count">{{ populate_status.get("new_change_item_count", 0) }}</strong></span>
+                <span>Pending review <strong data-populate-field="pending_review_count">{{ populate_status.get("pending_review_count", pending_review_count) }}</strong></span>
                 <span>Cache hits <strong data-populate-field="cache_hits">{{ populate_status.get("cache_hits", 0) }}</strong></span>
                 <span>Pre Review <strong><span data-populate-field="pre_review_2_count">{{ populate_status.get("pre_review_2_count", 0) }}</span> / <span data-populate-field="pre_review_total_count">{{ populate_status.get("pre_review_total_count", 0) }}</span></strong></span>
                 <span>Pre Review failures <strong data-populate-field="pre_review_failed_count">{{ populate_status.get("pre_review_failed_count", 0) }}</strong></span>
                 <span>Pre Review cache <strong data-populate-field="pre_review_cache_hits">{{ populate_status.get("pre_review_cache_hits", 0) }}</strong></span>
+                <span>Keynote sheets <strong data-populate-field="keynote_registry_sheet_count">{{ populate_status.get("keynote_registry_sheet_count", 0) }}</strong></span>
+                <span>Keynote definitions <strong data-populate-field="keynote_registry_definition_count">{{ populate_status.get("keynote_registry_definition_count", 0) }}</strong></span>
+                <span>Keynote expansions <strong data-populate-field="keynote_expanded_item_count">{{ populate_status.get("keynote_expanded_item_count", 0) }}</strong></span>
                 {% if populate_status.get("cloudhammer_page_count") is not none %}
                   <span>Analyzed pages <strong>{{ populate_status.get("cloudhammer_page_count", 0) }}</strong></span>
                   <span>Detected regions <strong>{{ populate_status.get("cloudhammer_candidate_count", 0) }}</strong></span>
@@ -123,6 +133,47 @@
                 {{ package_setup_errors|join(" ") }}
               </div>
             {% endif %}
+
+            <div class="package-run-history">
+              <div class="package-run-history-head">
+                <div>
+                  <span class="form-label">Package processing history</span>
+                  <div class="package-run-history-title">Current package run state</div>
+                </div>
+              </div>
+              <div class="data-table-wrap package-run-table-wrap">
+                <table class="data-table package-run-table">
+                  <thead>
+                    <tr>
+                      <th>Package</th>
+                      <th>Revision</th>
+                      <th>State</th>
+                      <th>Last action</th>
+                      <th class="col-right">Pages</th>
+                      <th class="col-right">Regions</th>
+                      <th>Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody data-package-run-rows>
+                    {% for row in populate_status.get("package_run_rows", []) %}
+                      {% set row_state = row.status or "pending" %}
+                      {% set badge = "rejected" if row_state == "failed" else "pending" if row_state in ["dirty", "pending"] else "accepted" %}
+                      <tr>
+                        <td class="cell-mono">{{ row.label }}</td>
+                        <td class="cell-mono">{{ row.revision_number or "n/a" }}</td>
+                        <td><span class="badge badge-{{ badge }}"><span class="badge-dot"></span>{{ row_state|replace("_", " ")|title }}</span></td>
+                        <td class="cell-secondary">{{ row.last_error or row.dirty_reason or row.last_action or row.action or "n/a" }}</td>
+                        <td class="col-right cell-mono">{{ row.page_count or 0 }}</td>
+                        <td class="col-right cell-mono">{{ row.candidate_count or 0 }}</td>
+                        <td class="cell-secondary">{{ row.failed_at or row.processed_at or "n/a" }}</td>
+                      </tr>
+                    {% else %}
+                      <tr><td colspan="7" class="data-table-empty">No staged package runs yet.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           {% endif %}
 
           {% if active_project %}
@@ -270,7 +321,7 @@
         <div class="panel-header">
           <span class="panel-title">Revision packages</span>
           <div style="display: flex; gap: 8px; align-items: center;">
-            {% if revision_rows %}
+            {% if staged_package_rows %}
               <button class="btn btn-secondary btn-sm" type="submit" form="package-order-form" {% if bulk_review_job_running %}disabled{% endif %}>Save package order</button>
             {% endif %}
             <a class="btn btn-ghost btn-sm" href="{{ url_for('sheets') }}">All drawings</a>
@@ -301,7 +352,11 @@
                       {{ row.package.label }}
                     </td>
                     <td class="revision-number-cell">
-                      <input class="form-input revision-number-input" name="revision_number_{{ row.package.id }}" type="number" min="1" step="1" required value="{{ row.package.revision_number or '' }}" aria-label="Revision number for {{ row.package.label }}">
+                      {% if row.revision_set %}
+                        <span class="cell-mono">{{ row.package.revision_number or row.revision_set.set_number or "n/a" }}</span>
+                      {% else %}
+                        <input class="form-input revision-number-input" name="revision_number_{{ row.package.id }}" type="number" min="1" step="1" required value="{{ row.package.revision_number or '' }}" aria-label="Revision number for {{ row.package.label }}">
+                      {% endif %}
                     </td>
                     <td class="cell-secondary">{{ row.revision_set.set_date if row.revision_set else "n/a" }}</td>
                     <td class="cell-secondary">{{ row.discipline }}</td>
@@ -317,7 +372,7 @@
                         <span class="badge badge-pending"><span class="badge-dot"></span>Staged</span>
                       {% endif %}
                     </td>
-                    <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all') }}">Review queue</a></td>
+                    <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('changes', status='all', package_scope='package', package_id=row.package.id) }}">Review queue</a></td>
                   </tr>
                 {% else %}
                   <tr><td colspan="9" class="data-table-empty">No revision packages have been loaded.</td></tr>
