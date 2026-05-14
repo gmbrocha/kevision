@@ -2626,6 +2626,7 @@ def create_app(
                 project_id=project.id,
                 reviewer_id=current_reviewer_id(),
                 review_session_id=current_review_session_id(),
+                starter_text_override=str(payload.get("reviewer_text") or ""),
             )
         except GeometryCorrectionError as exc:
             return jsonify({"error": str(exc)}), 400

@@ -162,6 +162,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   repeated same-page sheet IDs before late cross-reference tokens. Scan cache
   entries carry a sheet metadata version so parser fixes invalidate stale sheet
   assignments on the next Populate.
+- The 2026-05-14 nightly app audit is documented in
+  `docs/APP_AUDIT_2026_05_14_NIGHTLY.md`. It fixed geometry corrections so
+  replacement review items keep the current visible scope text and tightened
+  package-filter preservation on the review detail page.
 - Latest Set revision chains also require strictly earlier revision numbers.
   Duplicate sheet-number detections inside the same package do not count as
   prior versions in the conformed/latest-set view.

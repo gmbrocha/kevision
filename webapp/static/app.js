@@ -1247,6 +1247,7 @@ function bindGeometryCorrection() {
         button.disabled = true;
         setStatus("Saving...");
         try {
+          const reviewerText = wrap.closest(".cockpit-layout")?.querySelector('[name="reviewer_text"]')?.value || "";
           const response = await fetch(wrap.dataset.geometryCorrectionUrl, {
             method: "POST",
             headers: {
@@ -1257,6 +1258,7 @@ function bindGeometryCorrection() {
               csrf_token: csrfToken(),
               mode,
               crop_boxes: boxes.map((box) => [box.x, box.y, box.w, box.h]),
+              reviewer_text: reviewerText,
               queue_status: controls.dataset.queueStatus || "pending",
               search_query: controls.dataset.searchQuery || "",
               attention_only: controls.dataset.attentionOnly || "0",

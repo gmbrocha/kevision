@@ -1,6 +1,6 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-12.
+Status: operational queue as of 2026-05-14 nightly checkpoint.
 
 ## Now
 
@@ -26,6 +26,13 @@ Status: operational queue as of 2026-05-12.
    - Index pages must stay context-only.
    - Previous/current comparison must match the same sheet from a strictly
      earlier real revision set.
+   - Sheet metadata must prefer the real title-block sheet id over late
+     cross-reference tokens such as PL511 notes on PL505 pages. If a local
+     project was populated before the 2026-05-14 parser/cache fix, run
+     Populate once to refresh sheet metadata while reusing clean package runs.
+   - Geometry corrections should carry the current visible scope text into
+     replacement review items, then `Accept + Next` should advance through
+     replacement children in queue order.
    - The exploratory project was reset; observations live in
      `FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or training data.
    - Full-sheet correction remains pinned for later partials where the missing

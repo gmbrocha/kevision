@@ -42,6 +42,7 @@ def apply_geometry_correction(
     project_id: str,
     reviewer_id: str | None,
     review_session_id: str | None,
+    starter_text_override: str | None = None,
 ) -> GeometryCorrectionResult:
     if mode not in {"overmerge", "partial"}:
         raise GeometryCorrectionError("Choose a valid correction type.")
@@ -67,7 +68,10 @@ def apply_geometry_correction(
     page_boxes = [crop_box_to_page_box(box, context.source_page_box, context.image_size) for box in normalized_crop_boxes]
     child_clouds: list[CloudCandidate] = []
     child_items: list[ChangeItem] = []
-    starter_text = clean_display_text(parent_item.reviewer_text or parent_item.raw_text or parent_cloud.scope_text or parent_cloud.nearby_text)
+    override_text = clean_display_text(starter_text_override or "")
+    starter_text = override_text or clean_display_text(
+        parent_item.reviewer_text or parent_item.raw_text or parent_cloud.scope_text or parent_cloud.nearby_text
+    )
 
     for index, (crop_box, page_box) in enumerate(zip(normalized_crop_boxes, page_boxes), start=1):
         child_cloud_id = f"{parent_cloud.id}__{mode}_{correction_id[:8]}_{index}"

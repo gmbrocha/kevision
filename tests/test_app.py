@@ -1245,6 +1245,7 @@ def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path
         json={
             "mode": "partial",
             "crop_boxes": [[30, 20, 70, 50]],
+            "reviewer_text": "Use the current review text for the replacement.",
             "queue_status": "pending",
             "search_query": "",
             "attention_only": "0",
@@ -1261,6 +1262,8 @@ def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path
     child = loaded.get_change_item(parent.superseded_by_change_item_ids[0])
     child_cloud = loaded.get_cloud(child.cloud_candidate_id)
     assert child.parent_change_item_id == "change-1"
+    assert child.raw_text == "Use the current review text for the replacement."
+    assert child.reviewer_text == "Use the current review text for the replacement."
     assert child.queue_order > parent.queue_order
     assert GEOMETRY_CORRECTION_KEY in child.provenance
     assert selected_review_page_boxes(child, child_cloud) == child.provenance[GEOMETRY_CORRECTION_KEY]["page_boxes"]
@@ -5420,6 +5423,7 @@ def test_review_package_filters_scope_same_sheet_revisions(tmp_path: Path):
     assert detail.status_code == 200
     assert b"1 / 1" in detail.data
     assert b"change-r2" not in detail.data
+    assert b"/changes?status=pending&amp;q=&amp;attention=0&amp;package_scope=package&amp;package_id=pkg-r1" in detail.data
 
 
 def test_populate_status_reports_package_run_history_rows(tmp_path: Path):

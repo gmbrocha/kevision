@@ -29,7 +29,7 @@
       {% else %}
         <button class="cockpit-nav-btn" type="button" disabled>]</button>
       {% endif %}
-      <a class="btn btn-primary btn-sm" href="{{ url_for('changes', status='pending') }}">{{ pending_count }} pending</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('changes', status='pending', q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">{{ pending_count }} pending</a>
     </nav>
   </header>
 
