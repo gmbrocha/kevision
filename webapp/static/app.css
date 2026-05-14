@@ -1042,6 +1042,11 @@ input, textarea, select { font-family: inherit; }
   padding: var(--sp-5);
 }
 
+.project-archive-panel .data-table th:first-child,
+.project-archive-panel .data-table td:first-child {
+  padding-left: var(--sp-5);
+}
+
 /* --- Stat block (Overview only) -------------------------- */
 .stat-row {
   display: flex;
