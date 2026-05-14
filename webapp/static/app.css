@@ -873,6 +873,10 @@ input, textarea, select { font-family: inherit; }
   grid-column: 1 / -1;
 }
 
+.file-picker .btn {
+  height: 34px;
+}
+
 .file-picker input[type="file"] {
   position: absolute;
   inline-size: 1px;
