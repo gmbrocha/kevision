@@ -42,3 +42,4 @@ REVISIT_INDIVIDUAL_REV_SCOPE/
 
 # Tempfiles
 *.tmp
+test_tmp/

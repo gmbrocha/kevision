@@ -81,9 +81,15 @@ class ScopeExtractionResult:
         }
 
 
-def extract_cloud_scope_text(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> ScopeExtractionResult:
+def extract_cloud_scope_text(
+    page: fitz.Page,
+    sheet: SheetVersion,
+    bbox: list[int],
+    *,
+    page_words: list[tuple] | None = None,
+) -> ScopeExtractionResult:
     context_rect, context_bbox, cloud_rect = _expanded_context(page, sheet, bbox)
-    words = _words_in_rect(page, context_rect, cloud_rect=cloud_rect)
+    words = _words_in_rect(page, context_rect, cloud_rect=cloud_rect, page_words=page_words)
     text = _line_text(words)
     method = "pdf-text-layer"
     word_count = len(words)
@@ -138,11 +144,17 @@ def _expanded_context(page: fitz.Page, sheet: SheetVersion, bbox: list[int]) -> 
     )
 
 
-def _words_in_rect(page: fitz.Page, rect: fitz.Rect, *, cloud_rect: fitz.Rect) -> list[tuple]:
-    page_words = list(page.get_text("words"))
+def _words_in_rect(
+    page: fitz.Page,
+    rect: fitz.Rect,
+    *,
+    cloud_rect: fitz.Rect,
+    page_words: list[tuple] | None = None,
+) -> list[tuple]:
+    source_words = page_words if page_words is not None else list(page.get_text("words"))
     direct_hits = []
     direct_line_keys: set[tuple[int, int]] = set()
-    for word in page_words:
+    for word in source_words:
         word_rect = fitz.Rect(word[:4])
         center = ((word_rect.x0 + word_rect.x1) / 2.0, (word_rect.y0 + word_rect.y1) / 2.0)
         if rect.contains(center) and not _is_context_noise_word(str(word[4])):
@@ -150,7 +162,7 @@ def _words_in_rect(page: fitz.Page, rect: fitz.Rect, *, cloud_rect: fitz.Rect) -
             direct_line_keys.add((int(word[5]), int(word[6])))
 
     hits_by_index: dict[int, tuple] = {id(word): word for word in direct_hits}
-    for word in page_words:
+    for word in source_words:
         line_key = (int(word[5]), int(word[6]))
         if line_key not in direct_line_keys or _is_context_noise_word(str(word[4])):
             continue
@@ -272,6 +284,7 @@ def enrich_workspace_scope_text(store: WorkspaceStore, *, force: bool = False) -
     updated_clouds: list[CloudCandidate] = []
     clouds_by_id: dict[str, CloudCandidate] = {}
     document_cache: dict[str, fitz.Document] = {}
+    page_word_cache: dict[tuple[str, int], list[tuple]] = {}
     changed_clouds = 0
     changed_items = 0
     try:
@@ -287,7 +300,15 @@ def enrich_workspace_scope_text(store: WorkspaceStore, *, force: bool = False) -
                 if source_pdf not in document_cache:
                     document_cache[source_pdf] = fitz.open(source_pdf)
                 page = document_cache[source_pdf][sheet.page_number - 1]
-                result = extract_cloud_scope_text(page, sheet, cloud.bbox)
+                page_key = (source_pdf, sheet.page_number)
+                if page_key not in page_word_cache:
+                    page_word_cache[page_key] = list(page.get_text("words"))
+                result = extract_cloud_scope_text(
+                    page,
+                    sheet,
+                    cloud.bbox,
+                    page_words=page_word_cache[page_key],
+                )
                 updated = replace(
                     cloud,
                     nearby_text=result.text or cloud.nearby_text,

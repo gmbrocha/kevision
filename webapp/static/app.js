@@ -353,6 +353,9 @@ function bindPopulateWorkspace() {
     setField("pre_review_2_count", payload.pre_review_2_count || 0);
     setField("pre_review_failed_count", payload.pre_review_failed_count || 0);
     setField("pre_review_cache_hits", payload.pre_review_cache_hits || 0);
+    setField("keynote_registry_sheet_count", payload.keynote_registry_sheet_count || 0);
+    setField("keynote_registry_definition_count", payload.keynote_registry_definition_count || 0);
+    setField("keynote_expanded_item_count", payload.keynote_expanded_item_count || 0);
     setField("staged_pdf_count", payload.staged_pdf_count || 0);
     setField("live_artifact_count", payload.live_artifact_count || 0);
 

@@ -14,6 +14,7 @@ import fitz
 import pytest
 
 import backend.cli as cli_module
+import backend.pre_review as pre_review_module
 import backend.projects as projects_module
 from backend.bulk_review_jobs import BulkReviewJobConflict, BulkReviewJobManager
 from backend.cli import approve_cloudhammer_detections, main as cli_main
@@ -1441,6 +1442,27 @@ def test_pre_review_success_stores_second_pass_without_hiding_candidate(tmp_path
     assert payload[PRE_REVIEW_2]["available"] is True
     assert payload[PRE_REVIEW_2]["text"] == "Provide new roof curb."
     assert provider.calls == 1
+    assert summary.request_count == 1
+
+
+def test_pre_review_reuses_existing_second_pass_without_rebuilding_context(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    provider = FakePreReviewProvider()
+
+    def fail_if_context_is_built(*_args, **_kwargs):
+        raise AssertionError("existing Pre Review 2 should not rebuild crop context")
+
+    monkeypatch.setattr(pre_review_module, "build_pre_review_context", fail_if_context_is_built)
+
+    summary = ensure_workspace_pre_review(store, provider)
+
+    assert summary.total_count == 1
+    assert summary.pre_review_2_count == 1
+    assert provider.calls == 0
 
 
 def test_pre_review_failure_continues_with_first_pass(tmp_path: Path):
@@ -3258,6 +3280,84 @@ def test_revision_changelog_stacks_multiple_items_in_same_cloud(tmp_path: Path):
     assert ws.cell(row=2, column=4).value == "N/A - Cloud Only "
     assert ws.cell(row=2, column=5).value == "1) Install grab bar blocking\n2) Patch wall tile"
     assert len(ws._images) == 1
+
+
+def test_revision_changelog_keeps_same_sheet_detail_revisions_separate(tmp_path: Path):
+    from openpyxl import load_workbook
+
+    from backend.deliverables.revision_changelog_excel import ROWS_PER_GROUP, write_revision_changelog
+
+    store = WorkspaceStore(tmp_path / "workspace").create(tmp_path / "input")
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1 - Drawing Changes",
+            source_dir=str(tmp_path / "rev1"),
+            set_number=1,
+            set_date="04/28/2026",
+        ),
+        RevisionSet(
+            id="rev-2",
+            label="Revision #2 - Mod 5",
+            source_dir=str(tmp_path / "rev2"),
+            set_number=2,
+            set_date="05/01/2026",
+        ),
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-rev1",
+            revision_set_id="rev-1",
+            source_pdf=str(tmp_path / "rev1.pdf"),
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Plan",
+            issue_date="04/28/2026",
+        ),
+        SheetVersion(
+            id="sheet-rev2",
+            revision_set_id="rev-2",
+            source_pdf=str(tmp_path / "rev2.pdf"),
+            page_number=1,
+            sheet_id="AE101",
+            sheet_title="Plan",
+            issue_date="05/01/2026",
+        ),
+    ]
+    store.data.change_items = [
+        ChangeItem(
+            id="item-rev1",
+            sheet_version_id="sheet-rev1",
+            cloud_candidate_id=None,
+            sheet_id="AE101",
+            detail_ref="1",
+            raw_text="Revision 1 grab bar scope",
+            normalized_text="revision 1 grab bar scope",
+            status="approved",
+            reviewer_text="Revision 1 grab bar scope",
+        ),
+        ChangeItem(
+            id="item-rev2",
+            sheet_version_id="sheet-rev2",
+            cloud_candidate_id=None,
+            sheet_id="AE101",
+            detail_ref="1",
+            raw_text="Revision 2 grab bar scope",
+            normalized_text="revision 2 grab bar scope",
+            status="approved",
+            reviewer_text="Revision 2 grab bar scope",
+        ),
+    ]
+
+    output_path = write_revision_changelog(store, tmp_path / "revision_changelog.xlsx")
+
+    ws = load_workbook(output_path)["Sheet1"]
+    first_row = 2
+    second_row = 2 + ROWS_PER_GROUP
+    assert ws.cell(row=first_row, column=5).value == "Revision 1 grab bar scope"
+    assert ws.cell(row=second_row, column=5).value == "Revision 2 grab bar scope"
+    assert "Revision #1" in ws.cell(row=first_row, column=3).value
+    assert "Revision #2" in ws.cell(row=second_row, column=3).value
 
 
 def test_pricing_outputs_filter_placeholder_revision_regions(workspace_copy):

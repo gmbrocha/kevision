@@ -15,7 +15,7 @@
     </div>
     <div class="page-actions">
       {% if first_pending %}
-        <a class="btn btn-primary btn-lg" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Start reviewing</a>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('change_detail', change_id=first_pending.id, queue='pending', q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Start reviewing</a>
       {% endif %}
     </div>
   </header>

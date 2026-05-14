@@ -7,6 +7,9 @@ exports, populate status, and processing efficiency. This pass excludes
 CloudHammer_v2 eval/training policy changes and source revision package
 movement.
 
+Implementation status: immediate findings below were fixed after checkpoint
+commit `41e67a66`, except for the explicitly deferred opportunities.
+
 ## Immediate Findings
 
 ### Revision changelog can merge independent revision-scope rows
@@ -19,6 +22,8 @@ though review items are now revision-scope records.
 Fix: include `sheet_version_id` in the changelog grouping key while keeping
 approved/rejected/superseded visibility rules unchanged.
 
+Status: fixed with regression coverage.
+
 ### Pre Review builds expensive context before knowing it is needed
 
 `backend/pre_review.py` creates every `PreReviewContext` before checking
@@ -29,6 +34,8 @@ builds overlay metadata, so cached/inactive runs still pay avoidable I/O.
 Fix: build Pre Review context lazily only for items that need a provider call.
 Use the existing first-pass fallback for skipped/disabled items.
 
+Status: fixed with regression coverage.
+
 ### Single-item Pre Review request counts can be overreported
 
 The single-item provider path increments request count once per result and
@@ -36,6 +43,8 @@ then again for the flushed request. Usage logs remain correct, but progress
 status can show inflated request counts.
 
 Fix: count one provider request per flush that actually made a non-cache call.
+
+Status: fixed with regression coverage.
 
 ### Populate polling omits keynote progress fields
 
@@ -45,6 +54,8 @@ The Overview template exposes keynote registry and expansion counts, but
 Fix: update keynote registry sheet count, definition count, and expanded item
 count in the live populate status renderer.
 
+Status: fixed.
+
 ### Review start link can drop active filters
 
 `Review Changes` computes `first_pending` inside the current composed filter,
@@ -52,6 +63,8 @@ but the `Start reviewing` link preserves only package scope. Search and
 needs-check filters can be lost when entering detail review.
 
 Fix: preserve `q` and `attention` when building the start-review URL.
+
+Status: fixed.
 
 ### Scope text extraction repeats page text work per cloud
 
@@ -62,6 +75,8 @@ same page, making this repeated PDF text extraction a clear cost multiplier.
 Fix: allow callers to pass precomputed page words and reuse them for all clouds
 on the same page.
 
+Status: fixed.
+
 ### Populate status scans every artifact into a list on each poll
 
 `summarize_populate_artifacts()` builds a full list of files under the active
@@ -70,6 +85,8 @@ expensive than necessary.
 
 Fix: stream-count files and latest mtime without retaining a full list.
 
+Status: fixed.
+
 ### Generated diagnostic output is not ignored
 
 Standalone utilities write outputs under `test_tmp/`, but that directory is not
@@ -77,6 +94,8 @@ currently ignored. This leaves large generated audit/viewer artifacts as
 untracked noise.
 
 Fix: add `test_tmp/` to `.gitignore`.
+
+Status: fixed.
 
 ## Deferred Efficiency Opportunities
 

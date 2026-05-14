@@ -67,7 +67,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   active project `outputs/pre_review/usage/` folder. After Pre Review, a
   deterministic same-sheet keynote pass expands resolved `Pre Review 2`
   references such as `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text
-  without additional API calls.
+  without additional API calls. The 2026-05-14 pipeline audit tightened this
+  path so existing Pre Review 2 cache hits no longer rebuild crop context, and
+  single-item provider calls report one request instead of double-counting.
 - Populate now adds a conservative legend-context pass between OCR extraction
   and Pre Review. Probable legend/keynote regions remain visible in the review
   queue until the reviewer clicks `Accept as legend`; confirmed legend context
@@ -109,7 +111,8 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Review Changes now has package-scoped review filters. The default remains all
   pending active review items, while reviewers can switch to the newest
   revision package or one specific package without losing status/search/needs
-  check filtering.
+  check filtering. `Start reviewing` now preserves those composed filters when
+  entering detail review.
 - The review page now supports `Correct overmerge` and `Correct partial` from
   the current crop image. Overmerge correction creates multiple pending child
   review items in the same queue position and records an internal `split`
@@ -117,10 +120,11 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   internal `resize` event. Full-sheet correction remains a later follow-up.
 - The Overview page now polls `/workspace/populate/status` during Populate so
   the browser shows staged PDF count, package-level reuse/process progress,
-  current revision/package markers, live artifact count, and completion/fail
-  state while CloudHammer runs inside long synchronous backend work. Overview
-  also shows a package processing history panel with current dirty, reused,
-  processed, failed, and pending state for each staged package.
+  current revision/package markers, keynote registry/expansion counts, live
+  artifact count, and completion/fail state while CloudHammer runs inside long
+  synchronous backend work. Overview also shows a package processing history
+  panel with current dirty, reused, processed, failed, and pending state for
+  each staged package.
 - Copied manual-test package folders `revision_sets/Revision #8 - test copy
   reduced size` and `revision_sets/Revision #9 - test copy 2 reduced size`
   are intentionally reduced subsets for app flow testing. The original
@@ -137,6 +141,11 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   then uses that registry to expand same-sheet GPT `Pre Review 2` keynote
   references. The diagnostic wrapper still writes derived inspection artifacts
   under `test_tmp/` without mutating source PDFs or app workspaces.
+- The 2026-05-14 app pipeline audit is documented in
+  `docs/APP_AUDIT_2026_05_14_PIPELINE_EFFICIENCY.md`. Implemented fixes keep
+  revision changelog workbook grouping scoped by sheet version, reuse PDF text
+  words across same-page cloud scope extraction, and make populate artifact
+  polling stream counts instead of materializing every file path.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number

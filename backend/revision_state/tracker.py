@@ -642,10 +642,16 @@ class RevisionScanner:
             return []
 
         detections = self.cloud_inference_client.detect(page=page, sheet=sheet)
+        page_words = list(page.get_text("words")) if detections else []
         candidates: list[CloudCandidate] = []
         for index, detection in enumerate(detections):
             cloud_id = stable_id(sheet.id, index, *detection.bbox)
-            scope_result = extract_cloud_scope_text(page, sheet, [int(value) for value in detection.bbox])
+            scope_result = extract_cloud_scope_text(
+                page,
+                sheet,
+                [int(value) for value in detection.bbox],
+                page_words=page_words,
+            )
             candidates.append(
                 CloudCandidate(
                     id=cloud_id,

@@ -3,7 +3,7 @@
 This module owns the current workbook layout used for the review/export
 deliverable. The schema is documented in `docs/revision_changelog_format.md`.
 
-One row per (sheet, detail) group of approved change items. Sub-items inside a
+One row per (sheet version, detail) group of approved change items. Sub-items inside a
 group stack as numbered bullets (`1)`, `2)`, ...) inside the merged
 `Scope Included` cell. The cropped cloud image is embedded in column F.
 
@@ -87,14 +87,14 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
     clouds_by_id = {cloud.id: cloud for cloud in store.data.clouds}
 
     approved = [item for item in visible_change_items(store.data.change_items) if item.status == "approved"]
-    groups: dict[tuple[str, str, str], list[ChangeItem]] = {}
+    groups: dict[tuple[str, str, str, str], list[ChangeItem]] = {}
     for item in approved:
         key = _group_key(item)
         groups.setdefault(key, []).append(item)
 
     grouped_rows: list[tuple[str, int, RevisionChangelogRow]] = []
     sheet_counters: dict[str, int] = {}
-    for (sheet_id, group_kind, group_ref), items in groups.items():
+    for (_sheet_version_id, sheet_id, group_kind, group_ref), items in groups.items():
         sheet_counters[sheet_id] = sheet_counters.get(sheet_id, 0) + 1
         seq = sheet_counters[sheet_id]
         canonical_sheet = items[0]
@@ -120,12 +120,12 @@ def _build_rows(store: WorkspaceStore) -> list[RevisionChangelogRow]:
     return [row for _, _, row in grouped_rows]
 
 
-def _group_key(item: ChangeItem) -> tuple[str, str, str]:
+def _group_key(item: ChangeItem) -> tuple[str, str, str, str]:
     if item.detail_ref:
-        return (item.sheet_id, "detail", item.detail_ref)
+        return (item.sheet_version_id, item.sheet_id, "detail", item.detail_ref)
     if item.cloud_candidate_id:
-        return (item.sheet_id, "cloud", item.cloud_candidate_id)
-    return (item.sheet_id, "item", item.id)
+        return (item.sheet_version_id, item.sheet_id, "cloud", item.cloud_candidate_id)
+    return (item.sheet_version_id, item.sheet_id, "item", item.id)
 
 
 def _format_correlation(sheet_id: str, seq: int) -> str:

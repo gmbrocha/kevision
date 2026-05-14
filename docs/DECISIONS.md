@@ -2,6 +2,29 @@
 
 Status: canonical application decision log.
 
+## 2026-05-14 - Pipeline Audit Fixes Preserve Revision Scope And Reduce Rework
+
+Decision: Apply the first pass of the app pipeline efficiency audit as focused
+correctness and runtime fixes. Revision changelog grouping now includes
+`sheet_version_id`; Pre Review context is built lazily after cache/skip checks;
+same-page cloud scope extraction reuses the page text word list; Overview
+status polling streams artifact counts and live-updates keynote counters; and
+generated `test_tmp/` diagnostics are ignored by Git.
+
+Reason: Incremental revision-package carry-forward depends on treating
+same-sheet package scope independently, and repeated image/PDF/status work
+becomes expensive on real drawing packages. These fixes reduce unnecessary
+work without changing reviewer-facing review decisions.
+
+Consequences / follow-up:
+
+- Approved scope from Revision 1 and Revision 2 on the same sheet/detail stays
+  separate in the revision changelog workbook.
+- Existing Pre Review cache hits and disabled Pre Review runs avoid crop
+  context I/O.
+- Remaining export-row recomputation and populate-status caching opportunities
+  are deferred until profiling shows they matter.
+
 ## 2026-05-14 - Same-Sheet Keynote Registry Expands Pre Review 2
 
 Decision: Populate now builds a sheet-version-scoped keynote registry from

@@ -536,7 +536,7 @@ def ensure_workspace_pre_review(
                 "item": item,
                 "cloud": cloud,
                 "sheet": sheet,
-                "context": build_pre_review_context(store, item, cloud, sheet),
+                "context": None,
             }
         )
 
@@ -551,16 +551,24 @@ def ensure_workspace_pre_review(
         if progress_callback:
             progress_callback(summary)
 
+    def context_for(entry: dict[str, Any]) -> PreReviewContext | None:
+        context = entry.get("context")
+        if isinstance(context, PreReviewContext):
+            return context
+        context = build_pre_review_context(store, entry["item"], entry["cloud"], entry["sheet"])
+        entry["context"] = context
+        return context
+
     def apply_entry(entry: dict[str, Any], pre_review_2: dict[str, Any] | None, status: str, error: str = "") -> None:
         nonlocal changed
         item: ChangeItem = entry["item"]
         cloud: CloudCandidate = entry["cloud"]
-        context: PreReviewContext | None = entry["context"]
+        context = entry.get("context")
         existing = pre_review_payload(item)
         selected = str(existing.get("selected") or PRE_REVIEW_1)
         if selected not in VALID_PRE_REVIEW_SOURCES or (selected == PRE_REVIEW_2 and not pre_review_2):
             selected = PRE_REVIEW_1
-        pre_review_1 = context.pre_review_1 if context is not None else _fallback_pre_review_1(item, cloud)
+        pre_review_1 = context.pre_review_1 if isinstance(context, PreReviewContext) else _fallback_pre_review_1(item, cloud)
         payload: dict[str, Any] = {
             "schema": PRE_REVIEW_SCHEMA,
             "selected": selected,
@@ -598,8 +606,6 @@ def ensure_workspace_pre_review(
                     result = provider.review(context)
                     if result:
                         results[context.item.id] = result
-                        if not result.get("cache_hit"):
-                            summary.request_count += 1
             if attempted_request and any(not (results.get(context.item.id) or {}).get("cache_hit") for context in contexts):
                 summary.request_count += 1
             for entry in pending_batch:
@@ -630,7 +636,6 @@ def ensure_workspace_pre_review(
 
     for entry in entries:
         item: ChangeItem = entry["item"]
-        context: PreReviewContext | None = entry["context"]
         existing = pre_review_payload(item)
         pre_review_2 = existing.get(PRE_REVIEW_2) if isinstance(existing.get(PRE_REVIEW_2), dict) else None
         if pre_review_2 and pre_review_2.get("available") and not force:
@@ -640,6 +645,7 @@ def ensure_workspace_pre_review(
             apply_entry(entry, None, "skipped")
             summary.skipped_count += 1
             continue
+        context = context_for(entry)
         if context is None:
             apply_entry(entry, None, "missing_crop")
             summary.skipped_count += 1

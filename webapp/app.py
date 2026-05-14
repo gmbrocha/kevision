@@ -794,11 +794,17 @@ def create_app(
         inferred_candidates = 0
         if run_dir and run_dir.exists():
             live_run_dir = str(run_dir)
-            artifacts = [path for path in run_dir.rglob("*") if path.is_file()]
-            live_artifact_count = len(artifacts)
-            if artifacts:
-                latest = max(path.stat().st_mtime for path in artifacts)
-                live_last_write = datetime.fromtimestamp(latest, timezone.utc).isoformat()
+            latest_mtime = 0.0
+            for path in run_dir.rglob("*"):
+                if not path.is_file():
+                    continue
+                live_artifact_count += 1
+                try:
+                    latest_mtime = max(latest_mtime, path.stat().st_mtime)
+                except OSError:
+                    continue
+            if latest_mtime:
+                live_last_write = datetime.fromtimestamp(latest_mtime, timezone.utc).isoformat()
             inferred_pages = count_jsonl_rows(run_dir / "pages_manifest.jsonl")
             inferred_candidates = count_jsonl_rows(run_dir / "whole_cloud_candidates" / "whole_cloud_candidates_manifest.jsonl")
 
