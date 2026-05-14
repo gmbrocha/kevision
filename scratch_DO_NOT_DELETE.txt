@@ -10,10 +10,11 @@ Candidate pools:
 - full_page_review_candidates_from_touched
 - mining_safe_hard_negative_candidates
 - synthetic_background_candidates
-- future_training_expansion_candidates
+- future_training_expansion_candidates 
 
+Figure out what to with overmerge and partials in same image. 
 
-*Need a way to easily subset clouds that are found as overmerged after the GPT second pass in Populate
+**We need to figure out how to speed up our pipeline. ANY efficiency we can squeeze out makes a huge difference. Batching calls, looking for complexity wins - however we can get there, period. This is a very important goal.
+Repeat this as necessary, top priority here.
 
-
-*Need to implement a system where legend clouds are not included as review items, but simply parsed and stored so the information can be easily added as revision detail when needed ref
+Next big barrier is getting the "previous area" right, like the previous drawing area prior to the current revision being looked at. 
