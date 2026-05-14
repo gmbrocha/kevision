@@ -23,6 +23,7 @@ from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, 
 from .page_classification import sheet_is_index_like
 
 SCOPE_EXTRACTION_CACHE_VERSION = 3
+SHEET_METADATA_CACHE_VERSION = 2
 REVIEW_SIDE_PROVENANCE_KEYS = {
     "scopeledger.pre_review.v1",
     "scopeledger.crop_adjustment.v1",
@@ -302,6 +303,8 @@ class RevisionScanner:
     def _cache_entry_usable(self, cache_entry: dict[str, object] | None, fingerprint: str, pdf_path: Path) -> bool:
         if not cache_entry or cache_entry.get("fingerprint") != fingerprint:
             return False
+        if cache_entry.get("sheet_metadata_version") != SHEET_METADATA_CACHE_VERSION:
+            return False
         if cache_entry.get("cloud_inference_cache_key") != self._cloud_inference_cache_key(pdf_path):
             return False
         if (
@@ -359,6 +362,7 @@ class RevisionScanner:
     ) -> dict[str, object]:
         return {
             "fingerprint": fingerprint,
+            "sheet_metadata_version": SHEET_METADATA_CACHE_VERSION,
             "scope_extraction_version": SCOPE_EXTRACTION_CACHE_VERSION,
             "cloud_inference_cache_key": self._cloud_inference_cache_key(pdf_path),
             "document": asdict(document),
@@ -376,6 +380,11 @@ class RevisionScanner:
             for item in self.previous_change_items
         }
         previous_by_cloud = {item.cloud_candidate_id: item for item in self.previous_change_items if item.cloud_candidate_id}
+        previous_by_cloudhammer_candidate = {
+            str(item.provenance.get("cloudhammer_candidate_id")): item
+            for item in self.previous_change_items
+            if item.provenance.get("cloudhammer_candidate_id")
+        }
         restored: list[ChangeItem] = []
         restored_ids: set[str] = set()
         current_sheet_version_ids = {item.sheet_version_id for item in items}
@@ -384,6 +393,7 @@ class RevisionScanner:
                 previous_by_id.get(item.id)
                 or previous_by_key.get((item.sheet_version_id, item.sheet_id, item.detail_ref, item.normalized_text))
                 or previous_by_cloud.get(item.cloud_candidate_id or "")
+                or previous_by_cloudhammer_candidate.get(str(item.provenance.get("cloudhammer_candidate_id")))
             )
             if previous:
                 item = replace(
@@ -518,17 +528,19 @@ class RevisionScanner:
         *,
         page_words: list[tuple] | None = None,
     ) -> dict[str, object]:
+        words = page_words if page_words is not None else page.get_text("words")
         title_block_words = [
             word[4]
-            for word in (page_words if page_words is not None else page.get_text("words"))
-            if word[0] >= page.rect.width * 0.64 and word[1] >= page.rect.height * 0.72
+            for word in words
+            if word[0] >= page.rect.width * 0.64
         ]
         title_block_text = " ".join(title_block_words)
         preferred_prefixes = _preferred_sheet_prefixes(pdf_path)
-        sheet_id = choose_best_sheet_id(title_block_text) or choose_best_sheet_id(
-            text,
-            preferred_prefixes=preferred_prefixes,
-            prefer_repeated=bool(preferred_prefixes),
+        sheet_id = (
+            choose_best_sheet_id(title_block_text, preferred_prefixes=preferred_prefixes, prefer_repeated=True)
+            or choose_best_sheet_id(title_block_text, preferred_prefixes=preferred_prefixes)
+            or choose_best_sheet_id(text, preferred_prefixes=preferred_prefixes, prefer_repeated=True)
+            or choose_best_sheet_id(text, preferred_prefixes=preferred_prefixes)
         )
 
         issue_date = None

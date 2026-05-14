@@ -67,7 +67,7 @@ from backend.review import change_item_needs_attention
 from backend.review_events import record_review_update
 from backend.review_queue import ensure_queue_order, is_superseded, ordered_change_items, review_queue_counts, visible_change_items
 from backend.revision_state.page_classification import sheet_is_index_like
-from backend.revision_state.tracker import RevisionScanner
+from backend.revision_state.tracker import SHEET_METADATA_CACHE_VERSION, RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text
 from backend.staged_packages import (
     infer_revision_number_from_name,
@@ -924,6 +924,9 @@ def create_app(
             return False
         if not store.data.revision_sets or not store.data.sheets or not store.data.scan_cache.get("documents"):
             return False
+        for entry in store.data.scan_cache.get("documents", {}).values():
+            if entry.get("sheet_metadata_version") != SHEET_METADATA_CACHE_VERSION:
+                return False
         if workspace_missing_pre_review(store):
             return False
         return keynote_registry_covers_workspace(store)

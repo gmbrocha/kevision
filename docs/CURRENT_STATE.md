@@ -158,6 +158,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number
   from a strictly earlier real revision set.
+- Sheet metadata extraction prefers right-side title-block sheet IDs and
+  repeated same-page sheet IDs before late cross-reference tokens. Scan cache
+  entries carry a sheet metadata version so parser fixes invalidate stale sheet
+  assignments on the next Populate.
 - Latest Set revision chains also require strictly earlier revision numbers.
   Duplicate sheet-number detections inside the same package do not count as
   prior versions in the conformed/latest-set view.

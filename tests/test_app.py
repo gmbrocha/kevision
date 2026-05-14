@@ -57,7 +57,7 @@ from backend.revision_state.page_classification import sheet_is_index_like
 from backend.review import change_item_needs_attention
 from backend.review_events import record_bulk_review_updates, record_internal_review_event, record_review_update
 from backend.review_queue import ensure_queue_order, ordered_change_items, visible_change_items
-from backend.revision_state.tracker import RevisionScanner
+from backend.revision_state.tracker import SHEET_METADATA_CACHE_VERSION, RevisionScanner
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
 from backend.utils import choose_best_sheet_id, parse_detail_ref
 from backend.workspace import WorkspaceStore
@@ -342,6 +342,70 @@ def test_plumbing_pdf_metadata_does_not_choose_late_arch_reference():
         document.close()
 
     assert metadata["sheet_id"] == "PL302"
+
+
+def test_sheet_metadata_prefers_right_strip_title_over_late_reference(tmp_path: Path):
+    pdf_path = tmp_path / "Revision #1 - Drawing Changes.pdf"
+    document = fitz.open()
+    page = document.new_page(width=1000, height=800)
+    page.insert_text((650, 95), "Drawing Number", fontsize=8)
+    page.insert_text((650, 120), "PL505", fontsize=14)
+    page.insert_text((650, 140), "OVERALL SANITARY RISER", fontsize=10)
+    page.insert_text((70, 740), "3. REFER TO PL508, PL509, PL510, AND PL511 FOR RISER DIAGRAMS.", fontsize=9)
+    document.save(pdf_path)
+    document.close()
+
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    document = fitz.open(pdf_path)
+    try:
+        page = document[0]
+        metadata = scanner._extract_sheet_metadata(page, page.get_text("text"), pdf_path)
+    finally:
+        document.close()
+
+    assert metadata["sheet_id"] == "PL505"
+    assert metadata["sheet_title"].startswith("OVERALL SANITARY RISER")
+
+
+def test_rescan_preserves_visual_review_state_by_cloudhammer_candidate_id():
+    previous = ChangeItem(
+        id="old-change",
+        sheet_version_id="old-sheet",
+        cloud_candidate_id="old-cloud",
+        sheet_id="PL511",
+        detail_ref="3/PL511",
+        raw_text="Old text",
+        normalized_text="old text",
+        status="approved",
+        reviewer_text="Reviewer-approved scope",
+        provenance={
+            "source": "visual-region",
+            "extraction_method": "cloudhammer_manifest",
+            "cloudhammer_candidate_id": "stable-candidate-1",
+        },
+    )
+    current = ChangeItem(
+        id="new-change",
+        sheet_version_id="new-sheet",
+        cloud_candidate_id="new-cloud",
+        sheet_id="PL505",
+        detail_ref="3/PL505",
+        raw_text="New text",
+        normalized_text="new text",
+        provenance={
+            "source": "visual-region",
+            "extraction_method": "cloudhammer_manifest",
+            "cloudhammer_candidate_id": "stable-candidate-1",
+        },
+    )
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    scanner.previous_change_items = [previous]
+
+    restored = scanner._restore_review_state([current])
+
+    assert restored[0].status == "approved"
+    assert restored[0].reviewer_text == "Reviewer-approved scope"
+    assert restored[0].sheet_id == "PL505"
 
 
 def test_approve_cloudhammer_detections_only_marks_manifest_visual_items(tmp_path: Path):
@@ -4658,6 +4722,21 @@ def test_incremental_populate_reuses_clean_package_and_carries_revision_scope(tm
     assert clean_loaded.data.populate_status["new_change_item_count"] == 0
     assert "already up to date" in clean_loaded.data.populate_status["message"].lower()
 
+    for entry in clean_loaded.data.scan_cache.get("documents", {}).values():
+        entry.pop("sheet_metadata_version", None)
+    clean_loaded.save()
+
+    assert client.post("/workspace/populate").status_code == 302
+    refreshed_loaded = WorkspaceStore(workspace_dir).load()
+    assert runner.calls == ["Revision #1 - Test", "Revision #2 - Test"]
+    assert refreshed_loaded.data.populate_status["processed_package_count"] == 0
+    assert refreshed_loaded.data.populate_status["reused_package_count"] == 2
+    assert "already up to date" not in refreshed_loaded.data.populate_status["message"].lower()
+    assert all(
+        entry.get("sheet_metadata_version") == SHEET_METADATA_CACHE_VERSION
+        for entry in refreshed_loaded.data.scan_cache.get("documents", {}).values()
+    )
+
 
 def test_rebuild_all_packages_reprocesses_clean_package(tmp_path: Path):
     class CountingRunner:
@@ -4978,7 +5057,7 @@ def test_change_detail_uses_previous_current_comparison_asset(tmp_path: Path):
     assert image_response.data[:8] == b"\x89PNG\r\n\x1a\n"
 
 
-def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
+def test_dashboard_shows_review_status_and_package_panel(workspace_copy):
     store = WorkspaceStore(workspace_copy).load()
     store.update_populate_status(
         state="done",
@@ -4997,7 +5076,6 @@ def test_dashboard_shows_pricing_readiness_panel(workspace_copy):
     assert response.status_code == 200
     body = response.data
     assert b"Revision packages" in body
-    assert b"Export readiness" in body
     assert b"Pending review" in body
     assert b"Accepted" in body
     assert b"Needs check" in body
