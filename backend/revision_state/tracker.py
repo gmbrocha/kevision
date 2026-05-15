@@ -18,18 +18,64 @@ from ..staged_packages import (
     staged_package_for_folder,
 )
 from ..workspace import WorkspaceStore
-from ..utils import DATE_PATTERN, choose_best_sheet_id, clean_display_text, normalize_text, parse_detail_ref, parse_mmddyyyy, stable_id
+from ..utils import DATE_PATTERN, SHEET_ID_PATTERN, choose_best_sheet_id, clean_display_text, normalize_text, parse_detail_ref, parse_mmddyyyy, stable_id
 from .models import ChangeItem, CloudCandidate, NarrativeEntry, PreflightIssue, RevisionSet, SheetVersion, SourceDocument
 from .page_classification import sheet_is_index_like
 
 SCOPE_EXTRACTION_CACHE_VERSION = 3
-SHEET_METADATA_CACHE_VERSION = 2
+SHEET_METADATA_CACHE_VERSION = 3
 REVIEW_SIDE_PROVENANCE_KEYS = {
     "scopeledger.pre_review.v1",
     "scopeledger.crop_adjustment.v1",
     "scopeledger.geometry_correction.v1",
     "scopeledger.legend_context.v1",
 }
+
+SHEET_ID_LINE_RE = re.compile(r"^(?:GI|AD|AE|IN|PL|P|EL|EP|MP|MH|ME|E|M|S|SF|CS|RFP)\d{3}(?:\.\d+)?$", re.IGNORECASE)
+TITLE_LABEL_TERMS = (
+    "approved",
+    "building number",
+    "checked",
+    "construction",
+    "date:",
+    "drawn",
+    "drawing number",
+    "drawing title",
+    "dwg.",
+    "dwg. of",
+    "issue date",
+    "location",
+    "phase",
+    "project number",
+    "project title",
+    "revisions:",
+)
+TITLE_STOP_TERMS = (
+    "aarmey",
+    "author",
+    "biloxi",
+    "building number",
+    "checked",
+    "checker",
+    "conformed set",
+    "construction documents",
+    "date:",
+    "drawn",
+    "drawing number",
+    "dwg.",
+    "fully sprinklered",
+    "issue date",
+    "location",
+    "mississippi",
+    "project number",
+    "project title",
+    "revision",
+    "renovate building",
+    "revisions:",
+    "scope",
+    "scoprz",
+    "stamp",
+)
 
 
 def _preferred_sheet_prefixes(pdf_path: Path | None) -> tuple[str, ...]:
@@ -39,6 +85,116 @@ def _preferred_sheet_prefixes(pdf_path: Path | None) -> tuple[str, ...]:
     if "plumbing" in name:
         return ("PL", "P", "MP")
     return ()
+
+
+def _page_text_lines(text: str) -> list[str]:
+    return [clean_display_text(line) for line in (text or "").splitlines() if clean_display_text(line)]
+
+
+def _exact_sheet_id_line(line: str, *, preferred_prefixes: tuple[str, ...] = ()) -> str | None:
+    candidate = clean_display_text(line).replace(" ", "")
+    if not SHEET_ID_LINE_RE.fullmatch(candidate):
+        return None
+    if preferred_prefixes and not any(candidate.upper().startswith(prefix.upper()) for prefix in preferred_prefixes):
+        return None
+    return candidate.upper()
+
+
+def _line_has_title_block_context(lines: list[str], index: int) -> bool:
+    nearby = " ".join(lines[max(0, index - 14) : min(len(lines), index + 8)]).lower()
+    return any(term in nearby for term in ("drawing number", "drawing title", "dwg.", "project title", "issue date"))
+
+
+def _rank_title_block_sheet_ids(lines: list[str], *, preferred_prefixes: tuple[str, ...] = ()) -> list[tuple[float, int, str]]:
+    ranked: list[tuple[float, int, str]] = []
+    total = max(len(lines), 1)
+    for index, line in enumerate(lines):
+        sheet_id = _exact_sheet_id_line(line)
+        if not sheet_id:
+            continue
+        score = index / total
+        if preferred_prefixes and any(sheet_id.startswith(prefix.upper()) for prefix in preferred_prefixes):
+            score += 5.0
+        if _line_has_title_block_context(lines, index):
+            score += 10.0
+        if any(_valid_sheet_title_line(candidate, sheet_id) for candidate in lines[index + 1 : index + 4]):
+            score += 2.0
+        ranked.append((score, index, sheet_id))
+    return sorted(ranked, key=lambda row: (row[0], row[1]), reverse=True)
+
+
+def _choose_title_block_sheet_id(lines: list[str], *, preferred_prefixes: tuple[str, ...] = ()) -> str | None:
+    ranked = _rank_title_block_sheet_ids(lines, preferred_prefixes=preferred_prefixes)
+    if ranked:
+        return ranked[0][2]
+    return None
+
+
+def _valid_sheet_title_line(line: str, sheet_id: str) -> bool:
+    candidate = clean_display_text(line).strip(" -")
+    if not candidate:
+        return False
+    lower = candidate.lower()
+    if candidate.upper() == sheet_id.upper():
+        return False
+    if DATE_PATTERN.fullmatch(candidate):
+        return False
+    if SHEET_ID_LINE_RE.fullmatch(candidate.replace(" ", "")):
+        return False
+    if any(term == lower or term in lower for term in TITLE_STOP_TERMS):
+        return False
+    if any(term == lower for term in TITLE_LABEL_TERMS):
+        return False
+    if (
+        "c:\\revit" in lower
+        or "refer to" in lower
+        or "general notes" in lower
+        or "general sheet notes" in lower
+        or "key note" in lower
+        or "keyed note" in lower
+        or "keynote" in lower
+        or "legend" in lower
+    ):
+        return False
+    if len(SHEET_ID_PATTERN.findall(candidate)) > 1:
+        return False
+    if len(candidate) > 96:
+        return False
+    if not re.search(r"[A-Za-z]", candidate):
+        return False
+    return True
+
+
+def _clean_sheet_title_candidate(title: str, sheet_id: str) -> str:
+    title = clean_display_text(title).strip(" -")
+    if not title:
+        return ""
+    title = re.sub(rf"^{re.escape(sheet_id)}\b", "", title, flags=re.IGNORECASE).strip(" -")
+    stop_pattern = "|".join(re.escape(term) for term in TITLE_STOP_TERMS)
+    title = re.split(stop_pattern, title, maxsplit=1, flags=re.IGNORECASE)[0].strip(" -")
+    title = re.sub(r"\s+", " ", title)
+    if len(title) > 96:
+        title = title[:96].rstrip(" -,.;")
+    return title
+
+
+def _extract_sheet_title_from_lines(lines: list[str], sheet_id: str) -> str:
+    ranked = _rank_title_block_sheet_ids(lines)
+    ranked = [row for row in ranked if row[2].upper() == sheet_id.upper()]
+    for _score, index, _sheet_id in ranked:
+        title_parts: list[str] = []
+        for candidate in lines[index + 1 : index + 5]:
+            if _valid_sheet_title_line(candidate, sheet_id):
+                title_parts.append(clean_display_text(candidate).strip(" -"))
+                if len(" ".join(title_parts)) >= 72 or len(title_parts) >= 2:
+                    break
+                continue
+            if title_parts:
+                break
+        title = _clean_sheet_title_candidate(" ".join(title_parts), sheet_id)
+        if title and _valid_sheet_title_line(title, sheet_id):
+            return title
+    return ""
 
 
 class RevisionScanner:
@@ -535,9 +691,12 @@ class RevisionScanner:
             if word[0] >= page.rect.width * 0.64
         ]
         title_block_text = " ".join(title_block_words)
+        text_lines = _page_text_lines(text)
         preferred_prefixes = _preferred_sheet_prefixes(pdf_path)
         sheet_id = (
-            choose_best_sheet_id(title_block_text, preferred_prefixes=preferred_prefixes, prefer_repeated=True)
+            _choose_title_block_sheet_id(text_lines, preferred_prefixes=preferred_prefixes)
+            or _choose_title_block_sheet_id(text_lines)
+            or choose_best_sheet_id(title_block_text, preferred_prefixes=preferred_prefixes, prefer_repeated=True)
             or choose_best_sheet_id(title_block_text, preferred_prefixes=preferred_prefixes)
             or choose_best_sheet_id(text, preferred_prefixes=preferred_prefixes, prefer_repeated=True)
             or choose_best_sheet_id(text, preferred_prefixes=preferred_prefixes)
@@ -554,13 +713,19 @@ class RevisionScanner:
 
         sheet_title = sheet_id or "Unknown Sheet"
         if sheet_id:
-            title_match = re.search(
-                rf"{re.escape(sheet_id)}\s+(?P<title>.+?)(?:RENOVATE BUILDING|CONSTRUCTION DOCUMENTS|Checker|Author|[A-Z]{{2,4}}\s+\d+\s+\d+|NO\.\s+REVISIONS|1/\d+\"|$)",
-                re.sub(r"\s+", " ", text),
-                re.IGNORECASE,
-            )
-            if title_match:
-                sheet_title = title_match.group("title").strip(" -")
+            line_title = _extract_sheet_title_from_lines(text_lines, sheet_id)
+            if line_title:
+                sheet_title = line_title
+            else:
+                title_match = re.search(
+                    rf"{re.escape(sheet_id)}\s+(?P<title>.{{1,120}}?)(?:RENOVATE BUILDING|CONSTRUCTION DOCUMENTS|Checker|Author|[A-Z]{{2,4}}\s+\d+\s+\d+|NO\.\s+REVISIONS|1/\d+\"|$)",
+                    re.sub(r"\s+", " ", text),
+                    re.IGNORECASE,
+                )
+                if title_match:
+                    title_candidate = _clean_sheet_title_candidate(title_match.group("title"), sheet_id)
+                    if title_candidate and _valid_sheet_title_line(title_candidate, sheet_id):
+                        sheet_title = title_candidate
 
         revision_entries = []
         revision_entries.extend(

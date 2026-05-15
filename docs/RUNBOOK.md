@@ -94,6 +94,7 @@ $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
 $env:SCOPELEDGER_PREREVIEW_ENABLED = "1"
 $env:SCOPELEDGER_PREREVIEW_MODEL = "gpt-5.5"
 $env:SCOPELEDGER_PREREVIEW_BATCH_SIZE = "5"
+$env:SCOPELEDGER_PREREVIEW_CONCURRENCY = "2"
 # Optional live inference override values, also supported from repo-root .env:
 $env:SCOPELEDGER_CLOUDHAMMER_MODEL = "CloudHammer\runs\cloudhammer_roi-symbol-text-fp-hn-20260502\weights\best.pt"
 $env:SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS = "3600"
@@ -111,11 +112,11 @@ $env:OPENAI_API_KEY = "<server-side-api-key>"
   tokens; session cookies are secure/HttpOnly/Lax; manual server-path imports
   are restricted to the configured import root; project workspaces are managed
   under the app-owned `app_workspaces/projects/` root. When Pre Review is
-  enabled, crop images and local OCR context are sent through the server-side
-  OpenAI API key in small batches and cached under the active project
-  `outputs/pre_review/` folder. Per-call API usage is logged as JSONL under
-  `outputs/pre_review/usage/pre_review_usage.jsonl` for internal cost/progress
-  inspection. This does not make the app public-hosting ready without
+  enabled, focused downscaled crop images and local OCR context are sent
+  through the server-side OpenAI API key in small batches and cached under the
+  active project `outputs/pre_review/` folder. Per-call API usage is logged as
+  JSONL under `outputs/pre_review/usage/pre_review_usage.jsonl` for internal
+  cost/progress inspection. This does not make the app public-hosting ready without
   additional background jobs, durable process supervision, retention policy,
   and app-level user/session management.
 
@@ -225,6 +226,8 @@ Fresh client project flow with live Populate and optional Pre Review:
   screen as `Pre Review 2`; otherwise review items keep raw `Pre Review 1`.
   API calls batch up to
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, and
+  run up to `SCOPELEDGER_PREREVIEW_CONCURRENCY` batches in parallel, defaulting
+  to `2`. API input images are focused around the detected box and downscaled;
   usage records are written under `outputs/pre_review/usage/`. Populate also
   builds the sheet-version keynote registry and deterministically expands
   matching `Pre Review 2` keynote references without extra API calls. While

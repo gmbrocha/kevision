@@ -56,6 +56,7 @@ from backend.package_runs import (
 )
 from backend.projects import ProjectRecord, ProjectRegistry, default_app_data_dir
 from backend.pre_review import (
+    API_INPUT_MAX_DIMENSION,
     PRE_REVIEW_1,
     PRE_REVIEW_2,
     build_pre_review_provider_from_env,
@@ -556,6 +557,28 @@ def create_app(
     def utc_timestamp() -> str:
         return datetime.now(timezone.utc).isoformat()
 
+    def reset_interrupted_populate_status(project: ProjectRecord) -> None:
+        workspace_dir = Path(project.workspace_dir)
+        if not (workspace_dir / "workspace.json").exists():
+            return
+        try:
+            project_store = WorkspaceStore(workspace_dir).load()
+        except Exception:
+            return
+        status = dict(project_store.data.populate_status or {})
+        if status.get("state") != "running":
+            return
+        project_store.update_populate_status(
+            state="interrupted",
+            stage="interrupted",
+            message="Previous Populate was interrupted; rerun Populate to continue.",
+            error="Previous Populate was interrupted by a server stop or restart.",
+            finished_at=utc_timestamp(),
+        )
+
+    for registry_project in registry.active_projects():
+        reset_interrupted_populate_status(registry_project)
+
     def safe_redirect_target(value: str | None, default: str) -> str:
         target = (value or "").strip()
         if not target or "\\" in target:
@@ -858,7 +881,7 @@ def create_app(
         status = dict(store.data.populate_status or {})
         status.update(summarize_populate_artifacts(project, store, app.config["CLOUDHAMMER_RUNNER"]))
         state = str(status.get("state") or "idle")
-        if state not in {"running", "failed", "blocked", "done"} and status.get("dirty_package_count"):
+        if state not in {"running", "failed", "blocked", "done", "interrupted"} and status.get("dirty_package_count"):
             next_label = status.get("next_package_label") or "the next package"
             next_revision = status.get("next_revision_number")
             revision_text = f"Revision {next_revision}" if next_revision else str(next_label)
@@ -2115,6 +2138,9 @@ def create_app(
                 cloud_count=len(refreshed.data.clouds),
                 change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
+                pre_review_batch_size=getattr(app.config["PRE_REVIEW_PROVIDER"], "batch_size", 1),
+                pre_review_concurrency=getattr(app.config["PRE_REVIEW_PROVIDER"], "concurrency", 1),
+                pre_review_api_input_max_dimension=API_INPUT_MAX_DIMENSION,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
             keynote_registry_summary = build_workspace_keynote_registry(refreshed)
@@ -2673,29 +2699,17 @@ def create_app(
                     package_id=package_id,
                 )
             )
-        if not is_probable_legend_context(item):
-            flash("This item is not marked as probable legend context.", "warning")
-            redirect_kwargs = {
-                "change_id": change_id,
-                **review_url_kwargs(
-                    queue_status=queue_status,
-                    search_query=search_query,
-                    attention_only=attention_only,
-                    package_scope=package_scope,
-                    package_id=package_id,
-                ),
-            }
-            return redirect(url_for("change_detail", **redirect_kwargs))
-
         project = active_project()
         confirmed_at = utc_timestamp()
         reviewer_id = current_reviewer_id()
         review_session_id = current_review_session_id()
+        manual_legend_mark = not is_probable_legend_context(item)
         updated = confirm_legend_context_item(
             item,
             reviewer_id=reviewer_id,
             review_session_id=review_session_id,
             confirmed_at=confirmed_at,
+            manual=manual_legend_mark,
         )
         record_review_update(
             store,

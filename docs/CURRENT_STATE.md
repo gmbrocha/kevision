@@ -65,19 +65,23 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   provisional `Pre Review 2`, and makes the reviewer choose which text/geometry
   becomes export truth. Missing, disabled, rate-limited, or failed API calls do
   not block Populate. Pre Review API calls now batch up to
-  `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, while
-  preserving per-item cache files and writing per-call usage JSONL under the
-  active project `outputs/pre_review/usage/` folder. After Pre Review, a
-  deterministic same-sheet keynote pass expands resolved `Pre Review 2`
-  references such as `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text
-  without additional API calls. The 2026-05-14 pipeline audit tightened this
-  path so existing Pre Review 2 cache hits no longer rebuild crop context, and
-  single-item provider calls report one request instead of double-counting.
+  `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, and
+  runs up to `SCOPELEDGER_PREREVIEW_CONCURRENCY` API batches in parallel,
+  defaulting to `2`. API calls use focused downscaled crops around the Pre
+  Review 1 box rather than the entire review crop; review UI crops remain
+  unchanged. Stable cache keys are based on item/candidate/box/text/context
+  metadata rather than full crop file bytes, while legacy cache files remain
+  readable. Per-call usage JSONL is written under the active project
+  `outputs/pre_review/usage/` folder. After Pre Review, a deterministic
+  same-sheet keynote pass expands resolved `Pre Review 2` references such as
+  `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text without additional
+  API calls.
 - Populate now adds a conservative legend-context pass between OCR extraction
   and Pre Review. Probable legend/keynote regions remain visible in the review
-  queue until the reviewer clicks `Accept as legend`; confirmed legend context
-  is soft-hidden from normal queues, counts, workbook export, pricing
-  candidates, review packet, and Drawings overlays while staying preserved in
+  queue until the reviewer clicks `Accept as legend`; every review detail also
+  has a lower-emphasis `Mark as legend` action for missed detections. Confirmed
+  legend context is soft-hidden from normal queues, counts, workbook export,
+  pricing candidates, review packet, and Drawings overlays while staying preserved in
   `workspace.json` and review-event JSONL. The post-implementation audit is
   documented in `docs/APP_AUDIT_2026_05_11_LEGEND_CONTEXT.md`.
 - At app startup, ScopeLedger loads allowlisted local environment defaults from
@@ -127,7 +131,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   artifact count, and completion/fail state while CloudHammer runs inside long
   synchronous backend work. Overview also shows a package processing history
   panel with current dirty, reused, processed, failed, and pending state for
-  each staged package.
+  each staged package. On app startup, a persisted `running` Populate status is
+  marked `interrupted` so a killed or restarted server does not leave Overview
+  looking permanently stuck; generated artifacts and completed Pre Review cache
+  entries are preserved.
 - Copied manual-test package folders `revision_sets/Revision #8 - test copy
   reduced size` and `revision_sets/Revision #9 - test copy 2 reduced size`
   are intentionally reduced subsets for app flow testing. The original

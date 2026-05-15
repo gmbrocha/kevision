@@ -238,18 +238,23 @@ def confirm_legend_context_item(
     reviewer_id: str | None,
     review_session_id: str | None,
     confirmed_at: str,
+    manual: bool = False,
 ) -> ChangeItem:
     payload = legend_context_payload(item)
-    if not payload.get("probable") and not payload.get("confirmed"):
+    if not manual and not payload.get("probable") and not payload.get("confirmed"):
         raise ValueError("This review item is not marked as probable legend context.")
     payload = {
         **payload,
         "schema": LEGEND_CONTEXT_SCHEMA,
+        "probable": bool(payload.get("probable")),
         "confirmed": True,
         "confirmed_at": confirmed_at,
         "confirmed_by": reviewer_id,
         "review_session_id": review_session_id,
     }
+    if manual:
+        payload["manual"] = True
+        payload.setdefault("reason", "reviewer-marked-legend")
     return replace(
         item,
         provenance={**item.provenance, LEGEND_CONTEXT_KEY: payload},

@@ -2,6 +2,45 @@
 
 Status: canonical application decision log.
 
+## 2026-05-14 - Pre Review Uses Focused Crops And Parallel API Batches
+
+Decision: Pre Review API calls now use focused, downscaled API-only crops
+around the Pre Review 1 box, stable metadata-based cache keys, and bounded
+parallel API batch workers. App startup also marks stale persisted Populate
+`running` status as `interrupted`.
+
+Reason: Full CloudHammer review crops were often several million pixels and
+made GPT Pre Review batches slow. Hashing the whole crop file also reduced
+cache reuse after artifact regeneration. A server stop during Populate could
+leave Overview showing a stale running state.
+
+Consequences / follow-up:
+
+- Review UI crop assets and stored review geometry remain in original crop/page
+  coordinates; only API inputs are focused and downscaled.
+- Existing legacy Pre Review cache files remain readable before new stable
+  cache keys are used.
+- `SCOPELEDGER_PREREVIEW_CONCURRENCY` defaults to `2` and clamps to `1..4`;
+  tune downward if API rate limits appear.
+
+## 2026-05-14 - Bounded Sheet Titles And Manual Legend Marking
+
+Decision: Sheet metadata extraction now prefers exact title-block sheet numbers
+and nearby bounded title lines, and the review detail page always exposes a
+low-emphasis `Mark as legend` action in addition to classifier-driven legend
+badges.
+
+Reason: Full-page OCR could make review sheet titles unreadably long or choose
+reference-heavy sheet numbers, and reviewers need a way to remove missed legend
+regions from review/export without waiting for automatic detection.
+
+Consequences / follow-up:
+
+- Existing scanner metadata cache entries are invalidated by a version bump so
+  future Populate runs refresh sheet IDs/titles.
+- Reviewer-marked legends are preserved in provenance and soft-hidden from
+  queues/exports the same way classifier-positive `Accept as legend` items are.
+
 ## 2026-05-14 - Clean Populate Short-Circuits Repeated Work
 
 Decision: A follow-up `Populate Workspace` with zero dirty packages now exits

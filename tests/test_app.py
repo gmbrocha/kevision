@@ -367,6 +367,35 @@ def test_sheet_metadata_prefers_right_strip_title_over_late_reference(tmp_path: 
     assert metadata["sheet_title"].startswith("OVERALL SANITARY RISER")
 
 
+def test_sheet_metadata_uses_title_block_id_and_bounded_title_for_index_pages():
+    pdf_path = Path.cwd() / "revision_sets" / "Revision #1 - Drawing Changes" / "Revision #1 - Drawing Changes.pdf"
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    document = fitz.open(pdf_path)
+    try:
+        page = document[0]
+        metadata = scanner._extract_sheet_metadata(page, page.get_text("text"), pdf_path)
+    finally:
+        document.close()
+
+    assert metadata["sheet_id"] == "GI001.1"
+    assert metadata["sheet_title"] == "SHEET INDEX"
+    assert len(metadata["sheet_title"]) < 120
+
+
+def test_sheet_metadata_uses_title_block_instead_of_reference_heavy_keynotes():
+    pdf_path = Path.cwd() / "revision_sets" / "Revision #1 - Drawing Changes" / "Revision #1 - Drawing Changes.pdf"
+    scanner = RevisionScanner.__new__(RevisionScanner)
+    document = fitz.open(pdf_path)
+    try:
+        page = document[7]
+        metadata = scanner._extract_sheet_metadata(page, page.get_text("text"), pdf_path)
+    finally:
+        document.close()
+
+    assert metadata["sheet_id"] == "AD105"
+    assert metadata["sheet_title"] == "DEMOLITION - ATTIC & ROOF PLAN"
+
+
 def test_rescan_preserves_visual_review_state_by_cloudhammer_candidate_id():
     previous = ChangeItem(
         id="old-change",
@@ -1722,6 +1751,91 @@ def test_openai_pre_review_provider_uses_cache(tmp_path: Path, monkeypatch: pyte
     assert calls["count"] == 1
 
 
+def test_pre_review_api_input_uses_focused_downscaled_crop(tmp_path: Path):
+    from PIL import Image
+
+    store = build_pre_review_test_store(tmp_path)
+    crop_path = Path(store.data.clouds[0].image_path)
+    Image.new("RGB", (4000, 3000), "white").save(crop_path)
+    context = pre_review_module.build_pre_review_context(
+        store,
+        store.data.change_items[0],
+        store.data.clouds[0],
+        store.data.sheets[0],
+    )
+
+    assert context is not None
+    api_input = pre_review_module._write_api_overlay(context, tmp_path / "api.png")
+
+    with Image.open(api_input) as image:
+        assert max(image.size) <= 1200
+        assert image.size[0] < 4000
+        assert image.size[1] < 3000
+    assert context.api_input_transform["version"] == "focused_api_crop_v1"
+
+
+def test_pre_review_api_boxes_are_converted_back_to_original_crop_coordinates(tmp_path: Path):
+    from PIL import Image
+
+    store = build_pre_review_test_store(tmp_path)
+    crop_path = Path(store.data.clouds[0].image_path)
+    Image.new("RGB", (4000, 3000), "white").save(crop_path)
+    context = pre_review_module.build_pre_review_context(
+        store,
+        store.data.change_items[0],
+        store.data.clouds[0],
+        store.data.sheets[0],
+    )
+    assert context is not None
+    api_width, api_height = context.api_input_transform["api_input_size"]
+
+    result = normalize_pre_review_2(
+        {
+            "geometry_decision": "adjusted_box",
+            "boxes": [[0, 0, api_width, api_height]],
+            "refined_text": "Focused text.",
+            "reason": "Focused around the cloud.",
+            "confidence": 0.9,
+            "tags": [],
+        },
+        context,
+    )
+
+    focus = context.api_input_transform["focus_box"]
+    assert result["crop_boxes"][0] == pytest.approx(focus, abs=2.0)
+
+
+def test_pre_review_stable_cache_survives_same_geometry_crop_regeneration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from PIL import Image
+
+    store = build_pre_review_test_store(tmp_path)
+    provider = OpenAIPreReviewProvider(model="gpt-5.5")
+    calls = {"count": 0}
+
+    def fake_call(context, input_image):
+        calls["count"] += 1
+        return json.dumps(
+            {
+                "geometry_decision": "same_box",
+                "boxes": [[33, 15, 100, 60]],
+                "refined_text": "Stable cached text.",
+                "reason": "Same visible region.",
+                "confidence": 0.7,
+                "tags": ["same"],
+            }
+        )
+
+    monkeypatch.setattr(provider, "_call_openai", fake_call)
+
+    first = ensure_workspace_pre_review(store, provider, force=True)
+    Image.new("RGB", (200, 120), "lightgray").save(Path(store.data.clouds[0].image_path))
+    second = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert first.pre_review_2_count == 1
+    assert second.cache_hits == 1
+    assert calls["count"] == 1
+
+
 def test_openai_pre_review_provider_batches_and_logs_usage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     store = build_pre_review_test_store(tmp_path)
     for index in range(2, 4):
@@ -1922,23 +2036,83 @@ def test_batched_pre_review_progress_callback_saves_after_each_batch(tmp_path: P
     assert all(pre_review_payload(item)[PRE_REVIEW_2]["available"] for item in loaded.data.change_items)
 
 
+def test_pre_review_parallel_workers_process_batches_concurrently(tmp_path: Path):
+    class SlowProvider:
+        name = "slow_pre_review"
+        enabled = True
+        disabled_reason = ""
+        batch_size = 1
+        concurrency = 2
+
+        def __init__(self):
+            self.calls = 0
+            self.active = 0
+            self.max_active = 0
+            self.lock = threading.Lock()
+
+        def review(self, context):
+            with self.lock:
+                self.calls += 1
+                self.active += 1
+                self.max_active = max(self.max_active, self.active)
+            time.sleep(0.05)
+            try:
+                return normalize_pre_review_2(
+                    {
+                        "geometry_decision": "same_box",
+                        "boxes": [[33, 15, 100, 60]],
+                        "refined_text": f"Parallel text {context.item.id}.",
+                        "reason": "Same visible region.",
+                        "confidence": 0.7,
+                        "tags": [],
+                    },
+                    context,
+                )
+            finally:
+                with self.lock:
+                    self.active -= 1
+
+    store = build_pre_review_test_store(tmp_path)
+    for index in range(2, 5):
+        append_pre_review_test_item(store, index)
+    store.save()
+    provider = SlowProvider()
+
+    summary = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert summary.pre_review_2_count == 4
+    assert summary.concurrency == 2
+    assert provider.calls == 4
+    assert provider.max_active == 2
+
+
 def test_pre_review_batch_size_env_defaults_accepts_and_clamps(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("SCOPELEDGER_PREREVIEW_ENABLED", "1")
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_PREREVIEW_CONCURRENCY", raising=False)
     default_provider = build_pre_review_provider_from_env()
     assert getattr(default_provider, "batch_size") == 5
+    assert getattr(default_provider, "concurrency") == 2
 
     monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "1")
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_CONCURRENCY", "1")
     one_provider = build_pre_review_provider_from_env()
     assert getattr(one_provider, "batch_size") == 1
+    assert getattr(one_provider, "concurrency") == 1
 
     monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "100")
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_CONCURRENCY", "100")
     clamped_provider = build_pre_review_provider_from_env()
     assert getattr(clamped_provider, "batch_size") == 10
+    assert getattr(clamped_provider, "concurrency") == 4
 
     monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "bad")
     with pytest.raises(RuntimeError, match="SCOPELEDGER_PREREVIEW_BATCH_SIZE"):
+        build_pre_review_provider_from_env()
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "5")
+    monkeypatch.setenv("SCOPELEDGER_PREREVIEW_CONCURRENCY", "bad")
+    with pytest.raises(RuntimeError, match="SCOPELEDGER_PREREVIEW_CONCURRENCY"):
         build_pre_review_provider_from_env()
 
 
@@ -2034,7 +2208,7 @@ def test_probable_legend_item_shows_accept_as_legend_button(tmp_path: Path):
     assert b"eval" not in page.data.lower()
 
 
-def test_non_probable_review_item_does_not_show_accept_as_legend(tmp_path: Path):
+def test_non_probable_review_item_shows_manual_mark_as_legend(tmp_path: Path):
     store = build_pre_review_test_store(tmp_path)
     register_workspace_project(store.workspace_dir)
     app = create_app(store.workspace_dir)
@@ -2044,6 +2218,7 @@ def test_non_probable_review_item_does_not_show_accept_as_legend(tmp_path: Path)
 
     assert page.status_code == 200
     assert b"Accept as legend" not in page.data
+    assert b"Mark as legend" in page.data
 
 
 def test_accept_as_legend_confirms_soft_hides_records_event_and_advances(tmp_path: Path):
@@ -2086,6 +2261,32 @@ def test_accept_as_legend_confirms_soft_hides_records_event_and_advances(tmp_pat
     assert b'change-1' not in changes_page.data
     assert b'data-change-id="change-1"' not in sheet_page.data
     assert b'data-change-id="change-2"' in sheet_page.data
+
+
+def test_manual_mark_as_legend_soft_hides_non_probable_item(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/change-1/accept-legend",
+        data={"queue_status": "pending", "search_query": "", "attention_only": "0"},
+        headers={"Cf-Access-Authenticated-User-Email": "reviewer@example.com"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/changes/change-2?queue=pending&q=")
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    item = next(row for row in loaded.data.change_items if row.id == "change-1")
+    payload = legend_context_payload(item)
+    assert payload["confirmed"] is True
+    assert payload["manual"] is True
+    assert item.superseded_reason == "legend_context"
+    assert [row.id for row in visible_change_items(loaded.data.change_items)] == ["change-2"]
+    assert loaded.data.review_events[-1].human_result_json["final_label"] == "legend_context"
 
 
 def test_exports_use_selected_pre_review_text_and_keep_multiple_boxes_one_item(tmp_path: Path):
@@ -4915,6 +5116,28 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
     assert payload["pre_review_2_count"] == 7
     assert payload["pre_review_failed_count"] == 1
     assert payload["pre_review_cache_hits"] == 3
+
+
+def test_app_startup_marks_stale_running_populate_status_interrupted(tmp_path: Path):
+    app = create_app(tmp_path)
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    store = WorkspaceStore(workspace_dir).load()
+    store.update_populate_status(
+        state="running",
+        stage="pre_review",
+        message="Running pre-review on detected regions.",
+        pre_review_total_count=10,
+        pre_review_2_count=4,
+    )
+
+    create_app(tmp_path)
+
+    reloaded = WorkspaceStore(workspace_dir).load()
+    assert reloaded.data.populate_status["state"] == "interrupted"
+    assert "interrupted" in reloaded.data.populate_status["message"].lower()
+    assert reloaded.data.populate_status["pre_review_2_count"] == 4
 
 
 def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):

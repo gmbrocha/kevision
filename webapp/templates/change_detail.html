@@ -141,7 +141,7 @@
           </div>
           <div class="meta-pair span-2">
             <span class="meta-key">Sheet title</span>
-            <span class="meta-val">{{ sheet.sheet_title }}</span>
+            <span class="meta-val" title="{{ sheet.sheet_title }}">{{ sheet.sheet_title|compact_sheet_title }}</span>
           </div>
         </div>
 
@@ -206,17 +206,18 @@
       </div>
 
       <div class="cockpit-actions">
-        {% if legend_context.get("probable") %}
-          <button class="btn btn-secondary btn-lg" type="submit" formaction="{{ url_for('accept_legend_context', change_id=item.id) }}" formmethod="post" {% if bulk_review_job_running %}disabled{% endif %}>
-            Accept as legend
-          </button>
-        {% endif %}
         <button class="btn-accept-full" type="submit" name="status_override" value="approved" onclick="this.form.elements.advance.value='next';" {% if bulk_review_job_running %}disabled{% endif %}>
           Accept + Next <span class="kbd">A</span>
         </button>
         <button class="btn-reject-full" type="submit" name="status_override" value="rejected" onclick="this.form.elements.advance.value='next';" {% if bulk_review_job_running %}disabled{% endif %}>
           Reject + Next <span class="kbd">R</span>
         </button>
+        <div class="legend-review-action">
+          <button class="btn btn-ghost btn-sm" type="submit" formaction="{{ url_for('accept_legend_context', change_id=item.id) }}" formmethod="post" {% if bulk_review_job_running %}disabled{% endif %}>
+            {{ "Accept as legend" if legend_context.get("probable") else "Mark as legend" }}
+          </button>
+          <span class="legend-review-hint">Removes this item from the review queue and exports.</span>
+        </div>
       </div>
     </section>
   </form>
