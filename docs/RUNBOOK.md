@@ -164,6 +164,45 @@ Run the repo test suite:
 - Safety: local test run; no source packages, eval artifacts, model
   checkpoints, or project registries are modified.
 
+Run the fast release smoke suite:
+
+- Purpose: verify the main app handoff path without live CloudHammer/GPT
+  processing. The suite covers empty project shell, active-project navigation,
+  chunked PDF upload, package history/status rows, package-scoped review
+  filters, manual Mark as legend, sheet overlay coordinate rendering, workbook
+  and review-packet generation, and active project selection.
+- Working directory: repo root.
+- Command:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests\test_smoke_http.py -q
+```
+
+- Expected output/artifact: `9 passed`. The tests build disposable tiny
+  project workspaces and PDFs under pytest temp directories.
+- Safety: local temp-fixture test run. It does not use live GPT, run
+  CloudHammer, mutate `revision_sets/`, app-managed project registries,
+  CloudHammer_v2 eval/training artifacts, model checkpoints, or client source
+  packages.
+
+Run optional browser smoke tests:
+
+- Purpose: verify the same core handoff screens through a real Chromium
+  browser when Playwright is installed.
+- Working directory: repo root.
+- Command:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests\test_smoke_playwright.py -q
+```
+
+- Expected output/artifact: `4 passed` when Playwright and the Chromium browser
+  are installed, or `4 skipped` when Playwright is not installed in the local
+  environment.
+- Safety: local in-process browser smoke. It uses pytest temp directories and
+  does not touch source packages, eval artifacts, model checkpoints, or app
+  project registries.
+
 Export internal review events:
 
 - Purpose: write the hidden review-event audit/truth records for one app
