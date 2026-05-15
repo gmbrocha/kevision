@@ -2,6 +2,29 @@
 
 Status: canonical application decision log.
 
+## 2026-05-15 - Full-Sheet Review Overlays Use Sheet Coordinates
+
+Decision: Sheet-detail overlays now scale review boxes against the stored
+sheet coordinate dimensions, not the natural pixel size of the high-resolution
+viewer image. Provisional Pre Review 2 geometry must also remain plausibly
+aligned with the source candidate before it replaces full-sheet overlay
+geometry; reviewer crop/partial/overmerge corrections remain authoritative.
+
+Reason: The viewer serves sheets at `2.25x` resolution for readability while
+review boxes are stored in base sheet coordinates. Scaling by high-resolution
+image pixels displaced boxes up/left and shrank them on superseded/active
+drawing views.
+
+Consequences / follow-up:
+
+- Full-sheet overlays stay aligned on high-resolution sheet images.
+- Selected Pre Review 2 text can still be used when its geometry is rejected
+  as implausible.
+- Correction children keep their corrected page geometry if later viewer or
+  supersedence paths revisit them.
+- Review packet source-context crops now use the same sheet-coordinate scaling
+  before drawing marked context evidence.
+
 ## 2026-05-14 - Pre Review Uses Focused Crops And Parallel API Batches
 
 Decision: Pre Review API calls now use focused, downscaled API-only crops

@@ -322,7 +322,6 @@ def sheet_status_for_drawings(sheet, all_sheets: list, revision_sets_by_id: dict
 HIGH_RES_SHEET_SCALE = 2.25
 HIGH_RES_CROP_MAX_SCALE = 6.0
 HIGH_RES_CROP_TARGET_WIDTH = 1800
-DRIVE_REVIEW_FOLDER_URL = "https://drive.google.com/drive/folders/1_6LogBKmxt38bF9dGBPyc1l_z38z1MaT"
 SAFE_PROJECT_ASSET_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"}
 VALID_REVIEW_STATUSES = {"pending", "approved", "rejected"}
 DEFAULT_DEV_SECRET_KEY = "scopeledger-dev"  # nosec B105
@@ -1281,7 +1280,6 @@ def create_app(
             "legend_context_text": legend_context_text,
             "pre_review_1": PRE_REVIEW_1,
             "pre_review_2": PRE_REVIEW_2,
-            "drive_review_folder_url": DRIVE_REVIEW_FOLDER_URL,
             "is_production": app.config["SCOPELEDGER_PRODUCTION"],
             "csrf_token": csrf_token,
             "csrf_field": csrf_field,

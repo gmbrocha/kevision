@@ -50,6 +50,8 @@ ROWS_PER_GROUP = 14
 SCOPE_COL = 5
 DETAIL_VIEW_COL = 6
 CROP_TARGET_PX = (520, ROWS_PER_GROUP * 18)
+META_ROW_HEIGHT = 42
+BODY_ROW_HEIGHT = 19
 HEADER_FILL = "111827"
 HEADER_TEXT = "FFFFFF"
 BLOCK_FILL = "FFFFFF"
@@ -149,7 +151,7 @@ def _format_revision(revision_set: RevisionSet | None) -> str:
     label = clean_display_text(revision_set.label) or f"Revision #{revision_set.set_number}"
     base = re.split(r"\s+-\s+", label, maxsplit=1)[0]
     if revision_set.set_date:
-        return f"{base} - {revision_set.set_date}"
+        return f"{base}\n{revision_set.set_date}"
     return base
 
 
@@ -259,7 +261,7 @@ def _write_workbook(store: WorkspaceStore, rows: list[RevisionChangelogRow], out
         meta_fill = PatternFill("solid", fgColor=META_ALT_FILL if is_alt else META_FILL)
         crop_fill = PatternFill("solid", fgColor=CROP_FILL)
         for r in range(block_top, block_bottom + 1):
-            ws.row_dimensions[r].height = 19
+            ws.row_dimensions[r].height = META_ROW_HEIGHT if r == block_top else BODY_ROW_HEIGHT
             for c in range(1, len(COLUMNS) + 1):
                 cell = ws.cell(row=r, column=c)
                 cell.fill = meta_fill if c <= 4 else (crop_fill if c == DETAIL_VIEW_COL else block_fill)

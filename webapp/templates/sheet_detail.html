@@ -24,7 +24,9 @@
   <div style="display: grid; grid-template-columns: 1fr 280px; flex: 1; overflow: hidden;">
     <section class="sheet-image-area js-panzoom-pane">
       <div style="display: flex; align-items: center; justify-content: center; height: 100%; position: relative; z-index: 1; padding: var(--sp-6);">
-        <div class="sheet-img-inner js-image-stage js-panzoom-target">
+        <div class="sheet-img-inner js-image-stage js-panzoom-target"
+             data-coordinate-width="{{ sheet.width or 0 }}"
+             data-coordinate-height="{{ sheet.height or 0 }}">
           {% if sheet.render_path %}
             <img src="{{ sheet|sheet_viewer_image }}" alt="{{ sheet.sheet_id }}">
           {% endif %}

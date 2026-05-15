@@ -9,7 +9,7 @@ from typing import Any
 import fitz
 from PIL import Image, ImageDraw, ImageFont
 
-from .pre_review import PRE_REVIEW_1, pre_review_payload, selected_pre_review_page_boxes
+from .pre_review import PRE_REVIEW_1, PRE_REVIEW_2, pre_review_payload, selected_pre_review_page_boxes
 from .revision_state.models import ChangeItem, CloudCandidate, SheetVersion
 from .workspace import WorkspaceStore
 
@@ -23,6 +23,9 @@ ADJUSTED_CROP_PAD_MIN = 24.0
 ADJUSTED_CROP_PAD_MAX = 120.0
 ADJUSTED_CROP_PAD_FACTOR = 0.16
 ADJUSTED_BOX_COLOR = "#0f766e"
+PRE_REVIEW_GEOMETRY_MIN_AREA_RATIO = 0.5
+PRE_REVIEW_GEOMETRY_MIN_REFERENCE_COVERAGE = 0.4
+PRE_REVIEW_GEOMETRY_MAX_CENTER_DISTANCE_FACTOR = 1.25
 
 
 class CropAdjustmentError(ValueError):
@@ -62,10 +65,89 @@ def selected_review_page_boxes(item: ChangeItem, cloud: CloudCandidate | None = 
         return adjusted_boxes
     selected_boxes = selected_pre_review_page_boxes(item)
     if selected_boxes:
+        if cloud and not _selected_pre_review_geometry_is_safe(item, selected_boxes, cloud):
+            return [[float(value) for value in cloud.bbox]]
         return selected_boxes
     if cloud:
         return [[float(value) for value in cloud.bbox]]
     return []
+
+
+def _selected_pre_review_geometry_is_safe(
+    item: ChangeItem,
+    selected_boxes: list[list[float]],
+    cloud: CloudCandidate,
+) -> bool:
+    payload = pre_review_payload(item)
+    selected = str(payload.get("selected") or PRE_REVIEW_1)
+    if selected != PRE_REVIEW_2:
+        return True
+    entry = payload.get(PRE_REVIEW_2)
+    if not isinstance(entry, dict) or not entry.get("available"):
+        return False
+    decision = str(entry.get("geometry_decision") or "")
+    if decision in {"partial", "overmerged"}:
+        return _pre_review_boxes_are_near_reference(selected_boxes, cloud.bbox)
+    return _pre_review_boxes_preserve_reference(selected_boxes, cloud.bbox)
+
+
+def _pre_review_boxes_preserve_reference(selected_boxes: list[list[float]], reference_box: list[float]) -> bool:
+    reference = _xywh_from_value(reference_box)
+    union = _union_page_boxes(selected_boxes)
+    if not reference or not union:
+        return False
+    reference_area = _box_area(reference)
+    union_area = _box_area(union)
+    if reference_area <= 0 or union_area <= 0:
+        return False
+    intersection_area = _intersection_area(reference, union)
+    if intersection_area / reference_area < PRE_REVIEW_GEOMETRY_MIN_REFERENCE_COVERAGE:
+        return False
+    if union_area / reference_area < PRE_REVIEW_GEOMETRY_MIN_AREA_RATIO:
+        return False
+    return _pre_review_boxes_are_near_reference([union], reference)
+
+
+def _pre_review_boxes_are_near_reference(selected_boxes: list[list[float]], reference_box: list[float]) -> bool:
+    reference = _xywh_from_value(reference_box)
+    union = _union_page_boxes(selected_boxes)
+    if not reference or not union:
+        return False
+    ref_center = _box_center(reference)
+    union_center = _box_center(union)
+    reference_diagonal = max(1.0, (reference[2] ** 2 + reference[3] ** 2) ** 0.5)
+    distance = ((ref_center[0] - union_center[0]) ** 2 + (ref_center[1] - union_center[1]) ** 2) ** 0.5
+    return distance <= reference_diagonal * PRE_REVIEW_GEOMETRY_MAX_CENTER_DISTANCE_FACTOR
+
+
+def _union_page_boxes(boxes: list[list[float]]) -> list[float] | None:
+    valid = [_xywh_from_value(box) for box in boxes]
+    valid = [box for box in valid if box and box[2] > 0 and box[3] > 0]
+    if not valid:
+        return None
+    x1 = min(box[0] for box in valid)
+    y1 = min(box[1] for box in valid)
+    x2 = max(box[0] + box[2] for box in valid)
+    y2 = max(box[1] + box[3] for box in valid)
+    return [x1, y1, x2 - x1, y2 - y1]
+
+
+def _box_area(box: list[float]) -> float:
+    return max(0.0, float(box[2])) * max(0.0, float(box[3]))
+
+
+def _box_center(box: list[float]) -> tuple[float, float]:
+    return (float(box[0]) + float(box[2]) / 2.0, float(box[1]) + float(box[3]) / 2.0)
+
+
+def _intersection_area(a: list[float], b: list[float]) -> float:
+    ax1, ay1, aw, ah = a
+    bx1, by1, bw, bh = b
+    ax2, ay2 = ax1 + aw, ay1 + ah
+    bx2, by2 = bx1 + bw, by1 + bh
+    width = max(0.0, min(ax2, bx2) - max(ax1, bx1))
+    height = max(0.0, min(ay2, by2) - max(ay1, by1))
+    return width * height
 
 
 def crop_adjustment_template_context(

@@ -176,6 +176,18 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Latest Set revision chains also require strictly earlier revision numbers.
   Duplicate sheet-number detections inside the same package do not count as
   prior versions in the conformed/latest-set view.
+- Sheet-detail drawing overlays now scale review boxes against the stored
+  sheet coordinate dimensions instead of the high-resolution rendered image
+  dimensions. Pre Review 2 geometry is also sanity-checked before it can
+  replace the original candidate geometry on full-sheet overlays; explicit
+  reviewer crop/partial/overmerge corrections remain authoritative. The review
+  packet source-context image path now applies the same sheet-coordinate to
+  image-pixel scaling before drawing its marked context crop.
+- The 2026-05-15 release-readiness app audit is documented in
+  `docs/APP_AUDIT_2026_05_15_RELEASE_READINESS.md`. It fixed the remaining
+  review-packet context scaling edge case, removed the current export page's
+  hard-coded Google Drive folder link, and made revision changelog metadata
+  rows tall enough for `Revision #` plus date text.
 - Handoff hardening pass is complete for the current web app surface: review
   status writes are validated, form redirects are constrained to local paths,
   project-root asset serving is limited to generated image assets, manual
@@ -397,12 +409,13 @@ human confirmation/correction before training use.
 
 ## Immediate Next Steps
 
-- Create the next real project from `/projects`, stage PDFs through browser
-  upload or the allowed `revision_sets/` import root, configure server-side
-  Pre Review if using API enrichment, and run Populate.
-- During the next populate/review, verify that index pages do not create review
-  items and that previous/current comparison only matches the same sheet from
-  a strictly earlier revision set.
+- Create the next fresh handoff project from `/projects`, stage PDFs through
+  browser upload or the allowed `revision_sets/` import root, configure
+  server-side Pre Review if using API enrichment, and run Populate.
+- During the next populate/review smoke, verify that index pages do not create
+  review items, that previous/current comparison only matches the same sheet
+  from a strictly earlier revision set, and that full-sheet/review-packet
+  overlay boxes align with the visible clouds.
 - After `REVIEW_CAPTURE` is re-enabled for real client review, confirm normal
   accept/reject and Pre Review selection create internal review events, then
   export them with the CLI-only `export-review-events` command if analysis is

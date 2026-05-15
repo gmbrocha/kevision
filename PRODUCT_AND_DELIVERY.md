@@ -1,6 +1,6 @@
 # Product And Delivery
 
-Status: canonical product/deliverable summary as of 2026-05-10. Historical
+Status: canonical product/deliverable summary as of 2026-05-15. Historical
 source content is archived under `docs/archive/docs_archive_2026_05_02/`.
 
 ## Product Goal
@@ -33,12 +33,24 @@ Expected deliverables include:
 - Project workspaces are created in the app-owned local data root
   `app_workspaces/projects/`; the client workflow does not expose server-local
   workspace paths.
-- Populate runs the current local drawing-analysis pipeline and writes normal
+- Populate runs the current local drawing-analysis pipeline incrementally by
+  new or dirty revision package, reuses clean package runs, and writes normal
   review items into the app. These detections are evidence for human review,
   not automatic scope approval.
 - Optional server-side Pre Review can add a provisional second text/geometry
   suggestion for each detected region. The reviewer explicitly chooses
-  `Pre Review 1` or `Pre Review 2`; exports use that selected truth.
+  `Pre Review 1` or `Pre Review 2`; exports use that selected truth. The
+  current handoff path uses focused API crops, stable cache keys, and bounded
+  parallel Pre Review batches.
+- Same-sheet keyed-note legends are extracted into a sheet-version registry and
+  can expand GPT-refined keynote references in Pre Review 2 without extra API
+  calls.
+- Review Changes supports all-pending, newest-package, and package-specific
+  queues. Legend-like regions can be accepted or manually marked as legend so
+  they stay preserved in metadata but do not appear in client-facing exports.
+- Workbook export and review packets include selected visual evidence,
+  previous/current context where available, and marked source context. The
+  current export view does not expose a Google Drive folder shortcut.
 - Large remote PDF uploads use chunked browser upload, then reconstruction
   inside the active app project workspace.
 - First-pass text/OCR extraction exists as review scaffolding, but broad OCR

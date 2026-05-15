@@ -1,6 +1,6 @@
 # ScopeLedger Roadmap
 
-Status: canonical application roadmap as of 2026-05-10.
+Status: canonical application roadmap as of 2026-05-15.
 
 Detailed application docs live in `docs/`. Cloud detection details live in
 `CloudHammer_v2/`.
@@ -8,9 +8,11 @@ Detailed application docs live in `docs/`. Cloud detection details live in
 ## Active Pivot
 
 The active application priority is the private client handoff: keep the app
-registry clean, create a real project from `/projects`, stage drawing packages
+registry clean, create a fresh project from `/projects`, stage drawing packages
 through browser upload or allowed server-local import, run Populate, and verify
-the review/export surfaces behind Cloudflare Access.
+the review/export surfaces behind Cloudflare Access. The final app
+release-readiness audit is recorded in
+`docs/APP_AUDIT_2026_05_15_RELEASE_READINESS.md`.
 
 CloudHammer_v2 training/eval work is paused only for this handoff pass. Resume
 afterward at the crop-inspection return point documented in
@@ -45,7 +47,8 @@ CloudHammer return priority:
 ## Product Sequence
 
 1. **Private handoff app path:** current work; empty app registry, project
-   creation, chunked PDF upload/import, live Populate, review surfaces, and
+   creation, chunked PDF upload/import, incremental live Populate, package
+   focused review, keyed-note expansion, legend soft-hide controls, and
    workbook/review packet export are the near-term product flow.
 2. **First-pass text/OCR extraction:** exists as review scaffolding, but not as
    solved scope understanding. First real-run observations show broad OCR

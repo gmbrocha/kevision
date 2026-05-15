@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import math
 import re
 import shutil
 from dataclasses import dataclass
@@ -146,7 +147,13 @@ def _write_context_asset(item: ChangeItem, cloud: CloudCandidate, sheet: SheetVe
     with Image.open(source) as page:
         page = page.convert("RGB")
         selected_boxes = selected_review_page_boxes(item, cloud)
-        normalized_boxes = [_normalized_bbox(box) for box in selected_boxes]
+        normalized_boxes = [
+            _scale_bbox_to_image(_normalized_bbox(box), page.size, sheet)
+            for box in selected_boxes
+        ]
+        normalized_boxes = [box for box in normalized_boxes if box[2] > 0 and box[3] > 0]
+        if not normalized_boxes:
+            return None
         x = min(box[0] for box in normalized_boxes)
         y = min(box[1] for box in normalized_boxes)
         right_box = max(box[0] + box[2] for box in normalized_boxes)
@@ -194,6 +201,24 @@ def _normalized_bbox(values: list[int]) -> tuple[int, int, int, int]:
         y += height
         height = abs(height)
     return (x, y, width, height)
+
+
+def _scale_bbox_to_image(
+    box: tuple[int, int, int, int],
+    image_size: tuple[int, int],
+    sheet: SheetVersion,
+) -> tuple[int, int, int, int]:
+    image_width, image_height = image_size
+    sheet_width = float(sheet.width or image_width or 1)
+    sheet_height = float(sheet.height or image_height or 1)
+    scale_x = image_width / sheet_width if sheet_width else 1.0
+    scale_y = image_height / sheet_height if sheet_height else 1.0
+    x, y, width, height = box
+    left = max(0, min(image_width, math.floor(x * scale_x)))
+    top = max(0, min(image_height, math.floor(y * scale_y)))
+    right = max(0, min(image_width, math.ceil((x + width) * scale_x)))
+    bottom = max(0, min(image_height, math.ceil((y + height) * scale_y)))
+    return (left, top, max(0, right - left), max(0, bottom - top))
 
 
 def _parse_cloudhammer_metadata(text: str) -> dict[str, str]:

@@ -1299,6 +1299,41 @@ def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path
     assert loaded.data.review_events[0].action == "resize"
 
 
+def test_reviewer_corrected_child_geometry_remains_reference_for_later_selected_pre_review(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    result = apply_geometry_correction(
+        store,
+        store.data.change_items[0],
+        store.data.clouds[0],
+        store.data.sheets[0],
+        mode="partial",
+        crop_boxes=[[30, 20, 70, 50]],
+        project_id="test-project",
+        reviewer_id=None,
+        review_session_id=None,
+    )
+    child = result.child_items[0]
+    child_cloud = result.child_clouds[0]
+    payload = pre_review_payload(child)
+    payload = {
+        **payload,
+        "selected": PRE_REVIEW_2,
+        PRE_REVIEW_2: {
+            "available": True,
+            "geometry_decision": "adjusted_box",
+            "boxes": [[1, 1, 8, 8]],
+            "crop_boxes": [[1, 1, 8, 8]],
+            "text": "Selected text from a later pass.",
+            "reason": "Implausibly small provisional geometry.",
+            "confidence": 0.7,
+            "tags": [],
+        },
+    }
+    child = replace(child, provenance={**child.provenance, PRE_REVIEW_KEY: payload})
+
+    assert selected_review_page_boxes(child, child_cloud) == [[float(value) for value in child_cloud.bbox]]
+
+
 def test_overmerge_child_accept_next_uses_server_queue_when_hidden_next_is_stale(tmp_path: Path):
     store = build_pre_review_test_store(tmp_path)
     ensure_workspace_pre_review(store, FakePreReviewProvider())
@@ -2388,11 +2423,42 @@ def test_sheet_detail_uses_selected_pre_review_geometry(tmp_path: Path):
     response = client.get("/sheets/sheet-1")
 
     assert response.status_code == 200
+    assert b'data-coordinate-width="400"' in response.data
+    assert b'data-coordinate-height="240"' in response.data
     assert f'data-x="{selected_box[0]}"'.encode("utf-8") in response.data
     assert f'data-y="{selected_box[1]}"'.encode("utf-8") in response.data
     assert f'data-w="{selected_box[2]}"'.encode("utf-8") in response.data
     assert f'data-h="{selected_box[3]}"'.encode("utf-8") in response.data
     assert b'data-x="80"' not in response.data
+
+
+def test_selected_pre_review_geometry_falls_back_when_implausibly_shrunken(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    item = store.data.change_items[0]
+    cloud = store.data.clouds[0]
+    payload = {
+        "schema": PRE_REVIEW_KEY,
+        "selected": PRE_REVIEW_2,
+        PRE_REVIEW_1: {
+            "available": True,
+            "boxes": [[float(value) for value in cloud.bbox]],
+            "crop_boxes": [[40, 20, 120, 80]],
+            "text": "Detected text",
+        },
+        PRE_REVIEW_2: {
+            "available": True,
+            "geometry_decision": "adjusted_box",
+            "boxes": [[90, 50, 10, 10]],
+            "crop_boxes": [[10, 10, 10, 10]],
+            "text": "Refined text should still be usable.",
+            "reason": "Too tight to safely replace full-sheet geometry.",
+            "confidence": 0.8,
+            "tags": [],
+        },
+    }
+    item = replace(item, provenance={**item.provenance, PRE_REVIEW_KEY: payload})
+
+    assert selected_review_page_boxes(item, cloud) == [[float(value) for value in cloud.bbox]]
 
 
 def test_sheet_detail_uses_crop_adjusted_geometry(tmp_path: Path):
@@ -3234,7 +3300,7 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
     """Smoke test that the revision changelog exporter preserves workbook shape."""
     from openpyxl import load_workbook
 
-    from backend.deliverables.revision_changelog_excel import COLUMNS, ROWS_PER_GROUP
+    from backend.deliverables.revision_changelog_excel import COLUMNS, META_ROW_HEIGHT, ROWS_PER_GROUP
 
     store = WorkspaceStore(workspace_copy).load()
     first_pending, second_pending = store.data.change_items[:2]
@@ -3276,7 +3342,10 @@ def test_revision_changelog_xlsx_matches_expected_layout(workspace_copy):
     detail_values = [ws.cell(row=r, column=4).value for r in range(2, ws.max_row + 1) if ws.cell(row=r, column=4).value]
     assert any("Cloud Only" in v or "Detail" in v for v in detail_values)
 
-    assert ws.row_dimensions[2].height >= 16
+    assert ws.row_dimensions[2].height == META_ROW_HEIGHT
+    revision_values = [ws.cell(row=r, column=3).value for r in range(2, ws.max_row + 1) if ws.cell(row=r, column=3).value]
+    if any("/" in str(value) for value in revision_values):
+        assert all("\n" in str(value) for value in revision_values if "/" in str(value))
     populated_row_count = sum(1 for v in drawing_col_values if v)
     assert (ws.max_row - 1) >= populated_row_count * ROWS_PER_GROUP - 1, "Each entry should reserve a vertical block for the embedded crop"
 
@@ -3367,6 +3436,97 @@ def test_crop_comparison_uses_previous_sheet_area(tmp_path: Path):
         right_mean = ImageStat.Stat(image.crop((image.width // 2 + 20, 60, image.width - 20, image.height - 20))).mean
     assert left_mean[0] > left_mean[2], "previous panel should use the red previous PDF"
     assert right_mean[2] > right_mean[0], "current panel should use the blue current PDF"
+
+
+def test_crop_comparison_render_fallback_scales_sheet_coordinates_to_image_pixels(tmp_path: Path):
+    from PIL import Image, ImageDraw, ImageStat
+
+    from backend.deliverables import crop_comparison
+
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    render_path = store.page_path("sheet-high-res")
+    image = Image.new("RGB", (600, 400), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((160, 120, 320, 240), fill=(0, 0, 0))
+    image.save(render_path)
+    sheet = SheetVersion(
+        id="sheet-high-res",
+        revision_set_id="rev-1",
+        source_pdf=str(input_dir / "missing.pdf"),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date="04/01/2026",
+        width=300,
+        height=200,
+        render_path=str(render_path),
+    )
+
+    crop = crop_comparison._render_image_crop(store, sheet, (80, 60, 80, 60), highlight_bboxes=[])
+
+    assert crop is not None
+    assert crop.size == (160, 120)
+    assert max(ImageStat.Stat(crop).mean) < 5
+
+
+def test_review_packet_context_asset_scales_sheet_coordinates_to_page_image_pixels(tmp_path: Path):
+    from PIL import Image, ImageDraw
+
+    from backend.deliverables import review_packet
+
+    page_image = tmp_path / "high-res-page.png"
+    image = Image.new("RGB", (600, 400), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((160, 120, 320, 240), fill=(0, 0, 0))
+    image.save(page_image)
+    sheet = SheetVersion(
+        id="sheet-high-res",
+        revision_set_id="rev-1",
+        source_pdf=str(tmp_path / "missing.pdf"),
+        page_number=1,
+        sheet_id="AE101",
+        sheet_title="Plan",
+        issue_date="04/01/2026",
+        width=300,
+        height=200,
+        render_path=str(page_image),
+    )
+    cloud = CloudCandidate(
+        id="cloud-1",
+        sheet_version_id=sheet.id,
+        bbox=[80, 60, 80, 60],
+        image_path="",
+        page_image_path=str(page_image),
+        confidence=0.9,
+        extraction_method="cloudhammer_manifest",
+        nearby_text="",
+        detail_ref=None,
+    )
+    item = ChangeItem(
+        id="change-1",
+        sheet_version_id=sheet.id,
+        cloud_candidate_id=cloud.id,
+        sheet_id=sheet.sheet_id,
+        detail_ref=None,
+        raw_text="Scope",
+        normalized_text="scope",
+        status="approved",
+    )
+
+    output = review_packet._write_context_asset(item, cloud, sheet, tmp_path, 1)
+
+    assert output and output.exists()
+    with Image.open(output) as context:
+        pixels = list(context.convert("RGB").crop((154, 114, 166, 126)).getdata())
+        expected_green = sum(1 for r, g, b in pixels if r < 40 and g > 120 and b < 100)
+        wrong_pixels = list(context.convert("RGB").crop((74, 54, 86, 66)).getdata())
+        wrong_green = sum(1 for r, g, b in wrong_pixels if r < 40 and g > 120 and b < 100)
+
+    assert expected_green > 0
+    assert wrong_green == 0
 
 
 def test_crop_comparison_requires_prior_real_revision_set():
@@ -5343,7 +5503,7 @@ def test_dashboard_and_export_link_generated_artifacts(workspace_copy):
     assert b"Open Review Packet" in export.data
     assert b'href="/outputs/revision_changelog_review_packet.html"' in export.data
     assert b"Refresh Review Packet" in export.data
-    assert b"Open Google Drive Folder" in export.data
+    assert b"Open Google Drive Folder" not in export.data
 
     workbook_response = client.get("/outputs/revision_changelog.xlsx")
     assert workbook_response.status_code == 200

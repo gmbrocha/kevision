@@ -1,6 +1,6 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-14 nightly checkpoint.
+Status: operational queue as of 2026-05-15 release-readiness checkpoint.
 
 ## Now
 
@@ -11,6 +11,9 @@ Status: operational queue as of 2026-05-14 nightly checkpoint.
      `app_workspaces/`, delete disposable rows through the hard-gated project
      Delete dialog or use the registry-only reset command before creating the
      next real project. Then stage package PDFs and run Populate.
+   - Use `docs/APP_AUDIT_2026_05_15_RELEASE_READINESS.md` as the morning smoke
+     checklist for overlay alignment, review packet context, export workbook
+     row height, and package/Pre Review status.
    - If using API enrichment, confirm `SCOPELEDGER_PREREVIEW_ENABLED`,
      `SCOPELEDGER_PREREVIEW_MODEL`, and the server-side `OPENAI_API_KEY` are
      set in the process environment or present in the allowlisted local `.env`

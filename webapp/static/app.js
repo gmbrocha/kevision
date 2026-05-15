@@ -3,8 +3,10 @@ function applyBoundingBoxes() {
     const image = stage.querySelector("img");
     if (!image) return;
     const draw = () => {
-      const scaleX = image.clientWidth / image.naturalWidth;
-      const scaleY = image.clientHeight / image.naturalHeight;
+      const coordinateWidth = Number(stage.dataset.coordinateWidth || image.naturalWidth || 1);
+      const coordinateHeight = Number(stage.dataset.coordinateHeight || image.naturalHeight || 1);
+      const scaleX = image.clientWidth / Math.max(coordinateWidth, 1);
+      const scaleY = image.clientHeight / Math.max(coordinateHeight, 1);
       stage.querySelectorAll(".bbox").forEach((box) => {
         box.style.left = `${Number(box.dataset.x) * scaleX}px`;
         box.style.top = `${Number(box.dataset.y) * scaleY}px`;
