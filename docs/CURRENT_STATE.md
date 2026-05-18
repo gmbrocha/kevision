@@ -217,7 +217,8 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   actionable findings after documenting controlled subprocess calls,
   non-security stable IDs, and explicit usage-parsing fallback behavior.
   Uploaded unreadable PDFs now become high-severity diagnostics instead of
-  crashing scans.
+  crashing scans. The standalone `/diagnostics` browser view is no longer part
+  of the client-facing UI; diagnostic data remains a backend/export artifact.
 - First real app-run observations are captured in
   `FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then reset; its
   notes are not reviewed labels, training data, or client-approved scope.

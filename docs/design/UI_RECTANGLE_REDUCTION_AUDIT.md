@@ -11,7 +11,8 @@ Date: 2026-05-18
 - Drawings list and sheet viewer: `/sheets`, `/sheets/<sheet_version_id>`
 - Latest Set: `/conformed`
 - Export workbook/review packet: `/export`
-- Diagnostics: `/diagnostics`
+- Diagnostics: `/diagnostics` was reviewed during the reduction pass, then
+  removed from the client-facing nav/view in the follow-up UI trim.
 - Settings/audit route: `/settings` as a secondary, non-nav surface
 
 ## Most Visually Busy Areas
@@ -60,7 +61,7 @@ Date: 2026-05-18
 - Review status badges, selected Pre Review choice, crop/geometry overlays,
   and accept/reject action boundaries.
 - Tables carrying operational audit data such as review queue rows, package
-  processing history, export history, diagnostics, and project lists.
+  processing history, export history, and project lists.
 - Active/selected navigation and package/review filters.
 - Delete confirmation dialog and destructive controls.
 

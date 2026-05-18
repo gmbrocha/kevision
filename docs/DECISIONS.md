@@ -2,6 +2,22 @@
 
 Status: canonical application decision log.
 
+## 2026-05-18 - Diagnostics View Removed From Client-Facing UI
+
+Decision: Remove the Diagnostics nav item and stop rendering the `/diagnostics`
+browser view for the client-facing app. Preflight diagnostics remain captured
+by backend scan/export workflows and still feed internal summaries where used.
+
+Reason: The handoff UI should keep the client reviewer focused on projects,
+intake, drawing evidence, review decisions, latest-set context, exports, and
+settings. The standalone diagnostics table is operationally useful but adds a
+client-facing surface that is not part of the primary review workflow.
+
+Consequences / follow-up:
+
+- `/diagnostics` now returns 404 instead of rendering the old diagnostic page.
+- Diagnostic artifacts and export/support data are not removed or reformatted.
+
 ## 2026-05-18 - Web UI Pass B Normalizes Template Layout Only
 
 Decision: Normalize remaining webapp template layout styles into shared CSS

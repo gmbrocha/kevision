@@ -36,9 +36,11 @@ assertions.
 - `/conformed`: Latest Set thumbnail grid, revised/latest flags, sheet metadata.
 - `/export`: review status, generated output rows, attention override,
   generation buttons, export history.
-- `/diagnostics`: parser warning callout, summary stats, ingested PDF table,
-  issue summary table.
 - `/settings`: secondary settings/audit surface if exposed in the current build.
+
+Note: `/diagnostics` is no longer a client-facing route. Preflight diagnostic
+data remains available to backend/export workflows, but the browser view and
+nav item are intentionally absent.
 
 ## Review Criteria
 

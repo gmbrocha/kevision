@@ -53,12 +53,6 @@
           </a>
         </div>
 
-        <div class="nav-bottom">
-          <a class="nav-link {% if request.endpoint == 'diagnostics' %}active{% endif %}" href="{{ url_for('diagnostics') }}">
-            <span class="nav-link-icon">!</span>
-            <span class="nav-link-label">Diagnostics</span>
-          </a>
-        </div>
       </nav>
 
       {% block body %}

@@ -20,12 +20,15 @@ def test_smoke_empty_project_shell_renders(tmp_path: Path):
 
     projects = client.get("/projects")
     changes = client.get("/changes")
+    diagnostics = client.get("/diagnostics")
 
     assert projects.status_code == 200
     assert b"No active projects." in projects.data
     assert b"Project name" in projects.data
+    assert b"Diagnostics" not in projects.data
     assert changes.status_code == 200
     assert b"Review Changes" in changes.data
+    assert diagnostics.status_code == 404
 
 
 def test_smoke_active_handoff_routes_render(tmp_path: Path):
@@ -47,6 +50,8 @@ def test_smoke_active_handoff_routes_render(tmp_path: Path):
         assert marker in response.data, path
 
     assert b"Open Google Drive Folder" not in client.get("/export").data
+    assert b"Diagnostics" not in client.get("/projects").data
+    assert client.get("/diagnostics").status_code == 404
 
 
 def test_smoke_chunked_upload_import_stages_package(tmp_path: Path):

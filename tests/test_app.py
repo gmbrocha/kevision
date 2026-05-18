@@ -3990,12 +3990,13 @@ def test_empty_project_registry_starts_without_demo(tmp_path: Path):
         ("/changes", b"No changes match the current filters."),
         ("/conformed", b"No sheets match the current filter."),
         ("/export", b"No project workspace is selected."),
-        ("/diagnostics", b"No PDFs have been scanned."),
         ("/settings", b"No historical review-assist records were found"),
     ]:
         response = client.get(path)
         assert response.status_code == 200
         assert expected in response.data
+
+    assert client.get("/diagnostics").status_code == 404
 
     populate = client.post("/workspace/populate")
     assert populate.status_code == 302
@@ -4450,9 +4451,9 @@ def test_web_routes_render_without_ai(workspace_copy):
     queue = client.get("/changes")
     assert queue.status_code == 200
     assert b"Accept selected" in queue.data
+    assert b"Diagnostics" not in projects.data
     diagnostics = client.get("/diagnostics")
-    assert diagnostics.status_code == 200
-    assert b"Ingested PDF files" in diagnostics.data
+    assert diagnostics.status_code == 404
     settings = client.get("/settings")
     assert settings.status_code == 200
     assert b"Archived" in settings.data

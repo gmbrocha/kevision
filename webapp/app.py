@@ -27,7 +27,7 @@ from backend.crop_adjustments import (
     crop_adjustment_template_context,
     selected_review_page_boxes,
 )
-from backend.diagnostics import build_diagnostic_summary, configure_mupdf, format_pdf_label
+from backend.diagnostics import build_diagnostic_summary, configure_mupdf
 from backend.deliverables.crop_comparison import build_cloud_comparison_image, find_previous_sheet_version
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
 from backend.deliverables.review_packet import build_review_packet
@@ -1452,10 +1452,6 @@ def create_app(
             relative = Path(*parts[parts.index("assets") + 1 :]).as_posix()
             return url_for("workspace_asset", asset_path=relative)
         return url_for("workspace_asset", asset_path=resolved.name)
-
-    @app.template_filter("pdf_label")
-    def pdf_label_filter(path: str) -> str:
-        return format_pdf_label(path, Path(store.data.input_dir))
 
     @app.route("/projects")
     def projects():
@@ -2979,41 +2975,7 @@ def create_app(
 
     @app.route("/diagnostics")
     def diagnostics():
-        filter_severity = request.args.get("severity", "all")
-        if active_project_or_none() is None:
-            return render_template(
-                "diagnostics.html",
-                documents=[],
-                issues=[],
-                issue_summary=[],
-                filter_severity=filter_severity,
-            )
-        issues = store.data.preflight_issues
-        if filter_severity != "all":
-            issues = [issue for issue in issues if issue.severity == filter_severity]
-        issue_summary = [
-            {
-                "severity": severity,
-                "code": code,
-                "count": count,
-                "message": next(
-                    (issue.message for issue in store.data.preflight_issues if issue.severity == severity and issue.code == code),
-                    "",
-                ),
-            }
-            for (severity, code), count in Counter((issue.severity, issue.code) for issue in store.data.preflight_issues).most_common()
-        ]
-        documents = sorted(
-            store.data.documents,
-            key=lambda item: (item.max_severity != "high", item.max_severity != "medium", -item.warning_count, item.source_pdf),
-        )
-        return render_template(
-            "diagnostics.html",
-            documents=documents,
-            issues=issues,
-            issue_summary=issue_summary,
-            filter_severity=filter_severity,
-        )
+        abort(404)
 
     @app.route("/workspace-assets/<path:asset_path>")
     def workspace_asset(asset_path: str):
