@@ -2,6 +2,27 @@
 
 Status: canonical application decision log.
 
+## 2026-05-18 - Pre Review Uses Three Workers With Shared Rate-Limit Backoff
+
+Decision: Increase the default app-layer Pre Review API batch concurrency from
+`2` to `3`, keep the operator override clamped to `1..4`, and coordinate
+OpenAI rate-limit retry pauses across worker threads.
+
+Reason: Workspace population is increasingly gated by GPT/API latency after
+local package reuse and batching improvements. A third worker is a bounded
+throughput test that should reduce wall time when rate limits are not reached,
+while shared backoff avoids every worker immediately retrying into the same
+limit window.
+
+Consequences / follow-up:
+
+- `SCOPELEDGER_PREREVIEW_CONCURRENCY` now defaults to `3`; operators can still
+  set `1`, `2`, or `4` explicitly.
+- Retry metadata includes total retries and rate-limit backoff counts in
+  populate status and usage JSONL.
+- Further populate speedups should be driven by stage timing before changing
+  CloudHammer/package execution or moving Populate to a background job.
+
 ## 2026-05-18 - Diagnostics View Removed From Client-Facing UI
 
 Decision: Remove the Diagnostics nav item and stop rendering the `/diagnostics`
@@ -96,8 +117,9 @@ Consequences / follow-up:
   coordinates; only API inputs are focused and downscaled.
 - Existing legacy Pre Review cache files remain readable before new stable
   cache keys are used.
-- `SCOPELEDGER_PREREVIEW_CONCURRENCY` defaults to `2` and clamps to `1..4`;
-  tune downward if API rate limits appear.
+- The original `SCOPELEDGER_PREREVIEW_CONCURRENCY` default was `2` and the
+  clamp was `1..4`; the default was later raised to `3` with coordinated
+  rate-limit backoff on 2026-05-18.
 
 ## 2026-05-14 - Bounded Sheet Titles And Manual Legend Marking
 

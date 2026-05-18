@@ -126,7 +126,7 @@ $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
 $env:SCOPELEDGER_PREREVIEW_ENABLED = "1"
 $env:SCOPELEDGER_PREREVIEW_MODEL = "gpt-5.5"
 $env:SCOPELEDGER_PREREVIEW_BATCH_SIZE = "5"
-$env:SCOPELEDGER_PREREVIEW_CONCURRENCY = "2"
+$env:SCOPELEDGER_PREREVIEW_CONCURRENCY = "3"
 # Optional live inference override values, also supported from repo-root .env:
 $env:SCOPELEDGER_CLOUDHAMMER_MODEL = "CloudHammer\runs\cloudhammer_roi-symbol-text-fp-hn-20260502\weights\best.pt"
 $env:SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS = "3600"
@@ -285,8 +285,8 @@ Fresh client project flow with live Populate and optional Pre Review:
   5. Click Populate Workspace. This processes only new or dirty packages and
      reuses clean package runs. Use Rebuild all packages only when every staged
      package needs a fresh CloudHammer run.
-  6. Review Overview, Drawings, Latest Set, Review Changes, Diagnostics,
-     Export Workbook, and Review Packet.
+  6. Review Overview, Drawings, Latest Set, Review Changes, Export Workbook,
+     and Review Packet.
 - Expected output/artifact: Populate writes package-level live detection
   artifacts under the selected project workspace at
   `outputs/cloudhammer_live/run_*/`, writes an assembled manifest under
@@ -298,10 +298,12 @@ Fresh client project flow with live Populate and optional Pre Review:
   API calls batch up to
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, and
   run up to `SCOPELEDGER_PREREVIEW_CONCURRENCY` batches in parallel, defaulting
-  to `2`. API input images are focused around the detected box and downscaled;
-  usage records are written under `outputs/pre_review/usage/`. Populate also
-  builds the sheet-version keynote registry and deterministically expands
-  matching `Pre Review 2` keynote references without extra API calls. While
+  to `3`. Rate-limit responses coordinate a shared worker pause and honor
+  `retry-after` when the API provides it. API input images are focused around
+  the detected box and downscaled; usage records are written under
+  `outputs/pre_review/usage/`. Populate also builds the sheet-version keynote
+  registry and deterministically expands matching `Pre Review 2` keynote
+  references without extra API calls. While
   Populate is running, Overview polls `/workspace/populate/status` and should
   show staged PDF count, package reuse/process counts, the current
   revision/package, keynote registry/expansion counts, and live artifact count

@@ -18,8 +18,8 @@ Status: operational queue as of 2026-05-15 release-readiness checkpoint.
      `SCOPELEDGER_PREREVIEW_MODEL`, and the server-side `OPENAI_API_KEY` are
      set in the process environment or present in the allowlisted local `.env`
      files before starting the production server.
-   - Verify Overview, Drawings, Latest Set, Review Changes, Diagnostics,
-     Export Workbook, and Review Packet after Populate completes.
+   - Verify Overview, Drawings, Latest Set, Review Changes, Export Workbook,
+     and Review Packet after Populate completes.
    - In Review Changes, confirm `Pre Review 1`/`Pre Review 2` selection writes
      the reviewer text and that exports use the selected source.
    - When a crop is visibly overmerged or partial but the needed geometry is

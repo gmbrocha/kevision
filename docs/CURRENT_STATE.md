@@ -4,7 +4,7 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 
 ## Active Branch And Workspace
 
-- Branch: `cloudhammer-v2-eval-pivot`
+- Branch: `populate-workspace-efficiency`
 - Application workspace: repo root
 - Active detection workspace: `CloudHammer_v2/`
 - Legacy detection workspace: `CloudHammer/` reference only
@@ -72,7 +72,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   unchanged. Stable cache keys are based on item/candidate/box/text/context
   metadata rather than full crop file bytes, while legacy cache files remain
   readable. Per-call usage JSONL is written under the active project
-  `outputs/pre_review/usage/` folder. After Pre Review, a deterministic
+  `outputs/pre_review/usage/` folder. Default Pre Review concurrency is now
+  `3` bounded batch workers, and rate-limit responses coordinate a shared
+  retry pause across workers while honoring `retry-after` when present. After
+  Pre Review, a deterministic
   same-sheet keynote pass expands resolved `Pre Review 2` references such as
   `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text without additional
   API calls.
@@ -160,7 +163,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   words across same-page cloud scope extraction, reuse scanner cache entries
   without rebuilding them, pass assembled candidate rows in memory, and make
   populate artifact polling stream counts instead of materializing every file
-  path.
+  path. The 2026-05-18 populate-efficiency follow-up is documented in
+  `docs/APP_AUDIT_2026_05_18_POPULATE_EFFICIENCY.md`; the first implementation
+  raises Pre Review API batch concurrency from `2` to `3` by default and adds
+  shared rate-limit backoff before any broader pipeline restructuring.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number
@@ -410,6 +416,9 @@ human confirmation/correction before training use.
 
 ## Immediate Next Steps
 
+- On `populate-workspace-efficiency`, run the next real Populate with Pre
+  Review enabled and compare wall time, request count, retry count, and
+  rate-limit backoff count before raising concurrency or batch size further.
 - Create the next fresh handoff project from `/projects`, stage PDFs through
   browser upload or the allowed `revision_sets/` import root, configure
   server-side Pre Review if using API enrichment, and run Populate.

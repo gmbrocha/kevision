@@ -4,11 +4,13 @@ import io
 import json
 import os
 import re
+import sys
 import threading
 import time
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import fitz
 import pytest
@@ -1936,6 +1938,87 @@ def test_openai_pre_review_provider_batches_and_logs_usage(tmp_path: Path, monke
     assert second.total_tokens == 0
 
 
+def test_openai_pre_review_rate_limit_backoff_honors_retry_after(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = build_pre_review_test_store(tmp_path)
+    append_pre_review_test_item(store, 2)
+    store.save()
+    provider = OpenAIPreReviewProvider(
+        model="gpt-5.5",
+        batch_size=5,
+        concurrency=3,
+        max_retries=1,
+        retry_initial_delay=0.1,
+    )
+    calls = {"count": 0}
+    clock = {"value": 100.0}
+    sleeps: list[float] = []
+
+    class FakeRateLimitError(Exception):
+        status_code = 429
+
+        def __init__(self):
+            super().__init__("rate limit exceeded")
+            self.response = SimpleNamespace(status_code=429, headers={"retry-after": "0.25"})
+
+    class FakeResponses:
+        def create(self, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                raise FakeRateLimitError()
+            return SimpleNamespace(
+                output_text=json.dumps(
+                    {
+                        "results": [
+                            {
+                                "item_id": "change-1",
+                                "geometry_decision": "same_box",
+                                "boxes": [[33, 15, 100, 60]],
+                                "refined_text": "Retried text 1.",
+                                "reason": "Same visible region.",
+                                "confidence": 0.7,
+                                "tags": [],
+                            },
+                            {
+                                "item_id": "change-2",
+                                "geometry_decision": "same_box",
+                                "boxes": [[33, 15, 100, 60]],
+                                "refined_text": "Retried text 2.",
+                                "reason": "Same visible region.",
+                                "confidence": 0.7,
+                                "tags": [],
+                            },
+                        ]
+                    }
+                ),
+                usage={"input_tokens": 20, "output_tokens": 10, "total_tokens": 30},
+            )
+
+    class FakeOpenAI:
+        def __init__(self):
+            self.responses = FakeResponses()
+
+    def fake_sleep(delay: float) -> None:
+        sleeps.append(delay)
+        clock["value"] += delay
+
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=FakeOpenAI))
+    monkeypatch.setattr(pre_review_module.time, "monotonic", lambda: clock["value"])
+    monkeypatch.setattr(pre_review_module.time, "sleep", fake_sleep)
+
+    summary = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert calls["count"] == 2
+    assert sleeps == [0.25]
+    assert summary.pre_review_2_count == 2
+    assert summary.request_count == 1
+    assert summary.retry_count == 1
+    assert summary.rate_limit_backoff_count == 1
+    usage_lines = (store.output_dir / "pre_review" / "usage" / "pre_review_usage.jsonl").read_text(encoding="utf-8").splitlines()
+    request_meta = json.loads(usage_lines[0])["request_meta"]
+    assert request_meta["retry_count"] == 1
+    assert request_meta["rate_limit_backoff_count"] == 1
+
+
 def test_batched_pre_review_reuses_existing_single_item_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     store = build_pre_review_test_store(tmp_path)
     provider = OpenAIPreReviewProvider(model="gpt-5.5", batch_size=5)
@@ -2128,7 +2211,7 @@ def test_pre_review_batch_size_env_defaults_accepts_and_clamps(monkeypatch: pyte
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_CONCURRENCY", raising=False)
     default_provider = build_pre_review_provider_from_env()
     assert getattr(default_provider, "batch_size") == 5
-    assert getattr(default_provider, "concurrency") == 2
+    assert getattr(default_provider, "concurrency") == 3
 
     monkeypatch.setenv("SCOPELEDGER_PREREVIEW_BATCH_SIZE", "1")
     monkeypatch.setenv("SCOPELEDGER_PREREVIEW_CONCURRENCY", "1")

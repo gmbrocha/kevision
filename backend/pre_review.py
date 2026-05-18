@@ -139,6 +139,8 @@ class PreReviewRunSummary:
     concurrency: int = 1
     api_input_max_dimension: int = API_INPUT_MAX_DIMENSION
     request_count: int = 0
+    retry_count: int = 0
+    rate_limit_backoff_count: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
     total_tokens: int = 0
@@ -156,6 +158,8 @@ class PreReviewRunSummary:
             "pre_review_concurrency": self.concurrency,
             "pre_review_api_input_max_dimension": self.api_input_max_dimension,
             "pre_review_request_count": self.request_count,
+            "pre_review_retry_count": self.retry_count,
+            "pre_review_rate_limit_backoff_count": self.rate_limit_backoff_count,
             "pre_review_input_tokens": self.input_tokens,
             "pre_review_output_tokens": self.output_tokens,
             "pre_review_total_tokens": self.total_tokens,
@@ -202,7 +206,7 @@ class OpenAIPreReviewProvider:
         retry_initial_delay: float = 1.5,
         image_format: str = "png",
         batch_size: int = 5,
-        concurrency: int = 2,
+        concurrency: int = 3,
     ):
         self.model = model
         self.max_retries = max_retries
@@ -210,6 +214,8 @@ class OpenAIPreReviewProvider:
         self.image_format = image_format
         self.batch_size = max(1, min(10, int(batch_size or 1)))
         self.concurrency = max(1, min(4, int(concurrency or 1)))
+        self._rate_limit_lock = threading.Lock()
+        self._rate_limit_resume_at = 0.0
 
     def review(self, context: PreReviewContext) -> dict[str, Any] | None:
         cache_dir = context.cache_dir / "cache"
@@ -446,8 +452,10 @@ class OpenAIPreReviewProvider:
             image_part,
         ]
         attempt = 0
+        rate_limit_backoff_count = 0
         started_at = time.time()
         while True:
+            self._wait_for_rate_limit_window()
             try:
                 response = client.responses.create(
                     model=self.model,
@@ -464,15 +472,18 @@ class OpenAIPreReviewProvider:
                 return {
                     "text": _extract_response_text(response),
                     "usage": _response_usage(response),
-                    "meta": _request_meta(started_at, attempt),
+                    "meta": _request_meta(started_at, attempt, rate_limit_backoff_count),
                 }
             except Exception as exc:
                 if attempt >= self.max_retries or not _is_retryable_openai_error(exc):
                     raise
                 attempt += 1
-                retry_after = _retry_after_seconds(exc)
-                delay = retry_after if retry_after is not None else self.retry_initial_delay * (2 ** (attempt - 1))
-                time.sleep(min(max(0.0, delay), 30.0))
+                delay = self._retry_delay_seconds(exc, attempt)
+                if _is_rate_limit_openai_error(exc):
+                    rate_limit_backoff_count += 1
+                    self._record_rate_limit_window(delay)
+                else:
+                    time.sleep(delay)
 
     def _call_openai_batch(self, contexts: list[PreReviewContext], input_images: list[Path]) -> dict[str, Any]:
         try:
@@ -495,8 +506,10 @@ class OpenAIPreReviewProvider:
             content.append({"type": "input_image", "image_url": _image_to_data_url(input_image)})
 
         attempt = 0
+        rate_limit_backoff_count = 0
         started_at = time.time()
         while True:
+            self._wait_for_rate_limit_window()
             try:
                 response = client.responses.create(
                     model=self.model,
@@ -513,15 +526,36 @@ class OpenAIPreReviewProvider:
                 return {
                     "text": _extract_response_text(response),
                     "usage": _response_usage(response),
-                    "meta": _request_meta(started_at, attempt),
+                    "meta": _request_meta(started_at, attempt, rate_limit_backoff_count),
                 }
             except Exception as exc:
                 if attempt >= self.max_retries or not _is_retryable_openai_error(exc):
                     raise
                 attempt += 1
-                retry_after = _retry_after_seconds(exc)
-                delay = retry_after if retry_after is not None else self.retry_initial_delay * (2 ** (attempt - 1))
-                time.sleep(min(max(0.0, delay), 30.0))
+                delay = self._retry_delay_seconds(exc, attempt)
+                if _is_rate_limit_openai_error(exc):
+                    rate_limit_backoff_count += 1
+                    self._record_rate_limit_window(delay)
+                else:
+                    time.sleep(delay)
+
+    def _retry_delay_seconds(self, exc: Exception, attempt: int) -> float:
+        retry_after = _retry_after_seconds(exc)
+        delay = retry_after if retry_after is not None else self.retry_initial_delay * (2 ** (attempt - 1))
+        return min(max(0.0, delay), 30.0)
+
+    def _record_rate_limit_window(self, delay: float) -> None:
+        resume_at = time.monotonic() + delay
+        with self._rate_limit_lock:
+            self._rate_limit_resume_at = max(self._rate_limit_resume_at, resume_at)
+
+    def _wait_for_rate_limit_window(self) -> None:
+        while True:
+            with self._rate_limit_lock:
+                delay = self._rate_limit_resume_at - time.monotonic()
+            if delay <= 0:
+                return
+            time.sleep(min(delay, 30.0))
 
 
 def build_pre_review_provider_from_env() -> PreReviewProvider:
@@ -640,8 +674,14 @@ def ensure_workspace_pre_review(
         attempted_request = bool(outcome.get("attempted_request"))
         error = outcome.get("error")
         try:
-            if error is None and attempted_request and any(not (results.get(context.item.id) or {}).get("cache_hit") for context in contexts):
+            non_cache_results = []
+            for context in contexts:
+                result = results.get(context.item.id)
+                if isinstance(result, dict) and not result.get("cache_hit"):
+                    non_cache_results.append(result)
+            if error is None and attempted_request and non_cache_results:
                 summary.request_count += 1
+                _add_request_meta_to_summary(summary, non_cache_results[0].get("request_meta"))
             if error is None:
                 for entry in batch:
                     context = entry["context"]
@@ -1342,11 +1382,12 @@ def _call_usage_serializer(serializer) -> Any:
         return None
 
 
-def _request_meta(started_at: float, retry_count: int) -> dict[str, Any]:
+def _request_meta(started_at: float, retry_count: int, rate_limit_backoff_count: int = 0) -> dict[str, Any]:
     return {
         "started_at_unix": round(started_at, 3),
         "duration_seconds": round(max(0.0, time.time() - started_at), 3),
         "retry_count": retry_count,
+        "rate_limit_backoff_count": rate_limit_backoff_count,
     }
 
 
@@ -1443,6 +1484,13 @@ def _add_usage_to_summary(summary: PreReviewRunSummary, usage: Any) -> None:
     summary.cached_input_tokens += _int_value(input_details, "cached_tokens") + _int_value(prompt_details, "cached_tokens")
 
 
+def _add_request_meta_to_summary(summary: PreReviewRunSummary, request_meta: Any) -> None:
+    if not isinstance(request_meta, dict):
+        return
+    summary.retry_count += _int_value(request_meta, "retry_count")
+    summary.rate_limit_backoff_count += _int_value(request_meta, "rate_limit_backoff_count")
+
+
 def _int_value(payload: dict[str, Any], key: str) -> int:
     value = payload.get(key)
     return int(value) if isinstance(value, int) else 0
@@ -1482,6 +1530,12 @@ def _is_retryable_openai_error(exc: Exception) -> bool:
     return "rate limit" in text or "temporarily unavailable" in text or "timeout" in text
 
 
+def _is_rate_limit_openai_error(exc: Exception) -> bool:
+    if _error_status_code(exc) == 429:
+        return True
+    return "rate limit" in str(exc).lower()
+
+
 def _truthy(value: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on", "enabled"}
 
@@ -1498,7 +1552,7 @@ def _configured_batch_size(value: str) -> int:
 
 def _configured_concurrency(value: str) -> int:
     if not value.strip():
-        return 2
+        return 3
     try:
         parsed = int(value)
     except ValueError as exc:
