@@ -13,27 +13,27 @@
       <div class="export-layout">
         <section class="panel">
           <div class="panel-header"><span class="panel-title">Review status</span></div>
-          <div class="panel-body" style="display: flex; flex-direction: column; gap: var(--sp-4);">
-            <div class="stat-row" style="border: 0; gap: var(--sp-4);">
-              <div style="flex: 1;">
-                <span class="stat-value accepted" style="font-size: var(--text-2xl);">{{ approved_count }}</span>
+          <div class="panel-body section-stack">
+            <div class="stat-row">
+              <div class="stat-block">
+                <span class="stat-value stat-value-md accepted">{{ approved_count }}</span>
                 <span class="stat-label">Accepted</span>
               </div>
-              <div style="flex: 1;">
-                <span class="stat-value rejected" style="font-size: var(--text-2xl);">{{ rejected_count }}</span>
+              <div class="stat-block">
+                <span class="stat-value stat-value-md rejected">{{ rejected_count }}</span>
                 <span class="stat-label">Rejected</span>
               </div>
-              <div style="flex: 1;">
-                <span class="stat-value {{ 'pending' if pending_count else '' }}" style="font-size: var(--text-2xl);">{{ pending_count }}</span>
+              <div class="stat-block">
+                <span class="stat-value stat-value-md {{ 'pending' if pending_count else '' }}">{{ pending_count }}</span>
                 <span class="stat-label">Pending</span>
               </div>
             </div>
             <div>
               <div class="export-readiness-label">Review completion</div>
-              <div class="progress-bar-track" style="margin-top: 6px;">
+              <div class="progress-bar-track progress-track-spaced">
                 <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
               </div>
-              <div class="progress-label" style="margin-top: 4px;">
+              <div class="progress-label">
                 {% if pending_count %}{{ pending_count }} changes still pending - they will export with current status{% else %}All changes reviewed{% endif %}
               </div>
             </div>
@@ -48,17 +48,17 @@
 
         <section class="panel">
           <div class="panel-header"><span class="panel-title">Generate</span></div>
-          <div class="panel-body" style="display: flex; flex-direction: column; gap: var(--sp-4);">
+          <div class="panel-body section-stack">
             {% for file in [
               ("revision_changelog.xlsx", "Excel workbook - contractor pricing deliverable", output_files.workbook.exists(), "Open Workbook"),
               ("revision_changelog_review_packet.html", "Review packet - crops, comparisons, and source context", output_files.review_packet.exists(), "Open Review Packet"),
               ("conformed_preview.pdf", "Conformed preview - latest sheets first", output_files.preview_pdf.exists(), "Open Conformed Preview")
             ] %}
-              <div style="display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--surface-raised); border: 1px solid var(--rule-hairline); border-radius: var(--radius-md); opacity: {{ '1' if file[2] else '0.5' }};">
-                <span style="color: {{ 'var(--accent-text)' if file[2] else 'var(--text-tertiary)' }};">⇩</span>
-                <div style="flex: 1; min-width: 0;">
-                  <div class="cell-mono" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file[0] }}</div>
-                  <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 2px;">{{ file[1] }}</div>
+              <div class="export-file-row {{ 'is-missing' if not file[2] else '' }}">
+                <span class="export-file-icon">⇩</span>
+                <div class="export-file-copy">
+                  <div class="cell-mono export-file-name">{{ file[0] }}</div>
+                  <div class="export-file-description">{{ file[1] }}</div>
                 </div>
                 {% if file[2] %}
                   <a class="btn btn-secondary btn-sm" href="{{ url_for('output_asset', asset_path=file[0]) }}" {% if file[0].endswith('.html') %}target="_blank" rel="noopener"{% endif %}>{{ file[3] }}</a>
@@ -70,18 +70,18 @@
               <form method="post" action="{{ url_for('export_run') }}" class="js-generate-form">
                 {{ csrf_field()|safe }}
                 {% if attention_pending_count %}
-                  <label class="callout callout-check" style="margin-bottom: var(--sp-3);">
+                  <label class="callout callout-check export-force-option">
                     <input type="checkbox" name="force_attention" value="1">
                     <span>Generate with flagged items still pending</span>
                   </label>
                 {% endif %}
-                <button class="btn btn-primary btn-xl js-generate-button" type="submit" style="width: 100%; justify-content: center;" {% if bulk_review_job_running %}disabled{% endif %}>
+                <button class="btn btn-primary btn-xl btn-block js-generate-button" type="submit" {% if bulk_review_job_running %}disabled{% endif %}>
                   {% if output_files.workbook.exists() %}Re-generate workbook{% else %}Generate workbook{% endif %}
                 </button>
               </form>
               <form method="post" action="{{ url_for('review_packet_run') }}">
                 {{ csrf_field()|safe }}
-                <button class="btn btn-secondary btn-lg" type="submit" style="width: 100%; justify-content: center;" {% if bulk_review_job_running %}disabled{% endif %}>Refresh Review Packet</button>
+                <button class="btn btn-secondary btn-lg btn-block" type="submit" {% if bulk_review_job_running %}disabled{% endif %}>Refresh Review Packet</button>
               </form>
             {% else %}
               <section class="callout callout-info">
@@ -93,7 +93,7 @@
 
         <section class="panel">
           <div class="panel-header"><span class="panel-title">Export history</span></div>
-          <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+          <div class="data-table-wrap table-flush">
             <table class="data-table">
               <thead>
                 <tr>

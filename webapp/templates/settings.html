@@ -1,64 +1,75 @@
 {% extends "base.html" %}
 {% block title %}Settings{% endblock %}
-{% block page_heading %}Settings and Audit{% endblock %}
-{% block page_lead %}The active web workflow is local-first. Populate Workspace runs drawing analysis and optional server-side pre-review before human review.{% endblock %}
 {% block content %}
-  <section class="split">
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Pre Review</p>
-          <h2>Current Integration Status</h2>
-        </div>
-        <span class="status {{ 'active' if pre_review_provider.enabled else 'pending' }}">{{ 'active' if pre_review_provider.enabled else 'disabled' }}</span>
-      </div>
-      <div class="stack">
-        <div><strong>Provider:</strong> {{ pre_review_provider.name }}</div>
-        <div>Populate Workspace runs local drawing analysis before review data is scanned into the app.</div>
-        <div>When enabled, server-side pre-review adds a second provisional geometry/text pass for the reviewer to select from.</div>
-        <div>Human review remains the source of truth for text corrections and export approval.</div>
-        <div><strong>Preflight:</strong> {{ diagnostic_summary.affected_document_count }} of {{ diagnostic_summary.document_count }} documents produced warnings during scan.</div>
-      </div>
-    </article>
-
-    <article class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Current Safeguards</p>
-          <h2>Robustness Notes</h2>
-        </div>
-      </div>
-      <ul class="flat-list">
-        <li class="list-card">Malformed PDF warnings are captured during scan and exported as diagnostics.</li>
-        <li class="list-card">Detected revision regions are imported as review items; they are not auto-approved for export.</li>
-        <li class="list-card">Pre-review suggestions are provisional until the reviewer selects one in the review screen.</li>
-      </ul>
-    </article>
-  </section>
-
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Audit Log</p>
-        <h2>Archived Review-Assist History</h2>
-      </div>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Settings and Audit</h1>
+      <p class="page-subtitle">Local-first workflow, review-assist status, and archived review-assist history.</p>
     </div>
-    <ul class="flat-list">
-      {% for verification in verification_history %}
-        <li class="list-card">
-          <div class="list-card__header">
-            <strong>{{ verification.created_at }}</strong>
-            <span class="pill">{{ verification.provider }}</span>
+  </header>
+
+  <div class="page-scroll">
+    <div class="page-content">
+      <section class="settings-grid">
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <p class="section-eyebrow">Pre Review</p>
+              <h2 class="section-title">Current Integration Status</h2>
+            </div>
+            <span class="badge badge-{{ 'accepted' if pre_review_provider.enabled else 'pending' }}">
+              <span class="badge-dot"></span>{{ 'active' if pre_review_provider.enabled else 'disabled' }}
+            </span>
           </div>
-          <div class="muted">{{ verification.change_item_id }}</div>
-          <div class="verification-card">
-            <div><strong>Verdict:</strong> {{ verification.response_payload.verdict or "n/a" }}</div>
-            <div><strong>Reasoning:</strong> {{ verification.response_payload.reasoning or "n/a" }}</div>
+          <div class="section-stack-sm">
+            <div><strong>Provider:</strong> {{ pre_review_provider.name }}</div>
+            <div>Populate Workspace runs local drawing analysis before review data is scanned into the app.</div>
+            <div>When enabled, server-side pre-review adds a second provisional geometry/text pass for the reviewer to select from.</div>
+            <div>Human review remains the source of truth for text corrections and export approval.</div>
+            <div><strong>Preflight:</strong> {{ diagnostic_summary.affected_document_count }} of {{ diagnostic_summary.document_count }} documents produced warnings during scan.</div>
           </div>
-        </li>
-      {% else %}
-        <li class="list-card">No historical review-assist records were found in this workspace.</li>
-      {% endfor %}
-    </ul>
-  </section>
+        </article>
+
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <p class="section-eyebrow">Current Safeguards</p>
+              <h2 class="section-title">Robustness Notes</h2>
+            </div>
+          </div>
+          <ul class="simple-list">
+            <li class="simple-list-item">Malformed PDF warnings are captured during scan and exported as diagnostics.</li>
+            <li class="simple-list-item">Detected revision regions are imported as review items; they are not auto-approved for export.</li>
+            <li class="simple-list-item">Pre-review suggestions are provisional until the reviewer selects one in the review screen.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <p class="section-eyebrow">Audit Log</p>
+            <h2 class="section-title">Archived Review-Assist History</h2>
+          </div>
+        </div>
+        <div class="section-stack-sm">
+          {% for verification in verification_history %}
+            <article class="audit-entry">
+              <div class="audit-entry-head">
+                <strong class="cell-mono">{{ verification.created_at }}</strong>
+                <span class="badge badge-neutral">{{ verification.provider }}</span>
+              </div>
+              <div class="cell-mono cell-dim">{{ verification.change_item_id }}</div>
+              <div class="audit-detail">
+                <div><strong>Verdict:</strong> {{ verification.response_payload.verdict or "n/a" }}</div>
+                <div><strong>Reasoning:</strong> {{ verification.response_payload.reasoning or "n/a" }}</div>
+              </div>
+            </article>
+          {% else %}
+            <p class="empty-help">No historical review-assist records were found in this workspace.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
 {% endblock %}

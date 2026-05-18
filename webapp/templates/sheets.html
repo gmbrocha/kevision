@@ -56,7 +56,7 @@
           </thead>
           <tbody>
             {% for sheet in sheets %}
-              <tr class="row-link" style="{% if sheet.status == 'superseded' %}opacity: 0.55;{% endif %}" onclick="window.location.href='{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}'">
+              <tr class="row-link {% if sheet.status == 'superseded' %}row-muted{% endif %}" onclick="window.location.href='{{ url_for('sheet_detail', sheet_version_id=sheet.id) }}'">
                 <td class="cell-mono">{{ sheet.sheet_id }}</td>
                 <td class="sheet-title-cell" title="{{ sheet.sheet_title }}">
                   <span class="sheet-title-text">{{ sheet.sheet_title|compact_sheet_title }}</span>
@@ -66,12 +66,12 @@
                     <span class="sheet-title-note">OCR title trimmed</span>
                   {% endif %}
                 </td>
-                <td class="cell-mono" style="color: var(--accent-text);">{{ sheet.revision_entries[0] if sheet.revision_entries else current_package_label }}</td>
+                <td class="cell-mono cell-accent">{{ sheet.revision_entries[0] if sheet.revision_entries else current_package_label }}</td>
                 <td class="cell-mono cell-dim">{{ sheet.issue_date or "n/a" }}</td>
                 <td class="cell-secondary">{{ sheet.sheet_id|discipline }}</td>
                 <td class="col-right cell-mono">
                   {% if changes_by_sheet.get(sheet.id) %}
-                    <span style="color: var(--accent-text);">{{ changes_by_sheet.get(sheet.id) }}</span>
+                    <span class="cell-accent">{{ changes_by_sheet.get(sheet.id) }}</span>
                   {% else %}
                     <span class="cell-dim">-</span>
                   {% endif %}

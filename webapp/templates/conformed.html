@@ -8,7 +8,7 @@
     </div>
     <form class="page-actions" method="get">
       <input type="hidden" name="show" value="{{ show_filter }}">
-      <div class="filter-input-wrap" style="max-width: 220px;">
+      <div class="filter-input-wrap narrow">
         <span class="filter-input-icon">?</span>
         <input class="filter-input" type="search" name="q" value="{{ search_query }}" placeholder="Sheet number...">
       </div>
@@ -30,13 +30,13 @@
               <div class="conformed-revised-flag">{{ "Revised" if group.superseded else "Latest" }}</div>
             </div>
             <div class="conformed-card-info">
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);">
+              <div class="conformed-card-head">
                 <div class="conformed-sheet-id">{{ group.sheet_id }}</div>
                 <span class="badge badge-active">Selected latest</span>
               </div>
               <div class="conformed-sheet-title">{{ group.latest.sheet_title|compact_sheet_title }}</div>
               <div class="conformed-sheet-chain">
-                <span style="color: var(--accent-text); font-weight: 500;">Rev {{ group.latest_revision_set.set_number }}</span>
+                <span class="conformed-revision-label">Rev {{ group.latest_revision_set.set_number }}</span>
                 {% if group.superseded %}
                   <span class="arrow">&lt;-</span>
                   <span>{{ group.superseded|length }} prior</span>

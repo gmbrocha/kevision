@@ -2,6 +2,43 @@
 
 Status: canonical application decision log.
 
+## 2026-05-18 - Web UI Pass B Normalizes Template Layout Only
+
+Decision: Normalize remaining webapp template layout styles into shared CSS
+classes and align the reachable `/settings` route with the standard
+`page-header` / `page-scroll` / `page-content` shell. Leave remaining inline
+styles only where the value is dynamic, such as progress widths.
+
+Reason: The rectangle-reduction pass should be easier to maintain without
+expanding into a redesign or changing review/export workflows.
+
+Consequences / follow-up:
+
+- The cleanup stays template/CSS-only; backend routes, review semantics,
+  export formats, detection logic, and stored data are unchanged.
+- Screenshot capture remains a manual artifact process because the repo has
+  Playwright smoke tests but no committed screenshot-helper convention.
+
+## 2026-05-18 - Web UI Rectangle Reduction Keeps Review-Critical Boundaries
+
+Decision: Reduce low-importance webapp container chrome through shared CSS:
+panels now behave more like sections, inactive filters are less boxed, repeated
+stats/export/sheet-change rows rely more on spacing and soft rules, and heavy
+image/card shadows are reduced. Review-critical boundaries remain explicit for
+warnings, selected Pre Review choices, review status, crop/geometry overlays,
+operational tables, and destructive actions.
+
+Reason: ScopeLedger is an operational drawing review tool. Dense evidence and
+metadata should be easier to scan without making review state, export state, or
+human action boundaries ambiguous.
+
+Consequences / follow-up:
+
+- Main app pages should feel calmer without route, workflow, export, detection,
+  authentication, or backend changes.
+- Heavier follow-up should target remaining inline layout cleanup and the older
+  `/settings` route only after the active review workflow is stable.
+
 ## 2026-05-15 - Full-Sheet Review Overlays Use Sheet Coordinates
 
 Decision: Sheet-detail overlays now scale review boxes against the stored

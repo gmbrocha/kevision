@@ -25,21 +25,21 @@
           <span class="panel-title">Ingestion summary</span>
         </div>
         <div class="panel-body">
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4);">
+          <div class="metric-grid">
             <div>
-              <div class="stat-value" style="font-size: var(--text-xl);">{{ diagnostic_summary.document_count }}</div>
+              <div class="stat-value stat-value-sm">{{ diagnostic_summary.document_count }}</div>
               <div class="stat-label">Total PDFs</div>
             </div>
             <div>
-              <div class="stat-value" style="font-size: var(--text-xl);">{{ documents|sum(attribute='page_count') }}</div>
+              <div class="stat-value stat-value-sm">{{ documents|sum(attribute='page_count') }}</div>
               <div class="stat-label">Total pages</div>
             </div>
             <div>
-              <div class="stat-value {{ 'check' if diagnostic_summary.warning_count else '' }}" style="font-size: var(--text-xl);">{{ diagnostic_summary.warning_count }}</div>
+              <div class="stat-value stat-value-sm {{ 'check' if diagnostic_summary.warning_count else '' }}">{{ diagnostic_summary.warning_count }}</div>
               <div class="stat-label">Warnings</div>
             </div>
             <div>
-              <div class="stat-value {{ 'check' if diagnostic_summary.severity_counts.high else '' }}" style="font-size: var(--text-xl);">{{ diagnostic_summary.severity_counts.high }}</div>
+              <div class="stat-value stat-value-sm {{ 'check' if diagnostic_summary.severity_counts.high else '' }}">{{ diagnostic_summary.severity_counts.high }}</div>
               <div class="stat-label">High severity</div>
             </div>
           </div>
@@ -50,7 +50,7 @@
         <div class="panel-header">
           <span class="panel-title">Ingested PDF files</span>
         </div>
-        <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+        <div class="data-table-wrap table-flush">
           <table class="data-table diag-table">
             <thead>
               <tr>
@@ -96,7 +96,7 @@
         <div class="panel-header">
           <span class="panel-title">Issue summary</span>
         </div>
-        <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+        <div class="data-table-wrap table-flush">
           <table class="data-table diag-table">
             <thead>
               <tr>

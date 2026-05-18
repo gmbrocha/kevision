@@ -39,12 +39,12 @@
           <span class="stat-value {{ 'check' if attention_count else '' }}">{{ attention_count }}</span>
           <span class="stat-label">Needs check</span>
         </div>
-        <div class="stat-block" style="flex: 2; justify-content: center; gap: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <div class="stat-block progress-stat">
+          <div class="progress-stat-heading">
             <span class="stat-label">Review progress</span>
-            <span class="stat-value" style="font-size: var(--text-xl);">{{ review_progress }}%</span>
+            <span class="stat-value progress-stat-value">{{ review_progress }}%</span>
           </div>
-          <div class="progress-bar-track" style="height: 6px;">
+          <div class="progress-bar-track progress-track-compact">
             <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
           </div>
           <div class="progress-label">{{ reviewed_count }} of {{ total_change_count }} changes reviewed</div>
@@ -285,7 +285,7 @@
           <div class="panel-header">
             <span class="panel-title">Staged for population</span>
           </div>
-          <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+          <div class="data-table-wrap table-flush">
             <table class="data-table">
               <thead>
                 <tr>
@@ -303,7 +303,7 @@
                     <td class="col-right cell-mono">{{ row.pdf_count }}</td>
                     <td class="cell-secondary">
                       {% for filename in row.staged_files[:12] %}
-                        <span class="badge badge-pending" style="margin: 0 4px 4px 0;">{{ filename }}</span>
+                        <span class="badge badge-pending badge-spaced">{{ filename }}</span>
                       {% endfor %}
                       {% if row.staged_files|length > 12 %}
                         <span class="badge badge-superseded">+{{ row.staged_files|length - 12 }} more</span>
@@ -320,7 +320,7 @@
       <section class="panel">
         <div class="panel-header">
           <span class="panel-title">Revision packages</span>
-          <div style="display: flex; gap: 8px; align-items: center;">
+          <div class="panel-inline-actions">
             {% if staged_package_rows %}
               <button class="btn btn-secondary btn-sm" type="submit" form="package-order-form" {% if bulk_review_job_running %}disabled{% endif %}>Save package order</button>
             {% endif %}
@@ -329,7 +329,7 @@
         </div>
         <form id="package-order-form" method="post" action="{{ url_for('save_package_order') }}">
           {{ csrf_field()|safe }}
-          <div class="data-table-wrap" style="border: 0; border-radius: 0;">
+          <div class="data-table-wrap table-flush">
             <table class="data-table">
               <thead>
                 <tr>

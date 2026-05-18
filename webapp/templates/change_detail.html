@@ -6,11 +6,11 @@
           data-next-url="{% if navigation.next_change_id %}{{ url_for('change_detail', change_id=navigation.next_change_id, queue=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}{% endif %}">
     <a class="cockpit-back" href="{{ url_for('changes', status=queue_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Review Changes</a>
 
-    <div style="display: flex; align-items: center; gap: var(--sp-4);">
+    <div class="inline-action-row">
       <span class="cockpit-id">
         {{ item.sheet_id }}
         <span class="cloud-label">{{ item.detail_ref or "Cloud" }}</span>
-        <span style="color: var(--text-tertiary); margin-left: var(--sp-2); font-size: var(--text-sm);">{{ sheet_revision_set.label if sheet_revision_set else "Revision" }}</span>
+        <span class="cockpit-revision-label">{{ sheet_revision_set.label if sheet_revision_set else "Revision" }}</span>
       </span>
       <span class="badge badge-{{ item.status|badge_class }}"><span class="badge-dot"></span>{{ item.status|status_label }}</span>
       {% if item_needs_attention %}<span class="badge badge-check"><span class="badge-dot"></span>Needs check</span>{% endif %}
@@ -43,7 +43,7 @@
     <input type="hidden" name="package_id" value="{{ review_filter.package_id }}">
     <input type="hidden" name="next_change_id" value="{{ navigation.next_change_id or '' }}">
     <input type="hidden" name="advance" value="">
-    <select name="status" style="display: none;">
+    <select name="status" class="hidden-control">
       {% for value in ["pending", "approved", "rejected"] %}
         <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ value }}</option>
       {% endfor %}
@@ -51,10 +51,10 @@
 
     <section class="cockpit-image-pane">
       <div class="cockpit-image-stage js-panzoom-pane">
-        <div class="js-panzoom-target" style="position: relative;">
+        <div class="js-panzoom-target">
           <div class="cockpit-image-label">
             <span>{{ item.sheet_id }}</span>
-            <span style="color: var(--rule-hairline);">/</span>
+            <span class="muted-separator">/</span>
             <span class="cloud-id">{{ item.detail_ref or "Cloud" }}</span>
           </div>
           <div
@@ -226,7 +226,7 @@
     <span class="kbd-hint"><span class="kbd">A</span>Accept + next</span>
     <span class="kbd-hint"><span class="kbd">R</span>Reject + next</span>
     <span class="kbd-hint"><span class="kbd">[</span><span class="kbd">]</span>Navigate</span>
-    <span style="flex: 1;"></span>
+    <span class="inline-spacer"></span>
     <span class="cell-mono cell-dim">{{ pending_count }} pending in queue</span>
   </footer>
 {% endblock %}
