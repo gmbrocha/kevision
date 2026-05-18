@@ -2,6 +2,28 @@
 
 Status: canonical application decision log.
 
+## 2026-05-18 - Kevin Handoff Is Frozen Separately From Active Dev
+
+Decision: Freeze the accepted ScopeLedger handoff build at commit `2a14e640`
+with branch/tag `kevin-handoff` / `kevin-handoff-2026-05-18`, serve that
+separate clone on port `5000` behind `ledger.nezcoupe.net`, and keep active
+development local-only on port `5001`.
+
+Reason: Kevin needs a stable client-facing app while development continues
+without risking accidental exposure of in-progress work through the existing
+Cloudflare Tunnel.
+
+Consequences / follow-up:
+
+- `F:\Desktop\m\projects\scopeLedger-kevin-handoff` is the frozen handoff
+  checkout and starts from an empty app project registry.
+- `F:\Desktop\m\projects\scopeLedger` remains the active `main` development
+  checkout.
+- Dev Switchboard monitors Kevin's port `5000` service as critical and the
+  port `5001` dev service as non-critical.
+- Any future handoff refresh should create a new explicit branch/tag or move
+  this branch only after a deliberate acceptance step.
+
 ## 2026-05-18 - Keynote Registry V2 Supports Guarded Cross-Page Resolution
 
 Decision: Bump the keynote registry extractor to v2, recover same-column

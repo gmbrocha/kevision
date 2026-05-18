@@ -36,6 +36,27 @@ function Get-AllProcesses {
     Get-CimInstance Win32_Process
 }
 
+function Test-PathUnderRepoRoot {
+    param([string]$PathValue)
+    if (-not $PathValue) {
+        return $false
+    }
+    $normalizedRoot = $RepoRoot.TrimEnd("\", "/")
+    $normalizedPath = $PathValue.TrimEnd("\", "/")
+    return $normalizedPath.Equals($normalizedRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedPath.StartsWith("$normalizedRoot\", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedPath.StartsWith("$normalizedRoot/", [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Test-TextMentionsRepoRoot {
+    param([string]$TextValue)
+    if (-not $TextValue) {
+        return $false
+    }
+    $escapedRoot = [regex]::Escape($RepoRoot.TrimEnd("\", "/"))
+    return $TextValue -match "$escapedRoot(?:[\\/`"'\s]|$)"
+}
+
 function Get-DescendantProcessIds {
     param(
         [Parameter(Mandatory = $true)] [int[]]$RootIds,
@@ -65,8 +86,8 @@ function Get-BackendProcesses {
     $roots = @(
         $processes | Where-Object {
             $_.ProcessId -ne $PID -and (
-                ($_.ExecutablePath -and $_.ExecutablePath.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) -or
-                ($_.CommandLine -and $_.CommandLine.IndexOf($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -and $_.CommandLine -match "\s-m\s+backend\s+serve\b") -or
+                (Test-PathUnderRepoRoot $_.ExecutablePath) -or
+                ((Test-TextMentionsRepoRoot $_.CommandLine) -and $_.CommandLine -match "\s-m\s+backend\s+serve\b") -or
                 ($_.CommandLine -and $_.CommandLine -match "\s-m\s+backend\s+serve\b" -and $_.CommandLine -match "--port\s+$Port\b")
             )
         }
@@ -82,7 +103,7 @@ function Get-BackendProcesses {
 
 function Get-ProjectServices {
     Get-CimInstance Win32_Service | Where-Object {
-        ($_.PathName -and $_.PathName.IndexOf($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) -or
+        (Test-TextMentionsRepoRoot $_.PathName) -or
         ($_.Name -like "*$ProjectName*") -or
         ($_.DisplayName -like "*$ProjectName*") -or
         ($_.Name -like "*ScopeLedger*") -or

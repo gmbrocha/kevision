@@ -4,8 +4,13 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 
 ## Active Branch And Workspace
 
-- Branch: `populate-workspace-efficiency`
-- Application workspace: repo root
+- Branch: `main`
+- Application workspace: repo root for active development, served locally on
+  port `5001` when development is running.
+- Frozen client handoff: branch/tag `kevin-handoff` /
+  `kevin-handoff-2026-05-18` at commit `2a14e640`, checked out locally at
+  `F:\Desktop\m\projects\scopeLedger-kevin-handoff` and served on port
+  `5000` behind `ledger.nezcoupe.net`.
 - Active detection workspace: `CloudHammer_v2/`
 - Legacy detection workspace: `CloudHammer/` reference only
 
@@ -212,14 +217,18 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   folder import copies PDFs only, and CloudHammer subprocess failures are
   compact enough to display in the UI. Plain repo-level pytest now includes
   the legacy CloudHammer import path through `pytest.ini`.
-- Immediate client handoff hosting uses the existing Cloudflare Tunnel route
-  `ledger.nezcoupe.net` -> `http://localhost:5000`. Production serve mode runs
-  Waitress, requires `SCOPELEDGER_WEBAPP_SECRET`, and restricts manual
+- Immediate client handoff hosting uses the frozen
+  `scopeLedger-kevin-handoff` clone on port `5000` behind the existing
+  Cloudflare Tunnel route `ledger.nezcoupe.net` ->
+  `http://localhost:5000`. Active development stays in the main repo on local
+  port `5001` and must not use `-Cloudflare` / `-All`. Production serve mode
+  runs Waitress, requires `SCOPELEDGER_WEBAPP_SECRET`, and restricts manual
   server-path imports to `SCOPELEDGER_ALLOWED_IMPORT_ROOTS`. It also requires
   loopback binding, secure session cookies, production CSRF tokens on POST
   requests, and release security headers. Cloudflare Access is confirmed as
   the authentication gate for `ledger.nezcoupe.net`; this is not a public SaaS
-  deployment.
+  deployment. Dev Switchboard monitors the Kevin handoff service as critical
+  and the local dev service as non-critical.
 - Remote browser PDF intake now uses chunked upload endpoints for selected
   files/folders, with 8 MiB chunks reconstructed inside the active project
   workspace before Populate runs. This avoids Cloudflare request-body 413s for
@@ -428,12 +437,13 @@ human confirmation/correction before training use.
 
 ## Immediate Next Steps
 
-- On `populate-workspace-efficiency`, run the next real Populate with Pre
-  Review enabled and compare wall time, request count, retry count, and
-  rate-limit backoff count before raising concurrency or batch size further.
-- Create the next fresh handoff project from `/projects`, stage PDFs through
-  browser upload or the allowed `revision_sets/` import root, configure
-  server-side Pre Review if using API enrichment, and run Populate.
+- Keep Kevin's frozen handoff clone on port `5000` healthy through Dev
+  Switchboard before client use; use the main repo on port `5001` for active
+  development.
+- Create the next fresh handoff project from `/projects` in Kevin's frozen
+  clone, stage PDFs through browser upload or the allowed `revision_sets/`
+  import root, configure server-side Pre Review if using API enrichment, and
+  run Populate.
 - During the next populate/review smoke, verify that index pages do not create
   review items, that previous/current comparison only matches the same sheet
   from a strictly earlier revision set, and that full-sheet/review-packet

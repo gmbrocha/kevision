@@ -102,12 +102,71 @@ Manage local ScopeLedger processes:
   services. Cloudflare Tunnel handling requires `-Cloudflare` or `-All`. Use
   `-DryRun` to preview stop/start actions.
 
+Run the frozen Kevin handoff app:
+
+- Purpose: serve the accepted Kevin/client-facing build on port `5000` behind
+  `https://ledger.nezcoupe.net`.
+- Working directory: frozen handoff clone,
+  `F:\Desktop\m\projects\scopeLedger-kevin-handoff`.
+- Command:
+
+```powershell
+.\scopeledger.ps1 restart -Production -All -Port 5000
+```
+
+- Expected output/artifact: the clone starts Waitress on
+  `http://127.0.0.1:5000`, starts or confirms the shared Cloudflare Tunnel,
+  and `/projects` is reachable through `https://ledger.nezcoupe.net` after
+  Cloudflare Access.
+- Safety: production handoff service. This command is intended for the frozen
+  clone only. It manages the local backend for that clone and may start/stop
+  the shared Cloudflare Tunnel because `-All` is included.
+
+Run active local development separately:
+
+- Purpose: run current `main` without touching the Kevin/client-facing port or
+  tunnel.
+- Working directory: active development repo,
+  `F:\Desktop\m\projects\scopeLedger`.
+- Command:
+
+```powershell
+.\scopeledger.ps1 start -Port 5001
+```
+
+- Expected output/artifact: local development app is reachable at
+  `http://127.0.0.1:5001/projects`.
+- Safety: local dev-only. Do not use `-Cloudflare` or `-All` for the dev
+  instance; `ledger.nezcoupe.net` remains mapped to the frozen handoff service
+  on port `5000`.
+
+Monitor ScopeLedger through Dev Switchboard:
+
+- Purpose: monitor and control the frozen handoff and local dev instances from
+  the local Switchboard.
+- Working directory: `F:\Desktop\m\dev-switchboard`.
+- Command:
+
+```powershell
+.\launch-switchboard.ps1
+```
+
+- Expected output/artifact: Switchboard opens at its configured local URL and
+  lists `ScopeLedger Kevin Handoff` on port `5000` and `ScopeLedger Dev` on
+  port `5001`. Kevin's service is marked critical and polls
+  `http://127.0.0.1:5000/projects` every `10` seconds. The dev service is
+  monitored but non-critical.
+- Safety: local process-control UI. The critical banner, browser
+  notification, and audible alert require the Switchboard page to be open;
+  browser notifications only fire when permission has already been granted.
+
 Serve the private client handoff app behind the existing Cloudflare Access
-route:
+route manually:
 
 - Purpose: run ScopeLedger for the immediate client handoff at
   `https://ledger.nezcoupe.net`.
-- Working directory: repo root.
+- Working directory: frozen handoff clone,
+  `F:\Desktop\m\projects\scopeLedger-kevin-handoff`.
 - Prerequisites:
   - `C:\Users\gmbro\.cloudflared\config.yml` maps `ledger.nezcoupe.net` to
     `http://localhost:5000`.
@@ -121,7 +180,7 @@ route:
 
 ```powershell
 $env:SCOPELEDGER_WEBAPP_SECRET = "<generated-long-random-secret>"
-$env:SCOPELEDGER_ALLOWED_IMPORT_ROOTS = "F:\Desktop\m\projects\scopeLedger\revision_sets"
+$env:SCOPELEDGER_ALLOWED_IMPORT_ROOTS = "F:\Desktop\m\projects\scopeLedger-kevin-handoff\revision_sets"
 $env:SCOPELEDGER_MAX_UPLOAD_BYTES = "2147483648"
 $env:SCOPELEDGER_PREREVIEW_ENABLED = "1"
 $env:SCOPELEDGER_PREREVIEW_MODEL = "gpt-5.5"
