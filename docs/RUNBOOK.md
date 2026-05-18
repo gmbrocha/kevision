@@ -70,6 +70,38 @@ Serve the local review app:
 - Safety: local development server; it does not expose the app externally by
   itself.
 
+Manage local ScopeLedger processes:
+
+- Purpose: check, start, stop, or restart local processes associated with this
+  repo.
+- Working directory: repo root.
+- Commands:
+
+```powershell
+.\scopeledger.ps1 check
+.\scopeledger.ps1 start
+.\scopeledger.ps1 stop
+.\scopeledger.ps1 restart
+```
+
+- Optional switches:
+
+```powershell
+.\scopeledger.ps1 start -Production
+.\scopeledger.ps1 restart -All
+.\scopeledger.ps1 stop -All -DryRun
+```
+
+- Expected output/artifact: prints ScopeLedger backend processes, listeners on
+  port `5000`, matching Windows services, and cloudflared tunnel processes.
+  `start` launches `python -m backend serve --host 127.0.0.1 --port 5000`
+  from the repo virtualenv and writes stdout/stderr to
+  `logs/scopeledger_backend.*.log`.
+- Safety: `check` is read-only. `start`, `stop`, and `restart` manage the
+  backend rooted in this repo and any ScopeLedger-named/repo-rooted Windows
+  services. Cloudflare Tunnel handling requires `-Cloudflare` or `-All`. Use
+  `-DryRun` to preview stop/start actions.
+
 Serve the private client handoff app behind the existing Cloudflare Access
 route:
 
