@@ -75,11 +75,12 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   JSONL is written under the active project `outputs/pre_review/usage/` folder.
   Default Pre Review concurrency is now
   `3` bounded batch workers, and rate-limit responses coordinate a shared
-  retry pause across workers while honoring `retry-after` when present. After
-  Pre Review, a deterministic
-  same-sheet keynote pass expands resolved `Pre Review 2` references such as
-  `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text without additional
-  API calls.
+  retry pause across workers while honoring `retry-after` when present. Before
+  Pre Review, resolved legend/keynote context can be supplied to GPT when the
+  detected text visibly references a known token. After Pre Review, a
+  deterministic keynote pass expands resolved `Pre Review 2` references such
+  as `Z.8` or `Keynotes: 1, 2` into `TOKEN: definition` text without
+  additional API calls.
 - Populate now adds a conservative legend-context pass between OCR extraction
   and Pre Review. Probable legend/keynote regions remain visible in the review
   queue until the reviewer clicks `Accept as legend`; every review detail also
@@ -151,9 +152,13 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 - Keynote legend extraction is now a shared backend service used by Populate
   and by the standalone `utils/find_keynote_legends.py` diagnostic wrapper.
   Populate builds a sheet-version-scoped keynote registry from explicit
-  `KEYNOTE` / `KEYED NOTES` headers, marker labels, and numbered-list blocks,
-  then uses that registry to expand same-sheet GPT `Pre Review 2` keynote
-  references. The registry caches sheet entries, including sheets with no
+  `KEYNOTE` / `KEYED NOTES` headers, marker labels, marker-label continuation
+  rows, and numbered-list blocks, then uses that registry to expand GPT
+  `Pre Review 2` keynote references. Same-sheet definitions win first; dotted
+  or alphanumeric tokens can fall back to same revision package and discipline
+  only when the definition is unambiguous. Bare numeric/single-letter package
+  fallbacks, ambiguous package definitions, and cross-discipline matches are
+  skipped. The registry caches sheet entries, including sheets with no
   detected keynote definitions, so unchanged follow-up Populates avoid
   repeated PyMuPDF header/shape scans. The diagnostic wrapper still writes
   derived inspection artifacts under `test_tmp/` without mutating source PDFs

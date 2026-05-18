@@ -88,7 +88,7 @@ BATCH_RESPONSE_SCHEMA: dict[str, Any] = {
 PROMPT = """You are reviewing one detected drawing revision region before a human reviewer sees it.
 
 You receive one large crop image. The colored rectangle on the image is Pre Review 1, the initial detected region. You also receive OCR text extracted near that region.
-You may also receive separate legend context resolved from the same sheet or drawing package. Use that context only when the detected region visibly references the listed symbol token.
+You may also receive separate legend/keynote context resolved from the same sheet or drawing package. Use that context only when the detected region visibly references the listed symbol token.
 
 Tasks:
 - Decide whether Pre Review 1 covers the whole visible revision cloud.
@@ -814,7 +814,19 @@ def build_pre_review_context(
             crop_size = image.size
     except Exception:
         return None
-    pre_review_1 = _build_pre_review_1(item, cloud, sheet, crop_size)
+    pre_review_text = _pre_review_1_text(item, cloud)
+    from .keynote_legends import resolve_keynote_context_for_item
+
+    keynote_context, keynote_references = resolve_keynote_context_for_item(store, item, pre_review_text)
+    pre_review_1 = _build_pre_review_1(
+        item,
+        cloud,
+        sheet,
+        crop_size,
+        text=pre_review_text,
+        keynote_context=keynote_context,
+        keynote_references=keynote_references,
+    )
     api_input_transform = _build_api_input_transform(crop_size, pre_review_1.get("crop_boxes"))
     return PreReviewContext(
         item=item,
@@ -935,6 +947,10 @@ def _build_pre_review_1(
     cloud: CloudCandidate,
     sheet: SheetVersion,
     crop_size: tuple[int, int],
+    *,
+    text: str | None = None,
+    keynote_context: str = "",
+    keynote_references: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     crop_boxes = _pre_review_1_crop_boxes(cloud, sheet, crop_size)
     return {
@@ -944,9 +960,11 @@ def _build_pre_review_1(
         "geometry_decision": "same_box",
         "boxes": [[float(value) for value in cloud.bbox]],
         "crop_boxes": crop_boxes,
-        "text": clean_display_text(item.raw_text or cloud.scope_text or cloud.nearby_text),
+        "text": text if text is not None else _pre_review_1_text(item, cloud),
         "legend_context": legend_context_text(item),
         "legend_references": legend_context_payload(item).get("resolved_references", []),
+        "keynote_context": keynote_context,
+        "keynote_references": keynote_references or [],
         "reason": clean_display_text(cloud.scope_reason or "initial detected region"),
         "confidence": round(float(cloud.confidence or 0.0), 3),
         "tags": [],
@@ -961,13 +979,19 @@ def _fallback_pre_review_1(item: ChangeItem, cloud: CloudCandidate) -> dict[str,
         "geometry_decision": "same_box",
         "boxes": [[float(value) for value in cloud.bbox]],
         "crop_boxes": [],
-        "text": clean_display_text(item.raw_text or cloud.scope_text or cloud.nearby_text),
+        "text": _pre_review_1_text(item, cloud),
         "legend_context": legend_context_text(item),
         "legend_references": legend_context_payload(item).get("resolved_references", []),
+        "keynote_context": "",
+        "keynote_references": [],
         "reason": clean_display_text(cloud.scope_reason or "initial detected region"),
         "confidence": round(float(cloud.confidence or 0.0), 3),
         "tags": [],
     }
+
+
+def _pre_review_1_text(item: ChangeItem, cloud: CloudCandidate) -> str:
+    return clean_display_text(item.raw_text or cloud.scope_text or cloud.nearby_text)
 
 
 def _empty_pre_review_2() -> dict[str, Any]:
@@ -1281,6 +1305,10 @@ def _legacy_cache_key(model: str, context: PreReviewContext, *, prompt_version: 
     legend_references = context.pre_review_1.get("legend_references", [])
     if legend_context or legend_references:
         parts.extend([legend_context, legend_references])
+    keynote_context = normalize_text(str(context.pre_review_1.get("keynote_context") or ""))
+    keynote_references = context.pre_review_1.get("keynote_references", [])
+    if keynote_context or keynote_references:
+        parts.extend([keynote_context, keynote_references])
     return stable_id(*parts)
 
 
@@ -1302,6 +1330,10 @@ def _cache_key(model: str, context: PreReviewContext, *, prompt_version: str = P
     legend_references = context.pre_review_1.get("legend_references", [])
     if legend_context or legend_references:
         parts.extend([legend_context, legend_references])
+    keynote_context = normalize_text(str(context.pre_review_1.get("keynote_context") or ""))
+    keynote_references = context.pre_review_1.get("keynote_references", [])
+    if keynote_context or keynote_references:
+        parts.extend([keynote_context, keynote_references])
     return stable_id(*parts)
 
 
@@ -1334,6 +1366,8 @@ def _prompt_context(context: PreReviewContext) -> dict[str, Any]:
         "pre_review_1_reason": context.pre_review_1.get("reason", ""),
         "legend_context": context.pre_review_1.get("legend_context", ""),
         "legend_references": context.pre_review_1.get("legend_references", []),
+        "keynote_context": context.pre_review_1.get("keynote_context", ""),
+        "keynote_references": context.pre_review_1.get("keynote_references", []),
         "confidence": context.cloud.confidence,
         "api_input_transform": context.api_input_transform,
     }

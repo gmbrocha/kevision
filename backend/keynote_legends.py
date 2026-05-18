@@ -20,7 +20,7 @@ from .workspace import WorkspaceStore
 
 KEYNOTE_REGISTRY_SCHEMA = "scopeledger.keynote_registry.v1"
 KEYNOTE_EXPANSION_SCHEMA = "scopeledger.keynote_expansion.v1"
-KEYNOTE_REGISTRY_EXTRACTOR_VERSION = 1
+KEYNOTE_REGISTRY_EXTRACTOR_VERSION = 2
 HEADER_SEARCH_TERMS = (
     "KEYED NOTES",
     "KEYED NOTE",
@@ -67,6 +67,15 @@ class HeaderRegion:
 class MarkerShape:
     bbox: list[float]
     line_count: int
+
+
+@dataclass(frozen=True)
+class KeynoteAnchor:
+    token: str
+    label_bbox: list[float]
+    marker_bbox: list[float]
+    shape_line_count: int
+    source_pattern: str
 
 
 @dataclass(frozen=True)
@@ -240,7 +249,7 @@ def apply_pre_review_keynote_expansions(store: WorkspaceStore) -> KeynoteExpansi
     changed = False
     expanded_item_count = 0
     reference_count = 0
-    definitions_by_sheet: dict[str, dict[str, dict[str, Any]]] = {}
+    sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
     for item in store.data.change_items:
         updated = item
         if is_superseded(item) or item.provenance.get("source") != "visual-region":
@@ -254,16 +263,17 @@ def apply_pre_review_keynote_expansions(store: WorkspaceStore) -> KeynoteExpansi
         if not isinstance(pre_review_2, dict) or not pre_review_2.get("available"):
             updated_items.append(updated)
             continue
-        sheet_registry = registry_sheets.get(item.sheet_version_id)
-        if item.sheet_version_id not in definitions_by_sheet:
-            definitions_by_sheet[item.sheet_version_id] = _unique_definitions(sheet_registry)
-        definitions = definitions_by_sheet[item.sheet_version_id]
+        previous_expansion = pre_review_2.get("keynote_expansion") if isinstance(pre_review_2.get("keynote_expansion"), dict) else {}
+        source_text = clean_display_text(str(previous_expansion.get("original_text") or pre_review_2.get("text") or ""))
+        definitions = resolve_keynote_definitions_for_item(
+            registry,
+            sheets_by_id,
+            item,
+            source_text,
+        )
         if not definitions:
             updated_items.append(updated)
             continue
-
-        previous_expansion = pre_review_2.get("keynote_expansion") if isinstance(pre_review_2.get("keynote_expansion"), dict) else {}
-        source_text = clean_display_text(str(previous_expansion.get("original_text") or pre_review_2.get("text") or ""))
         expanded_text, references = expand_keynote_text(source_text, definitions)
         next_pre_review_2 = dict(pre_review_2)
         if references:
@@ -328,6 +338,79 @@ def _registry_entry_usable(entry: Any, sheet: SheetVersion, source_pdf: str, sou
     )
 
 
+def resolve_keynote_context_for_item(store: WorkspaceStore, item: ChangeItem, text: str) -> tuple[str, list[dict[str, Any]]]:
+    sheets_by_id = {sheet.id: sheet for sheet in store.data.sheets}
+    definitions = resolve_keynote_definitions_for_item(
+        store.data.keynote_registry if isinstance(store.data.keynote_registry, dict) else {},
+        sheets_by_id,
+        item,
+        text,
+    )
+    references = _matching_keynote_references(text, definitions)
+    if not references:
+        return "", []
+    return "\n".join(f"{reference['token']}: {reference['description']}" for reference in references), references
+
+
+def resolve_keynote_definitions_for_item(
+    registry: dict[str, Any],
+    sheets_by_id: dict[str, SheetVersion],
+    item: ChangeItem,
+    text: str,
+) -> dict[str, dict[str, Any]]:
+    registry_sheets = registry.get("sheets") if isinstance(registry.get("sheets"), dict) else {}
+    if not registry_sheets:
+        return {}
+
+    sheet = sheets_by_id.get(item.sheet_version_id)
+    sheet_registry = _registry_sheet_with_key(registry_sheets, item.sheet_version_id)
+    same_sheet_rows = _unique_definitions(sheet_registry)
+    same_sheet_tokens = _definition_tokens(sheet_registry)
+    definitions = {
+        token: _definition_with_resolution(
+            row,
+            sheet_registry,
+            source="same_sheet_keynote_registry",
+            resolution_scope="same_sheet",
+        )
+        for token, row in same_sheet_rows.items()
+    }
+    if not sheet:
+        return definitions
+
+    clean = clean_display_text(text)
+    if not clean:
+        return definitions
+
+    package_discipline = _discipline_key(sheet.sheet_id)
+    for token in sorted(_specific_registry_tokens_in_text(registry_sheets, clean), key=len, reverse=True):
+        if token in definitions or token in same_sheet_tokens:
+            continue
+        fallback_rows: list[dict[str, Any]] = []
+        for sheet_version_id, entry in registry_sheets.items():
+            entry = _registry_sheet_with_key(registry_sheets, sheet_version_id)
+            if entry.get("sheet_version_id") == item.sheet_version_id:
+                continue
+            if entry.get("revision_set_id") != sheet.revision_set_id:
+                continue
+            if _discipline_key(str(entry.get("sheet_id") or "")) != package_discipline:
+                continue
+            row = _unique_definitions(entry).get(token)
+            if row:
+                fallback_rows.append(
+                    _definition_with_resolution(
+                        row,
+                        entry,
+                        source="same_package_discipline_keynote_registry",
+                        resolution_scope="same_package_discipline",
+                    )
+                )
+        selected = _unique_resolved_definition(fallback_rows)
+        if selected:
+            definitions[token] = selected
+    return definitions
+
+
 def expand_keynote_text(text: str, definitions: dict[str, dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
     clean = clean_display_text(text)
     if not clean:
@@ -347,14 +430,7 @@ def expand_keynote_text(text: str, definitions: dict[str, dict[str, Any]]) -> tu
             return match.group(0)
         if definition["token"] not in seen_tokens:
             seen_tokens.add(definition["token"])
-            references.append(
-                {
-                    "token": definition["token"],
-                    "description": definition["description"],
-                    "source": "same_sheet_keynote_registry",
-                    "source_pattern": definition.get("source_pattern", ""),
-                }
-            )
+            references.append(_reference_for_definition(definition))
         return f"{definition['token']}: {definition['description']}"
 
     expanded = pattern.sub(replace_match, clean)
@@ -409,6 +485,116 @@ def _unique_definitions(sheet_registry: Any) -> dict[str, dict[str, Any]]:
     return unique
 
 
+def _definition_tokens(sheet_registry: Any) -> set[str]:
+    if not isinstance(sheet_registry, dict):
+        return set()
+    rows = sheet_registry.get("definitions")
+    if not isinstance(rows, list):
+        return set()
+    tokens: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        token = normalize_token(str(row.get("token") or ""))
+        if token:
+            tokens.add(token)
+    return tokens
+
+
+def _registry_sheet_with_key(registry_sheets: dict[str, Any], sheet_version_id: str) -> dict[str, Any]:
+    entry = registry_sheets.get(sheet_version_id)
+    if not isinstance(entry, dict):
+        return {}
+    if entry.get("sheet_version_id"):
+        return entry
+    return {**entry, "sheet_version_id": sheet_version_id}
+
+
+def _definition_with_resolution(
+    row: dict[str, Any],
+    sheet_registry: dict[str, Any],
+    *,
+    source: str,
+    resolution_scope: str,
+) -> dict[str, Any]:
+    definition = {
+        **row,
+        "token": normalize_token(str(row.get("token") or "")),
+        "description": clean_display_text(str(row.get("description") or "")),
+        "source": source,
+        "resolution_scope": resolution_scope,
+        "source_pattern": row.get("source_pattern", ""),
+    }
+    source_fields = {
+        "source_sheet_version_id": sheet_registry.get("sheet_version_id"),
+        "source_sheet_id": sheet_registry.get("sheet_id"),
+        "source_page_number": sheet_registry.get("page_number"),
+        "source_header_text": row.get("header_text"),
+    }
+    for key, value in source_fields.items():
+        if value not in (None, ""):
+            definition[key] = value
+    return definition
+
+
+def _specific_registry_tokens_in_text(registry_sheets: dict[str, Any], text: str) -> set[str]:
+    tokens: set[str] = set()
+    for entry in registry_sheets.values():
+        if not isinstance(entry, dict):
+            continue
+        for token in _definition_tokens(entry):
+            if _specific_token(token) and _token_in_text(token, text):
+                tokens.add(token)
+    return tokens
+
+
+def _unique_resolved_definition(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not rows:
+        return None
+    descriptions = {normalize_text(row.get("description") or "") for row in rows}
+    if len(descriptions) != 1:
+        return None
+    return sorted(
+        rows,
+        key=lambda row: (
+            str(row.get("source_sheet_id") or ""),
+            int(row.get("source_page_number") or 0),
+            str(row.get("source_sheet_version_id") or ""),
+        ),
+    )[0]
+
+
+def _matching_keynote_references(text: str, definitions: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    clean = clean_display_text(text)
+    references: list[dict[str, Any]] = []
+    for token in sorted(definitions, key=len, reverse=True):
+        if not _token_should_expand(token, clean, definitions):
+            continue
+        references.append(_reference_for_definition(definitions[token]))
+        if len(references) >= 12:
+            break
+    return references
+
+
+def _reference_for_definition(definition: dict[str, Any]) -> dict[str, Any]:
+    reference = {
+        "token": definition["token"],
+        "description": definition["description"],
+        "source": definition.get("source") or "same_sheet_keynote_registry",
+        "source_pattern": definition.get("source_pattern", ""),
+    }
+    for key in (
+        "source_sheet_version_id",
+        "source_sheet_id",
+        "source_page_number",
+        "source_header_text",
+        "resolution_scope",
+    ):
+        if definition.get(key) not in (None, ""):
+            reference[key] = definition[key]
+    return reference
+
+
 def _token_should_expand(token: str, text: str, definitions: dict[str, dict[str, Any]]) -> bool:
     if not _token_in_text(token, text):
         return False
@@ -430,6 +616,10 @@ def _specific_token(token: str) -> bool:
     if "." in normalized:
         return True
     return len(normalized) > 1 and any(char.isalpha() for char in normalized) and any(char.isdigit() for char in normalized)
+
+
+def _discipline_key(sheet_id: str) -> str:
+    return "".join(ch for ch in str(sheet_id or "").upper() if ch.isalpha()) or "DRAWING"
 
 
 def _has_delimited_token_cluster(text: str, known_tokens: set[str]) -> bool:
@@ -637,10 +827,14 @@ def extract_marker_label_rows(
     if len(candidates) < 2:
         return []
 
+    anchors = marker_label_anchors(region_words, candidates, region=region)
+    if len(anchors) < 2:
+        return []
+
     rows: list[KeynoteRow] = []
-    for index, (token, label_bbox, shape) in enumerate(candidates):
-        next_top = next_marker_boundary(candidates, index, region.search_bbox[3])
-        description_words = words_for_description(region_words, marker_bbox=shape.bbox, label_bbox=label_bbox, next_marker_top=next_top)
+    for index, anchor in enumerate(anchors):
+        next_top = next_anchor_boundary(anchors, index, region.search_bbox[3])
+        description_words = words_for_anchor_description(region_words, anchor=anchor, next_marker_top=next_top)
         description = clean_description(" ".join(str(word[4]) for word in description_words))
         if not description:
             continue
@@ -651,17 +845,84 @@ def extract_marker_label_rows(
                 pdf_path=region.pdf_path,
                 page_number=region.page_number,
                 header_text=region.header_text,
-                token=token,
+                token=anchor.token,
                 description=description,
-                marker_bbox=shape.bbox,
-                label_bbox=label_bbox,
+                marker_bbox=anchor.marker_bbox,
+                label_bbox=anchor.label_bbox,
                 description_bbox=union_words_bbox(description_words),
-                shape_line_count=shape.line_count,
-                shape_bbox=shape.bbox,
-                source_pattern="marker-label",
+                shape_line_count=anchor.shape_line_count,
+                shape_bbox=anchor.marker_bbox,
+                source_pattern=anchor.source_pattern,
             )
         )
     return rows
+
+
+def marker_label_anchors(
+    region_words: list[tuple],
+    candidates: list[tuple[str, list[float], MarkerShape]],
+    *,
+    region: HeaderRegion,
+) -> list[KeynoteAnchor]:
+    anchors = [
+        KeynoteAnchor(
+            token=token,
+            label_bbox=label_bbox,
+            marker_bbox=shape.bbox,
+            shape_line_count=shape.line_count,
+            source_pattern="marker-label",
+        )
+        for token, label_bbox, shape in candidates
+    ]
+    anchors.extend(continuation_marker_label_anchors(region_words, anchors, region=region))
+    anchors = dedupe_marker_anchors(anchors)
+    anchors.sort(key=lambda item: (item.label_bbox[1], item.label_bbox[0], item.token))
+    return anchors
+
+
+def continuation_marker_label_anchors(
+    region_words: list[tuple],
+    marker_anchors: list[KeynoteAnchor],
+    *,
+    region: HeaderRegion,
+) -> list[KeynoteAnchor]:
+    if len(marker_anchors) < 2 or not is_numbered_legend_header(region.header_text):
+        return []
+    specific_markers = [anchor for anchor in marker_anchors if _specific_token(anchor.token)]
+    if not specific_markers:
+        return []
+    dotted_prefixes = {anchor.token.split(".", 1)[0] for anchor in specific_markers if "." in anchor.token}
+    if not dotted_prefixes:
+        return []
+    label_x = median([anchor.label_bbox[0] for anchor in specific_markers])
+    first_y = min(anchor.label_bbox[1] for anchor in marker_anchors)
+    existing = {(anchor.token, int(round(anchor.label_bbox[0])), int(round(anchor.label_bbox[1]))) for anchor in marker_anchors}
+    anchors: list[KeynoteAnchor] = []
+    for word in region_words:
+        token = normalize_token(str(word[4]))
+        if not _specific_token(token) or "." not in token:
+            continue
+        if token.split(".", 1)[0] not in dotted_prefixes:
+            continue
+        label_bbox = rect_to_list(fitz.Rect(word[:4]))
+        if label_bbox[1] < first_y - 4:
+            continue
+        if abs(label_bbox[0] - label_x) > 24:
+            continue
+        key = (token, int(round(label_bbox[0])), int(round(label_bbox[1])))
+        if key in existing:
+            continue
+        existing.add(key)
+        anchors.append(
+            KeynoteAnchor(
+                token=token,
+                label_bbox=label_bbox,
+                marker_bbox=[],
+                shape_line_count=0,
+                source_pattern="marker-label-continuation",
+            )
+        )
+    return anchors
 
 
 def marker_label_candidates(region_words: list[tuple], small_drawings: list[dict[str, Any]]) -> list[tuple[str, list[float], MarkerShape]]:
@@ -880,6 +1141,28 @@ def words_for_description(
     return same_entry
 
 
+def words_for_anchor_description(
+    words: list[tuple],
+    *,
+    anchor: KeynoteAnchor,
+    next_marker_top: float,
+) -> list[tuple]:
+    marker_right = anchor.marker_bbox[2] if anchor.marker_bbox else anchor.label_bbox[2]
+    x_min = max(marker_right, anchor.label_bbox[2]) + 8
+    y_min = min(anchor.marker_bbox[1], anchor.label_bbox[1]) - 4 if anchor.marker_bbox else anchor.label_bbox[1] - 4
+    y_max = max(y_min + 16, next_marker_top - 3)
+    selected = [
+        word
+        for word in words
+        if float(word[0]) >= x_min
+        and float(word[1]) >= y_min
+        and float(word[1]) <= y_max
+        and is_description_word(str(word[4]))
+    ]
+    selected.sort(key=lambda word: (round(float(word[1]) / 4) * 4, float(word[0])))
+    return selected
+
+
 def horizontal_numbered_description_words(
     words: list[tuple],
     *,
@@ -931,6 +1214,14 @@ def next_marker_boundary(candidates: list[tuple[str, list[float], MarkerShape]],
     return fallback
 
 
+def next_anchor_boundary(candidates: list[KeynoteAnchor], index: int, fallback: float) -> float:
+    current_x = candidates[index].label_bbox[0]
+    for next_index in range(index + 1, len(candidates)):
+        if abs(candidates[next_index].label_bbox[0] - current_x) <= 38:
+            return candidates[next_index].label_bbox[1]
+    return fallback
+
+
 def dedupe_marker_candidates(candidates: list[tuple[str, list[float], MarkerShape]]) -> list[tuple[str, list[float], MarkerShape]]:
     kept: list[tuple[str, list[float], MarkerShape]] = []
     seen: set[tuple[str, int, int]] = set()
@@ -940,6 +1231,18 @@ def dedupe_marker_candidates(candidates: list[tuple[str, list[float], MarkerShap
             continue
         seen.add(key)
         kept.append((token, label_bbox, shape))
+    return kept
+
+
+def dedupe_marker_anchors(candidates: list[KeynoteAnchor]) -> list[KeynoteAnchor]:
+    kept: list[KeynoteAnchor] = []
+    seen: set[tuple[str, int, int]] = set()
+    for anchor in sorted(candidates, key=lambda item: (item.label_bbox[1], item.label_bbox[0], item.source_pattern)):
+        key = (anchor.token, int(round(anchor.label_bbox[0])), int(round(anchor.label_bbox[1])))
+        if key in seen:
+            continue
+        seen.add(key)
+        kept.append(anchor)
     return kept
 
 
@@ -1114,6 +1417,16 @@ def union_bboxes(boxes: Iterable[list[float]]) -> list[float]:
         max(box[2] for box in values),
         max(box[3] for box in values),
     ]
+
+
+def median(values: Iterable[float]) -> float:
+    ordered = sorted(float(value) for value in values)
+    if not ordered:
+        return 0.0
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return (ordered[middle - 1] + ordered[middle]) / 2
 
 
 def rect_to_list(rect: fitz.Rect) -> list[float]:

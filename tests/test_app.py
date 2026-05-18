@@ -1729,6 +1729,67 @@ def test_keynote_registry_reuses_cached_sheet_entries(tmp_path: Path, monkeypatc
     assert second.cache_hit_count == 1
 
 
+def test_keynote_registry_extracts_marker_continuation_rows(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    pdf_path = input_dir / "Revision #1" / "ad105-keynotes.pdf"
+    pdf_path.parent.mkdir(parents=True)
+
+    def draw_keynote(page: fitz.Page, token: str, description: str, y: float, *, marker: bool) -> None:
+        if marker:
+            x0, y0, x1, y1 = 76, y - 12, 100, y + 5
+            page.draw_line((x0, y0), (x1, y0 + 0.1))
+            page.draw_line((x1, y0), (x1 + 0.1, y1))
+            page.draw_line((x1, y1), (x0, y1 + 0.1))
+            page.draw_line((x0, y1), (x0 + 0.1, y0))
+        page.insert_text((82, y), token, fontsize=8)
+        page.insert_text((125, y), description, fontsize=8)
+
+    document = fitz.open()
+    page = document.new_page(width=600, height=800)
+    page.insert_text((60, 70), "DEMOLITION ATTIC & ROOF PLAN KEY NOTES", fontsize=10)
+    draw_keynote(page, "Z.1", "REMOVE EXISTING ATTIC DOOR", 105, marker=True)
+    draw_keynote(page, "Z.2", "EXISTING OPENING", 130, marker=True)
+    draw_keynote(page, "Z.3", "REMOVE EXISTING PLASTER ON TRUSS STUD FRAMING PARTITION", 155, marker=False)
+    draw_keynote(page, "Z.4", "REMOVE EXISTING ACT", 180, marker=False)
+    draw_keynote(page, "Z.5", "REMOVE LOOSE BRICK AND MORTAR", 205, marker=False)
+    draw_keynote(page, "Z.8", "EXISTING HOUSEKEEPING PAD TO REMAIN", 230, marker=False)
+    page.insert_text((125, 255), "NOTE: NOT ALL THE KEYNOTES ARE USED ON THIS SHEET", fontsize=8)
+    page.insert_text((125, 285), "Project Number", fontsize=8)
+    page.insert_text((430, 720), "AD105", fontsize=14)
+    document.save(pdf_path)
+    document.close()
+
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    sheet = SheetVersion(
+        id="sheet-ad105",
+        revision_set_id="rev-1",
+        source_pdf=str(pdf_path),
+        page_number=1,
+        sheet_id="AD105",
+        sheet_title="Demolition Attic",
+        issue_date=None,
+        status="active",
+    )
+    store.data.sheets = [sheet]
+    store.save()
+
+    summary = build_workspace_keynote_registry(store)
+
+    registry = WorkspaceStore(workspace_dir).load().data.keynote_registry
+    definitions = {
+        definition["token"]: definition
+        for definition in registry["sheets"]["sheet-ad105"]["definitions"]
+    }
+    assert summary.definition_count == 6
+    assert {"Z.1", "Z.2", "Z.3", "Z.4", "Z.5", "Z.8"} <= set(definitions)
+    assert definitions["Z.2"]["description"] == "EXISTING OPENING"
+    assert definitions["Z.3"]["description"] == "REMOVE EXISTING PLASTER ON TRUSS STUD FRAMING PARTITION"
+    assert definitions["Z.8"]["description"] == "EXISTING HOUSEKEEPING PAD TO REMAIN"
+    assert definitions["Z.3"]["source_pattern"] == "marker-label-continuation"
+    assert "Project Number" not in definitions["Z.8"]["description"]
+
+
 def test_pre_review_keynote_expansion_uses_same_sheet_registry(tmp_path: Path):
     store = build_pre_review_test_store(tmp_path)
     store.data.keynote_registry = {
@@ -1764,6 +1825,156 @@ def test_pre_review_keynote_expansion_uses_same_sheet_registry(tmp_path: Path):
     assert item.reviewer_text == "Z.8: PROVIDE NEW GRAB BAR BLOCKING"
     assert expansion["original_text"] == "Z.8"
     assert expansion["references"][0]["token"] == "Z.8"
+
+
+def _set_pre_review_2_text(store: WorkspaceStore, text: str, *, reviewer_text: str | None = None) -> None:
+    payload = {
+        "schema": "scopeledger.pre_review.v1",
+        "selected": PRE_REVIEW_2,
+        PRE_REVIEW_1: {"available": True, "text": f"Cloud Only - {text}"},
+        PRE_REVIEW_2: {"available": True, "text": text, "boxes": [], "crop_boxes": []},
+    }
+    item = store.data.change_items[0]
+    store.data.change_items[0] = replace(
+        item,
+        provenance={**item.provenance, PRE_REVIEW_KEY: payload},
+        reviewer_text=text if reviewer_text is None else reviewer_text,
+    )
+    store.save()
+
+
+def _add_registry_sheet(store: WorkspaceStore, sheet_id: str, sheet_version_id: str, definitions: list[dict[str, str]]) -> None:
+    base_sheet = store.data.sheets[0]
+    sheet = replace(base_sheet, id=sheet_version_id, sheet_id=sheet_id)
+    store.data.sheets.append(sheet)
+    registry = store.data.keynote_registry if isinstance(store.data.keynote_registry, dict) else {"schema": "scopeledger.keynote_registry.v1", "sheets": {}}
+    sheets = registry.setdefault("sheets", {})
+    sheets[sheet_version_id] = {
+        "schema": "scopeledger.keynote_registry.v1",
+        "extractor_version": 2,
+        "sheet_version_id": sheet_version_id,
+        "sheet_id": sheet_id,
+        "revision_set_id": sheet.revision_set_id,
+        "page_number": len(store.data.sheets),
+        "definitions": definitions,
+    }
+    store.data.keynote_registry = registry
+
+
+def test_pre_review_keynote_expansion_uses_unique_package_discipline_registry(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    _add_registry_sheet(
+        store,
+        "AE102",
+        "sheet-2",
+        [{"token": "Z.8", "description": "EXISTING HOUSEKEEPING PAD TO REMAIN", "source_pattern": "marker-label"}],
+    )
+    _set_pre_review_2_text(store, "Z.8")
+
+    summary = apply_pre_review_keynote_expansions(store)
+
+    item = WorkspaceStore(store.workspace_dir).load().data.change_items[0]
+    expansion = keynote_expansion_payload(item)
+    assert summary.item_count == 1
+    assert item.reviewer_text == "Z.8: EXISTING HOUSEKEEPING PAD TO REMAIN"
+    assert expansion["references"][0]["source"] == "same_package_discipline_keynote_registry"
+    assert expansion["references"][0]["source_sheet_id"] == "AE102"
+
+
+def test_pre_review_keynote_expansion_prefers_same_sheet_over_package_conflict(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.keynote_registry = {
+        "schema": "scopeledger.keynote_registry.v1",
+        "sheets": {
+            "sheet-1": {
+                "sheet_version_id": "sheet-1",
+                "sheet_id": "AE101",
+                "revision_set_id": "rev-1",
+                "definitions": [{"token": "Z.8", "description": "SAME SHEET DESCRIPTION", "source_pattern": "marker-label"}],
+            }
+        },
+    }
+    _add_registry_sheet(
+        store,
+        "AE102",
+        "sheet-2",
+        [{"token": "Z.8", "description": "PACKAGE DESCRIPTION", "source_pattern": "marker-label"}],
+    )
+    _set_pre_review_2_text(store, "Z.8")
+
+    apply_pre_review_keynote_expansions(store)
+
+    item = WorkspaceStore(store.workspace_dir).load().data.change_items[0]
+    expansion = keynote_expansion_payload(item)
+    assert item.reviewer_text == "Z.8: SAME SHEET DESCRIPTION"
+    assert expansion["references"][0]["source"] == "same_sheet_keynote_registry"
+
+
+def test_pre_review_keynote_expansion_skips_ambiguous_or_unsafe_package_tokens(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    _add_registry_sheet(
+        store,
+        "AE102",
+        "sheet-2",
+        [{"token": "Z.8", "description": "FIRST DESCRIPTION", "source_pattern": "marker-label"}],
+    )
+    _add_registry_sheet(
+        store,
+        "AE103",
+        "sheet-3",
+        [{"token": "Z.8", "description": "SECOND DESCRIPTION", "source_pattern": "marker-label"}],
+    )
+    _set_pre_review_2_text(store, "Z.8")
+
+    ambiguous = apply_pre_review_keynote_expansions(store)
+    ambiguous_item = WorkspaceStore(store.workspace_dir).load().data.change_items[0]
+
+    assert ambiguous.item_count == 0
+    assert ambiguous_item.reviewer_text == "Z.8"
+    assert keynote_expansion_payload(ambiguous_item) == {}
+
+    store = build_pre_review_test_store(tmp_path / "bare")
+    _add_registry_sheet(
+        store,
+        "AE102",
+        "sheet-2",
+        [{"token": "1", "description": "PROVIDE ACCESS PANEL", "source_pattern": "numbered-list"}],
+    )
+    _set_pre_review_2_text(store, "Keynotes: 1")
+    bare = apply_pre_review_keynote_expansions(store)
+
+    assert bare.item_count == 0
+
+    store = build_pre_review_test_store(tmp_path / "discipline")
+    _add_registry_sheet(
+        store,
+        "AD102",
+        "sheet-2",
+        [{"token": "Z.8", "description": "DEMOLITION DESCRIPTION", "source_pattern": "marker-label"}],
+    )
+    _set_pre_review_2_text(store, "Z.8")
+    cross_discipline = apply_pre_review_keynote_expansions(store)
+
+    assert cross_discipline.item_count == 0
+
+
+def test_pre_review_keynote_expansion_does_not_overwrite_manual_reviewer_text(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    store.data.keynote_registry = {
+        "schema": "scopeledger.keynote_registry.v1",
+        "sheets": {
+            "sheet-1": {
+                "definitions": [{"token": "Z.8", "description": "PROVIDE NEW GRAB BAR BLOCKING", "source_pattern": "marker-label"}],
+            }
+        },
+    }
+    _set_pre_review_2_text(store, "Z.8", reviewer_text="Manual reviewer wording")
+
+    apply_pre_review_keynote_expansions(store)
+
+    item = WorkspaceStore(store.workspace_dir).load().data.change_items[0]
+    assert keynote_expansion_payload(item)["expanded_text"] == "Z.8: PROVIDE NEW GRAB BAR BLOCKING"
+    assert item.reviewer_text == "Manual reviewer wording"
 
 
 def test_keynote_expansion_protects_bare_numbers_without_cue():
@@ -1830,6 +2041,37 @@ def test_pre_review_api_input_uses_focused_downscaled_crop(tmp_path: Path):
         assert image.size[0] < 4000
         assert image.size[1] < 3000
     assert context.api_input_transform["version"] == "focused_api_crop_v1"
+
+
+def test_pre_review_one_carries_resolved_keynote_context_and_cache_key(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    cloud = replace(store.data.clouds[0], scope_text="Cloud Only - Z.8", nearby_text="Cloud Only - Z.8")
+    item = replace(store.data.change_items[0], raw_text="Cloud Only - Z.8", normalized_text="cloud only - z.8")
+    store.data.clouds[0] = cloud
+    store.data.change_items[0] = item
+    _add_registry_sheet(
+        store,
+        "AE102",
+        "sheet-2",
+        [{"token": "Z.8", "description": "EXISTING HOUSEKEEPING PAD TO REMAIN", "source_pattern": "marker-label"}],
+    )
+    store.save()
+
+    context = pre_review_module.build_pre_review_context(store, item, cloud, store.data.sheets[0])
+    assert context is not None
+    first_key = pre_review_module._cache_key("gpt-5.5", context)
+
+    assert context.pre_review_1["keynote_context"] == "Z.8: EXISTING HOUSEKEEPING PAD TO REMAIN"
+    assert context.pre_review_1["keynote_references"][0]["source"] == "same_package_discipline_keynote_registry"
+
+    store.data.keynote_registry["sheets"]["sheet-2"]["definitions"][0]["description"] = "UPDATED HOUSEKEEPING PAD NOTE"
+    store.save()
+    updated_context = pre_review_module.build_pre_review_context(store, item, cloud, store.data.sheets[0])
+    assert updated_context is not None
+    second_key = pre_review_module._cache_key("gpt-5.5", updated_context)
+
+    assert updated_context.pre_review_1["keynote_context"] == "Z.8: UPDATED HOUSEKEEPING PAD NOTE"
+    assert second_key != first_key
 
 
 def test_pre_review_api_boxes_are_converted_back_to_original_crop_coordinates(tmp_path: Path):

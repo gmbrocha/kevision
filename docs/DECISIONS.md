@@ -2,6 +2,29 @@
 
 Status: canonical application decision log.
 
+## 2026-05-18 - Keynote Registry V2 Supports Guarded Cross-Page Resolution
+
+Decision: Bump the keynote registry extractor to v2, recover same-column
+marker-label continuation rows under strong keyed-note headers, and allow
+specific keynote tokens such as `Z.8` to resolve from another sheet in the
+same revision package and discipline only when the definition is unambiguous.
+
+Reason: Some drawing legends note that not all revision keynotes are used on
+one sheet, and AD105-style marker extraction could drop visible continuation
+rows like `Z.3` through `Z.8`. Same-sheet-only expansion left valid scope
+tokens unresolved.
+
+Consequences / follow-up:
+
+- Existing registry cache entries rebuild because the extractor version
+  changed.
+- Same-sheet definitions still win first; ambiguous same-package definitions,
+  bare numeric tokens, and cross-discipline matches are skipped.
+- Pre Review receives additive `keynote_context` / `keynote_references`
+  fields so GPT can preserve visible tokens before deterministic expansion.
+- Human-edited reviewer text remains authoritative and is not overwritten by
+  newly resolved keynote definitions.
+
 ## 2026-05-18 - Pre Review Uses Three Workers With Shared Rate-Limit Backoff
 
 Decision: Increase the default app-layer Pre Review API batch concurrency from
