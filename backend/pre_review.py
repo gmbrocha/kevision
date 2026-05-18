@@ -32,6 +32,7 @@ PRE_REVIEW_1_COLOR = "#0f766e"
 PRE_REVIEW_2_COLOR = "#d97706"
 API_INPUT_MAX_DIMENSION = 1200
 API_INPUT_CROP_VERSION = "focused_api_crop_v1"
+PRE_REVIEW_WORKSPACE_SAVE_BATCH_INTERVAL = 3
 _USAGE_LOCK = threading.Lock()
 
 
@@ -207,6 +208,7 @@ class OpenAIPreReviewProvider:
         image_format: str = "png",
         batch_size: int = 5,
         concurrency: int = 3,
+        legacy_cache_lookup: bool | None = None,
     ):
         self.model = model
         self.max_retries = max_retries
@@ -214,6 +216,11 @@ class OpenAIPreReviewProvider:
         self.image_format = image_format
         self.batch_size = max(1, min(10, int(batch_size or 1)))
         self.concurrency = max(1, min(4, int(concurrency or 1)))
+        self.legacy_cache_lookup = (
+            _truthy(os.getenv("SCOPELEDGER_PREREVIEW_LEGACY_CACHE_LOOKUP", ""))
+            if legacy_cache_lookup is None
+            else bool(legacy_cache_lookup)
+        )
         self._rate_limit_lock = threading.Lock()
         self._rate_limit_resume_at = 0.0
 
@@ -224,11 +231,10 @@ class OpenAIPreReviewProvider:
         api_input_dir.mkdir(parents=True, exist_ok=True)
         cache_key = _cache_key(self.model, context)
         cache_path = cache_dir / f"{cache_key}.json"
-        existing_path = _first_existing_cache_path(
-            cache_dir,
-            cache_key,
-            _legacy_cache_key(self.model, context, prompt_version=PROMPT_VERSION),
-        )
+        cache_keys = [cache_key]
+        if self.legacy_cache_lookup:
+            cache_keys.append(_legacy_cache_key(self.model, context, prompt_version=PROMPT_VERSION))
+        existing_path = _first_existing_cache_path(cache_dir, *cache_keys)
         if existing_path is not None:
             result = _read_cached_result(existing_path)
             return result
@@ -321,13 +327,18 @@ class OpenAIPreReviewProvider:
         pending: list[tuple[PreReviewContext, str, Path]] = []
         for context in contexts:
             cache_key = _cache_key(self.model, context, prompt_version=BATCH_PROMPT_VERSION)
-            existing_path = _first_existing_cache_path(
-                cache_dir,
+            cache_keys = [
                 cache_key,
                 _cache_key(self.model, context, prompt_version=PROMPT_VERSION),
-                _legacy_cache_key(self.model, context, prompt_version=BATCH_PROMPT_VERSION),
-                _legacy_cache_key(self.model, context, prompt_version=PROMPT_VERSION),
-            )
+            ]
+            if self.legacy_cache_lookup:
+                cache_keys.extend(
+                    [
+                        _legacy_cache_key(self.model, context, prompt_version=BATCH_PROMPT_VERSION),
+                        _legacy_cache_key(self.model, context, prompt_version=PROMPT_VERSION),
+                    ]
+                )
+            existing_path = _first_existing_cache_path(cache_dir, *cache_keys)
             if existing_path is not None:
                 results[context.item.id] = _read_cached_result(existing_path)
                 continue
@@ -605,10 +616,22 @@ def ensure_workspace_pre_review(
         disabled_reason="" if provider.enabled else provider.disabled_reason,
     )
     changed = False
+    batches_since_workspace_save = 0
 
     def emit() -> None:
         if progress_callback:
             progress_callback(summary)
+
+    def save_changed_items(*, force: bool = False) -> None:
+        nonlocal changed, batches_since_workspace_save
+        if not changed:
+            return
+        if not force and batches_since_workspace_save < PRE_REVIEW_WORKSPACE_SAVE_BATCH_INTERVAL:
+            return
+        store.data.change_items = updated_items
+        store.save()
+        changed = False
+        batches_since_workspace_save = 0
 
     def context_for(entry: dict[str, Any]) -> PreReviewContext | None:
         context = entry.get("context")
@@ -668,7 +691,7 @@ def ensure_workspace_pre_review(
             return {"results": {}, "attempted_request": attempted_request, "error": exc}
 
     def apply_batch_result(batch: list[dict[str, Any]], outcome: dict[str, Any]) -> None:
-        nonlocal changed
+        nonlocal batches_since_workspace_save
         contexts = [entry["context"] for entry in batch if entry["context"] is not None]
         results = outcome.get("results") if isinstance(outcome.get("results"), dict) else {}
         attempted_request = bool(outcome.get("attempted_request"))
@@ -704,8 +727,8 @@ def ensure_workspace_pre_review(
                     summary.failed_count += 1
         finally:
             if changed:
-                store.data.change_items = updated_items
-                store.save()
+                batches_since_workspace_save += 1
+                save_changed_items(force=error is not None)
             emit()
 
     def flush_batch(executor: ThreadPoolExecutor | None = None) -> None:
@@ -772,9 +795,7 @@ def ensure_workspace_pre_review(
         return True
 
     process_pending_entries()
-    if changed:
-        store.data.change_items = updated_items
-        store.save()
+    save_changed_items(force=True)
     emit()
     return summary
 

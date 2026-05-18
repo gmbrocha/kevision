@@ -819,3 +819,29 @@ Consequences:
   crashing Populate.
 - Declared and runtime Python dependencies were audited; Pillow is now pinned
   to `>=12.2.0` to avoid the vulnerable `12.1.1` runtime.
+
+## 2026-05-18 - Fast Default Populate Artifacts And Status
+
+Decision: Make ScopeLedger Populate default to faster client-facing artifacts
+and cheaper status/I/O behavior, while keeping diagnostic-heavy behavior behind
+explicit environment flags.
+
+Reason: Real Populate wall time is constrained by API latency, PDF/CloudHammer
+I/O, and repeated status/artifact inspection. The client UI needs candidate
+manifests, final crops, bbox/policy metadata, review state, and exports; it
+does not need debug overlays, contact sheets, manual large-cloud audits, or
+PDF import-check render diagnostics on every normal Populate.
+
+Consequences:
+
+- Populate status now records compact stage durations and running status polls
+  prefer persisted package rows/counters instead of replanning packages.
+- Live CloudHammer skips debug overlays/contact sheets/manual audits by
+  default; `SCOPELEDGER_CLOUDHAMMER_DEBUG_ARTIFACTS=1` restores them.
+- Web Populate skips scanner import-check rendering by default;
+  `SCOPELEDGER_POPULATE_IMPORT_CHECKS=1` restores it.
+- Pre Review uses stable metadata cache keys by default and coalesces
+  workspace saves; `SCOPELEDGER_PREREVIEW_LEGACY_CACHE_LOOKUP=1` restores
+  legacy crop-byte cache lookup.
+- `SCOPELEDGER_MANIFEST_ASSISTED_SCAN=1` remains default-off and requires a
+  dedicated parity pass before any scanner shortcut can be considered safe.

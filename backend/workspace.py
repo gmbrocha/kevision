@@ -129,6 +129,8 @@ class WorkspaceStore:
     def update_populate_status(self, **changes) -> dict[str, Any]:
         status = dict(self.data.populate_status or {})
         status.update(changes)
+        if status == (self.data.populate_status or {}):
+            return status
         self.data.populate_status = status
         self.save()
         return status

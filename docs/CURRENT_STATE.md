@@ -67,12 +67,13 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   not block Populate. Pre Review API calls now batch up to
   `SCOPELEDGER_PREREVIEW_BATCH_SIZE` items at a time, defaulting to `5`, and
   runs up to `SCOPELEDGER_PREREVIEW_CONCURRENCY` API batches in parallel,
-  defaulting to `2`. API calls use focused downscaled crops around the Pre
+  defaulting to `3`. API calls use focused downscaled crops around the Pre
   Review 1 box rather than the entire review crop; review UI crops remain
   unchanged. Stable cache keys are based on item/candidate/box/text/context
-  metadata rather than full crop file bytes, while legacy cache files remain
-  readable. Per-call usage JSONL is written under the active project
-  `outputs/pre_review/usage/` folder. Default Pre Review concurrency is now
+  metadata rather than full crop file bytes; legacy crop-byte cache lookup is
+  now opt-in with `SCOPELEDGER_PREREVIEW_LEGACY_CACHE_LOOKUP=1`. Per-call usage
+  JSONL is written under the active project `outputs/pre_review/usage/` folder.
+  Default Pre Review concurrency is now
   `3` bounded batch workers, and rate-limit responses coordinate a shared
   retry pause across workers while honoring `retry-after` when present. After
   Pre Review, a deterministic
@@ -164,9 +165,15 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   without rebuilding them, pass assembled candidate rows in memory, and make
   populate artifact polling stream counts instead of materializing every file
   path. The 2026-05-18 populate-efficiency follow-up is documented in
-  `docs/APP_AUDIT_2026_05_18_POPULATE_EFFICIENCY.md`; the first implementation
-  raises Pre Review API batch concurrency from `2` to `3` by default and adds
-  shared rate-limit backoff before any broader pipeline restructuring.
+  `docs/APP_AUDIT_2026_05_18_POPULATE_EFFICIENCY.md`; the implementation
+  raises Pre Review API batch concurrency from `2` to `3` by default, adds
+  shared rate-limit backoff, records compact per-stage Populate durations,
+  keeps running status polling on persisted counters/package rows instead of
+  replanning packages, defaults live CloudHammer to client-minimal artifacts,
+  skips scanner import-check diagnostics unless explicitly enabled, and
+  coalesces Pre Review workspace saves. Debug-heavy CloudHammer artifacts,
+  import-check diagnostics, and legacy Pre Review cache lookup remain
+  available through explicit environment flags.
 - Drawing index pages are context only. The scanner keeps them available as
   sheet metadata/context, but they are not eligible for detected-region review
   items, and previous/current comparisons now require the same sheet number

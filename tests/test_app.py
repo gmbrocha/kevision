@@ -22,7 +22,7 @@ import backend.projects as projects_module
 from backend.bulk_review_jobs import BulkReviewJobConflict, BulkReviewJobManager
 from backend.cli import approve_cloudhammer_detections, main as cli_main
 from backend.cloudhammer_client.inference import ManifestCloudInferenceClient
-from backend.cloudhammer_client.live_pipeline import CloudHammerRunResult, LiveCloudHammerPipeline
+from backend.cloudhammer_client.live_pipeline import CloudHammerCommandRecord, CloudHammerRunResult, LiveCloudHammerPipeline
 from backend.cloudhammer_client.schemas import CloudDetection
 from backend.crop_adjustments import CROP_ADJUSTMENT_KEY, crop_box_to_page_box, crop_adjustment_payload, selected_review_page_boxes
 from backend.deliverables.excel_exporter import ExportBlockedError, Exporter
@@ -63,6 +63,7 @@ from backend.revision_state.tracker import SHEET_METADATA_CACHE_VERSION, Revisio
 from backend.scope_extraction import enrich_workspace_scope_text, extract_cloud_scope_text
 from backend.utils import choose_best_sheet_id, parse_detail_ref
 from backend.workspace import WorkspaceStore
+import webapp.app as webapp_app_module
 from webapp.app import create_app, discipline_for_sheet
 
 
@@ -316,6 +317,26 @@ def test_scan_records_invalid_pdf_as_diagnostic_without_crashing(tmp_path: Path)
     assert store.data.documents[0].page_count == 0
     assert store.data.documents[0].max_severity == "high"
     assert any(issue.code == "pdf_open_failed" for issue in store.data.preflight_issues)
+
+
+def test_revision_scanner_import_checks_are_optional(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    calls = {"count": 0}
+
+    def fake_import_check(self, document_id, source_pdf, document, page_index):
+        calls["count"] += 1
+        return []
+
+    monkeypatch.setattr(RevisionScanner, "_run_import_check", fake_import_check)
+
+    fast_input = tmp_path / "fast-input"
+    write_minimal_drawing_pdf(fast_input / "Revision #1 - Test" / "drawing.pdf")
+    RevisionScanner(fast_input, tmp_path / "fast-workspace", run_import_checks=False).scan()
+    assert calls["count"] == 0
+
+    checked_input = tmp_path / "checked-input"
+    write_minimal_drawing_pdf(checked_input / "Revision #1 - Test" / "drawing.pdf")
+    RevisionScanner(checked_input, tmp_path / "checked-workspace", run_import_checks=True).scan()
+    assert calls["count"] == 1
 
 
 def test_sheet_id_parser_prefers_repeated_plumbing_sheet_over_late_arch_reference():
@@ -1871,6 +1892,82 @@ def test_pre_review_stable_cache_survives_same_geometry_crop_regeneration(tmp_pa
     assert first.pre_review_2_count == 1
     assert second.cache_hits == 1
     assert calls["count"] == 1
+
+
+def test_openai_pre_review_legacy_cache_lookup_is_explicit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = build_pre_review_test_store(tmp_path / "default")
+    provider = OpenAIPreReviewProvider(model="gpt-5.5", legacy_cache_lookup=False)
+    legacy_calls = {"count": 0}
+    api_calls = {"count": 0}
+
+    def fake_legacy_key(*args, **kwargs):
+        legacy_calls["count"] += 1
+        raise AssertionError("legacy cache key should not be computed by default")
+
+    def fake_call(context, input_image):
+        api_calls["count"] += 1
+        return json.dumps(
+            {
+                "geometry_decision": "same_box",
+                "boxes": [[33, 15, 100, 60]],
+                "refined_text": "Fresh cache text.",
+                "reason": "Same visible region.",
+                "confidence": 0.7,
+                "tags": [],
+            }
+        )
+
+    monkeypatch.setattr(pre_review_module, "_legacy_cache_key", fake_legacy_key)
+    monkeypatch.setattr(provider, "_call_openai", fake_call)
+
+    summary = ensure_workspace_pre_review(store, provider, force=True)
+
+    assert summary.pre_review_2_count == 1
+    assert legacy_calls["count"] == 0
+    assert api_calls["count"] == 1
+
+    legacy_store = build_pre_review_test_store(tmp_path / "legacy")
+    context = pre_review_module.build_pre_review_context(
+        legacy_store,
+        legacy_store.data.change_items[0],
+        legacy_store.data.clouds[0],
+        legacy_store.data.sheets[0],
+    )
+    assert context is not None
+    legacy_result = normalize_pre_review_2(
+        {
+            "geometry_decision": "same_box",
+            "boxes": [[33, 15, 100, 60]],
+            "refined_text": "Legacy cached text.",
+            "reason": "Same visible region.",
+            "confidence": 0.7,
+            "tags": [],
+        },
+        context,
+    )
+    cache_dir = context.cache_dir / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    (cache_dir / "legacy-key.json").write_text(json.dumps({"result": legacy_result, "usage": {}}), encoding="utf-8")
+
+    legacy_calls["count"] = 0
+
+    def legacy_key(*args, **kwargs):
+        legacy_calls["count"] += 1
+        return "legacy-key"
+
+    legacy_provider = OpenAIPreReviewProvider(model="gpt-5.5", legacy_cache_lookup=True)
+    monkeypatch.setattr(pre_review_module, "_legacy_cache_key", legacy_key)
+    monkeypatch.setattr(
+        legacy_provider,
+        "_call_openai",
+        lambda context, input_image: (_ for _ in ()).throw(AssertionError("legacy cache should avoid API call")),
+    )
+
+    legacy_summary = ensure_workspace_pre_review(legacy_store, legacy_provider, force=True)
+
+    assert legacy_summary.pre_review_2_count == 1
+    assert legacy_summary.cache_hits == 1
+    assert legacy_calls["count"] == 1
 
 
 def test_openai_pre_review_provider_batches_and_logs_usage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -4091,6 +4188,10 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("SCOPELEDGER_CLOUDHAMMER_MODEL", raising=False)
     monkeypatch.delenv("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_CLOUDHAMMER_DEBUG_ARTIFACTS", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_POPULATE_IMPORT_CHECKS", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_PREREVIEW_LEGACY_CACHE_LOOKUP", raising=False)
+    monkeypatch.delenv("SCOPELEDGER_MANIFEST_ASSISTED_SCAN", raising=False)
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_ENABLED", raising=False)
     monkeypatch.delenv("SCOPELEDGER_PREREVIEW_MODEL", raising=False)
     monkeypatch.delenv("REVIEW_CAPTURE", raising=False)
@@ -4104,6 +4205,10 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
                 "OPENAI_API_KEY=test-local-key",
                 "SCOPELEDGER_CLOUDHAMMER_MODEL=CloudHammer/runs/test/weights/best.pt",
                 "SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS=120",
+                "SCOPELEDGER_CLOUDHAMMER_DEBUG_ARTIFACTS=1",
+                "SCOPELEDGER_POPULATE_IMPORT_CHECKS=1",
+                "SCOPELEDGER_PREREVIEW_LEGACY_CACHE_LOOKUP=1",
+                "SCOPELEDGER_MANIFEST_ASSISTED_SCAN=1",
                 "SCOPELEDGER_PREREVIEW_ENABLED=1",
                 'SCOPELEDGER_PREREVIEW_MODEL="test-model"',
                 "REVIEW_CAPTURE=false",
@@ -4118,6 +4223,10 @@ def test_create_app_loads_allowlisted_values_from_cloudhammer_env(tmp_path: Path
     assert os.environ["OPENAI_API_KEY"] == "test-local-key"
     assert os.environ["SCOPELEDGER_CLOUDHAMMER_MODEL"] == "CloudHammer/runs/test/weights/best.pt"
     assert os.environ["SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS"] == "120"
+    assert os.environ["SCOPELEDGER_CLOUDHAMMER_DEBUG_ARTIFACTS"] == "1"
+    assert os.environ["SCOPELEDGER_POPULATE_IMPORT_CHECKS"] == "1"
+    assert os.environ["SCOPELEDGER_PREREVIEW_LEGACY_CACHE_LOOKUP"] == "1"
+    assert os.environ["SCOPELEDGER_MANIFEST_ASSISTED_SCAN"] == "1"
     assert os.environ["SCOPELEDGER_PREREVIEW_ENABLED"] == "1"
     assert os.environ["SCOPELEDGER_PREREVIEW_MODEL"] == "test-model"
     assert os.environ["REVIEW_CAPTURE"] == "false"
@@ -4158,6 +4267,84 @@ def test_live_cloudhammer_timeout_env_validation(monkeypatch: pytest.MonkeyPatch
 
     with pytest.raises(RuntimeError, match="SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS"):
         LiveCloudHammerPipeline()
+
+
+def test_live_cloudhammer_minimal_artifact_mode_adds_debug_skip_flags(tmp_path: Path):
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    model_path = tmp_path / "model.pt"
+    write_minimal_drawing_pdf(input_dir / "Revision #1" / "drawing.pdf")
+    model_path.write_bytes(b"model")
+
+    def option_value(command: list[str], name: str) -> str:
+        index = command.index(name)
+        return command[index + 1]
+
+    class FakePipeline(LiveCloudHammerPipeline):
+        def _run_command(self, label: str, command: list[str]) -> CloudHammerCommandRecord:
+            if label == "catalog_pages":
+                manifest_path = Path(option_value(command, "--manifest-out"))
+                pdf_path = next(input_dir.rglob("*.pdf"))
+                manifest_path.write_text(
+                    json.dumps(
+                        {
+                            "page_kind": "drawing",
+                            "pdf_path": str(pdf_path),
+                            "pdf_stem": pdf_path.stem,
+                            "page_index": 0,
+                            "page_number": 1,
+                            "render_path": str(workspace_dir / "render.png"),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            elif label == "export_whole_cloud_candidates":
+                output_dir = Path(option_value(command, "--output-dir"))
+                output_dir.mkdir(parents=True, exist_ok=True)
+                crop_path = output_dir / "crops" / "candidate.png"
+                crop_path.parent.mkdir(parents=True, exist_ok=True)
+                crop_path.write_bytes(b"png")
+                (output_dir / "whole_cloud_candidates_manifest.jsonl").write_text(
+                    json.dumps({"candidate_id": "c1", "crop_image_path": str(crop_path)}) + "\n",
+                    encoding="utf-8",
+                )
+            return CloudHammerCommandRecord(label=label, command=command, returncode=0)
+
+    minimal = FakePipeline(
+        repo_root=tmp_path,
+        python_executable="python",
+        model_path=model_path,
+        debug_artifacts=False,
+    )
+    minimal_result = minimal.run(input_dir=input_dir, workspace_dir=workspace_dir)
+    minimal_commands = {record.label: record.command for record in minimal_result.commands}
+
+    assert "--no-crops" in minimal_commands["infer_pages"]
+    assert "--no-overlays" in minimal_commands["infer_pages"]
+    assert "--no-overlays" in minimal_commands["group_fragment_detections"]
+    assert "--no-overlays" in minimal_commands["export_whole_cloud_candidates"]
+    assert "--no-contact-sheets" in minimal_commands["export_whole_cloud_candidates"]
+    assert "--skip-manual-audit" in minimal_commands["export_whole_cloud_candidates"]
+    assert minimal_result.page_count == 1
+    assert minimal_result.candidate_count == 1
+    summary = json.loads((minimal_result.run_dir / "cloudhammer_live_summary.json").read_text(encoding="utf-8"))
+    assert summary["debug_artifacts"] is False
+
+    debug = FakePipeline(
+        repo_root=tmp_path,
+        python_executable="python",
+        model_path=model_path,
+        debug_artifacts=True,
+    )
+    debug_result = debug.run(input_dir=input_dir, workspace_dir=workspace_dir)
+    debug_commands = {record.label: record.command for record in debug_result.commands}
+
+    assert "--no-crops" not in debug_commands["infer_pages"]
+    assert "--no-overlays" not in debug_commands["infer_pages"]
+    assert "--no-overlays" not in debug_commands["group_fragment_detections"]
+    assert "--no-contact-sheets" not in debug_commands["export_whole_cloud_candidates"]
+    assert "--skip-manual-audit" not in debug_commands["export_whole_cloud_candidates"]
 
 
 def test_production_app_can_load_secret_from_root_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -5008,7 +5195,9 @@ def test_manual_import_rejects_folder_without_pdfs(tmp_path: Path):
     assert not (input_dir / "not-a-package" / "notes.txt").exists()
 
 
-def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
+def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("SCOPELEDGER_POPULATE_IMPORT_CHECKS", raising=False)
+
     class FakeCloudHammerRunner:
         name = "fake_cloudhammer_live"
 
@@ -5073,6 +5262,8 @@ def test_populate_workspace_runs_cloudhammer_manifest_from_ui(tmp_path: Path):
     assert any(item.provenance.get("extraction_method") == "cloudhammer_manifest" for item in store.data.change_items)
     assert store.data.populate_status["cloudhammer_page_count"] == 1
     assert store.data.populate_status["cloudhammer_candidate_count"] == 1
+    assert "scan_import" in store.data.populate_status["populate_stage_durations"]
+    assert store.data.populate_status["populate_import_checks_enabled"] is False
     assert len(store.data.package_runs) == 1
     assert next(iter(store.data.package_runs.values()))["status"] == "complete"
 
@@ -5360,6 +5551,64 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
     assert payload["pre_review_2_count"] == 7
     assert payload["pre_review_failed_count"] == 1
     assert payload["pre_review_cache_hits"] == 3
+
+
+def test_populate_status_uses_cached_running_status_without_replanning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    app = create_app(tmp_path)
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    write_minimal_drawing_pdf(workspace_dir / "input" / "Revision #1 - Test" / "drawing.pdf")
+    store = WorkspaceStore(workspace_dir).load()
+    cached_rows = [
+        {
+            "package_id": "pkg-1",
+            "label": "Revision #1 - Test",
+            "revision_number": 1,
+            "action": "process",
+            "dirty_reason": "not_processed",
+            "status": "pending",
+            "last_action": "",
+            "processed_at": "",
+            "failed_at": "",
+            "last_error": "",
+            "page_count": 0,
+            "candidate_count": 0,
+        }
+    ]
+    store.update_populate_status(
+        state="running",
+        stage="drawing_analysis",
+        message="Analyzing staged drawing packages.",
+        staged_pdf_count=1,
+        staged_package_count=1,
+        live_artifact_count=7,
+        live_run_dir=str(workspace_dir / "outputs" / "cloudhammer_live" / "cached"),
+        live_last_write="2026-05-18T00:00:00+00:00",
+        inferred_cloudhammer_page_count=3,
+        inferred_cloudhammer_candidate_count=2,
+        total_package_count=1,
+        dirty_package_count=1,
+        reusable_package_count=0,
+        package_run_rows=cached_rows,
+        populate_stage_durations={"package_planning": 0.123},
+    )
+
+    def fail_replan(*args, **kwargs):
+        raise AssertionError("running status should not replan packages")
+
+    monkeypatch.setattr(webapp_app_module, "plan_package_runs", fail_replan)
+
+    response = client.get("/workspace/populate/status")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["staged_pdf_count"] == 1
+    assert payload["live_artifact_count"] == 7
+    assert payload["inferred_cloudhammer_candidate_count"] == 2
+    assert payload["package_run_rows"] == cached_rows
+    assert payload["populate_stage_durations"]["package_planning"] == 0.123
 
 
 def test_app_startup_marks_stale_running_populate_status_interrupted(tmp_path: Path):

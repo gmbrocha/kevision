@@ -203,11 +203,13 @@ class RevisionScanner:
         input_dir: Path,
         workspace_dir: Path,
         cloud_inference_client: CloudInferenceClient | None = None,
+        run_import_checks: bool = True,
     ):
         configure_mupdf()
         self.input_dir = input_dir.resolve()
         self.workspace_dir = workspace_dir
         self.cloud_inference_client = cloud_inference_client or NullCloudInferenceClient()
+        self.run_import_checks = run_import_checks
         self.store = WorkspaceStore(workspace_dir)
         if self.store.data_path.exists():
             self.store.load()
@@ -430,7 +432,8 @@ class RevisionScanner:
                 )
                 sheets.append(sheet)
 
-                preflight_issues.extend(self._run_import_check(document_id, source_pdf, document, page_index))
+                if self.run_import_checks:
+                    preflight_issues.extend(self._run_import_check(document_id, source_pdf, document, page_index))
                 clouds.extend(self._detect_cloud_candidates(page=page, sheet=sheet, page_words=page_words))
         finally:
             document.close()

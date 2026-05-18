@@ -280,8 +280,8 @@ def write_summary_markdown(summary: dict[str, Any], output_path: Path) -> None:
             f"- manifest: `{Path(summary['manifest_path']).name}`",
             "- candidate crops: `crops/`",
             "- whole detection JSON: `detections_whole/`",
-            "- debug overlays: `overlays/`",
-            "- contact sheets: `contact_sheets/`",
+            f"- debug overlays: `{'overlays/' if summary.get('write_overlays') else 'disabled'}`",
+            f"- contact sheets: `{'contact_sheets/' if summary.get('write_contact_sheets') else 'disabled'}`",
         ]
     )
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -341,6 +341,8 @@ def main() -> int:
     parser.add_argument("--min-candidate-confidence", type=float, default=0.0)
     parser.add_argument("--min-box-side", type=float, default=20.0)
     parser.add_argument("--no-overlays", action="store_true")
+    parser.add_argument("--no-contact-sheets", action="store_true")
+    parser.add_argument("--skip-manual-audit", action="store_true")
     args = parser.parse_args()
 
     params = WholeCloudExportParams(
@@ -369,6 +371,9 @@ def main() -> int:
         "source_grouped_detections_dir": str(args.grouped_detections_dir.resolve()),
         "output_dir": str(output_dir),
         "manifest_path": str(manifest_path),
+        "write_overlays": not args.no_overlays,
+        "write_contact_sheets": not args.no_contact_sheets,
+        "write_manual_audit": not args.skip_manual_audit,
         "params": params.__dict__,
         "results": [{key: value for key, value in result.items() if key != "rows"} for result in results],
         "totals": {
@@ -379,7 +384,7 @@ def main() -> int:
         },
     }
 
-    if rows:
+    if rows and not args.no_contact_sheets:
         contact_dir = output_dir / "contact_sheets"
         write_contact_sheet(sorted(rows, key=lambda row: row["whole_cloud_confidence"], reverse=True)[:40], contact_dir / "top_confidence.png")
         write_contact_sheet(sorted(rows, key=lambda row: row["bbox_area"], reverse=True)[:40], contact_dir / "largest_candidates.png")
@@ -387,7 +392,7 @@ def main() -> int:
         for bucket in sorted(by_size):
             write_contact_sheet([row for row in rows if row["size_bucket"] == bucket][:40], contact_dir / f"{bucket}_sample.png")
 
-    if args.large_labels_dir.exists():
+    if not args.skip_manual_audit and args.large_labels_dir.exists():
         summary["manual_large_cloud_audit"] = audit_against_manual_labels(rows, args.large_labels_dir, output_dir)
 
     summary_path = output_dir / "whole_cloud_candidates_summary.json"
@@ -417,4 +422,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

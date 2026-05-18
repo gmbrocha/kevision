@@ -9,6 +9,7 @@ import shutil
 import time
 import uuid
 from collections import Counter
+from contextlib import contextmanager
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -543,6 +544,12 @@ def create_app(
             response.headers.setdefault("Cache-Control", "no-store")
         return response
 
+    def env_truthy(name: str, *, default: bool = False) -> bool:
+        value = os.getenv(name)
+        if value is None or value.strip() == "":
+            return default
+        return value.strip().lower() in {"1", "true", "yes", "on", "enabled"}
+
     def rescan_active_project(cloud_inference_client=None) -> tuple[WorkspaceStore, int]:
         project = active_project()
         current = load_project_store(project)
@@ -550,6 +557,7 @@ def create_app(
             Path(current.data.input_dir),
             Path(project.workspace_dir),
             cloud_inference_client=cloud_inference_client,
+            run_import_checks=env_truthy("SCOPELEDGER_POPULATE_IMPORT_CHECKS", default=False),
         )
         return scanner.scan(), scanner.cache_hits
 
@@ -779,11 +787,12 @@ def create_app(
             return f"Revision {package.revision_number}"
         return package.label or package.folder_name
 
-    def package_run_display_status(plan) -> str:
-        record = plan.record or {}
+    def package_run_display_status(plan, record: dict | None = None, dirty_reason: str | None = None) -> str:
+        record = record if record is not None else plan.record or {}
+        is_dirty = plan.is_dirty if dirty_reason is None else bool(dirty_reason)
         if record.get("status") == "failed":
             return "failed"
-        if plan.is_dirty:
+        if is_dirty:
             return "pending" if not record else "dirty"
         if record.get("last_action") == "reused":
             return "reused"
@@ -791,57 +800,120 @@ def create_app(
             return "processed"
         return str(record.get("status") or "pending")
 
-    def package_run_display_action(plan) -> str:
-        status = package_run_display_status(plan)
+    def package_run_display_action(plan, record: dict | None = None, dirty_reason: str | None = None) -> str:
+        status = package_run_display_status(plan, record=record, dirty_reason=dirty_reason)
         if status == "dirty":
             return "process"
         if status == "pending":
             return "process"
         return status
 
+    def package_run_row(plan, record: dict | None = None) -> dict[str, object]:
+        record = record if record is not None else plan.record or {}
+        dirty_reason = plan.dirty_reason
+        if (
+            record.get("status") == "complete"
+            and record.get("last_action") in {"processed", "reused"}
+            and record.get("pdf_fingerprints") == plan.pdf_fingerprints
+            and record.get("pipeline_fingerprint") == plan.pipeline_fingerprint
+        ):
+            dirty_reason = ""
+        return {
+            "package_id": plan.package.id,
+            "label": plan.package.label,
+            "revision_number": plan.package.revision_number,
+            "action": package_run_display_action(plan, record=record, dirty_reason=dirty_reason),
+            "dirty_reason": dirty_reason,
+            "status": package_run_display_status(plan, record=record, dirty_reason=dirty_reason),
+            "last_action": record.get("last_action", ""),
+            "processed_at": record.get("processed_at", ""),
+            "failed_at": record.get("failed_at", ""),
+            "last_error": record.get("last_error", ""),
+            "page_count": record.get("page_count", 0),
+            "candidate_count": record.get("candidate_count", 0),
+        }
+
+    def package_run_rows(plans, store: WorkspaceStore | None = None) -> list[dict[str, object]]:
+        records = store.data.package_runs if store is not None else {}
+        return [package_run_row(plan, dict(records.get(plan.package.id) or plan.record or {})) for plan in plans]
+
+    def summarize_run_dir_artifacts(run_dir: Path | None) -> dict[str, object]:
+        if run_dir is None or not run_dir.exists():
+            return {
+                "live_run_dir": "",
+                "live_artifact_count": 0,
+                "live_last_write": "",
+                "inferred_cloudhammer_page_count": 0,
+                "inferred_cloudhammer_candidate_count": 0,
+            }
+        live_artifact_count = 0
+        latest_mtime = 0.0
+        for path in run_dir.rglob("*"):
+            if not path.is_file():
+                continue
+            live_artifact_count += 1
+            try:
+                latest_mtime = max(latest_mtime, path.stat().st_mtime)
+            except OSError:
+                continue
+        live_last_write = datetime.fromtimestamp(latest_mtime, timezone.utc).isoformat() if latest_mtime else ""
+        return {
+            "live_run_dir": str(run_dir),
+            "live_artifact_count": live_artifact_count,
+            "live_last_write": live_last_write,
+            "inferred_cloudhammer_page_count": count_jsonl_rows(run_dir / "pages_manifest.jsonl"),
+            "inferred_cloudhammer_candidate_count": count_jsonl_rows(
+                run_dir / "whole_cloud_candidates" / "whole_cloud_candidates_manifest.jsonl"
+            ),
+        }
+
     def summarize_populate_artifacts(project: ProjectRecord, store: WorkspaceStore, runner: CloudHammerRunner | None = None) -> dict[str, object]:
         input_dir = Path(store.data.input_dir)
-        staged_pdfs = sorted(input_dir.rglob("*.pdf")) if input_dir.exists() else []
-        package_dirs = {pdf.parent for pdf in staged_pdfs}
         status = dict(store.data.populate_status or {})
+        running = status.get("state") == "running"
+        staged_pdf_count = int(status.get("staged_pdf_count") or 0) if running else 0
+        staged_package_count = int(status.get("staged_package_count") or 0) if running else 0
+        if not running or "staged_pdf_count" not in status or "staged_package_count" not in status:
+            staged_pdfs = sorted(input_dir.rglob("*.pdf")) if input_dir.exists() else []
+            package_dirs = {pdf.parent for pdf in staged_pdfs}
+            staged_pdf_count = len(staged_pdfs)
+            staged_package_count = len(package_dirs)
         run_dir_text = status.get("cloudhammer_run_dir")
         run_dir = Path(str(run_dir_text)) if run_dir_text else None
         live_root = Path(project.workspace_dir) / "outputs" / "cloudhammer_live"
-        if run_dir is None and live_root.exists():
+        if run_dir is None and live_root.exists() and (not running or "live_artifact_count" not in status):
             run_dirs = [path for path in live_root.iterdir() if path.is_dir()]
             run_dir = max(run_dirs, key=lambda path: path.stat().st_mtime, default=None)
 
-        live_artifact_count = 0
-        live_last_write = ""
-        live_run_dir = ""
-        inferred_pages = 0
-        inferred_candidates = 0
-        if run_dir and run_dir.exists():
-            live_run_dir = str(run_dir)
-            latest_mtime = 0.0
-            for path in run_dir.rglob("*"):
-                if not path.is_file():
-                    continue
-                live_artifact_count += 1
-                try:
-                    latest_mtime = max(latest_mtime, path.stat().st_mtime)
-                except OSError:
-                    continue
-            if latest_mtime:
-                live_last_write = datetime.fromtimestamp(latest_mtime, timezone.utc).isoformat()
-            inferred_pages = count_jsonl_rows(run_dir / "pages_manifest.jsonl")
-            inferred_candidates = count_jsonl_rows(run_dir / "whole_cloud_candidates" / "whole_cloud_candidates_manifest.jsonl")
+        if running and "live_artifact_count" in status:
+            artifact_summary = {
+                "live_run_dir": str(status.get("live_run_dir") or status.get("cloudhammer_run_dir") or ""),
+                "live_artifact_count": int(status.get("live_artifact_count") or 0),
+                "live_last_write": str(status.get("live_last_write") or ""),
+                "inferred_cloudhammer_page_count": int(status.get("inferred_cloudhammer_page_count") or 0),
+                "inferred_cloudhammer_candidate_count": int(status.get("inferred_cloudhammer_candidate_count") or 0),
+            }
+        else:
+            artifact_summary = summarize_run_dir_artifacts(run_dir)
 
         summary = {
-            "staged_package_count": len(package_dirs),
-            "staged_pdf_count": len(staged_pdfs),
-            "live_run_dir": live_run_dir,
-            "live_artifact_count": live_artifact_count,
-            "live_last_write": live_last_write,
-            "inferred_cloudhammer_page_count": inferred_pages,
-            "inferred_cloudhammer_candidate_count": inferred_candidates,
+            "staged_package_count": staged_package_count,
+            "staged_pdf_count": staged_pdf_count,
+            **artifact_summary,
         }
-        if runner is not None:
+        if running and isinstance(status.get("package_run_rows"), list):
+            summary.update(
+                {
+                    "total_package_count": status.get("total_package_count", 0),
+                    "dirty_package_count": status.get("dirty_package_count", 0),
+                    "reusable_package_count": status.get("reusable_package_count", 0),
+                    "next_package_label": status.get("next_package_label", ""),
+                    "next_revision_number": status.get("next_revision_number", ""),
+                    "next_dirty_reason": status.get("next_dirty_reason", ""),
+                    "package_run_rows": status.get("package_run_rows", []),
+                }
+            )
+        elif runner is not None:
             packages, _ = reconcile_staged_packages(store, save=False)
             plans = plan_package_runs(store, runner, sorted(packages, key=staged_package_sort_key))
             dirty = [plan for plan in plans if plan.is_dirty]
@@ -855,23 +927,7 @@ def create_app(
                     "next_package_label": next_plan.package.label if next_plan else "",
                     "next_revision_number": next_plan.package.revision_number if next_plan else "",
                     "next_dirty_reason": next_plan.dirty_reason if next_plan else "",
-                    "package_run_rows": [
-                        {
-                            "package_id": plan.package.id,
-                            "label": plan.package.label,
-                            "revision_number": plan.package.revision_number,
-                            "action": package_run_display_action(plan),
-                            "dirty_reason": plan.dirty_reason,
-                            "status": package_run_display_status(plan),
-                            "last_action": (plan.record or {}).get("last_action", ""),
-                            "processed_at": (plan.record or {}).get("processed_at", ""),
-                            "failed_at": (plan.record or {}).get("failed_at", ""),
-                            "last_error": (plan.record or {}).get("last_error", ""),
-                            "page_count": (plan.record or {}).get("page_count", 0),
-                            "candidate_count": (plan.record or {}).get("candidate_count", 0),
-                        }
-                        for plan in plans
-                    ],
+                    "package_run_rows": package_run_rows(plans),
                 }
             )
         return summary
@@ -1929,8 +1985,24 @@ def create_app(
             return redirect(url_for("dashboard"))
         packages = sorted(current.data.staged_packages, key=staged_package_sort_key)
         runner = app.config["CLOUDHAMMER_RUNNER"]
-        plans = plan_package_runs(current, runner, packages, force_rebuild=rebuild_all)
+        stage_durations: dict[str, float] = {}
+
+        @contextmanager
+        def populate_stage_duration(stage_name: str):
+            started = time.monotonic()
+            try:
+                yield
+            finally:
+                elapsed = time.monotonic() - started
+                stage_durations[stage_name] = round(stage_durations.get(stage_name, 0.0) + elapsed, 3)
+
+        def timing_status_fields() -> dict[str, object]:
+            return {"populate_stage_durations": dict(stage_durations)}
+
+        with populate_stage_duration("package_planning"):
+            plans = plan_package_runs(current, runner, packages, force_rebuild=rebuild_all)
         dirty_count = len([plan for plan in plans if plan.is_dirty])
+        staged_pdf_count = sum(len(plan.pdf_fingerprints) for plan in plans)
         previous_visible_ids = {item.id for item in visible_change_items(current.data.change_items)}
         if clean_populate_can_short_circuit(current, dirty_count, rebuild_all):
             for plan in plans:
@@ -1965,6 +2037,16 @@ def create_app(
                 change_item_count=len(visible_items),
                 cache_hits=len(current.data.documents),
                 error="",
+                staged_package_count=len(packages),
+                staged_pdf_count=staged_pdf_count,
+                reusable_package_count=len(plans),
+                package_run_rows=package_run_rows(plans, current),
+                manifest_assisted_scan_requested=env_truthy("SCOPELEDGER_MANIFEST_ASSISTED_SCAN", default=False),
+                manifest_assisted_scan_enabled=False,
+                manifest_assisted_scan_reason="disabled_pending_parity",
+                populate_import_checks_enabled=env_truthy("SCOPELEDGER_POPULATE_IMPORT_CHECKS", default=False),
+                **summarize_run_dir_artifacts(None),
+                **timing_status_fields(),
                 **keynote_registry_status_from_store(current),
             )
             flash(
@@ -1998,6 +2080,17 @@ def create_app(
             change_item_count=0,
             cache_hits=0,
             error="",
+            staged_package_count=len(packages),
+            staged_pdf_count=staged_pdf_count,
+            reusable_package_count=len(plans) - dirty_count,
+            package_run_rows=package_run_rows(plans, current),
+            manifest_assisted_scan_requested=env_truthy("SCOPELEDGER_MANIFEST_ASSISTED_SCAN", default=False),
+            manifest_assisted_scan_enabled=False,
+            manifest_assisted_scan_reason="disabled_pending_parity",
+            populate_import_checks_enabled=env_truthy("SCOPELEDGER_POPULATE_IMPORT_CHECKS", default=False),
+            cloudhammer_debug_artifacts_enabled=bool(getattr(runner, "debug_artifacts", False)),
+            **summarize_run_dir_artifacts(None),
+            **timing_status_fields(),
         )
         refreshed: WorkspaceStore | None = None
         cloudhammer_result: CloudHammerRunResult | None = None
@@ -2008,6 +2101,7 @@ def create_app(
         reused_count = 0
         package_records: list[dict] = []
         active_package_plan = None
+        cloudhammer_artifact_status = summarize_run_dir_artifacts(None)
 
         def package_status_fields(plan, index: int | None = None) -> dict[str, object]:
             package = plan.package
@@ -2020,6 +2114,11 @@ def create_app(
                 "current_revision_number": package.revision_number or "",
                 "current_package_index": index or "",
                 "current_package_total": len(plans),
+                "reusable_package_count": len(plans) - dirty_count,
+                "staged_package_count": len(packages),
+                "staged_pdf_count": staged_pdf_count,
+                "package_run_rows": package_run_rows(plans, current),
+                **timing_status_fields(),
             }
 
         try:
@@ -2047,10 +2146,11 @@ def create_app(
                     **package_status_fields(plan, index),
                 )
                 active_package_plan = plan
-                cloudhammer_result = runner.run(
-                    input_dir=Path(package.source_dir),
-                    workspace_dir=Path(project.workspace_dir),
-                )
+                with populate_stage_duration("dirty_package_cloudhammer_run"):
+                    cloudhammer_result = runner.run(
+                        input_dir=Path(package.source_dir),
+                        workspace_dir=Path(project.workspace_dir),
+                    )
                 processed_count += 1
                 record = build_package_run_record(
                     package,
@@ -2068,13 +2168,16 @@ def create_app(
                     stage="package_complete",
                     message=f"Processed {revision_text}: {cloudhammer_result.candidate_count} detected region(s).",
                     **package_status_fields(plan, index),
+                    **summarize_run_dir_artifacts(cloudhammer_result.run_dir),
                     **cloudhammer_result.to_status(),
                 )
 
-            cloudhammer_result, pdf_cache_keys = assemble_cloudhammer_package_runs(
-                Path(project.workspace_dir),
-                package_records,
-            )
+            with populate_stage_duration("package_assembly"):
+                cloudhammer_result, pdf_cache_keys = assemble_cloudhammer_package_runs(
+                    Path(project.workspace_dir),
+                    package_records,
+                )
+            cloudhammer_artifact_status = summarize_run_dir_artifacts(cloudhammer_result.run_dir)
             current.update_populate_status(
                 state="running",
                 stage="scan",
@@ -2088,6 +2191,9 @@ def create_app(
                 dirty_package_count=dirty_count,
                 current_package_label="",
                 current_revision_number="",
+                package_run_rows=package_run_rows(plans, current),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **cloudhammer_result.to_status(),
             )
             cloud_client = ManifestCloudInferenceClient(
@@ -2095,7 +2201,8 @@ def create_app(
                 pdf_cache_keys=pdf_cache_keys,
                 rows=cloudhammer_result.candidate_rows,
             )
-            refreshed, cache_hits = rescan_active_project(cloud_inference_client=cloud_client)
+            with populate_stage_duration("scan_import"):
+                refreshed, cache_hits = rescan_active_project(cloud_inference_client=cloud_client)
             refreshed.update_populate_status(
                 state="running",
                 stage="scope_extraction",
@@ -2112,10 +2219,14 @@ def create_app(
                 cloud_count=len(refreshed.data.clouds),
                 change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
+                package_run_rows=package_run_rows(plans, refreshed),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
-            enrich_workspace_scope_text(refreshed)
+            with populate_stage_duration("scope_extraction"):
+                enrich_workspace_scope_text(refreshed)
             refreshed.update_populate_status(
                 state="running",
                 stage="keynote_registry",
@@ -2135,9 +2246,13 @@ def create_app(
                 pre_review_batch_size=getattr(app.config["PRE_REVIEW_PROVIDER"], "batch_size", 1),
                 pre_review_concurrency=getattr(app.config["PRE_REVIEW_PROVIDER"], "concurrency", 1),
                 pre_review_api_input_max_dimension=API_INPUT_MAX_DIMENSION,
+                package_run_rows=package_run_rows(plans, refreshed),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
-            keynote_registry_summary = build_workspace_keynote_registry(refreshed)
+            with populate_stage_duration("keynote_registry"):
+                keynote_registry_summary = build_workspace_keynote_registry(refreshed)
             refreshed.update_populate_status(
                 state="running",
                 stage="legend_context",
@@ -2154,10 +2269,14 @@ def create_app(
                 cloud_count=len(refreshed.data.clouds),
                 change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
+                package_run_rows=package_run_rows(plans, refreshed),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **keynote_registry_summary.to_status(),
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
-            enrich_workspace_legend_context(refreshed)
+            with populate_stage_duration("legend_context"):
+                enrich_workspace_legend_context(refreshed)
             refreshed.update_populate_status(
                 state="running",
                 stage="pre_review",
@@ -2174,6 +2293,9 @@ def create_app(
                 cloud_count=len(refreshed.data.clouds),
                 change_item_count=len(visible_change_items(refreshed.data.change_items)),
                 cache_hits=cache_hits,
+                package_run_rows=package_run_rows(plans, refreshed),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **(cloudhammer_result.to_status() if cloudhammer_result else {}),
             )
 
@@ -2205,20 +2327,27 @@ def create_app(
                     cloud_count=len(refreshed.data.clouds),
                     change_item_count=len(visible_change_items(refreshed.data.change_items)),
                     cache_hits=cache_hits,
+                    package_run_rows=package_run_rows(plans, refreshed),
+                    **timing_status_fields(),
+                    **cloudhammer_artifact_status,
                     **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
                     **summary.to_status(),
                     **(cloudhammer_result.to_status() if cloudhammer_result else {}),
                 )
 
-            pre_review_summary = ensure_workspace_pre_review(
-                refreshed,
-                app.config["PRE_REVIEW_PROVIDER"],
-                progress_callback=update_pre_review_progress,
-            )
-            keynote_expansion_summary = apply_pre_review_keynote_expansions(refreshed)
+            with populate_stage_duration("pre_review"):
+                pre_review_summary = ensure_workspace_pre_review(
+                    refreshed,
+                    app.config["PRE_REVIEW_PROVIDER"],
+                    progress_callback=update_pre_review_progress,
+                )
+            with populate_stage_duration("keynote_expansion"):
+                keynote_expansion_summary = apply_pre_review_keynote_expansions(refreshed)
+            final_save_started = time.monotonic()
             visible_items = visible_change_items(refreshed.data.change_items)
             new_change_item_count = len([item for item in visible_items if item.id not in previous_visible_ids])
             pending_review_count = len([item for item in visible_items if item.status == "pending"])
+            stage_durations["final_save"] = round(stage_durations.get("final_save", 0.0) + time.monotonic() - final_save_started, 3)
             refreshed.update_populate_status(
                 state="done",
                 stage="complete",
@@ -2243,6 +2372,9 @@ def create_app(
                 change_item_count=len(visible_items),
                 cache_hits=cache_hits,
                 error="",
+                package_run_rows=package_run_rows(plans, refreshed),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
                 **(keynote_expansion_summary.to_status() if keynote_expansion_summary else {}),
                 **pre_review_summary.to_status(),
@@ -2270,6 +2402,9 @@ def create_app(
                 total_package_count=len(plans),
                 dirty_package_count=dirty_count,
                 error=str(exc),
+                package_run_rows=package_run_rows(plans, failed_store),
+                **timing_status_fields(),
+                **cloudhammer_artifact_status,
                 **(pre_review_summary.to_status() if pre_review_summary else {}),
                 **(keynote_registry_summary.to_status() if keynote_registry_summary else {}),
                 **(keynote_expansion_summary.to_status() if keynote_expansion_summary else {}),

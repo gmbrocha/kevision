@@ -87,6 +87,8 @@ def infer_pages_from_manifest(
     pages_manifest: str | Path | None = None,
     limit: int | None = None,
     only_pdf_stem: str | None = None,
+    write_fragment_crops: bool = True,
+    write_overlays: bool = True,
 ) -> dict[str, Path]:
     cfg.ensure_directories()
     model = _load_yolo(cfg, model_path)
@@ -113,9 +115,14 @@ def infer_pages_from_manifest(
         )
         pdf_path = resolve_project_path(row.get("pdf_path"))
         key = stable_page_key(pdf_path, int(row["page_index"]))
-        image = cv2.imread(str(render_path), cv2.IMREAD_GRAYSCALE)
-        save_crops(image, detections, cfg.path("outputs") / "crops", key)
-        draw_overlay(image, detections, cfg.path("outputs") / "overlays" / f"{key}_clouds.png")
+        if write_fragment_crops or write_overlays:
+            image = cv2.imread(str(render_path), cv2.IMREAD_GRAYSCALE)
+            if image is None:
+                raise FileNotFoundError(f"Could not read rendered page: {render_path}")
+            if write_fragment_crops:
+                save_crops(image, detections, cfg.path("outputs") / "crops", key)
+            if write_overlays:
+                draw_overlay(image, detections, cfg.path("outputs") / "overlays" / f"{key}_clouds.png")
         outputs[str(row["pdf_stem"])].append(
             DetectionPage(
                 pdf=str(pdf_path),

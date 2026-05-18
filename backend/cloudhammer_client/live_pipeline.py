@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Protocol
 
-from ..utils import ensure_dir, json_dumps
+from ..utils import ensure_dir, json_dumps, stable_id
 
 
 DEFAULT_MODEL_PATH = Path("CloudHammer") / "runs" / "cloudhammer_roi-symbol-text-fp-hn-20260502" / "weights" / "best.pt"
@@ -76,6 +76,7 @@ class LiveCloudHammerPipeline:
         python_executable: str | None = None,
         model_path: Path | None = None,
         timeout_seconds: int | None = None,
+        debug_artifacts: bool | None = None,
     ):
         self.repo_root = (repo_root or Path.cwd()).resolve()
         self.python_executable = python_executable or sys.executable
@@ -84,6 +85,14 @@ class LiveCloudHammerPipeline:
             raw_model_path = self.repo_root / raw_model_path
         self.model_path = raw_model_path.resolve()
         self.timeout_seconds = timeout_seconds or _configured_timeout_seconds()
+        self.debug_artifacts = _configured_debug_artifacts() if debug_artifacts is None else bool(debug_artifacts)
+
+    def fingerprint(self) -> str:
+        parts: list[Any] = [self.name, str(self.model_path), self.timeout_seconds, self.debug_artifacts]
+        if self.model_path.exists():
+            stat = self.model_path.stat()
+            parts.extend([stat.st_size, stat.st_mtime_ns])
+        return stable_id("cloudhammer-live-pipeline", *parts)
 
     def run(self, *, input_dir: Path, workspace_dir: Path) -> CloudHammerRunResult:
         input_dir = input_dir.resolve()
@@ -130,56 +139,48 @@ class LiveCloudHammerPipeline:
             self._write_summary(result)
             return result
 
-        commands.append(
-            self._run_command(
-                "infer_pages",
-                [
-                    self.python_executable,
-                    str(self.repo_root / "CloudHammer" / "scripts" / "infer_pages.py"),
-                    "--config",
-                    str(config_path),
-                    "--model",
-                    str(self.model_path),
-                    "--pages-manifest",
-                    str(pages_manifest),
-                ],
-            )
-        )
-        commands.append(
-            self._run_command(
-                "group_fragment_detections",
-                [
-                    self.python_executable,
-                    str(self.repo_root / "CloudHammer" / "scripts" / "group_fragment_detections.py"),
-                    "--detections-dir",
-                    str(run_dir / "model_only" / "detections"),
-                    "--output-dir",
-                    str(run_dir / "fragment_grouping"),
-                    "--overmerge-refinement",
-                    "--overmerge-refinement-profile",
-                    "review_v1",
-                ],
-            )
-        )
-        commands.append(
-            self._run_command(
-                "export_whole_cloud_candidates",
-                [
-                    self.python_executable,
-                    str(self.repo_root / "CloudHammer" / "scripts" / "export_whole_cloud_candidates.py"),
-                    "--grouped-detections-dir",
-                    str(run_dir / "fragment_grouping" / "detections_grouped"),
-                    "--output-dir",
-                    str(run_dir / "whole_cloud_candidates"),
-                    "--crop-margin-ratio",
-                    "0.16",
-                    "--min-crop-margin",
-                    "550",
-                    "--max-crop-margin",
-                    "950",
-                ],
-            )
-        )
+        infer_command = [
+            self.python_executable,
+            str(self.repo_root / "CloudHammer" / "scripts" / "infer_pages.py"),
+            "--config",
+            str(config_path),
+            "--model",
+            str(self.model_path),
+            "--pages-manifest",
+            str(pages_manifest),
+        ]
+        group_command = [
+            self.python_executable,
+            str(self.repo_root / "CloudHammer" / "scripts" / "group_fragment_detections.py"),
+            "--detections-dir",
+            str(run_dir / "model_only" / "detections"),
+            "--output-dir",
+            str(run_dir / "fragment_grouping"),
+            "--overmerge-refinement",
+            "--overmerge-refinement-profile",
+            "review_v1",
+        ]
+        export_command = [
+            self.python_executable,
+            str(self.repo_root / "CloudHammer" / "scripts" / "export_whole_cloud_candidates.py"),
+            "--grouped-detections-dir",
+            str(run_dir / "fragment_grouping" / "detections_grouped"),
+            "--output-dir",
+            str(run_dir / "whole_cloud_candidates"),
+            "--crop-margin-ratio",
+            "0.16",
+            "--min-crop-margin",
+            "550",
+            "--max-crop-margin",
+            "950",
+        ]
+        if not self.debug_artifacts:
+            infer_command.extend(["--no-crops", "--no-overlays"])
+            group_command.append("--no-overlays")
+            export_command.extend(["--no-overlays", "--no-contact-sheets", "--skip-manual-audit"])
+        commands.append(self._run_command("infer_pages", infer_command))
+        commands.append(self._run_command("group_fragment_detections", group_command))
+        commands.append(self._run_command("export_whole_cloud_candidates", export_command))
 
         candidate_count = _count_jsonl_rows(candidate_manifest)
         result = CloudHammerRunResult(
@@ -252,6 +253,7 @@ class LiveCloudHammerPipeline:
             "schema": "scopeledger.cloudhammer_live_run.v1",
             "runner": self.name,
             "model_path": str(self.model_path),
+            "debug_artifacts": self.debug_artifacts,
             "run": {
                 **result.to_status(),
                 "commands": [asdict(command) for command in result.commands],
@@ -294,6 +296,16 @@ def _configured_timeout_seconds() -> int:
     if value <= 0:
         raise RuntimeError("SCOPELEDGER_CLOUDHAMMER_TIMEOUT_SECONDS must be greater than zero.")
     return value
+
+
+def _configured_debug_artifacts() -> bool:
+    return os.getenv("SCOPELEDGER_CLOUDHAMMER_DEBUG_ARTIFACTS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+        "enabled",
+    }
 
 
 def _decode_subprocess_output(value: str | bytes | None) -> str:

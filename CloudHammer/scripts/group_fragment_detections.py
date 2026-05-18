@@ -82,7 +82,7 @@ def overlay_name_for(page: DetectionPage) -> str:
     return f"{Path(page.pdf).stem}_p{page.page:04d}_grouped.png"
 
 
-def process_detection_file(det_path: Path, output_dir: Path, params: GroupingParams) -> dict:
+def process_detection_file(det_path: Path, output_dir: Path, params: GroupingParams, *, write_overlays: bool = True) -> dict:
     pages = load_detection_manifest(det_path)
     grouped_pages: list[DetectionPage] = []
     page_summaries = []
@@ -103,8 +103,9 @@ def process_detection_file(det_path: Path, output_dir: Path, params: GroupingPar
                 render_path=page.render_path,
             )
         )
-        overlay_path = output_dir / "overlays" / overlay_name_for(page)
-        draw_group_overlay(image, page.detections, groups, overlay_path)
+        overlay_path = output_dir / "overlays" / overlay_name_for(page) if write_overlays else None
+        if overlay_path is not None:
+            draw_group_overlay(image, page.detections, groups, overlay_path)
         page_summary = grouping_summary(page.detections, groups)
         page_summary.update(
             {
@@ -112,7 +113,7 @@ def process_detection_file(det_path: Path, output_dir: Path, params: GroupingPar
                 "pdf_stem": det_path.stem,
                 "page": page.page,
                 "render_path": str(render_path),
-                "overlay_path": str(overlay_path),
+                "overlay_path": "" if overlay_path is None else str(overlay_path),
             }
         )
         page_summaries.append(page_summary)
@@ -144,10 +145,11 @@ def write_markdown_summary(summary: dict, path: Path) -> None:
         "| --- | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for page in summary["pages"]:
+        overlay_name = Path(page["overlay_path"]).name if page.get("overlay_path") else ""
         lines.append(
             f"| `{page['pdf_stem']}` | `{page['page']}` | `{page['fragment_count']}` | "
             f"`{page['group_count']}` | `{page['multi_fragment_group_count']}` | "
-            f"`{page['largest_group_member_count']}` | `{Path(page['overlay_path']).name}` |"
+            f"`{page['largest_group_member_count']}` | `{overlay_name}` |"
         )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -183,6 +185,7 @@ def main() -> int:
     )
     parser.add_argument("--overmerge-refine-min-members", type=int, default=9)
     parser.add_argument("--overmerge-refine-max-fill-ratio", type=float, default=0.15)
+    parser.add_argument("--no-overlays", action="store_true", help="Skip fragment-grouping overlay debug artifacts.")
     args = parser.parse_args()
 
     params = GroupingParams(
@@ -206,7 +209,7 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     results = [
-        process_detection_file(det_path, output_dir, params)
+        process_detection_file(det_path, output_dir, params, write_overlays=not args.no_overlays)
         for det_path in sorted(args.detections_dir.glob("*.json"))
     ]
     pages = [page for result in results for page in result["pages"]]
