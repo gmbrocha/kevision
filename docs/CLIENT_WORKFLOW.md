@@ -31,8 +31,9 @@ manual review. GPT-prefilled decisions are provisional until human accepted.
 ## References
 
 - Walkthrough exports live in `docs/references/`.
-- First real-run observations live in `history/FINDINGS_FIRST_REAL_RUN.md` and are
-  triage notes, not review labels.
+- First real-run observations live in
+  `docs/history/FINDINGS_FIRST_REAL_RUN.md` and are triage notes, not review
+  labels.
 - Benchmark templates and response tracker files live in `docs/references/`
   unless later promoted into a specific runbook.
 - Meeting notes remain under `docs/meetings/` and are historical context, not

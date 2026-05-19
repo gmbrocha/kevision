@@ -7,6 +7,11 @@ decision in this checklist so follow-up work has a durable source of truth.
 
 Allowed statuses: `ok`, `needs_fix`, `defer`, `blocked`.
 
+Current stabilization note: this docs pass does not mark any route reviewed.
+Fill the table during an actual browser review. If no populated project is
+available, mark data-dependent routes `blocked` with the reason instead of
+leaving the route outcome implied by screenshots.
+
 | Route / Screen | Review Focus | Status | Reviewer | Date | Notes | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- |
 | `/projects` | Project list, selected project row, archive/delete controls, create-project form, delete confirmation dialog. |  |  |  |  |  |

@@ -1,15 +1,23 @@
 # Next Actions
 
-Status: operational queue as of 2026-05-15 release-readiness checkpoint.
+Status: operational queue as of 2026-05-19 stabilization checkpoint.
 
 Historical first-run findings live in
-`history/FINDINGS_FIRST_REAL_RUN.md`. The dated backlog parking lot lives in
-`history/SCOPELEDGER_BACKLOG_REFERENCE_2026_05_18.md`; active items from that
-note are promoted here.
+`docs/history/FINDINGS_FIRST_REAL_RUN.md`. The dated backlog parking lot lives
+in `docs/history/SCOPELEDGER_BACKLOG_REFERENCE_2026_05_18.md`; active items
+from that note are promoted here.
 
 ## Now
 
 1. Finish the private client handoff pass.
+   - Current active development is on `main` in
+     `F:\Desktop\m\projects\scopeLedger`, normally served on port `5001`.
+     Kevin's frozen handoff clone remains separate on port `5000`.
+   - The latest stabilization audit found the repo clean and validation green:
+     full pytest `259 passed`, Playwright smoke `4 passed`, `node --check`
+     passed, and `git diff --check` passed.
+   - Keep source PDFs, model/checkpoint artifacts, and client-sensitive local
+     app data private until a broader repository sharing policy is decided.
    - Cloudflare Access gating on `ledger.nezcoupe.net` is confirmed from a
      fresh/incognito browser session.
    - Start from `/projects`. If local smoke-test projects remain under
@@ -51,7 +59,7 @@ note are promoted here.
      then `Accept + Next` should advance through replacement children in queue
      order.
    - The exploratory project was reset; observations live in
-     `history/FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or
+     `docs/history/FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or
      training data.
    - Full-sheet correction remains pinned for later partials where the missing
      cloud is outside the current crop image.
@@ -155,7 +163,8 @@ note are promoted here.
 
 ## Later
 
-- Polish first-run product findings from `history/FINDINGS_FIRST_REAL_RUN.md`,
+- Polish first-run product findings from
+  `docs/history/FINDINGS_FIRST_REAL_RUN.md`,
   especially OCR/context extraction, symbol/legend lookup, geometry split/merge
   behavior, review UI controls, and zoom legibility.
 - Add background Populate jobs and durable process supervision if the handoff

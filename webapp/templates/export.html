@@ -34,7 +34,7 @@
                 <div class="progress-bar-fill {{ 'complete' if review_progress == 100 else '' }}" style="width: {{ review_progress }}%;"></div>
               </div>
               <div class="progress-label">
-                {% if pending_count %}{{ pending_count }} changes still pending - they will export with current status{% else %}All changes reviewed{% endif %}
+                {% if pending_count %}{{ pending_count }} changes still pending. Accepted deliverable rows use accepted items; audit outputs retain current statuses.{% else %}All changes reviewed{% endif %}
               </div>
             </div>
             {% if attention_pending_count %}

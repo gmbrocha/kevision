@@ -31,9 +31,9 @@ model runs, and repo-level `revision_sets/` are outside that delete boundary.
   review queues should report item count and consider GPT-5.5 provisional
   prefill before manual review is requested.
 - Scope/detail text remains reviewable evidence, not final automated truth.
-- Exploratory app-run observations in `history/FINDINGS_FIRST_REAL_RUN.md` are triage
-  notes only and do not become labels or training data without a durable review
-  workflow.
+- Exploratory app-run observations in
+  `docs/history/FINDINGS_FIRST_REAL_RUN.md` are triage notes only and do not
+  become labels or training data without a durable review workflow.
 
 ## Boundaries
 

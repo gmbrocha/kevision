@@ -1,3 +1,7 @@
+Status: historical scratch note. The geometry-correction Pre Review 2
+inheritance behavior was implemented and pushed; this note is preserved for
+context, not as an active work item.
+
 What are our eval sets now?
 
 Eval sets:
@@ -10,4 +14,4 @@ Candidate pools:
 - full_page_review_candidates_from_touched
 - mining_safe_hard_negative_candidates
 - synthetic_background_candidates
-- future_training_expansion_candidates  
+- future_training_expansion_candidates

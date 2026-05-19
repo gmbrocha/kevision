@@ -250,8 +250,9 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   crashing scans. The standalone `/diagnostics` browser view is no longer part
   of the client-facing UI; diagnostic data remains a backend/export artifact.
 - First real app-run observations are captured in
-  `history/FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then reset; its
-  notes are not reviewed labels, training data, or client-approved scope.
+  `docs/history/FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then
+  reset; its notes are not reviewed labels, training data, or client-approved
+  scope.
 - CloudHammer_v2 training/eval work remains paused for client handoff work and
   should resume afterward at the existing crop-precheck blocker:
   `CloudHammer_v2/outputs/postprocessing_diagnostic_non_frozen_20260504/dry_run_postprocessor_20260505/postprocessing_apply_non_frozen_20260505/crop_regeneration_20260508/crop_inspection_20260508/postprocessed_crop_inspection.gpt55_prefill.summary.md`.
@@ -281,6 +282,8 @@ Root docs cleanup is complete for Markdown entrypoints:
   paths in prior cleanup work.
 - Root Markdown is now limited to `README.md` and `AGENTS.md`; product,
   roadmap, first-run findings, and dated backlog notes live under `docs/`.
+- Tracked scratch notes are preserved under `docs/history/` instead of the
+  repo root once their implementation context has been resolved.
 - `docs/SECURITY_PRIVACY_POLICY.md` remains as a compatibility stub only.
 - Documentation history is preserved under
   `docs/archive/docs_archive_2026_05_02/`.
@@ -461,9 +464,9 @@ human confirmation/correction before training use.
 - During the next review smoke, confirm one probable legend/keynote item with
   `Accept as legend`, verify it disappears from the normal queue, and verify a
   linked real scope item shows the resolved legend context.
-- Use `history/FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI polish,
-  OCR/context extraction, geometry split/merge work, symbol/legend handling,
-  and zoom legibility. Do not treat it as training ground truth.
+- Use `docs/history/FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI
+  polish, OCR/context extraction, geometry split/merge work, symbol/legend
+  handling, and zoom legibility. Do not treat it as training ground truth.
 - After client handoff work, resume CloudHammer_v2 at the crop-precheck return
   point above: resolve or accept rows `20`, `23`, `24`, and `29`, then decide
   the next pipeline-consumption/training step from that existing path.

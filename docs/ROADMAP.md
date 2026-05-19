@@ -16,7 +16,7 @@ release-readiness audit is recorded in
 
 CloudHammer_v2 training/eval work is paused only for this handoff pass. Resume
 afterward at the crop-inspection return point documented in
-`CURRENT_STATE.md` and `history/FINDINGS_FIRST_REAL_RUN.md`.
+`CURRENT_STATE.md` and `docs/history/FINDINGS_FIRST_REAL_RUN.md`.
 
 Completed foundation:
 

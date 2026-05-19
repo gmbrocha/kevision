@@ -2,6 +2,22 @@
 
 Status: canonical application decision log.
 
+## 2026-05-19 - Historical Scratch Notes Stay Out Of Repo Root
+
+Decision: Preserve the tracked geometry-correction scratch note under
+`docs/history/` instead of keeping it in the repo root.
+
+Reason: Root should stay limited to durable entry points and operating policy,
+while resolved notes and one-off implementation context belong in documented
+history.
+
+Consequences / follow-up:
+
+- The scratch content is preserved, not deleted.
+- Active work should continue to move into `docs/NEXT_ACTIONS.md`; resolved
+  scratch context should move into `docs/history/` or be folded into canonical
+  docs when useful.
+
 ## 2026-05-19 - Root Markdown Limited To Entry Points
 
 Decision: Keep only `README.md` and `AGENTS.md` in the repo root. Move
@@ -781,7 +797,7 @@ Consequences / follow-up:
 ## 2026-05-10 - First Real App Run Findings Are Observational
 
 Decision: Preserve first real app-run notes in
-`history/FINDINGS_FIRST_REAL_RUN.md`,
+`docs/history/FINDINGS_FIRST_REAL_RUN.md`,
 but do not treat that exploratory run as reviewed scope, training data, or
 CloudHammer_v2 label input.
 
@@ -792,9 +808,9 @@ decisions.
 Consequences / follow-up:
 
 - The project registry can stay empty for the next clean handoff project.
-- `history/FINDINGS_FIRST_REAL_RUN.md` is product triage input for UI polish,
-  OCR/context extraction, symbol/legend handling, split/merge behavior, and
-  zoom legibility.
+- `docs/history/FINDINGS_FIRST_REAL_RUN.md` is product triage input for UI
+  polish, OCR/context extraction, symbol/legend handling, split/merge behavior,
+  and zoom legibility.
 - CloudHammer_v2 work resumes from the existing crop-precheck return point
   instead of starting a new mining pass from exploratory app output.
 
