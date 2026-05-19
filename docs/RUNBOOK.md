@@ -8,7 +8,7 @@ commands here.
 ## Read Order
 
 1. `docs/CURRENT_STATE.md`
-2. `ROADMAP.md`
+2. `docs/ROADMAP.md`
 3. `docs/ARCHITECTURE.md`
 4. `CloudHammer_v2/README.md`
 

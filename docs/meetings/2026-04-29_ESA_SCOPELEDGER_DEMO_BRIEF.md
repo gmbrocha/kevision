@@ -1,7 +1,7 @@
 # ESA / ScopeLedger Demo Brief - 2026-04-29
 
 Status: historical ESA demo prep snapshot. Current sequencing lives in
-`../../ROADMAP.md`; current security policy lives in
+`../ROADMAP.md`; current security policy lives in
 `../SECURITY_POLICY.md`; current CloudHammer state lives in
 `../../CloudHammer_v2/docs/CURRENT_STATE.md`.
 
@@ -77,8 +77,8 @@ Open these before the meeting:
 
 - Web review portal: the active remote app URL served from the home machine
 - Security policy: `docs/SECURITY_POLICY.md`
-- Roadmap: `ROADMAP.md`
-- Product rules: `PRODUCT_AND_DELIVERY.md`
+- Roadmap: `../ROADMAP.md`
+- Product rules: `../PRODUCT_AND_DELIVERY.md`
 - Web app walkthrough:
   `docs/references/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
 - Review workbook, available through the app Export page and on the serving
@@ -224,7 +224,7 @@ Ask:
 
 ### 5. Roadmap
 
-Open `ROADMAP.md`.
+Open `../ROADMAP.md`.
 
 Show the sequence:
 
@@ -343,7 +343,7 @@ If Excel fails to open or the workbook looks rough:
 2. Say: "This artifact is proof of pipeline integration, not final row
    quality."
 3. Open the web review portal or review packet and show the crop evidence.
-4. Open `ROADMAP.md` and point to Milestone 2 and Milestone 3.
+4. Open `../ROADMAP.md` and point to Milestone 2 and Milestone 3.
 5. Use the anchor workbook to show the intended target.
 
 If security questions dominate:

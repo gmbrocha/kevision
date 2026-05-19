@@ -1,7 +1,7 @@
 # ScopeLedger Meeting One-Pager - 2026-04-29
 
 Status: historical ESA/Kevin meeting prep snapshot. Current sequencing lives in
-`../../ROADMAP.md`; current security policy lives in
+`../ROADMAP.md`; current security policy lives in
 `../SECURITY_POLICY.md`; current CloudHammer state lives in
 `../../CloudHammer_v2/docs/CURRENT_STATE.md`.
 
@@ -91,7 +91,7 @@ keeping a human in control.
   `runs/cloudhammer_real_export_corrected_split_v1_20260428_171246/outputs/revision_changelog_review_packet.html`
 - Web app walkthrough: `docs/references/SCOPELEDGER_WEB_APP_WALKTHROUGH.html`
 - Security policy: `docs/SECURITY_POLICY.md`
-- Roadmap: `ROADMAP.md`
+- Roadmap: `../ROADMAP.md`
 
 ## Security Position
 

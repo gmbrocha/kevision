@@ -55,7 +55,8 @@ Expected deliverables include:
   inside the active app project workspace.
 - First-pass text/OCR extraction exists as review scaffolding, but broad OCR
   context and symbol/legend interpretation remain active quality risks.
-- First real app-run findings are captured in `FINDINGS_FIRST_REAL_RUN.md`;
+- First real app-run findings are captured in
+  `history/FINDINGS_FIRST_REAL_RUN.md`;
   those notes are observational only and are not training labels or reviewed
   client scope.
 - `CloudHammer_v2` remains the active detection/eval/training policy
@@ -74,7 +75,7 @@ The product should operate as trust-but-verify:
 
 ## References
 
-- Architecture: `docs/ARCHITECTURE.md`
-- Data flow: `docs/DATA_FLOW.md`
-- Client workflow: `docs/CLIENT_WORKFLOW.md`
-- Detection subsystem: `CloudHammer_v2/README.md`
+- Architecture: `ARCHITECTURE.md`
+- Data flow: `DATA_FLOW.md`
+- Client workflow: `CLIENT_WORKFLOW.md`
+- Detection subsystem: `../CloudHammer_v2/README.md`

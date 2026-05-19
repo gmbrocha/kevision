@@ -2,6 +2,24 @@
 
 Status: canonical application decision log.
 
+## 2026-05-19 - Root Markdown Limited To Entry Points
+
+Decision: Keep only `README.md` and `AGENTS.md` in the repo root. Move
+canonical product and roadmap docs under `docs/`, and move first-run findings
+plus the dated backlog snapshot under `docs/history/`.
+
+Reason: Root Markdown had become a mixed working area. The repo entrypoint and
+agent operating policy should remain easy to find, while product docs,
+history, and active next actions live in the documented docs structure.
+
+Consequences / follow-up:
+
+- Active work belongs in `docs/NEXT_ACTIONS.md`.
+- Historical findings and parking-lot backlog notes stay preserved under
+  `docs/history/`.
+- Future flat root Markdown should be promoted into `docs/`, `docs/history/`,
+  `docs/meetings/`, or `docs/references/` instead of staying in root.
+
 ## 2026-05-19 - Geometry Corrections Inherit Available Pre Review 2 Text
 
 Decision: When `Correct overmerge` or `Correct partial` creates replacement
@@ -762,7 +780,8 @@ Consequences / follow-up:
 
 ## 2026-05-10 - First Real App Run Findings Are Observational
 
-Decision: Preserve first real app-run notes in `FINDINGS_FIRST_REAL_RUN.md`,
+Decision: Preserve first real app-run notes in
+`history/FINDINGS_FIRST_REAL_RUN.md`,
 but do not treat that exploratory run as reviewed scope, training data, or
 CloudHammer_v2 label input.
 
@@ -773,7 +792,7 @@ decisions.
 Consequences / follow-up:
 
 - The project registry can stay empty for the next clean handoff project.
-- `FINDINGS_FIRST_REAL_RUN.md` is product triage input for UI polish,
+- `history/FINDINGS_FIRST_REAL_RUN.md` is product triage input for UI polish,
   OCR/context extraction, symbol/legend handling, split/merge behavior, and
   zoom legibility.
 - CloudHammer_v2 work resumes from the existing crop-precheck return point

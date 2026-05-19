@@ -2,6 +2,11 @@
 
 Status: operational queue as of 2026-05-15 release-readiness checkpoint.
 
+Historical first-run findings live in
+`history/FINDINGS_FIRST_REAL_RUN.md`. The dated backlog parking lot lives in
+`history/SCOPELEDGER_BACKLOG_REFERENCE_2026_05_18.md`; active items from that
+note are promoted here.
+
 ## Now
 
 1. Finish the private client handoff pass.
@@ -25,6 +30,14 @@ Status: operational queue as of 2026-05-15 release-readiness checkpoint.
    - When a crop is visibly overmerged or partial but the needed geometry is
      inside the current crop, use `Correct overmerge` or `Correct partial` and
      confirm the replacement item appears next in the queue.
+   - Complete the final polish audit using
+     `docs/testing/PRE_HANDOFF_POLISH_CHECKLIST.md`; record durable
+     `ok`, `needs_fix`, `defer`, or `blocked` decisions rather than relying on
+     screenshots alone.
+   - Manually inspect representative review items and persist any findings in
+     the polish checklist or another durable review artifact.
+   - Ask Kevin for additional revision sets and schedule a walkthrough meeting
+     before broader handoff.
 2. Watch the fixes made after the first real exploratory run.
    - Index pages must stay context-only.
    - Previous/current comparison must match the same sheet from a strictly
@@ -33,11 +46,13 @@ Status: operational queue as of 2026-05-15 release-readiness checkpoint.
      cross-reference tokens such as PL511 notes on PL505 pages. If a local
      project was populated before the 2026-05-14 parser/cache fix, run
      Populate once to refresh sheet metadata while reusing clean package runs.
-   - Geometry corrections should carry the current visible scope text into
-     replacement review items, then `Accept + Next` should advance through
-     replacement children in queue order.
+   - Geometry corrections should carry available `Pre Review 2` text into
+     replacement review items, falling back to the current visible scope text,
+     then `Accept + Next` should advance through replacement children in queue
+     order.
    - The exploratory project was reset; observations live in
-     `FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or training data.
+     `history/FINDINGS_FIRST_REAL_RUN.md` and are not reviewed labels or
+     training data.
    - Full-sheet correction remains pinned for later partials where the missing
      cloud is outside the current crop image.
 3. After the handoff pass, resume CloudHammer_v2 where it was paused:
@@ -140,7 +155,7 @@ Status: operational queue as of 2026-05-15 release-readiness checkpoint.
 
 ## Later
 
-- Polish first-run product findings from `FINDINGS_FIRST_REAL_RUN.md`,
+- Polish first-run product findings from `history/FINDINGS_FIRST_REAL_RUN.md`,
   especially OCR/context extraction, symbol/legend lookup, geometry split/merge
   behavior, review UI controls, and zoom legibility.
 - Add background Populate jobs and durable process supervision if the handoff

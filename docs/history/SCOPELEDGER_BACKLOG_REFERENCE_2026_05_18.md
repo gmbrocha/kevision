@@ -2,15 +2,19 @@
 
 _Date captured: 2026-05-18_
 
+Status: historical backlog snapshot. Active items have been promoted to
+`../NEXT_ACTIONS.md`; completed items are marked below.
+
 This is a parking-lot backlog for items noticed during testing and planning. These are **not immediate implementation tasks**. Use this as a reference for future cleanup, polish, testing, and Kevin handoff prep.
 
 ## Current State / Observations
 
 ### Pre-review queue may be stuck
 
-- ScopeLedger appears stuck near the end of the pre-review queue at **189 / 194**. [resolved-non-issue]
+- Status: done - resolved as normal completion delay.
+- ScopeLedger appeared stuck near the end of the pre-review queue at **189 / 194**. [resolved-non-issue]
 - It seems like everything may already have been pre-reviewed, but the queue/status may not be resolving cleanly.
-- Need to determine whether this is:
+- Original investigation question was whether this was:
   - A real remaining-item issue.
   - A stale queue/counting issue.
   - A status/state mismatch.
@@ -20,6 +24,7 @@ This is a parking-lot backlog for items noticed during testing and planning. The
 
 ### Request more revision sets
 
+- Status: pending - promoted to `../NEXT_ACTIONS.md`.
 - Ask Kevin whether he can provide more revision sets for broader testing.
 - Goal is to test against more real-world variation before final handoff.
 - Useful types to request:
@@ -30,6 +35,7 @@ This is a parking-lot backlog for items noticed during testing and planning. The
 
 ### Schedule a meeting
 
+- Status: pending - promoted to `../NEXT_ACTIONS.md`.
 - Set up a meeting with Kevin before handoff.
 - Purpose:
   - Walk through the current ScopeLedger workflow.
@@ -42,12 +48,14 @@ This is a parking-lot backlog for items noticed during testing and planning. The
 
 ### Review queue cloud field may be unnecessary
 
+- Status: done - queue column removed.
 - The **cloud field** in the review queue may not be needed.
 - Reassess whether it provides meaningful information during review.
 - If it does not help the user make decisions, consider hiding/removing it.
 
 ### Do another reduction pass for unneeded UI elements
 
+- Status: done for current pass - rectangle reduction and follow-up queue cleanup completed.
 - Perform one more UI reduction pass focused on removing or de-emphasizing anything that does not support the main workflow.
 - Keep the workflow centered on:
   - Reviewing revisions.
@@ -67,6 +75,7 @@ Possible targets for reduction:
 
 ### Go through review items manually
 
+- Status: pending - promote into the pre-handoff polish checklist or another durable review artifact before it blocks handoff.
 - Manually inspect review items and look for "weird shit."
 - This should be a human sanity pass, not just automated test coverage.
 - Look for:
@@ -80,6 +89,7 @@ Possible targets for reduction:
 
 ### Investigate pre-review completion behavior
 
+- Status: done - non-issue unless reproducible.
 - Specifically check the queue state around the final few items.
 - Confirm whether item counts, statuses, and queue progression all agree.
 - If the queue says **189 / 194**, identify what the remaining 5 items are supposed to be.
@@ -88,6 +98,8 @@ Possible targets for reduction:
 ## Pre-handoff Polish
 
 ### Final polish audit
+
+- Status: pending - use `../testing/PRE_HANDOFF_POLISH_CHECKLIST.md`.
 
 Before handoff, perform one more focused polish audit.
 
@@ -114,21 +126,25 @@ Areas to check:
 
 ### P1 - Before handoff
 
-- Investigate the pre-review queue stuck at **189 / 194**. [resolved]
-- Manually inspect review items for strange or confusing behavior.
-- Do a final polish audit.
-- Schedule Kevin meeting.
+- [done] Investigate the pre-review queue stuck at **189 / 194**; resolved as normal completion delay.
+- [pending] Manually inspect review items for strange or confusing behavior and record durable decisions.
+- [pending] Do a final polish audit using `../testing/PRE_HANDOFF_POLISH_CHECKLIST.md`.
+- [pending] Schedule Kevin meeting.
 
 ### P2 - Cleanup / reduction
 
-- Reassess the review queue cloud field.
-- Run another UI reduction pass for unnecessary elements.
-- Simplify or hide fields that do not support reviewer decisions.
+- [done] Reassess the review queue cloud field; queue column removed.
+- [done for current pass] Run another UI reduction pass for unnecessary elements.
+- [done for current pass] Simplify or hide fields that do not support reviewer decisions.
 
 ### P3 - Additional testing material
 
-- Ask Kevin for more revision sets.
-- Use additional sets to broaden real-world testing coverage.
+- [pending] Ask Kevin for more revision sets.
+- [pending] Use additional sets to broaden real-world testing coverage.
+
+## Completed Outside This Snapshot
+
+- Geometry correction children now inherit available Pre Review 2 text by default; done - implemented and pushed.
 
 ## Notes / Intent
 

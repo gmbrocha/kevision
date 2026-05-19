@@ -250,7 +250,7 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   crashing scans. The standalone `/diagnostics` browser view is no longer part
   of the client-facing UI; diagnostic data remains a backend/export artifact.
 - First real app-run observations are captured in
-  `FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then reset; its
+  `history/FINDINGS_FIRST_REAL_RUN.md`. That run was exploratory, then reset; its
   notes are not reviewed labels, training data, or client-approved scope.
 - CloudHammer_v2 training/eval work remains paused for client handoff work and
   should resume afterward at the existing crop-precheck blocker:
@@ -258,16 +258,14 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
 
 ## Documentation Structure Status
 
-Root-level docs now describe the overall ScopeLedger application. CloudHammer_v2
-docs describe only revision-cloud detection, eval, labeling, and training
-policy.
+Application docs under `docs/` now describe the overall ScopeLedger
+application. CloudHammer_v2 docs describe only revision-cloud detection, eval,
+labeling, and training policy.
 
 Canonical root docs:
 
 - `README.md`
 - `AGENTS.md`
-- `PRODUCT_AND_DELIVERY.md`
-- `ROADMAP.md`
 - `docs/`
 
 Canonical application docs live directly under `docs/`. Reference artifacts live
@@ -276,11 +274,13 @@ under `docs/references/`, `docs/anchors/`, `docs/history/`, and
 
 ## Cleanup Status
 
-Root docs cleanup is substantially complete:
+Root docs cleanup is complete for Markdown entrypoints:
 
 - Root `CLOUDHAMMER.md`, `SCOPELEDGER.md`, `PLAN_PIVOT_5_2_26.md`, and
   duplicate `PRODUCT_AND_DELIVERABLE.md` were removed or replaced by canonical
   paths in prior cleanup work.
+- Root Markdown is now limited to `README.md` and `AGENTS.md`; product,
+  roadmap, first-run findings, and dated backlog notes live under `docs/`.
 - `docs/SECURITY_PRIVACY_POLICY.md` remains as a compatibility stub only.
 - Documentation history is preserved under
   `docs/archive/docs_archive_2026_05_02/`.
@@ -290,8 +290,8 @@ Root docs cleanup is substantially complete:
 ## Canonical Now
 
 - Product entrypoint: `README.md`
-- Product/deliverable intent: `PRODUCT_AND_DELIVERY.md`
-- Product roadmap: `ROADMAP.md`
+- Product/deliverable intent: `docs/PRODUCT_AND_DELIVERY.md`
+- Product roadmap: `docs/ROADMAP.md`
 - Application state: `docs/CURRENT_STATE.md`
 - Application module map: `docs/MODULES.md`
 - CloudHammer subsystem entrypoint: `CloudHammer_v2/README.md`
@@ -461,7 +461,7 @@ human confirmation/correction before training use.
 - During the next review smoke, confirm one probable legend/keynote item with
   `Accept as legend`, verify it disappears from the normal queue, and verify a
   linked real scope item shows the resolved legend context.
-- Use `FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI polish,
+- Use `history/FINDINGS_FIRST_REAL_RUN.md` as observational triage for UI polish,
   OCR/context extraction, geometry split/merge work, symbol/legend handling,
   and zoom legibility. Do not treat it as training ground truth.
 - After client handoff work, resume CloudHammer_v2 at the crop-precheck return

@@ -16,7 +16,7 @@ folder is legacy/reference only unless code is explicitly audited and imported.
 ## Read First
 
 1. `docs/CURRENT_STATE.md`
-2. `ROADMAP.md`
+2. `docs/ROADMAP.md`
 3. `docs/ARCHITECTURE.md`
 4. `docs/MODULES.md`
 5. `docs/DECISIONS.md`
@@ -24,10 +24,13 @@ folder is legacy/reference only unless code is explicitly audited and imported.
 
 ## Canonical Docs
 
-- `PRODUCT_AND_DELIVERY.md`: product and deliverable intent
-- `ROADMAP.md`: current sequence and milestones
-- `FINDINGS_FIRST_REAL_RUN.md`: first real app-run observations and follow-up
+- `docs/PRODUCT_AND_DELIVERY.md`: product and deliverable intent
+- `docs/ROADMAP.md`: current sequence and milestones
+- `docs/NEXT_ACTIONS.md`: active operational action queue
+- `docs/history/FINDINGS_FIRST_REAL_RUN.md`: first real app-run observations and follow-up
   triage; not reviewed labels or training data
+- `docs/history/SCOPELEDGER_BACKLOG_REFERENCE_2026_05_18.md`: historical
+  backlog parking lot; active items are promoted into `docs/NEXT_ACTIONS.md`
 - `docs/`: application architecture, data flow, security, runbook, decisions,
   deployment, and client workflow
 - `docs/references/`: non-canonical reference artifacts such as walkthroughs,

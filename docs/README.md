@@ -11,6 +11,9 @@ Canonical application docs live directly under `docs/`:
 - `DECISIONS.md`
 - `DEPLOYMENT.md`
 - `MODULES.md`
+- `NEXT_ACTIONS.md`
+- `PRODUCT_AND_DELIVERY.md`
+- `ROADMAP.md`
 - `RUNBOOK.md`
 - `SECURITY_POLICY.md`
 
@@ -23,7 +26,8 @@ older notes. The canonical policy summary is `docs/SECURITY_POLICY.md`.
 
 Raw meeting notes live under `docs/meetings/`.
 
-Historical notes live under `docs/history/`.
+Historical notes live under `docs/history/`, including first-run findings and
+dated backlog snapshots.
 
 Visual/product anchor artifacts remain under `docs/anchors/`.
 

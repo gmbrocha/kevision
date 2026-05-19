@@ -1,7 +1,7 @@
 # ScopeLedger Roadmap
 
 Status: historical Kevin-facing roadmap snapshot from 2026-04-30. Current
-sequencing lives in `../../ROADMAP.md`; current CloudHammer state lives in
+sequencing lives in `../ROADMAP.md`; current CloudHammer state lives in
 `../../CloudHammer_v2/docs/CURRENT_STATE.md`.
 
 ScopeLedger turns drawing revision packages into a reviewable Excel workbook
