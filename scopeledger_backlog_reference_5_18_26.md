@@ -8,7 +8,7 @@ This is a parking-lot backlog for items noticed during testing and planning. The
 
 ### Pre-review queue may be stuck
 
-- ScopeLedger appears stuck near the end of the pre-review queue at **189 / 194**.
+- ScopeLedger appears stuck near the end of the pre-review queue at **189 / 194**. [resolved-non-issue]
 - It seems like everything may already have been pre-reviewed, but the queue/status may not be resolving cleanly.
 - Need to determine whether this is:
   - A real remaining-item issue.
@@ -114,7 +114,7 @@ Areas to check:
 
 ### P1 - Before handoff
 
-- Investigate the pre-review queue stuck at **189 / 194**.
+- Investigate the pre-review queue stuck at **189 / 194**. [resolved]
 - Manually inspect review items for strange or confusing behavior.
 - Do a final polish audit.
 - Schedule Kevin meeting.

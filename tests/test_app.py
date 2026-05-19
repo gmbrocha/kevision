@@ -1370,8 +1370,53 @@ def test_partial_correction_route_creates_one_replacement_and_redirects(tmp_path
     assert child.reviewer_text == "Use the current review text for the replacement."
     assert child.queue_order > parent.queue_order
     assert GEOMETRY_CORRECTION_KEY in child.provenance
+    assert child.provenance[GEOMETRY_CORRECTION_KEY]["starter_text_source"] == "reviewer_text"
+    payload = pre_review_payload(child)
+    assert payload["selected"] == PRE_REVIEW_1
+    assert payload[PRE_REVIEW_2]["available"] is False
     assert selected_review_page_boxes(child, child_cloud) == child.provenance[GEOMETRY_CORRECTION_KEY]["page_boxes"]
     assert loaded.data.review_events[0].action == "resize"
+
+
+def test_partial_correction_route_prefers_parent_pre_review_2_text(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    store.data.change_items = [replace(store.data.change_items[0], queue_order=1000)]
+    store.save()
+    register_workspace_project(store.workspace_dir)
+    app = create_app(store.workspace_dir)
+    client = app.test_client()
+
+    response = client.post(
+        "/changes/change-1/geometry-correction",
+        json={
+            "mode": "partial",
+            "crop_boxes": [[30, 20, 70, 50]],
+            "reviewer_text": "Older textarea wording.",
+            "queue_status": "pending",
+            "search_query": "",
+            "attention_only": "0",
+        },
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    parent = loaded.get_change_item("change-1")
+    child = loaded.get_change_item(parent.superseded_by_change_item_ids[0])
+    child_cloud = loaded.get_cloud(child.cloud_candidate_id)
+    correction = child.provenance[GEOMETRY_CORRECTION_KEY]
+    payload = pre_review_payload(child)
+
+    assert response.status_code == 200
+    assert child.raw_text == "Provide new roof curb."
+    assert child.reviewer_text == "Provide new roof curb."
+    assert child_cloud.nearby_text == "Provide new roof curb."
+    assert child_cloud.scope_text == "Provide new roof curb."
+    assert correction["starter_text_source"] == PRE_REVIEW_2
+    assert payload["selected"] == PRE_REVIEW_2
+    assert payload[PRE_REVIEW_2]["available"] is True
+    assert payload[PRE_REVIEW_2]["text"] == "Provide new roof curb."
+    assert payload[PRE_REVIEW_2]["boxes"] == correction["page_boxes"]
+    assert payload[PRE_REVIEW_2]["crop_boxes"] == correction["crop_boxes"]
+    assert selected_review_page_boxes(child, child_cloud) == correction["page_boxes"]
 
 
 def test_reviewer_corrected_child_geometry_remains_reference_for_later_selected_pre_review(tmp_path: Path):
@@ -1407,6 +1452,42 @@ def test_reviewer_corrected_child_geometry_remains_reference_for_later_selected_
     child = replace(child, provenance={**child.provenance, PRE_REVIEW_KEY: payload})
 
     assert selected_review_page_boxes(child, child_cloud) == [[float(value) for value in child_cloud.bbox]]
+
+
+def test_overmerge_split_children_inherit_parent_pre_review_2_text(tmp_path: Path):
+    store = build_pre_review_test_store(tmp_path)
+    ensure_workspace_pre_review(store, FakePreReviewProvider())
+    store.data.change_items = [replace(store.data.change_items[0], queue_order=1000)]
+    store.save()
+
+    result = apply_geometry_correction(
+        store,
+        store.data.change_items[0],
+        store.data.clouds[0],
+        store.data.sheets[0],
+        mode="overmerge",
+        crop_boxes=[[10, 10, 40, 30], [80, 40, 50, 35]],
+        project_id="test-project",
+        reviewer_id="reviewer@example.com",
+        review_session_id="session-1",
+        starter_text_override="Older textarea wording.",
+    )
+    loaded = WorkspaceStore(store.workspace_dir).load()
+    children = [loaded.get_change_item(child.id) for child in result.child_items]
+
+    assert len(children) == 2
+    for child in children:
+        child_cloud = loaded.get_cloud(child.cloud_candidate_id)
+        correction = child.provenance[GEOMETRY_CORRECTION_KEY]
+        payload = pre_review_payload(child)
+        assert child.raw_text == "Provide new roof curb."
+        assert child.reviewer_text == "Provide new roof curb."
+        assert child_cloud.scope_text == "Provide new roof curb."
+        assert correction["starter_text_source"] == PRE_REVIEW_2
+        assert payload["selected"] == PRE_REVIEW_2
+        assert payload[PRE_REVIEW_2]["available"] is True
+        assert payload[PRE_REVIEW_2]["text"] == "Provide new roof curb."
+        assert selected_review_page_boxes(child, child_cloud) == correction["page_boxes"]
 
 
 def test_overmerge_child_accept_next_uses_server_queue_when_hidden_next_is_stale(tmp_path: Path):

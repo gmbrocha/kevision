@@ -10,11 +10,4 @@ Candidate pools:
 - full_page_review_candidates_from_touched
 - mining_safe_hard_negative_candidates
 - synthetic_background_candidates
-- future_training_expansion_candidates 
-
-Figure out what to with overmerge and partials in same image. 
-
-**We need to figure out how to speed up our pipeline. ANY efficiency we can squeeze out makes a huge difference. Batching calls, looking for complexity wins - however we can get there, period. This is a very important goal.
-Repeat this as necessary, top priority here.
-
-Next big barrier is getting the "previous area" right, like the previous drawing area prior to the current revision being looked at. 
+- future_training_expansion_candidates  

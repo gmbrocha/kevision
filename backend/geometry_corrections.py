@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .crop_adjustments import CropAdjustmentError, build_crop_adjustment_context, crop_box_to_page_box, render_adjusted_crop
-from .pre_review import PRE_REVIEW_1, PRE_REVIEW_2, PRE_REVIEW_KEY
+from .pre_review import PRE_REVIEW_1, PRE_REVIEW_2, PRE_REVIEW_KEY, pre_review_payload
 from .review_events import build_review_event, review_capture_enabled
 from .review_queue import ensure_queue_order, is_superseded, replacement_queue_order
 from .revision_state.models import ChangeItem, CloudCandidate, ReviewEvent, SheetVersion
@@ -29,6 +29,13 @@ class GeometryCorrectionResult:
     child_items: list[ChangeItem]
     child_clouds: list[CloudCandidate]
     event: ReviewEvent | None
+
+
+@dataclass(frozen=True)
+class StarterTextContext:
+    text: str
+    source: str
+    parent_pre_review_2: dict[str, Any] | None = None
 
 
 def apply_geometry_correction(
@@ -68,10 +75,8 @@ def apply_geometry_correction(
     page_boxes = [crop_box_to_page_box(box, context.source_page_box, context.image_size) for box in normalized_crop_boxes]
     child_clouds: list[CloudCandidate] = []
     child_items: list[ChangeItem] = []
-    override_text = clean_display_text(starter_text_override or "")
-    starter_text = override_text or clean_display_text(
-        parent_item.reviewer_text or parent_item.raw_text or parent_cloud.scope_text or parent_cloud.nearby_text
-    )
+    starter_text_context = _starter_text_context(parent_item, parent_cloud, starter_text_override)
+    starter_text = starter_text_context.text
 
     for index, (crop_box, page_box) in enumerate(zip(normalized_crop_boxes, page_boxes), start=1):
         child_cloud_id = f"{parent_cloud.id}__{mode}_{correction_id[:8]}_{index}"
@@ -96,6 +101,7 @@ def apply_geometry_correction(
             source_crop_box=crop_box,
             page_box=page_box,
             render_result=render_result,
+            starter_text_source=starter_text_context.source,
         )
         cloud = _replacement_cloud(
             parent_cloud=parent_cloud,
@@ -114,6 +120,7 @@ def apply_geometry_correction(
             mode=mode,
             payload=payload,
             starter_text=starter_text,
+            starter_text_context=starter_text_context,
         )
         child_clouds.append(cloud)
         child_items.append(child)
@@ -230,10 +237,16 @@ def _replacement_item(
     mode: str,
     payload: dict[str, Any],
     starter_text: str,
+    starter_text_context: StarterTextContext,
 ) -> ChangeItem:
+    selected_source = PRE_REVIEW_2 if starter_text_context.source == PRE_REVIEW_2 else PRE_REVIEW_1
+    parent_pre_review_2 = starter_text_context.parent_pre_review_2 or {}
+    pre_review_2_available = selected_source == PRE_REVIEW_2
+    parent_tags = parent_pre_review_2.get("tags") if isinstance(parent_pre_review_2.get("tags"), list) else []
+    pre_review_2_tags = _clean_tags([*parent_tags, "reviewer-corrected"]) if pre_review_2_available else []
     pre_review_payload = {
         "schema": "scopeledger.pre_review.v1",
-        "selected": PRE_REVIEW_1,
+        "selected": selected_source,
         "status": "reviewer_corrected",
         "provider": "reviewer",
         PRE_REVIEW_1: {
@@ -249,16 +262,20 @@ def _replacement_item(
             "tags": ["reviewer-corrected"],
         },
         PRE_REVIEW_2: {
-            "available": False,
+            "available": pre_review_2_available,
             "source": PRE_REVIEW_2,
             "label": "Pre Review 2",
-            "geometry_decision": "unclear",
-            "boxes": [],
-            "crop_boxes": [],
-            "text": "",
-            "reason": "",
-            "confidence": 0.0,
-            "tags": [],
+            "geometry_decision": "same_box" if pre_review_2_available else "unclear",
+            "boxes": payload.get("page_boxes") if pre_review_2_available else [],
+            "crop_boxes": payload.get("crop_boxes", []) if pre_review_2_available else [],
+            "text": starter_text if pre_review_2_available else "",
+            "reason": (
+                "Inherited text from parent Pre Review 2; geometry is reviewer-corrected."
+                if pre_review_2_available
+                else ""
+            ),
+            "confidence": _inherited_pre_review_confidence(parent_pre_review_2, child_cloud) if pre_review_2_available else 0.0,
+            "tags": pre_review_2_tags,
         },
     }
     return ChangeItem(
@@ -302,6 +319,7 @@ def _correction_payload(
     source_crop_box: list[float],
     page_box: list[float],
     render_result: dict[str, Any],
+    starter_text_source: str,
 ) -> dict[str, Any]:
     return {
         "schema": GEOMETRY_CORRECTION_SCHEMA,
@@ -322,7 +340,47 @@ def _correction_payload(
         "render_clip_page_box": render_result["render_clip_page_box"],
         "image_width": render_result["image_size"][0],
         "image_height": render_result["image_size"][1],
+        "starter_text_source": starter_text_source,
     }
+
+
+def _starter_text_context(
+    parent_item: ChangeItem,
+    parent_cloud: CloudCandidate,
+    starter_text_override: str | None,
+) -> StarterTextContext:
+    payload = pre_review_payload(parent_item)
+    parent_pre_review_2 = payload.get(PRE_REVIEW_2) if isinstance(payload.get(PRE_REVIEW_2), dict) else None
+    if parent_pre_review_2 and parent_pre_review_2.get("available"):
+        pre_review_2_text = clean_display_text(str(parent_pre_review_2.get("text") or ""))
+        if pre_review_2_text:
+            return StarterTextContext(text=pre_review_2_text, source=PRE_REVIEW_2, parent_pre_review_2=parent_pre_review_2)
+
+    override_text = clean_display_text(starter_text_override or "")
+    if override_text:
+        return StarterTextContext(text=override_text, source="reviewer_text")
+
+    fallback_text = clean_display_text(
+        parent_item.reviewer_text or parent_item.raw_text or parent_cloud.scope_text or parent_cloud.nearby_text
+    )
+    return StarterTextContext(text=fallback_text, source="parent_fallback")
+
+
+def _inherited_pre_review_confidence(parent_pre_review_2: dict[str, Any], child_cloud: CloudCandidate) -> float:
+    try:
+        value = float(parent_pre_review_2.get("confidence") or child_cloud.confidence or 0.0)
+    except (TypeError, ValueError):
+        value = float(child_cloud.confidence or 0.0)
+    return round(max(0.0, min(1.0, value)), 3)
+
+
+def _clean_tags(values: list[Any]) -> list[str]:
+    tags: list[str] = []
+    for value in values:
+        tag = clean_display_text(str(value))
+        if tag:
+            tags.append(tag)
+    return tags
 
 
 def _normalize_crop_boxes(values: list[Any], image_size: tuple[int, int]) -> list[list[float]]:

@@ -134,7 +134,10 @@ Status: read this first before changing ScopeLedger or CloudHammer_v2.
   the current crop image. Overmerge correction creates multiple pending child
   review items in the same queue position and records an internal `split`
   event. Partial correction creates one replacement review item and records an
-  internal `resize` event. Full-sheet correction remains a later follow-up.
+  internal `resize` event. When the parent item has available Pre Review 2
+  text, corrected children inherit that cleaner text while keeping the
+  reviewer-drawn corrected geometry and pending/editable review state.
+  Full-sheet correction remains a later follow-up.
 - The Overview page now polls `/workspace/populate/status` during Populate so
   the browser shows staged PDF count, package-level reuse/process progress,
   current revision/package markers, keynote registry/expansion counts, live

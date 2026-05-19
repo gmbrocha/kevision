@@ -2,6 +2,27 @@
 
 Status: canonical application decision log.
 
+## 2026-05-19 - Geometry Corrections Inherit Available Pre Review 2 Text
+
+Decision: When `Correct overmerge` or `Correct partial` creates replacement
+review items, seed each child from the parent item's available Pre Review 2
+text before falling back to the current reviewer textarea or original OCR text.
+The child keeps reviewer-corrected geometry and remains pending/editable.
+
+Reason: Pre Review 2 text is usually cleaner than first-pass OCR. Carrying it
+into reviewer-drawn replacement boxes reduces repeated manual cleanup without
+making the provisional API pass authoritative.
+
+Consequences / follow-up:
+
+- Corrected children store the inherited text in their raw/reviewer text and
+  cloud scope text, and mark their child Pre Review payload as selected
+  `pre_review_2` while using the child box geometry.
+- If parent Pre Review 2 is unavailable, existing textarea/fallback behavior is
+  preserved.
+- Review routes, exports, stored review meanings, and API contracts are
+  unchanged.
+
 ## 2026-05-18 - Kevin Handoff Is Frozen Separately From Active Dev
 
 Decision: Freeze the accepted ScopeLedger handoff build at commit `2a14e640`
