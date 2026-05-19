@@ -62,7 +62,7 @@
         {% for item in changes %}
           <a class="sheet-change-card" href="{{ url_for('change_detail', change_id=item.id, queue='all') }}">
             <span class="sheet-change-head">
-              <span class="cell-mono cell-accent">{{ item.detail_ref or "Cloud" }}</span>
+              <span class="cell-mono cell-accent">{{ item.detail_ref or "-" }}</span>
               <span class="badge badge-{{ item.status|badge_class }}">{{ item.status|status_label }}</span>
             </span>
             <span class="sheet-change-copy">{{ item.reviewer_text or item.raw_text }}</span>

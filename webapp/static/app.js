@@ -283,6 +283,11 @@ function bindPopulateWorkspace() {
     if (node) node.textContent = value ?? 0;
   };
 
+  const countValue = (value) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+  };
+
   const packageBadgeClass = (state) => {
     if (state === "failed") return "rejected";
     if (state === "dirty" || state === "pending") return "pending";
@@ -351,9 +356,16 @@ function bindPopulateWorkspace() {
     setField("new_change_item_count", payload.new_change_item_count || 0);
     setField("pending_review_count", payload.pending_review_count || 0);
     setField("cache_hits", payload.cache_hits || 0);
-    setField("pre_review_total_count", payload.pre_review_total_count || 0);
-    setField("pre_review_2_count", payload.pre_review_2_count || 0);
-    setField("pre_review_failed_count", payload.pre_review_failed_count || 0);
+    const preReviewTotal = countValue(payload.pre_review_total_count);
+    const preReviewReady = countValue(payload.pre_review_2_count);
+    const preReviewFailed = countValue(payload.pre_review_failed_count);
+    const preReviewSkipped = countValue(payload.pre_review_skipped_count);
+    const preReviewRemaining = Math.max(preReviewTotal - preReviewReady - preReviewFailed - preReviewSkipped, 0);
+    setField("pre_review_total_count", preReviewTotal);
+    setField("pre_review_2_count", preReviewReady);
+    setField("pre_review_failed_count", preReviewFailed);
+    setField("pre_review_skipped_count", preReviewSkipped);
+    setField("pre_review_remaining_count", preReviewRemaining);
     setField("pre_review_cache_hits", payload.pre_review_cache_hits || 0);
     setField("keynote_registry_sheet_count", payload.keynote_registry_sheet_count || 0);
     setField("keynote_registry_definition_count", payload.keynote_registry_definition_count || 0);
@@ -374,7 +386,13 @@ function bindPopulateWorkspace() {
       if (payload.live_artifact_count) parts.push(`${payload.live_artifact_count} live artifact${payload.live_artifact_count === 1 ? "" : "s"} written`);
       if (payload.inferred_cloudhammer_page_count) parts.push(`${payload.inferred_cloudhammer_page_count} cataloged page rows`);
       if (payload.inferred_cloudhammer_candidate_count) parts.push(`${payload.inferred_cloudhammer_candidate_count} candidate rows`);
-      if (payload.pre_review_total_count) parts.push(`Pre Review ${payload.pre_review_2_count || 0} of ${payload.pre_review_total_count}`);
+      if (preReviewTotal) {
+        const preReviewParts = [`${preReviewReady} ready`];
+        if (preReviewFailed) preReviewParts.push(`${preReviewFailed} failed`);
+        if (preReviewSkipped) preReviewParts.push(`${preReviewSkipped} skipped`);
+        if (preReviewRemaining) preReviewParts.push(`${preReviewRemaining} remaining`);
+        parts.push(`Pre Review ${preReviewParts.join(" / ")} of ${preReviewTotal}`);
+      }
       detail.textContent = parts.join(" | ");
     }
 

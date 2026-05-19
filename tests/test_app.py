@@ -94,6 +94,58 @@ def register_workspace_project(workspace_dir: Path, *, name: str = "Test Project
     registry.save()
 
 
+def write_review_ui_workspace(tmp_path: Path) -> Path:
+    input_dir = tmp_path / "input"
+    workspace_dir = tmp_path / "workspace"
+    input_dir.mkdir()
+    store = WorkspaceStore(workspace_dir).create(input_dir)
+    store.data.revision_sets = [
+        RevisionSet(
+            id="rev-1",
+            label="Revision #1",
+            source_dir=str(input_dir.resolve()),
+            set_number=1,
+            set_date="05/18/2026",
+        )
+    ]
+    store.data.sheets = [
+        SheetVersion(
+            id="sheet-ad105",
+            revision_set_id="rev-1",
+            source_pdf=str(input_dir / "ad105.pdf"),
+            page_number=1,
+            sheet_id="AD105",
+            sheet_title="Demo Plan",
+            issue_date="05/18/2026",
+        )
+    ]
+    store.data.change_items = [
+        ChangeItem(
+            id="change-missing-ref",
+            sheet_version_id="sheet-ad105",
+            cloud_candidate_id=None,
+            sheet_id="AD105",
+            detail_ref=None,
+            raw_text="Replace door hardware",
+            normalized_text="replace door hardware",
+            queue_order=1000,
+        ),
+        ChangeItem(
+            id="change-real-ref",
+            sheet_version_id="sheet-ad105",
+            cloud_candidate_id=None,
+            sheet_id="AD105",
+            detail_ref="Z.8",
+            raw_text="Update finish note",
+            normalized_text="update finish note",
+            queue_order=2000,
+        ),
+    ]
+    store.save()
+    register_workspace_project(workspace_dir)
+    return workspace_dir
+
+
 def csrf_token_from(response) -> str:
     match = re.search(rb'name="csrf_token" value="([^"]+)"', response.data)
     if not match:
@@ -5776,6 +5828,7 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
         pre_review_total_count=12,
         pre_review_2_count=7,
         pre_review_failed_count=1,
+        pre_review_skipped_count=2,
         pre_review_cache_hits=3,
     )
 
@@ -5792,6 +5845,7 @@ def test_populate_status_endpoint_reports_staged_and_live_artifacts(tmp_path: Pa
     assert payload["pre_review_total_count"] == 12
     assert payload["pre_review_2_count"] == 7
     assert payload["pre_review_failed_count"] == 1
+    assert payload["pre_review_skipped_count"] == 2
     assert payload["pre_review_cache_hits"] == 3
 
 
@@ -5889,12 +5943,77 @@ def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):
     assert b'data-populate-status-url="/workspace/populate/status"' in response.data
     assert b"Staged PDFs" in response.data
     assert b"Live artifacts" in response.data
-    assert b"Pre Review" in response.data
+    assert b"Pre Review ready" in response.data
+    assert b"Pre Review skipped" in response.data
+    assert b"Pre Review remaining" in response.data
     assert b"GPT" not in response.data
     assert b"CloudHammer" not in response.data
     assert b"training" not in response.data
     assert b"eval" not in response.data
     assert b"labeling" not in response.data
+
+
+def test_dashboard_clarifies_pre_review_count_mismatch(tmp_path: Path):
+    app = create_app(tmp_path)
+    client = app.test_client()
+    assert client.post("/projects", data={"name": "Fresh Project"}).status_code == 302
+
+    workspace_dir = tmp_path / "projects" / "fresh-project"
+    store = WorkspaceStore(workspace_dir).load()
+    store.update_populate_status(
+        state="running",
+        stage="pre_review",
+        message="Running pre-review on detected regions.",
+        pre_review_total_count=12,
+        pre_review_2_count=7,
+        pre_review_failed_count=1,
+        pre_review_skipped_count=2,
+    )
+
+    response = client.get("/overview")
+
+    assert response.status_code == 200
+    body = response.data.decode("utf-8")
+    assert "Pre Review ready" in body
+    assert 'data-populate-field="pre_review_skipped_count">2</strong>' in body
+    assert 'data-populate-field="pre_review_remaining_count">2</strong>' in body
+
+
+def test_review_changes_ref_column_uses_dash_for_missing_detail_ref(tmp_path: Path):
+    workspace_dir = write_review_ui_workspace(tmp_path)
+    app = create_app(workspace_dir)
+    client = app.test_client()
+
+    response = client.get("/changes")
+
+    assert response.status_code == 200
+    body = response.data.decode("utf-8")
+    assert "<th>Ref</th>" in body
+    assert "<th>Cloud</th>" not in body
+    assert '<td class="cell-mono cell-accent">-</td>' in body
+    assert '<td class="cell-mono cell-accent">Z.8</td>' in body
+
+
+def test_change_detail_uses_quiet_ref_fallback_and_keeps_real_ref(tmp_path: Path):
+    workspace_dir = write_review_ui_workspace(tmp_path)
+    app = create_app(workspace_dir)
+    client = app.test_client()
+
+    missing = client.get("/changes/change-missing-ref")
+    real = client.get("/changes/change-real-ref")
+
+    assert missing.status_code == 200
+    missing_body = missing.data.decode("utf-8")
+    assert '<span class="cloud-label">No ref</span>' in missing_body
+    assert '<span class="cloud-id">No ref</span>' in missing_body
+    assert '<span class="meta-key">Ref</span>' in missing_body
+    assert '<span class="meta-val mono">-</span>' in missing_body
+    assert '<span class="cloud-label">Cloud</span>' not in missing_body
+    assert '<span class="cloud-id">Cloud</span>' not in missing_body
+    assert real.status_code == 200
+    real_body = real.data.decode("utf-8")
+    assert '<span class="cloud-label">Z.8</span>' in real_body
+    assert '<span class="meta-val mono">Z.8</span>' in real_body
 
 
 def test_review_routes_reject_invalid_status_and_external_redirect(workspace_copy):

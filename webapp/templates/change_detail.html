@@ -9,7 +9,7 @@
     <div class="inline-action-row">
       <span class="cockpit-id">
         {{ item.sheet_id }}
-        <span class="cloud-label">{{ item.detail_ref or "Cloud" }}</span>
+        <span class="cloud-label">{{ item.detail_ref or "No ref" }}</span>
         <span class="cockpit-revision-label">{{ sheet_revision_set.label if sheet_revision_set else "Revision" }}</span>
       </span>
       <span class="badge badge-{{ item.status|badge_class }}"><span class="badge-dot"></span>{{ item.status|status_label }}</span>
@@ -55,7 +55,7 @@
           <div class="cockpit-image-label">
             <span>{{ item.sheet_id }}</span>
             <span class="muted-separator">/</span>
-            <span class="cloud-id">{{ item.detail_ref or "Cloud" }}</span>
+            <span class="cloud-id">{{ item.detail_ref or "No ref" }}</span>
           </div>
           <div
             class="cockpit-image-wrap js-crop-adjust-wrap"
@@ -128,8 +128,8 @@
             <span class="meta-val mono">{{ item.sheet_id }}</span>
           </div>
           <div class="meta-pair">
-            <span class="meta-key">Cloud</span>
-            <span class="meta-val mono">{{ item.detail_ref or "Cloud" }}</span>
+            <span class="meta-key">Ref</span>
+            <span class="meta-val mono">{{ item.detail_ref or "-" }}</span>
           </div>
           <div class="meta-pair">
             <span class="meta-key">Revision</span>

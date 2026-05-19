@@ -121,7 +121,7 @@
                 <th><input type="checkbox" class="js-master-checkbox" data-target=".js-queue-checkbox" aria-label="Select all"></th>
                 <th>Sheet</th>
                 <th>Package</th>
-                <th>Cloud</th>
+                <th>Ref</th>
                 <th>Scope of change</th>
                 <th>Discipline</th>
                 <th>Status</th>
@@ -147,7 +147,7 @@
                       n/a
                     {% endif %}
                   </td>
-                  <td class="cell-mono cell-accent">{{ item.detail_ref or "Cloud" }}</td>
+                  <td class="cell-mono cell-accent">{{ item.detail_ref or "-" }}</td>
                   <td>{{ item.reviewer_text or item.raw_text }}</td>
                   <td class="cell-secondary">{{ item.sheet_id|discipline }}</td>
                   <td>

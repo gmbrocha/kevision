@@ -67,7 +67,7 @@ Possible targets for reduction:
 
 ### Go through review items manually
 
-- Manually inspect review items and look for “weird shit.”
+- Manually inspect review items and look for "weird shit."
 - This should be a human sanity pass, not just automated test coverage.
 - Look for:
   - Odd classifications.
@@ -112,20 +112,20 @@ Areas to check:
 
 ## Deferred Priority Grouping
 
-### P1 — Before handoff
+### P1 - Before handoff
 
 - Investigate the pre-review queue stuck at **189 / 194**.
 - Manually inspect review items for strange or confusing behavior.
 - Do a final polish audit.
 - Schedule Kevin meeting.
 
-### P2 — Cleanup / reduction
+### P2 - Cleanup / reduction
 
 - Reassess the review queue cloud field.
 - Run another UI reduction pass for unnecessary elements.
 - Simplify or hide fields that do not support reviewer decisions.
 
-### P3 — Additional testing material
+### P3 - Additional testing material
 
 - Ask Kevin for more revision sets.
 - Use additional sets to broaden real-world testing coverage.
