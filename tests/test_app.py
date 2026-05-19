@@ -5942,10 +5942,14 @@ def test_dashboard_exposes_populate_polling_hooks(tmp_path: Path):
     assert b'data-status-url="/workspace/populate/status"' in response.data
     assert b'data-populate-status-url="/workspace/populate/status"' in response.data
     assert b"Staged PDFs" in response.data
-    assert b"Live artifacts" in response.data
+    assert b"Generated files" in response.data
+    assert b"Populate reused" in response.data
     assert b"Pre Review ready" in response.data
     assert b"Pre Review skipped" in response.data
     assert b"Pre Review remaining" in response.data
+    assert b"Pre Review reused" in response.data
+    assert b"Resolved keynotes" in response.data
+    assert b"Live artifacts" not in response.data
     assert b"GPT" not in response.data
     assert b"CloudHammer" not in response.data
     assert b"training" not in response.data
@@ -5979,19 +5983,24 @@ def test_dashboard_clarifies_pre_review_count_mismatch(tmp_path: Path):
     assert 'data-populate-field="pre_review_remaining_count">2</strong>' in body
 
 
-def test_review_changes_ref_column_uses_dash_for_missing_detail_ref(tmp_path: Path):
+def test_review_changes_omits_queue_level_ref_column(tmp_path: Path):
     workspace_dir = write_review_ui_workspace(tmp_path)
     app = create_app(workspace_dir)
     client = app.test_client()
 
     response = client.get("/changes")
+    empty_response = client.get("/changes?q=no-match")
 
     assert response.status_code == 200
     body = response.data.decode("utf-8")
-    assert "<th>Ref</th>" in body
+    assert "<th>Ref</th>" not in body
     assert "<th>Cloud</th>" not in body
-    assert '<td class="cell-mono cell-accent">-</td>' in body
-    assert '<td class="cell-mono cell-accent">Z.8</td>' in body
+    assert '<td class="cell-mono cell-accent">-</td>' not in body
+    assert '<td class="cell-mono cell-accent">Z.8</td>' not in body
+    assert "Replace door hardware" in body
+    assert "Update finish note" in body
+    assert empty_response.status_code == 200
+    assert '<td colspan="7">No changes match the current filters.</td>' in empty_response.data.decode("utf-8")
 
 
 def test_change_detail_uses_quiet_ref_fallback_and_keeps_real_ref(tmp_path: Path):
@@ -6173,7 +6182,7 @@ def test_dashboard_shows_review_status_and_package_panel(workspace_copy):
     assert b"Populate Workspace" in body
     assert b"Populate status" in body
     assert b"Workspace is populated and ready for review." in body
-    assert b"Cache hits" in body
+    assert b"Populate reused" in body
 
 
 def test_dashboard_and_export_link_generated_artifacts(workspace_copy):

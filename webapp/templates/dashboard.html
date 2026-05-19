@@ -113,21 +113,21 @@
                 <span>Changes <strong data-populate-field="change_item_count">{{ populate_status.get("change_item_count", 0) }}</strong></span>
                 <span>New changes <strong data-populate-field="new_change_item_count">{{ populate_status.get("new_change_item_count", 0) }}</strong></span>
                 <span>Pending review <strong data-populate-field="pending_review_count">{{ populate_status.get("pending_review_count", pending_review_count) }}</strong></span>
-                <span>Cache hits <strong data-populate-field="cache_hits">{{ populate_status.get("cache_hits", 0) }}</strong></span>
+                <span>Populate reused <strong data-populate-field="cache_hits">{{ populate_status.get("cache_hits", 0) }}</strong></span>
                 <span>Pre Review ready <strong><span data-populate-field="pre_review_2_count">{{ pre_review_ready_count }}</span> / <span data-populate-field="pre_review_total_count">{{ pre_review_total_count }}</span></strong></span>
                 <span>Pre Review failed <strong data-populate-field="pre_review_failed_count">{{ pre_review_failed_count }}</strong></span>
                 <span>Pre Review skipped <strong data-populate-field="pre_review_skipped_count">{{ pre_review_skipped_count }}</strong></span>
                 <span>Pre Review remaining <strong data-populate-field="pre_review_remaining_count">{{ pre_review_remaining_count }}</strong></span>
-                <span>Pre Review cache <strong data-populate-field="pre_review_cache_hits">{{ populate_status.get("pre_review_cache_hits", 0) }}</strong></span>
+                <span>Pre Review reused <strong data-populate-field="pre_review_cache_hits">{{ populate_status.get("pre_review_cache_hits", 0) }}</strong></span>
                 <span>Keynote sheets <strong data-populate-field="keynote_registry_sheet_count">{{ populate_status.get("keynote_registry_sheet_count", 0) }}</strong></span>
                 <span>Keynote definitions <strong data-populate-field="keynote_registry_definition_count">{{ populate_status.get("keynote_registry_definition_count", 0) }}</strong></span>
-                <span>Keynote expansions <strong data-populate-field="keynote_expanded_item_count">{{ populate_status.get("keynote_expanded_item_count", 0) }}</strong></span>
+                <span>Resolved keynotes <strong data-populate-field="keynote_expanded_item_count">{{ populate_status.get("keynote_expanded_item_count", 0) }}</strong></span>
                 {% if populate_status.get("cloudhammer_page_count") is not none %}
                   <span>Analyzed pages <strong>{{ populate_status.get("cloudhammer_page_count", 0) }}</strong></span>
                   <span>Detected regions <strong>{{ populate_status.get("cloudhammer_candidate_count", 0) }}</strong></span>
                 {% endif %}
                 <span>Staged PDFs <strong data-populate-field="staged_pdf_count">0</strong></span>
-                <span>Live artifacts <strong data-populate-field="live_artifact_count">0</strong></span>
+                <span>Generated files <strong data-populate-field="live_artifact_count">0</strong></span>
               </div>
               {% if populate_status.get("error") %}
                 <div class="populate-status-error" data-populate-error>{{ populate_status.get("error") }}</div>

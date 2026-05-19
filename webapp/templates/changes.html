@@ -121,7 +121,6 @@
                 <th><input type="checkbox" class="js-master-checkbox" data-target=".js-queue-checkbox" aria-label="Select all"></th>
                 <th>Sheet</th>
                 <th>Package</th>
-                <th>Ref</th>
                 <th>Scope of change</th>
                 <th>Discipline</th>
                 <th>Status</th>
@@ -147,7 +146,6 @@
                       n/a
                     {% endif %}
                   </td>
-                  <td class="cell-mono cell-accent">{{ item.detail_ref or "-" }}</td>
                   <td>{{ item.reviewer_text or item.raw_text }}</td>
                   <td class="cell-secondary">{{ item.sheet_id|discipline }}</td>
                   <td>
@@ -158,7 +156,7 @@
                   <td class="col-right"><a class="btn btn-ghost btn-sm" href="{{ url_for('change_detail', change_id=item.id, queue=filter_status, q=search_query, attention='1' if attention_only else '0', package_scope=review_filter.package_scope, package_id=review_filter.package_id) }}">Review →</a></td>
                 </tr>
               {% else %}
-                <tr><td colspan="8">No changes match the current filters.</td></tr>
+                <tr><td colspan="7">No changes match the current filters.</td></tr>
               {% endfor %}
             </tbody>
           </table>

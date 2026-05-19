@@ -383,7 +383,7 @@ function bindPopulateWorkspace() {
       if (payload.next_package_label && state === "ready") parts.push(`Next package: ${payload.next_package_label}`);
       if (payload.total_package_count) parts.push(`${payload.processed_package_count || 0} processed / ${payload.reused_package_count || 0} reused / ${payload.total_package_count} total packages`);
       if (payload.staged_pdf_count) parts.push(`${payload.staged_pdf_count} staged PDF${payload.staged_pdf_count === 1 ? "" : "s"}`);
-      if (payload.live_artifact_count) parts.push(`${payload.live_artifact_count} live artifact${payload.live_artifact_count === 1 ? "" : "s"} written`);
+      if (payload.live_artifact_count) parts.push(`${payload.live_artifact_count} generated file${payload.live_artifact_count === 1 ? "" : "s"} written`);
       if (payload.inferred_cloudhammer_page_count) parts.push(`${payload.inferred_cloudhammer_page_count} cataloged page rows`);
       if (payload.inferred_cloudhammer_candidate_count) parts.push(`${payload.inferred_cloudhammer_candidate_count} candidate rows`);
       if (preReviewTotal) {
