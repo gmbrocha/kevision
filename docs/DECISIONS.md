@@ -2,6 +2,25 @@
 
 Status: canonical application decision log.
 
+## 2026-06-07 - Command Center V1 Metadata Uses Provisional Manifest
+
+Decision: Add `.project-command/project.json` as a provisional Command Center
+V1 metadata manifest and make `docs/CURRENT_STATE.md` the short structured
+project pulse read by Command Center.
+
+Reason: Command Center V1 registration is planned around repository-path
+manual registration, source-grounded project metadata, and a consistent
+current-state document for re-entry.
+
+Consequences / follow-up:
+
+- Command Center remains read-only; project agents or the user update repo
+  files and git state.
+- The manifest should be revisited when Command Center's final schema and
+  status vocabulary are implemented.
+- Agent guidance now requires current-state sync after commits, meaningful git
+  state changes, and metadata/service changes that Command Center reads.
+
 ## 2026-05-18 - Keynote Registry V2 Supports Guarded Cross-Page Resolution
 
 Decision: Bump the keynote registry extractor to v2, recover same-column

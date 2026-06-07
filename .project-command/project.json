@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "provisional-v1",
+  "id": "scopeledger",
+  "displayName": "ScopeLedger",
+  "category": "front-row",
+  "status": "active-client-handoff",
+  "summary": "Application for turning drawing revision packages into reviewable change evidence and client-facing deliverables, with CloudHammer_v2 as the active revision-cloud detection/eval/training-policy subsystem.",
+  "priorityRank": null,
+  "repository": {
+    "type": "git",
+    "defaultBranch": "main"
+  },
+  "docs": {
+    "currentState": "docs/CURRENT_STATE.md",
+    "additional": [
+      "README.md",
+      "ROADMAP.md",
+      "PRODUCT_AND_DELIVERY.md",
+      "docs/ARCHITECTURE.md",
+      "docs/MODULES.md",
+      "docs/DECISIONS.md",
+      "docs/RUNBOOK.md",
+      "docs/DEPLOYMENT.md",
+      "CloudHammer_v2/README.md",
+      "CloudHammer_v2/PIVOT_PLAN.md",
+      "CloudHammer_v2/docs/CURRENT_STATE.md"
+    ]
+  },
+  "urls": [
+    {
+      "name": "local-app",
+      "url": "http://127.0.0.1:5000/projects",
+      "source": "docs/RUNBOOK.md"
+    },
+    {
+      "name": "private-handoff",
+      "url": "https://ledger.nezcoupe.net",
+      "source": "docs/DEPLOYMENT.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "serve-local",
+      "purpose": "Run the browser review surface locally.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m backend serve --host 127.0.0.1 --port 5000",
+      "expected": "Flask serves the app at http://127.0.0.1:5000.",
+      "safety": "local development server"
+    },
+    {
+      "name": "serve-private-handoff",
+      "purpose": "Run the private client handoff app behind the existing Cloudflare Access route after required environment variables are configured.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m backend serve --host 127.0.0.1 --port 5000 --production",
+      "expected": "Waitress serves ScopeLedger at http://127.0.0.1:5000 for Cloudflare Tunnel exposure at https://ledger.nezcoupe.net.",
+      "safety": "private handoff mode; requires secrets and Cloudflare Access controls"
+    },
+    {
+      "name": "process-check",
+      "purpose": "Check local ScopeLedger backend, port, Windows service, and cloudflared process state.",
+      "workingDirectory": "repo root",
+      "command": ".\\scopeledger.ps1 check",
+      "expected": "Prints ScopeLedger backend processes, port 5000 listeners, matching services, and cloudflared tunnel processes.",
+      "safety": "read-only"
+    },
+    {
+      "name": "process-start",
+      "purpose": "Start the local ScopeLedger backend from the repo virtualenv.",
+      "workingDirectory": "repo root",
+      "command": ".\\scopeledger.ps1 start",
+      "expected": "Starts python -m backend serve --host 127.0.0.1 --port 5000 and writes backend logs under logs/.",
+      "safety": "starts local process"
+    },
+    {
+      "name": "process-stop",
+      "purpose": "Stop local ScopeLedger backend processes rooted in this repo.",
+      "workingDirectory": "repo root",
+      "command": ".\\scopeledger.ps1 stop",
+      "expected": "Stops matching backend processes and prints updated status.",
+      "safety": "stops local process"
+    },
+    {
+      "name": "reset-projects",
+      "purpose": "Clear app project registrations without deleting project workspaces or source packages.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m backend reset-projects",
+      "expected": "Reports cleared app project registrations and the registry path.",
+      "safety": "safe registry-only cleanup"
+    },
+    {
+      "name": "test-suite",
+      "purpose": "Run the repo-level test suite.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m pytest -q",
+      "expected": "pytest completes without collection errors.",
+      "safety": "local test run"
+    },
+    {
+      "name": "fast-release-smoke",
+      "purpose": "Run the fast app handoff smoke suite without live CloudHammer/GPT processing.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m pytest tests\\test_smoke_http.py -q",
+      "expected": "9 passed.",
+      "safety": "local temp-fixture test run"
+    }
+  ],
+  "tasks": {
+    "enabled": true,
+    "source": "docs/NEXT_ACTIONS.md"
+  },
+  "services": [
+    {
+      "name": "scopeledger-backend",
+      "role": "Flask/Waitress web app for project intake, Populate, review, and export surfaces.",
+      "startCommand": ".\\scopeledger.ps1 start",
+      "stopCommand": ".\\scopeledger.ps1 stop",
+      "healthUrl": "http://127.0.0.1:5000/projects",
+      "logs": [
+        "logs/scopeledger_backend.out.log",
+        "logs/scopeledger_backend.err.log"
+      ],
+      "ports": [
+        5000
+      ],
+      "suite": "local-app"
+    }
+  ],
+  "infrastructureDependencies": [
+    {
+      "id": "cloudflared",
+      "name": "Cloudflare Tunnel",
+      "notes": "Existing tunnel nez-dev-projects maps ledger.nezcoupe.net to http://localhost:5000 for the private handoff path."
+    }
+  ],
+  "notes": [
+    "Provisional Command Center V1 manifest; revisit after the final schema is implemented.",
+    "Category front-row is source-grounded from the active private client handoff priority.",
+    "Status active-client-handoff is source-grounded from roadmap/product/deployment docs but should be reviewed if Command Center later defines a fixed status vocabulary.",
+    "workspacePath and openPathOverride are intentionally null because default repository-path open behavior is sufficient.",
+    "Cloudflare Tunnel is modeled as shared infrastructure, not as a project-owned service."
+  ],
+  "workspacePath": null,
+  "openPathOverride": null
+}

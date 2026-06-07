@@ -60,6 +60,26 @@ Do not put documentation archives in root `archive/`. Root `archive/` is for old
 
 When replacing or superseding docs, preserve the old version in the dated docs archive. Do not delete old docs.
 
+## Command Center Sync
+
+Command Center reads `.project-command/project.json` for project metadata and
+`docs/CURRENT_STATE.md` as the project pulse. Command Center registration is
+manual from Settings by repository path; the manifest does not create registry
+membership, and Command Center is read-only for repository files, docs,
+manifests, tasks, and git state.
+
+After any commit or git state change made during an agent session, update
+`docs/CURRENT_STATE.md` before the final response. Git state changes include
+commits, amended commits, merges, rebases, pulls, meaningful branch switches,
+commit-preparation staging changes, `.project-command/project.json` changes,
+and service/runtime metadata changes that Command Center reads.
+
+Minimum sync behavior: update `Last updated: YYYY-MM-DD`, add one concise
+`Recent Activity` entry, and update `Current Status`, `Known Gaps`, `Next
+Actions`, or `Service Notes` only when materially changed. If the change is
+metadata-only, describe it as metadata-only. Do not invent project state; use
+`Unverified`, `Not reviewed`, or an explicit uncertainty note when needed.
+
 ## CloudHammer Eval Rules
 
 Frozen real eval pages must never enter training, crop extraction, hard-negative mining, synthetic backgrounds, threshold tuning, GPT/model relabel loops, or future mining.

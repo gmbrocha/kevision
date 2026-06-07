@@ -1,0 +1,29 @@
+---
+description: ScopeLedger project rules
+alwaysApply: true
+---
+
+# ScopeLedger Project Rules
+
+Follow `AGENTS.md` for repository scope, CloudHammer boundaries, eval safety,
+documentation rules, and final-report requirements.
+
+## Command Center Sync
+
+Command Center reads `.project-command/project.json` for source-grounded
+project metadata and `docs/CURRENT_STATE.md` as the project pulse. Command
+Center registration is manual from Settings by repository path; the manifest
+does not create registry membership. Command Center is read-only for repository
+files, docs, manifests, tasks, and git state.
+
+After any commit or git state change made during an agent session, update
+`docs/CURRENT_STATE.md` before the final response. Git state changes include
+commits, amended commits, merges, rebases, pulls, meaningful branch switches,
+commit-preparation staging changes, `.project-command/project.json` changes,
+and service/runtime metadata changes that Command Center reads.
+
+Minimum sync behavior: update `Last updated: YYYY-MM-DD`, add one concise
+`Recent Activity` entry, and update `Current Status`, `Known Gaps`, `Next
+Actions`, or `Service Notes` only when materially changed. If the change is
+metadata-only, describe it as metadata-only. Do not invent project state; use
+`Unverified`, `Not reviewed`, or an explicit uncertainty note when needed.
