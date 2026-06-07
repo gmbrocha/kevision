@@ -78,6 +78,9 @@ is legacy/reference unless explicitly audited and imported.
 
 ## Recent Activity
 
+- 2026-06-07: Metadata-only correction updated the Command Center manifest id
+  and display name to distinguish the `kevin-handoff` workspace from the main
+  ScopeLedger project.
 - 2026-06-07: Metadata-only Command Center setup pass created a provisional
   V1 manifest, restructured this current-state pulse, added project-agent sync
   guidance, and allowlisted the canonical Cursor project rule.

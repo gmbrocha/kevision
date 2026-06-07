@@ -1,7 +1,7 @@
 {
   "schemaVersion": "provisional-v1",
-  "id": "scopeledger",
-  "displayName": "ScopeLedger",
+  "id": "scopeledger-kevin-handoff",
+  "displayName": "ScopeLedger-kevin-handoff",
   "category": "front-row",
   "status": "active-client-handoff",
   "summary": "Application for turning drawing revision packages into reviewable change evidence and client-facing deliverables, with CloudHammer_v2 as the active revision-cloud detection/eval/training-policy subsystem.",
