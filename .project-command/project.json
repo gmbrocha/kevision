@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "provisional-v1",
+  "id": "scopeledger",
+  "displayName": "ScopeLedger",
+  "category": "front-row",
+  "status": "active",
+  "summary": "Application for turning drawing revision packages into reviewable, client-facing change evidence and deliverables, with CloudHammer_v2 as the active revision-cloud detection/eval/training subsystem.",
+  "priorityRank": null,
+  "repository": {
+    "type": "git",
+    "defaultBranch": "main"
+  },
+  "docs": {
+    "currentState": "docs/CURRENT_STATE.md",
+    "additional": [
+      "README.md",
+      "AGENTS.md",
+      "docs/ROADMAP.md",
+      "docs/NEXT_ACTIONS.md",
+      "docs/ARCHITECTURE.md",
+      "docs/MODULES.md",
+      "docs/DECISIONS.md",
+      "docs/RUNBOOK.md",
+      "CloudHammer_v2/README.md",
+      "CloudHammer_v2/PIVOT_PLAN.md",
+      "CloudHammer_v2/docs/CURRENT_STATE.md",
+      "CloudHammer_v2/docs/EVAL_POLICY.md",
+      "CloudHammer_v2/docs/DECISIONS.md"
+    ]
+  },
+  "urls": [
+    {
+      "label": "Active local development",
+      "url": "http://127.0.0.1:5001/projects",
+      "source": "docs/RUNBOOK.md"
+    },
+    {
+      "label": "Local handoff service",
+      "url": "http://127.0.0.1:5000/projects",
+      "source": "docs/RUNBOOK.md"
+    },
+    {
+      "label": "Private handoff route",
+      "url": "https://ledger.nezcoupe.net",
+      "source": "docs/CURRENT_STATE.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "check-processes",
+      "purpose": "Check ScopeLedger backend processes, port listener, services, and Cloudflare Tunnel status.",
+      "workingDirectory": "repo root",
+      "command": ".\\scopeledger.ps1 check",
+      "expected": "Prints backend processes, listeners, matching Windows services, and cloudflared tunnel processes.",
+      "safety": "read-only"
+    },
+    {
+      "name": "start-active-dev",
+      "purpose": "Start the active local development app on port 5001 without touching the handoff tunnel.",
+      "workingDirectory": "repo root",
+      "command": ".\\scopeledger.ps1 start -Port 5001",
+      "expected": "Starts the backend at http://127.0.0.1:5001/projects and writes process output under logs/.",
+      "safety": "local process control"
+    },
+    {
+      "name": "stop-active-dev",
+      "purpose": "Stop the active local development app on port 5001.",
+      "workingDirectory": "repo root",
+      "command": ".\\scopeledger.ps1 stop -Port 5001",
+      "expected": "Stops repo-rooted backend processes matching port 5001 and reports status.",
+      "safety": "local process control"
+    },
+    {
+      "name": "reset-project-registry",
+      "purpose": "Clear the app project registry without deleting workspaces or source packages.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m backend reset-projects",
+      "expected": "Reports the number of cleared app project registrations and registry path.",
+      "safety": "safe registry-only cleanup"
+    },
+    {
+      "name": "fast-release-smoke",
+      "purpose": "Verify the main app handoff path without live CloudHammer or GPT processing.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m pytest tests\\test_smoke_http.py -q",
+      "expected": "Expected documented output is 9 passed.",
+      "safety": "local temp-fixture test run"
+    },
+    {
+      "name": "full-test-suite",
+      "purpose": "Verify ScopeLedger app tests and legacy CloudHammer unit tests from a repo-level command.",
+      "workingDirectory": "repo root",
+      "command": ".\\.venv\\Scripts\\python.exe -m pytest -q",
+      "expected": "Pytest completes without collection errors.",
+      "safety": "local test run"
+    }
+  ],
+  "tasks": {
+    "enabled": true,
+    "source": "docs/NEXT_ACTIONS.md"
+  },
+  "services": [
+    {
+      "name": "scopeledger-dev",
+      "role": "Active local development backend/review app for the main repo.",
+      "startCommand": ".\\scopeledger.ps1 start -Port 5001",
+      "stopCommand": ".\\scopeledger.ps1 stop -Port 5001",
+      "healthUrl": "http://127.0.0.1:5001/projects",
+      "logs": [
+        "logs/scopeledger_backend.out.log",
+        "logs/scopeledger_backend.err.log"
+      ],
+      "ports": [
+        5001
+      ],
+      "suite": "ScopeLedger Dev"
+    }
+  ],
+  "notes": [
+    "Command Center project registry membership is manual from Settings by repository path; this manifest does not register the project by itself.",
+    "The frozen Kevin/client handoff runs from a separate clone on port 5000; this active repo normally uses port 5001 for development.",
+    "CloudHammer_v2 is the active eval-pivot detection subsystem. Frozen real eval pages must not enter training, mining, relabeling, tuning, synthetic backgrounds, or future mining.",
+    "The manifest uses the provisional Command Center V1 shape and should be reviewed when the final schema lands.",
+    "priorityRank is intentionally unset because no explicit numeric rank was source-grounded.",
+    "The previous long-form docs/CURRENT_STATE.md was archived at docs/archive/docs_archive_2026_06_07/docs_folder/CURRENT_STATE.md before replacing it with the Command Center pulse structure."
+  ],
+  "workspacePath": null,
+  "openPathOverride": null
+}

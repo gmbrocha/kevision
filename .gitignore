@@ -1,4 +1,5 @@
 .pytest_cache/
+.pytest-local/
 __pycache__/
 *.pyc
 workspace_demo/
@@ -10,7 +11,10 @@ logs/
 !**/.env.example
 
 # IDE / local agent state
-.cursor/
+.cursor/*
+!.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/project.mdc
 
 # Generated experiment artifacts
 experiments/revision_changelog_preview.xlsx

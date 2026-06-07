@@ -2,6 +2,24 @@
 
 Status: canonical application decision log.
 
+## 2026-06-07 - Command Center V1 Metadata Uses Current-State Pulse
+
+Decision: Add provisional Command Center V1 project metadata and make
+`docs/CURRENT_STATE.md` the short operational project pulse for Command Center
+registration and re-entry.
+
+Reason: Command Center reads `.project-command/project.json` for source-grounded
+project metadata and `docs/CURRENT_STATE.md` for current project state.
+
+Consequences / follow-up:
+
+- The previous long-form current-state file is preserved at
+  `docs/archive/docs_archive_2026_06_07/docs_folder/CURRENT_STATE.md`.
+- Detailed operational queues remain in `docs/NEXT_ACTIONS.md`; durable history
+  belongs in `docs/DECISIONS.md`, `docs/history/`, or archived docs.
+- The manifest is provisional and should be reviewed when Command Center's
+  final schema lands.
+
 ## 2026-05-19 - Historical Scratch Notes Stay Out Of Repo Root
 
 Decision: Preserve the tracked geometry-correction scratch note under
